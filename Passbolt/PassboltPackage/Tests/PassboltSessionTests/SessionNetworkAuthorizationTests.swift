@@ -122,7 +122,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -162,7 +162,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -202,7 +202,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -241,7 +241,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -285,7 +285,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -333,7 +333,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -390,7 +390,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -447,7 +447,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -520,7 +520,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -597,7 +597,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -674,7 +674,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -750,7 +750,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -826,7 +826,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -952,7 +952,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -992,7 +992,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(
@@ -1032,7 +1032,7 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       with: always(.success("fingerprint"))
     )
     patch(
-      \AccountsDataStore.loadServerFingerprint,
+      \ServerFingerprintStorage.loadServerFingerprint,
       with: always("other")
     )
     patch(

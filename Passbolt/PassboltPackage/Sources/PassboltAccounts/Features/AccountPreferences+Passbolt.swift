@@ -35,23 +35,24 @@ extension AccountPreferences {
   ) throws -> Self {
     let account: Account = try features.sessionAccount()
     let accountData: AccountData = try features.instance()
-    let accountsDataStore: AccountsDataStore = try features.instance()
+    let accountProfileStorage: AccountProfileStorage = try features.instance()
+    let accountPassphraseStorage: AccountPassphraseStorage = try features.instance()
     let sessionPassphrase: SessionPassphrase = try features.instance()
 
     @Sendable nonisolated func setLocalAccountLabel(
       _ label: String
     ) throws {
       var profile: AccountProfile =
-        try accountsDataStore
+        try accountProfileStorage
         .loadAccountProfile(account.localID)
       profile.label = label
-      try accountsDataStore
+      try accountProfileStorage
         .updateAccountProfile(profile)
       accountData.updates.update()
     }
 
     @Sendable nonisolated func isPassphraseStored() -> Bool {
-      accountsDataStore.isAccountPassphraseStored(account.localID)
+      accountPassphraseStorage.isAccountPassphraseStored(account.localID)
     }
 
     @Sendable nonisolated func storePassphrase(

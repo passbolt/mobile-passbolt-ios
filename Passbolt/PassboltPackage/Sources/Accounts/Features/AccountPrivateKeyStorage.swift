@@ -21,22 +21,28 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Features
 
-extension FeaturesRegistry {
+/// Storage for account PGP private keys.
+public struct AccountPrivateKeyStorage: Sendable {
 
-  public mutating func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsListStorage()
-    self.usePassboltAccountProfileStorage()
-    self.usePassboltAccountPrivateKeyStorage()
-    self.usePassboltAccountPassphraseStorage()
-    self.usePassboltAccountMFATokenStorage()
-    self.usePassboltServerFingerprintStorage()
-    self.usePassboltAccountInitialSetup()
-    self.usePassboltMetadataDataStore()
+  public var loadAccountPrivateKey: @Sendable (Account.LocalID) throws -> ArmoredPGPPrivateKey
+
+  public init(
+    loadAccountPrivateKey: @escaping @Sendable (Account.LocalID) throws -> ArmoredPGPPrivateKey
+  ) {
+    self.loadAccountPrivateKey = loadAccountPrivateKey
   }
+}
+
+extension AccountPrivateKeyStorage: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      loadAccountPrivateKey: unimplemented1()
+    )
+  }
+  #endif
 }

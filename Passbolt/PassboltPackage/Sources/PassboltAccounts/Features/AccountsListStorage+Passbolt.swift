@@ -27,9 +27,9 @@ import OSFeatures
 import struct Foundation.Data
 import struct Foundation.URL
 
-// MARK: - Implementation (Legacy)
+// MARK: - Implementation
 
-extension AccountsDataStore {
+extension AccountsListStorage {
 
   @MainActor fileprivate static func load(
     features: Features
@@ -284,7 +284,7 @@ extension AccountsDataStore {
           fileName.hasSuffix(".sqlite")
         }
         .map { fileName -> Account.LocalID in
-          var fileName = fileName
+          var fileName: String = fileName
           fileName.removeLast(".sqlite".count)
           return .init(rawValue: fileName)
         }
@@ -332,7 +332,6 @@ extension AccountsDataStore {
     }
 
     @Sendable func loadLastUsedAccount() -> Account? {
-
       preferences
         .load(
           Account.LocalID.self,
@@ -402,149 +401,13 @@ extension AccountsDataStore {
       preferences.save(AccountInitialSetup.SetupElement.allCases, for: "unfinishedSetup-\(account.localID)")
     }
 
-    @Sendable func loadAccountPrivateKey(
-      for accountID: Account.LocalID
-    ) throws -> ArmoredPGPPrivateKey {
-      guard
-        let key: ArmoredPGPPrivateKey =
-          try keychain
-          .loadFirst(
-            ArmoredPGPPrivateKey.self,
-            matching: .accountArmoredKeyQuery(for: accountID)
-          )
-          .get()
-      else {
-        throw
-          AccountPrivateKeyMissing
-          .error()
-          .recording(accountID, for: "accountID")
-      }
-
-      return key
-    }
-
-    @Sendable nonisolated func isPassphraseStored(
-      for accountID: Account.LocalID
-    ) -> Bool {
-      keychain
-        .checkIfExists(
-          matching: .accountPassphraseQuery(for: accountID)
-        )
-    }
-
-    @Sendable nonisolated func storePassphrase(
-      for accountID: Account.LocalID,
-      passphrase: Passphrase
-    ) throws {
-      try keychain
-        .save(
-          passphrase,
-          for: .accountPassphraseQuery(for: accountID)
-        )
-        .get()
-    }
-
-    @Sendable nonisolated func loadPassphrase(
-      for accountID: Account.LocalID
-    ) throws -> Passphrase {
-      // in case of failure we should change flag biometricsEnabled to false and propagate change
-      do {
-        guard
-          let passphrase: Passphrase =
-            try keychain
-            .loadFirst(
-              Passphrase.self,
-              matching: .accountPassphraseQuery(for: accountID)
-            )
-            .get()
-        else {
-          throw
-            AccountBiometryDataChanged
-            .error()
-            .pushing(.message("Failed to load account passphrase"))
-            .recording(accountID, for: "accountID")
-        }
-        return passphrase
-      }
-      catch let error as AccountBiometryDataChanged {
-        throw error
-      }
-      catch {
-        throw
-          error
-          .asTheError()
-          .pushing(.message("Failed to load account passphrase"))
-          .recording(accountID, for: "accountID")
-      }
-    }
-
-    @Sendable nonisolated func deletePassphrase(
-      for accountID: Account.LocalID
-    ) throws {
-      try keychain
-        .delete(matching: .accountPassphraseDeleteQuery(for: accountID))
-        .get()
-    }
-
-    @Sendable func storeAccountMFAToken(
-      accountID: Account.LocalID,
-      token: String
-    ) throws {
-      try keychain
-        .save(token, for: .accountMFATokenQuery(for: accountID))
-        .get()
-    }
-
-    @Sendable func loadAccountMFAToken(
-      accountID: Account.LocalID
-    ) throws -> String? {
-      try keychain
-        .loadFirst(matching: .accountMFATokenQuery(for: accountID))
-        .get()
-    }
-
-    @Sendable func deleteAccountMFAToken(
-      accountID: Account.LocalID
-    ) throws {
-      try keychain
-        .delete(matching: .accountMFATokenQuery(for: accountID))
-        .get()
-    }
-
-    @Sendable func loadAccountProfile(
-      for accountID: Account.LocalID
-    ) throws -> AccountProfile {
-      guard
-        let profile: AccountProfile =
-          try keychain
-          .loadFirst(AccountProfile.self, matching: .accountProfileQuery(for: accountID))
-          .get()
-      else {
-        throw
-          AccountProfileDataMissing
-          .error("Failed to load account profile")
-          .recording(accountID, for: "accountID")
-      }
-
-      return profile
-    }
-
-    @Sendable func update(
-      accountProfile: AccountProfile
-    ) throws {
-      let accountsList: Array<Account.LocalID> =
-        preferences
-        .load(Array<Account.LocalID>.self, for: .accountsList)
-      guard accountsList.contains(accountProfile.accountID)
-      else {
-        throw
-          AccountDataMissing
-          .error("Failed to update account profile")
-          .recording(accountProfile.accountID, for: "accountID")
-      }
-      try keychain
-        .save(accountProfile, for: .accountProfileQuery(for: accountProfile.accountID))
-        .get()
+    // swift-format-ignore: NoLeadingUnderscores
+    @Sendable func _databaseURL(
+      forAccountWithID accountID: Account.LocalID
+    ) throws -> URL {
+      try files
+        .applicationDataDirectory().appendingPathComponent(accountID.rawValue)
+        .appendingPathExtension("sqlite")
     }
 
     @Sendable func deleteAccount(withID accountID: Account.LocalID) {
@@ -621,49 +484,13 @@ extension AccountsDataStore {
       }
     }
 
-    // swift-format-ignore: NoLeadingUnderscores
-    @Sendable func _databaseURL(
-      forAccountWithID accountID: Account.LocalID
-    ) throws -> URL {
-      try files
-        .applicationDataDirectory().appendingPathComponent(accountID.rawValue)
-        .appendingPathExtension("sqlite")
-    }
-
-    @Sendable func storeServerFingerprint(
-      accountID: Account.LocalID,
-      fingerprint: Fingerprint
-    ) throws {
-      try keychain
-        .save(fingerprint, for: .serverFingerprintQuery(for: accountID))
-        .get()
-    }
-
-    @Sendable func loadServerFingerprint(accountID: Account.LocalID) throws -> Fingerprint? {
-      try keychain
-        .loadFirst(Fingerprint.self, matching: .serverFingerprintQuery(for: accountID))
-        .get()
-    }
-
     return Self(
       verifyDataIntegrity: ensureDataIntegrity,
       loadAccounts: loadAccounts,
       loadLastUsedAccount: loadLastUsedAccount,
       storeLastUsedAccount: storeLastUsedAccount(_:),
       storeAccount: store(account:profile:armoredKey:),
-      loadAccountPrivateKey: loadAccountPrivateKey(for:),
-      isAccountPassphraseStored: isPassphraseStored(for:),
-      storeAccountPassphrase: storePassphrase(for:passphrase:),
-      loadAccountPassphrase: loadPassphrase(for:),
-      deleteAccountPassphrase: deletePassphrase(for:),
-      storeAccountMFAToken: storeAccountMFAToken(accountID:token:),
-      loadAccountMFAToken: loadAccountMFAToken(accountID:),
-      deleteAccountMFAToken: deleteAccountMFAToken(accountID:),
-      loadAccountProfile: loadAccountProfile(for:),
-      updateAccountProfile: update(accountProfile:),
-      deleteAccount: deleteAccount(withID:),
-      storeServerFingerprint: storeServerFingerprint(accountID:fingerprint:),
-      loadServerFingerprint: loadServerFingerprint(accountID:)
+      deleteAccount: deleteAccount(withID:)
     )
   }
 }
@@ -757,20 +584,6 @@ extension OSKeychainQuery {
     )
   }
 
-  fileprivate static func accountPassphraseDeleteQuery(
-    for identifier: Account.LocalID
-  ) -> Self {
-    assert(
-      !identifier.rawValue.isEmpty,
-      "Cannot use empty account identifiers for passphrase keychain operations"
-    )
-    return Self(
-      key: "accountPassphrase",
-      tag: .init(rawValue: identifier.rawValue),
-      requiresBiometrics: false
-    )
-  }
-
   fileprivate static func accountMFATokenQuery(
     for identifier: Account.LocalID? = nil
   ) -> Self {
@@ -802,11 +615,11 @@ extension OSKeychainQuery {
 
 extension FeaturesRegistry {
 
-  public mutating func usePassboltAccountsDataStore() {
+  public mutating func usePassboltAccountsListStorage() {
     self.use(
       .lazyLoaded(
-        AccountsDataStore.self,
-        load: AccountsDataStore.load(features:)
+        AccountsListStorage.self,
+        load: AccountsListStorage.load(features:)
       )
     )
   }

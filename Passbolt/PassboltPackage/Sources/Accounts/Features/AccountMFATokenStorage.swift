@@ -21,22 +21,36 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Features
 
-extension FeaturesRegistry {
+/// Storage for account MFA tokens used for "remember this device" functionality.
+public struct AccountMFATokenStorage: Sendable {
 
-  public mutating func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsListStorage()
-    self.usePassboltAccountProfileStorage()
-    self.usePassboltAccountPrivateKeyStorage()
-    self.usePassboltAccountPassphraseStorage()
-    self.usePassboltAccountMFATokenStorage()
-    self.usePassboltServerFingerprintStorage()
-    self.usePassboltAccountInitialSetup()
-    self.usePassboltMetadataDataStore()
+  public var storeAccountMFAToken: @Sendable (Account.LocalID, String) throws -> Void
+  public var loadAccountMFAToken: @Sendable (Account.LocalID) throws -> String?
+  public var deleteAccountMFAToken: @Sendable (Account.LocalID) throws -> Void
+
+  public init(
+    storeAccountMFAToken: @escaping @Sendable (Account.LocalID, String) throws -> Void,
+    loadAccountMFAToken: @escaping @Sendable (Account.LocalID) throws -> String?,
+    deleteAccountMFAToken: @escaping @Sendable (Account.LocalID) throws -> Void
+  ) {
+    self.storeAccountMFAToken = storeAccountMFAToken
+    self.loadAccountMFAToken = loadAccountMFAToken
+    self.deleteAccountMFAToken = deleteAccountMFAToken
   }
+}
+
+extension AccountMFATokenStorage: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      storeAccountMFAToken: unimplemented2(),
+      loadAccountMFAToken: unimplemented1(),
+      deleteAccountMFAToken: unimplemented1()
+    )
+  }
+  #endif
 }

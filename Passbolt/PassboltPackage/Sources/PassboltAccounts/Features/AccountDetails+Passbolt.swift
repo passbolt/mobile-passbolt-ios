@@ -36,7 +36,8 @@ extension AccountDetails {
     features: Features
   ) throws -> Self {
     let account: Account = try features.accountContext()
-    let accountsDataStore: AccountsDataStore = try features.instance()
+    let accountProfileStorage: AccountProfileStorage = try features.instance()
+    let accountPassphraseStorage: AccountPassphraseStorage = try features.instance()
     let accountData: AccountData = try features.instance()
     let userDetailsFetchNetworkOperation: UserDetailsFetchNetworkOperation = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
@@ -45,13 +46,13 @@ extension AccountDetails {
       try AccountWithProfile(
         account: account,
         profile:
-          accountsDataStore
+          accountProfileStorage
           .loadAccountProfile(account.localID)
       )
     }
 
     @Sendable nonisolated func passphraseStored() -> Bool {
-      accountsDataStore.isAccountPassphraseStored(account.localID)
+      accountPassphraseStorage.isAccountPassphraseStored(account.localID)
     }
 
     let userDetailsCache: ComputedVariable<UserDTO> = .init {
@@ -65,7 +66,7 @@ extension AccountDetails {
 
     @Sendable nonisolated func updateProfile() async throws {
       let storedProfile: AccountProfile =
-        try accountsDataStore
+        try accountProfileStorage
         .loadAccountProfile(account.localID)
 
       let userDetails: UserDTO =
@@ -89,7 +90,7 @@ extension AccountDetails {
         avatarImageURL: userDetails.profile?.avatar.urlString ?? storedProfile.avatarImageURL
       )
 
-      try accountsDataStore
+      try accountProfileStorage
         .updateAccountProfile(updatedProfile)
       accountData.updates.update()
     }

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Features
 import NFC
 import NetworkOperations
@@ -54,7 +55,7 @@ extension SessionMFAAuthorization {
   ) throws -> Self {
 
     let sessionState: SessionState = try features.instance()
-    let accountsData: AccountsDataStore = try features.instance()
+    let accountMFATokenStorage: AccountMFATokenStorage = try features.instance()
     let yubiKey: YubiKey = features.instance()
     let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try features.instance()
     let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try features.instance()
@@ -116,7 +117,7 @@ extension SessionMFAAuthorization {
         mfaToken
       )
       if saveLocally {
-        try accountsData
+        try accountMFATokenStorage
           .storeAccountMFAToken(
             account.localID,
             mfaToken.rawValue

@@ -38,7 +38,10 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
     use(SessionState.placeholder)
     use(SessionAuthorizationState.placeholder)
     use(SessionNetworkAuthorization.placeholder)
-    use(AccountsDataStore.placeholder)
+    use(AccountPrivateKeyStorage.placeholder)
+    use(AccountPassphraseStorage.placeholder)
+    use(AccountMFATokenStorage.placeholder)
+    use(AccountsListStorage.placeholder)
     use(OSTime.placeholder)
     use(PGP.placeholder)
   }
@@ -58,7 +61,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_passphrase_throws_whenLoadingPrivateKeyFails() {
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -71,7 +74,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_passphrase_throws_whenVerifyingPassphraseFails() {
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -88,7 +91,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_throws_whenLoadingPassphraseFails() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -101,11 +104,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_throws_whenLoadingPrivateKeyFails() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -118,11 +121,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_throws_whenVerifyingPassphraseFails() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -139,11 +142,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_throws_whenCreatingSessionTokensFail() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -155,7 +158,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.none)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -172,11 +175,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_succeeds_whenCreatingSessionSucceeds() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -188,7 +191,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.none)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -204,7 +207,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     patch(
@@ -223,11 +226,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_storesLastUsedAccount_whenCreatingSessionSucceeds() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -239,7 +242,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.none)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -255,7 +258,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: {
         self.executed(using: $0)
       }
@@ -278,11 +281,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_updatesSessionState_whenCreatingSessionSucceeds() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -294,7 +297,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.none)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always("mfa_token")
     )
     patch(
@@ -310,7 +313,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     let account: UnsafeSendable<Account> = .init(.none)
@@ -356,11 +359,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_enablesSessionLocking_whenCreatingSessionSucceeds() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -372,7 +375,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.none)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -388,7 +391,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     patch(
@@ -407,11 +410,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_fails_whenMFAAuthorizationPending() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -423,7 +426,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -440,7 +443,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mfa(for: .mock_ada, providers: .init()))
     )
     patch(
-      \AccountsDataStore.deleteAccountMFAToken,
+      \AccountMFATokenStorage.deleteAccountMFAToken,
       with: always(Void())
     )
 
@@ -453,11 +456,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_clearsStoredMFA_whenMFAAuthorizationPending() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -469,7 +472,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -486,7 +489,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mfa(for: .mock_ada, providers: .init()))
     )
     patch(
-      \AccountsDataStore.deleteAccountMFAToken,
+      \AccountMFATokenStorage.deleteAccountMFAToken,
       with: self.executed(using:)
     )
 
@@ -500,11 +503,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_succeedsWithoutRequests_whenCurrentTokenIsValid() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -516,7 +519,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -555,11 +558,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_refreshesSession_whenRefreshIsAvailable() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -571,7 +574,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -611,11 +614,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_createsSession_whenRefreshFails() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -627,7 +630,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -663,7 +666,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("refresh_token")
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     patch(
@@ -682,11 +685,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_createsSession_whenRefreshIsUnavailable() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -698,7 +701,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -739,7 +742,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     patch(
@@ -758,7 +761,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_refreshTokens_throws_withoutSession() {
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -770,7 +773,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_frances)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -787,7 +790,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_refreshTokens_updatesSessionState_whenRefreshSucceeds() {
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -799,7 +802,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_frances)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
 
@@ -812,11 +815,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_refreshTokens_createsNewSession_whenRefreshFails() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -828,7 +831,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always(.none)
     )
     patch(
@@ -866,7 +869,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always("refresh_token")
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     patch(
@@ -885,11 +888,11 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
 
   func test_authorize_biometrics_throws_whenCreatingSessionSucceedsWithMFARequired() {
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private_key")
     )
     patch(
@@ -901,7 +904,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(.none)
     )
     patch(
-      \AccountsDataStore.loadAccountMFAToken,
+      \AccountMFATokenStorage.loadAccountMFAToken,
       with: always("mfa_token")
     )
     patch(
@@ -917,7 +920,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       )
     )
     patch(
-      \AccountsDataStore.storeLastUsedAccount,
+      \AccountsListStorage.storeLastUsedAccount,
       with: always(Void())
     )
     patch(
@@ -929,7 +932,7 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       with: always(Void())
     )
     patch(
-      \AccountsDataStore.deleteAccountMFAToken,
+      \AccountMFATokenStorage.deleteAccountMFAToken,
       with: always(Void())
     )
 

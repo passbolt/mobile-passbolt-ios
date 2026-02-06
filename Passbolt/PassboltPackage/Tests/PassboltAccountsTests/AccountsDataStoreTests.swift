@@ -26,12 +26,12 @@ import TestExtensions
 @testable import PassboltAccounts
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
-final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
+final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorage> {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {
-    registry.usePassboltAccountsDataStore()
+    registry.usePassboltAccountsListStorage()
   }
 
   private nonisolated let mockPreferencesStore: WrappedDictionary<OSPreferences.Key, Any> = .init()
@@ -133,9 +133,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.success([validAccountKeychainData]))
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Array<Account> = dataStore.loadAccounts()
+    let result: Array<Account> = storage.loadAccounts()
 
     XCTAssertEqual(result, [.mock_ada])
   }
@@ -146,9 +146,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.success([Data([65, 66, 67]), validAccountKeychainData]))
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Array<Account> = dataStore.loadAccounts()
+    let result: Array<Account> = storage.loadAccounts()
 
     XCTAssertEqual(result, [])
   }
@@ -159,9 +159,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Array<Account> = dataStore.loadAccounts()
+    let result: Array<Account> = storage.loadAccounts()
 
     XCTAssertEqual(result, [])
   }
@@ -176,9 +176,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(Account.mock_ada.localID.rawValue)
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Account? = dataStore.loadLastUsedAccount()
+    let result: Account? = storage.loadLastUsedAccount()
 
     XCTAssertEqual(result, Account.mock_ada)
   }
@@ -193,9 +193,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(Account.mock_ada.localID.rawValue)
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Account? = dataStore.loadLastUsedAccount()
+    let result: Account? = storage.loadLastUsedAccount()
 
     XCTAssertNil(result)
   }
@@ -210,9 +210,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(Account.mock_ada.localID.rawValue)
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Account? = dataStore.loadLastUsedAccount()
+    let result: Account? = storage.loadLastUsedAccount()
 
     XCTAssertNil(result)
   }
@@ -227,9 +227,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(nil)
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    let result: Account? = dataStore.loadLastUsedAccount()
+    let result: Account? = storage.loadLastUsedAccount()
 
     XCTAssertNil(result)
   }
@@ -243,9 +243,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       }
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    dataStore.storeLastUsedAccount(Account.mock_ada.localID)
+    storage.storeLastUsedAccount(Account.mock_ada.localID)
 
     XCTAssertEqual(
       result.get(),
@@ -254,10 +254,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
   }
 
   func test_storeAccount_savesDataProperly() async throws {
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.storeAccount(
+      try storage.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
         validPrivateKey
@@ -281,10 +281,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.storeAccount(
+      try storage.storeAccount(
         Account.mock_ada,
         AccountProfile.mock_ada,
         validPrivateKey
@@ -300,9 +300,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       with: always(.failure(MockIssue.error()))
     )
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    _ = try? dataStore.storeAccount(Account.mock_ada, AccountProfile.mock_ada, validPrivateKey)
+    _ = try? storage.storeAccount(Account.mock_ada, AccountProfile.mock_ada, validPrivateKey)
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -339,9 +339,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       ),
     ])
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    dataStore.deleteAccount(Account.mock_ada.localID)
+    storage.deleteAccount(Account.mock_ada.localID)
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -381,9 +381,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       ),
     ])
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    dataStore.deleteAccount(Account.mock_ada.localID)
+    storage.deleteAccount(Account.mock_ada.localID)
 
     XCTAssertEqual(
       result.get()!.lastPathComponent,
@@ -391,43 +391,11 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
     )
   }
 
-  func test_storeServerFingerprint_savesDataProperly() async throws {
-    let result: CriticalState<Void?> = .init()
-    patch(
-      \OSKeychain.save,
-      with: { _, _ in
-        result.set(Void())
-        return .success
-      }
-    )
-
-    let dataStore: AccountsDataStore = try testedInstance()
-
-    _ = try? dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
-
-    XCTAssertNotNil(result)
-  }
-
-  func test_storeServerFingerprint_failsIfKeychainSaveFails() async throws {
-    patch(
-      \OSKeychain.save,
-      with: always(.failure(MockIssue.error()))
-    )
-
-    let dataStore: AccountsDataStore = try testedInstance()
-
-    let result: Result<Void, Error> = .init(catching: {
-      try dataStore.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
-    })
-
-    XCTAssertFailure(result)
-  }
-
   func test_verifyDataIntegrity_succeedsWithNoData() async throws {
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.verifyDataIntegrity()
+      try storage.verifyDataIntegrity()
     })
 
     XCTAssertSuccess(result)
@@ -453,10 +421,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ])
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.verifyDataIntegrity()
+      try storage.verifyDataIntegrity()
     })
 
     XCTAssertSuccess(result)
@@ -490,9 +458,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ])
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    _ = try? dataStore.verifyDataIntegrity()
+    _ = try? storage.verifyDataIntegrity()
 
     XCTAssertEqual(
       mockPreferencesStore["accountsList"] as? Array<String>,
@@ -524,10 +492,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ])
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.verifyDataIntegrity()
+      try storage.verifyDataIntegrity()
     })
 
     XCTAssertSuccess(result)
@@ -554,10 +522,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       )
     ])
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.verifyDataIntegrity()
+      try storage.verifyDataIntegrity()
     })
 
     XCTAssertSuccess(result)
@@ -584,10 +552,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       )
     ])
 
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.verifyDataIntegrity()
+      try storage.verifyDataIntegrity()
     })
 
     XCTAssertSuccess(result)
@@ -632,9 +600,9 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       ),
     ])
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
-    _ = try? dataStore.verifyDataIntegrity()
+    _ = try? storage.verifyDataIntegrity()
 
     XCTAssertEqual(
       result.get(\.?.lastPathComponent),
@@ -653,10 +621,10 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
         )
       )
     ])
-    let dataStore: AccountsDataStore = try testedInstance()
+    let storage: AccountsListStorage = try testedInstance()
 
     let result: Result<Void, Error> = .init(catching: {
-      try dataStore.verifyDataIntegrity()
+      try storage.verifyDataIntegrity()
     })
 
     XCTAssertSuccess(result)
@@ -664,6 +632,48 @@ final class AccountsDataStoreTests: LoadableFeatureTestCase<AccountsDataStore> {
       mockKeychainStore.map(\.data),
       []
     )
+  }
+}
+
+// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
+final class ServerFingerprintStorageTests: LoadableFeatureTestCase<ServerFingerprintStorage> {
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltServerFingerprintStorage()
+  }
+
+  func test_storeServerFingerprint_savesDataProperly() async throws {
+    let result: CriticalState<Void?> = .init()
+    patch(
+      \OSKeychain.save,
+      with: { _, _ in
+        result.set(Void())
+        return .success
+      }
+    )
+
+    let storage: ServerFingerprintStorage = try testedInstance()
+
+    _ = try? storage.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
+
+    XCTAssertNotNil(result)
+  }
+
+  func test_storeServerFingerprint_failsIfKeychainSaveFails() async throws {
+    patch(
+      \OSKeychain.save,
+      with: always(.failure(MockIssue.error()))
+    )
+
+    let storage: ServerFingerprintStorage = try testedInstance()
+
+    let result: Result<Void, Error> = .init(catching: {
+      try storage.storeServerFingerprint(Account.mock_ada.localID, serverFingerprint)
+    })
+
+    XCTAssertFailure(result)
   }
 }
 

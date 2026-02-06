@@ -46,7 +46,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
         configuration: .mock_1
       )
     )
-    use(AccountsDataStore.placeholder)
+    use(AccountPassphraseStorage.placeholder)
     use(SessionStateEnsurance.placeholder)
   }
 
@@ -92,7 +92,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always("Passphrase")
     )
     patch(
-      \AccountsDataStore.storeAccountPassphrase,
+      \AccountPassphraseStorage.storeAccountPassphrase,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
@@ -112,7 +112,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always("Passphrase")
     )
     patch(
-      \AccountsDataStore.storeAccountPassphrase,
+      \AccountPassphraseStorage.storeAccountPassphrase,
       with: always(Void())
     )
     withTestedInstanceNotThrows { (testedInstance: SessionPassphrase) in
@@ -126,7 +126,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.deleteAccountPassphrase,
+      \AccountPassphraseStorage.deleteAccountPassphrase,
       with: always(Void())
     )
     withTestedInstanceNotThrows { (testedInstance: SessionPassphrase) in
@@ -140,7 +140,7 @@ final class SessionPassphraseTests: LoadableFeatureTestCase<SessionPassphrase> {
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.deleteAccountPassphrase,
+      \AccountPassphraseStorage.deleteAccountPassphrase,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(

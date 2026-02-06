@@ -93,7 +93,7 @@ final class AccountDataExportTests: LoadableFeatureTestCase<AccountDataExport> {
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
@@ -113,7 +113,7 @@ final class AccountDataExportTests: LoadableFeatureTestCase<AccountDataExport> {
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always(AccountTransferData.mock_ada.armoredKey)
     )
     withTestedInstanceReturnsEqual(

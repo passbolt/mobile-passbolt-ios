@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Crypto
 import Features
 import NetworkOperations
@@ -79,7 +80,7 @@ extension SessionNetworkAuthorization {
     features: Features
   ) throws -> Self {
 
-    let accountData: AccountsDataStore = try features.instance()
+    let serverFingerprintStorage: ServerFingerprintStorage = try features.instance()
     let time: OSTime = features.instance()
     let pgp: PGP = features.instance()
     let uuidGenerator: UUIDGenerator = features.instance()
@@ -151,7 +152,9 @@ extension SessionNetworkAuthorization {
           .recording(error, for: "underlyingError")
       }
 
-      if let storedServerFingerprint: Fingerprint = try accountData.loadServerFingerprint(account.localID) {
+      if let storedServerFingerprint: Fingerprint = try serverFingerprintStorage.loadServerFingerprint(
+        account.localID
+      ) {
         let keysMatch: Bool =
           try pgp
           .verifyPublicKeyFingerprint(
@@ -173,7 +176,7 @@ extension SessionNetworkAuthorization {
         }
       }
       else {
-        try accountData
+        try serverFingerprintStorage
           .storeServerFingerprint(
             account.localID,
             serverFingerprint
