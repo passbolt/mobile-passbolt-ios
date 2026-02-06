@@ -21,22 +21,32 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Features
 
-extension FeaturesRegistry {
+/// Storage for account profile data (username, name, avatar URL, etc.).
+public struct AccountProfileStorage: Sendable {
 
-  public mutating func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsListStorage()
-    self.usePassboltAccountProfileStorage()
-    self.usePassboltAccountPrivateKeyStorage()
-    self.usePassboltAccountPassphraseStorage()
-    self.usePassboltAccountMFATokenStorage()
-    self.usePassboltServerFingerprintStorage()
-    self.usePassboltAccountInitialSetup()
-    self.usePassboltMetadataDataStore()
+  public var loadAccountProfile: @Sendable (Account.LocalID) throws -> AccountProfile
+  public var updateAccountProfile: @Sendable (AccountProfile) throws -> Void
+
+  public init(
+    loadAccountProfile: @escaping @Sendable (Account.LocalID) throws -> AccountProfile,
+    updateAccountProfile: @escaping @Sendable (AccountProfile) throws -> Void
+  ) {
+    self.loadAccountProfile = loadAccountProfile
+    self.updateAccountProfile = updateAccountProfile
   }
+}
+
+extension AccountProfileStorage: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      loadAccountProfile: unimplemented1(),
+      updateAccountProfile: unimplemented1()
+    )
+  }
+  #endif
 }

@@ -51,12 +51,12 @@ public final class ServerFingerprintInvalidViewController: ViewController {
   private let context: Context
 
   private let navigationToSelf: NavigationToServerFingerprintInvalid
-  private let accountsDataStore: AccountsDataStore
+  private let serverFingerprintStorage: ServerFingerprintStorage
 
   public init(context: Context, features: Features) throws {
     self.context = context
     self.navigationToSelf = try features.instance()
-    self.accountsDataStore = try features.instance()
+    self.serverFingerprintStorage = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -71,7 +71,7 @@ public final class ServerFingerprintInvalidViewController: ViewController {
       return
     }
     do {
-      try accountsDataStore.storeServerFingerprint(
+      try serverFingerprintStorage.storeServerFingerprint(
         context.accountID,
         fingerprint
       )

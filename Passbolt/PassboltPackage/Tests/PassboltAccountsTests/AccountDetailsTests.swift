@@ -42,7 +42,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_avatarImage_returnsNone_whenLoadingProfileFails() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -53,7 +53,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_avatarImage_returnsNone_whenMediaDownloadFails() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: always(.mock_ada)
     )
     patch(
@@ -68,7 +68,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_avatarImage_returnsData_whenMediaDownloadSucceeds() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: always(.mock_ada)
     )
     patch(
@@ -83,7 +83,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_isPassphraseStored_returnsTrue_whenAccountDataStoresPassphrase() async {
     patch(
-      \AccountsDataStore.isAccountPassphraseStored,
+      \AccountPassphraseStorage.isAccountPassphraseStored,
       with: always(true)
     )
 
@@ -94,7 +94,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_isPassphraseStored_returnsFalse_whenAccountDataDoesNotStirePassphrase() async {
     patch(
-      \AccountsDataStore.isAccountPassphraseStored,
+      \AccountPassphraseStorage.isAccountPassphraseStored,
       with: always(false)
     )
 
@@ -127,7 +127,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_profile_fails_whenLoadingProfileDataFails() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -138,7 +138,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_profile_loadsStoredProfile() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: always(.mock_ada)
     )
 
@@ -149,7 +149,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_updateProfile_throws_whenFetchingDataFails() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -160,7 +160,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_updateProfile_throws_whenFetchingProfileUpdateFails() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: always(.mock_ada)
     )
     patch(
@@ -175,7 +175,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_updateProfile_throws_whenStoringProfileUpdateFails() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: always(.mock_ada)
     )
     patch(
@@ -183,11 +183,11 @@ final class AccountDetailsTests: FeaturesTestCase {
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.updateAccountProfile,
+      \AccountProfileStorage.updateAccountProfile,
       with: alwaysThrow(MockIssue.error())
     )
     patch(
-      \AccountsDataStore.updateAccountProfile,
+      \AccountProfileStorage.updateAccountProfile,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -198,7 +198,7 @@ final class AccountDetailsTests: FeaturesTestCase {
 
   func test_updateProfile_succeeds_whenStoringProfileUpdateSucceeds() async {
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: always(.mock_ada)
     )
     patch(
@@ -206,11 +206,11 @@ final class AccountDetailsTests: FeaturesTestCase {
       with: always(.mock_ada)
     )
     patch(
-      \AccountsDataStore.updateAccountProfile,
+      \AccountProfileStorage.updateAccountProfile,
       with: alwaysThrow(MockIssue.error())
     )
     patch(
-      \AccountsDataStore.updateAccountProfile,
+      \AccountProfileStorage.updateAccountProfile,
       with: always(Void())
     )
 

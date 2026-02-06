@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Crypto
 import Features
 import NetworkOperations
@@ -57,7 +58,10 @@ extension SessionAuthorization {
 
     let sessionState: SessionState = try features.instance()
     let sessionNetworkAuthorization: SessionNetworkAuthorization = try features.instance()
-    let accountsData: AccountsDataStore = try features.instance()
+    let accountPrivateKeyStorage: AccountPrivateKeyStorage = try features.instance()
+    let accountPassphraseStorage: AccountPassphraseStorage = try features.instance()
+    let accountMFATokenStorage: AccountMFATokenStorage = try features.instance()
+    let accountsListStorage: AccountsListStorage = try features.instance()
     let pgp: PGP = features.instance()
     let osTime: OSTime = features.instance()
 
@@ -76,7 +80,7 @@ extension SessionAuthorization {
 
       case .passphrase(let account, let passphrase):
         let privateKey: ArmoredPGPPrivateKey =
-          try accountsData
+          try accountPrivateKeyStorage
           .loadAccountPrivateKey(account.localID)
 
         try verifyPassphrase(passphrase, forKey: privateKey)
@@ -89,10 +93,10 @@ extension SessionAuthorization {
 
       case .biometrics(let account):
         let passphrase: Passphrase =
-          try accountsData
+          try accountPassphraseStorage
           .loadAccountPassphrase(account.localID)
         let privateKey: ArmoredPGPPrivateKey =
-          try accountsData
+          try accountPrivateKeyStorage
           .loadAccountPrivateKey(account.localID)
 
         try verifyPassphrase(passphrase, forKey: privateKey)
@@ -161,7 +165,7 @@ extension SessionAuthorization {
     @SessionActor func storedMFAToken(
       for account: Account
     ) -> SessionMFAToken? {
-      try? accountsData
+      try? accountMFATokenStorage
         .loadAccountMFAToken(account.localID)
         .map(SessionMFAToken.init(rawValue:))
     }
@@ -197,7 +201,7 @@ extension SessionAuthorization {
       mfaToken: SessionMFAToken?,
       mfaRequiredWithProviders mfaProviders: Array<SessionMFAProvider>
     ) async {
-      accountsData
+      accountsListStorage
         .storeLastUsedAccount(account.localID)
       sessionState.createdSession(
         account,
@@ -377,7 +381,7 @@ extension SessionAuthorization {
       }
       catch let error as SessionMFAAuthorizationRequired {
         // ignoring error
-        try? accountsData
+        try? accountMFATokenStorage
           .deleteAccountMFAToken(error.account.localID)
         throw error
       }
@@ -462,7 +466,7 @@ extension SessionAuthorization {
       }
       catch let error as SessionMFAAuthorizationRequired {
         // ignoring error
-        try? accountsData
+        try? accountMFATokenStorage
           .deleteAccountMFAToken(error.account.localID)
         sessionState.mfaTokenInvalidate()
         throw error

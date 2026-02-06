@@ -21,22 +21,32 @@
 // @since         v1.0
 //
 
+import CommonModels
 import Features
 
-extension FeaturesRegistry {
+/// Storage for server PGP public key fingerprints used to verify server identity.
+public struct ServerFingerprintStorage: Sendable {
 
-  public mutating func usePassboltAccountsModule() {
-    self.usePassboltAccountData()
-    self.usePassboltAccountDetails()
-    self.usePassboltAccountPreferences()
-    self.usePassboltAccounts()
-    self.usePassboltAccountsListStorage()
-    self.usePassboltAccountProfileStorage()
-    self.usePassboltAccountPrivateKeyStorage()
-    self.usePassboltAccountPassphraseStorage()
-    self.usePassboltAccountMFATokenStorage()
-    self.usePassboltServerFingerprintStorage()
-    self.usePassboltAccountInitialSetup()
-    self.usePassboltMetadataDataStore()
+  public var storeServerFingerprint: @Sendable (Account.LocalID, Fingerprint) throws -> Void
+  public var loadServerFingerprint: @Sendable (Account.LocalID) throws -> Fingerprint?
+
+  public init(
+    storeServerFingerprint: @escaping @Sendable (Account.LocalID, Fingerprint) throws -> Void,
+    loadServerFingerprint: @escaping @Sendable (Account.LocalID) throws -> Fingerprint?
+  ) {
+    self.storeServerFingerprint = storeServerFingerprint
+    self.loadServerFingerprint = loadServerFingerprint
   }
+}
+
+extension ServerFingerprintStorage: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    Self(
+      storeServerFingerprint: unimplemented2(),
+      loadServerFingerprint: unimplemented1()
+    )
+  }
+  #endif
 }

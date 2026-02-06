@@ -22,56 +22,69 @@
 //
 
 import Accounts
-import FeatureScopes
-import Session
+import OSFeatures
 
 // MARK: - Implementation
 
-extension SessionPassphrase {
+extension AccountPrivateKeyStorage {
 
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-    let account: Account = try features.sessionAccount()
-    let sessionState: SessionState = try features.instance()
-    let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
-    let accountPassphraseStorage: AccountPassphraseStorage = try features.instance()
+    let keychain: OSKeychain = features.instance()
 
-    @SessionActor @Sendable func storeWithBiometry(
-      _ store: Bool
-    ) async throws {
-      guard let currentAccount: Account = sessionState.account()
-      else { throw SessionMissing.error() }
-
-      guard currentAccount == account
-      else { throw SessionClosed.error(account: account) }
-
-      if store {
-        let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
-
-        return try accountPassphraseStorage.storeAccountPassphrase(account.localID, passphrase)
-      }
+    @Sendable func loadAccountPrivateKey(
+      for accountID: Account.LocalID
+    ) throws -> ArmoredPGPPrivateKey {
+      guard
+        let key: ArmoredPGPPrivateKey =
+          try keychain
+          .loadFirst(
+            ArmoredPGPPrivateKey.self,
+            matching: .accountArmoredKeyQuery(for: accountID)
+          )
+          .get()
       else {
-        return try accountPassphraseStorage.deleteAccountPassphrase(account.localID)
+        throw
+          AccountPrivateKeyMissing
+          .error()
+          .recording(accountID, for: "accountID")
       }
+
+      return key
     }
 
     return Self(
-      storeWithBiometry: storeWithBiometry(_:)
+      loadAccountPrivateKey: loadAccountPrivateKey(for:)
+    )
+  }
+}
+
+extension OSKeychainQuery {
+
+  fileprivate static func accountArmoredKeyQuery(
+    for identifier: Account.LocalID
+  ) -> Self {
+    assert(
+      !identifier.rawValue.isEmpty,
+      "Cannot use empty account identifiers for private key keychain operations"
+    )
+    return Self(
+      key: "accountArmoredKey",
+      tag: .init(rawValue: identifier.rawValue),
+      requiresBiometrics: false
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func usePassboltSessionPassphrase() {
+  public mutating func usePassboltAccountPrivateKeyStorage() {
     self.use(
-      .disposable(
-        SessionPassphrase.self,
-        load: SessionPassphrase
-          .load(features:)
-      ),
-      in: SessionScope.self
+      .lazyLoaded(
+        AccountPrivateKeyStorage.self,
+        load: AccountPrivateKeyStorage.load(features:)
+      )
     )
   }
 }

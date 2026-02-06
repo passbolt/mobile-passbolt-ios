@@ -50,7 +50,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
     use(Session.placeholder)
     use(SessionStateEnsurance.placeholder)
     use(SessionAuthorizationState.placeholder)
-    use(AccountsDataStore.placeholder)
+    use(AccountPrivateKeyStorage.placeholder)
     use(PGP.placeholder)
   }
 
@@ -64,7 +64,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
     patch(
@@ -87,7 +87,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
     patch(
@@ -110,7 +110,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
     patch(
@@ -133,7 +133,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -178,7 +178,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
     patch(
@@ -201,7 +201,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
     patch(
@@ -229,7 +229,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: alwaysThrow(MockIssue.error())
     )
 
@@ -274,7 +274,7 @@ final class SessionCryptographyTests: LoadableFeatureTestCase<SessionCryptograph
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("privatePGPKey")
     )
   }

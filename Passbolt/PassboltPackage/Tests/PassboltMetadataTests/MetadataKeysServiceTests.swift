@@ -492,11 +492,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       with: always([.init(userID: .mock_ada, publicKey: "public key")])
     )
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private key")
     )
     patch(
@@ -659,11 +659,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       with: always([.init(userID: .mock_ada, publicKey: "public key")])
     )
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private key")
     )
     patch(
@@ -736,11 +736,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       with: always([.init(userID: .mock_ada, publicKey: "public key")])
     )
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private key")
     )
     patch(
@@ -814,11 +814,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       with: always([.init(userID: .mock_ada, publicKey: "public key")])
     )
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private key")
     )
     patch(
@@ -895,11 +895,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       }
     )
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private key")
     )
 
@@ -980,11 +980,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       with: always([.init(userID: .mock_ada, publicKey: "public key")])
     )
     patch(
-      \AccountsDataStore.loadAccountPassphrase,
+      \AccountPassphraseStorage.loadAccountPassphrase,
       with: always("passphrase")
     )
     patch(
-      \AccountsDataStore.loadAccountPrivateKey,
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
       with: always("private key")
     )
     patch(

@@ -22,56 +22,64 @@
 //
 
 import Accounts
-import FeatureScopes
-import Session
+import OSFeatures
 
 // MARK: - Implementation
 
-extension SessionPassphrase {
+extension ServerFingerprintStorage {
 
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-    let account: Account = try features.sessionAccount()
-    let sessionState: SessionState = try features.instance()
-    let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
-    let accountPassphraseStorage: AccountPassphraseStorage = try features.instance()
+    let keychain: OSKeychain = features.instance()
 
-    @SessionActor @Sendable func storeWithBiometry(
-      _ store: Bool
-    ) async throws {
-      guard let currentAccount: Account = sessionState.account()
-      else { throw SessionMissing.error() }
+    @Sendable func storeServerFingerprint(
+      accountID: Account.LocalID,
+      fingerprint: Fingerprint
+    ) throws {
+      try keychain
+        .save(fingerprint, for: .serverFingerprintQuery(for: accountID))
+        .get()
+    }
 
-      guard currentAccount == account
-      else { throw SessionClosed.error(account: account) }
-
-      if store {
-        let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
-
-        return try accountPassphraseStorage.storeAccountPassphrase(account.localID, passphrase)
-      }
-      else {
-        return try accountPassphraseStorage.deleteAccountPassphrase(account.localID)
-      }
+    @Sendable func loadServerFingerprint(accountID: Account.LocalID) throws -> Fingerprint? {
+      try keychain
+        .loadFirst(Fingerprint.self, matching: .serverFingerprintQuery(for: accountID))
+        .get()
     }
 
     return Self(
-      storeWithBiometry: storeWithBiometry(_:)
+      storeServerFingerprint: storeServerFingerprint(accountID:fingerprint:),
+      loadServerFingerprint: loadServerFingerprint(accountID:)
+    )
+  }
+}
+
+extension OSKeychainQuery {
+
+  fileprivate static func serverFingerprintQuery(
+    for identifier: Account.LocalID
+  ) -> Self {
+    assert(
+      !identifier.rawValue.isEmpty,
+      "Cannot use empty account identifiers for database operations"
+    )
+    return Self(
+      key: "serverFingerprint",
+      tag: .init(rawValue: identifier.rawValue),
+      requiresBiometrics: false
     )
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func usePassboltSessionPassphrase() {
+  public mutating func usePassboltServerFingerprintStorage() {
     self.use(
-      .disposable(
-        SessionPassphrase.self,
-        load: SessionPassphrase
-          .load(features:)
-      ),
-      in: SessionScope.self
+      .lazyLoaded(
+        ServerFingerprintStorage.self,
+        load: ServerFingerprintStorage.load(features:)
+      )
     )
   }
 }
