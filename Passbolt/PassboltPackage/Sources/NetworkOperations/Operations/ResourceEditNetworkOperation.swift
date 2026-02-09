@@ -78,6 +78,17 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     self.expired = expired
   }
 
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(self.parentFolderID, forKey: .parentFolderID)
+    try container.encode(self.resourceTypeID, forKey: .resourceTypeID)
+    try container.encode(self.metadata, forKey: .metadata)
+    try container.encode(self.metadataKeyID, forKey: .metadataKeyID)
+    try container.encode(self.metadataKeyType, forKey: .metadataKeyType)
+    try container.encode(self.secrets, forKey: .secrets)
+    try container.encode(self.expired, forKey: .expired)
+  }
+
   public enum CodingKeys: String, CodingKey {
 
     case parentFolderID = "folder_parent_id"
