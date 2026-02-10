@@ -900,6 +900,12 @@ extension ResourceSpecification.Slug {
       return [
         \.secret.description
       ]
+    case .password:
+      return [
+        \.meta.uris.0,
+        \.meta.username,
+        \.secret,
+      ]
     default:
       return [
         \.meta.uris.0,
