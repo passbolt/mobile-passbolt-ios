@@ -30,11 +30,10 @@ import UIKit
 @objc(RootViewController)
 @MainActor internal final class RootViewController: ASCredentialProviderViewController {
 
-  @MainActor private lazy var applicationExtension: ApplicationExtension = .init(rootViewController: self)
-
   @MainActor internal init() {
     super.init(nibName: nil, bundle: nil)
-    self.applicationExtension.initialize()
+    ApplicationExtension.shared.updateRootViewController(self)
+    ApplicationExtension.shared.initialize()
   }
 
   @available(*, unavailable)
@@ -44,8 +43,8 @@ import UIKit
 
   override func viewDidLoad() {
     super.viewDidLoad()
-    let placeholderViewController = UIViewController()
-    let navigationController = UINavigationController(rootViewController: placeholderViewController)
+    let placeholderViewController: UIViewController = UIViewController()
+    let navigationController: UINavigationController = UINavigationController(rootViewController: placeholderViewController)
     navigationController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     navigationController.view.frame = view.bounds
     addChild(navigationController)
@@ -56,14 +55,14 @@ import UIKit
   @MainActor override internal func prepareCredentialList(
     for serviceIdentifiers: Array<ASCredentialServiceIdentifier>
   ) {
-    self.applicationExtension
+    ApplicationExtension.shared
       .requestSuggestions(for: serviceIdentifiers)
-    self.applicationExtension
+    ApplicationExtension.shared
       .prepareCredentialList()
   }
 
   @MainActor override internal func prepareInterfaceForExtensionConfiguration() {
-    self.applicationExtension
+    ApplicationExtension.shared
       .prepareInterfaceForExtensionConfiguration()
   }
 }
