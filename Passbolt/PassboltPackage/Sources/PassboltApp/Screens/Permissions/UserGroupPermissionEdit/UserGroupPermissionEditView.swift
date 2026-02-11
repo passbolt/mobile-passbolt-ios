@@ -158,6 +158,11 @@ internal struct UserGroupPermissionEditView: ControlledView {
                     : .circleUnselected
                 )
                 .resizable()
+                .foregroundStyle(
+                  state.permission == permission
+                    ? Color.passboltPrimaryBlue
+                    : Color.passboltIcon
+                )
                 .frame(width: 20, height: 20)
                 .padding(4)
               }
