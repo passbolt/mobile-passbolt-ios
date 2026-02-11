@@ -67,6 +67,7 @@ internal struct UserGroupMembersListView: ControlledView {
     }
     .fixedSize(horizontal: false, vertical: true)
     .zIndex(1)
+    .useCustomBackButton()
   }
 
   @ViewBuilder private var contentView: some View {
