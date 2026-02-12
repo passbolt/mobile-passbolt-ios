@@ -33,90 +33,75 @@ internal final class PermissionUsersAndGroupsSearchViewController: @MainActor Vi
 
   internal struct ViewState: Equatable {
 
-    internal var searchText: String
-    internal var selectedItems: Array<OverlappingAvatarStackView.Item>
-    internal var listSelectionRowViewModels: Array<SelectionRowViewModel>
-    internal var listExistingRowViewModels: Array<ExistingPermissionRowViewModel>
+    internal var searchText: String = .empty
+    internal var selectedItems: Array<OverlappingAvatarStackView.Item> = .init()
+    internal var listSelectionRowViewModels: Array<SelectionRowViewModel> = .init()
+    internal var listExistingRowViewModels: Array<ExistingPermissionRowViewModel> = .init()
   }
 
   internal let viewState: ViewStateSource<ViewState>
-  internal var searchText: Variable<String>
 
   private let resourceShareForm: ResourceShareForm
   private let users: Users
+  private let userGroups: UserGroups
   private let navigationToSelf: NavigationToPermissionUsersAndGroupsSearch
+  private var searchTask: Task<Void, Never>? = .none
 
   internal init(context: Resource.ID, features: Features) throws {
     self.navigationToSelf = try features.instance()
-    let resourceShareForm: ResourceShareForm = try features.instance()
-    self.resourceShareForm = resourceShareForm
-    let users: Users = try features.instance()
-    self.users = users
-    let userGroups: UserGroups = try features.instance()
-    let searchText: Variable<String> = .init(initial: .empty)
+    self.resourceShareForm = try features.instance()
+    self.users = try features.instance()
+    self.userGroups = try features.instance()
+    self.viewState = .init(initial: .init())
+    self.updateSearchText(.empty)
+  }
 
-    @Sendable func loadAvatar(for userID: User.ID) async -> Data? {
+  internal func updateSearchText(_ newText: String) {
+    self.viewState.update(\.searchText, to: newText)
+    searchTask?.cancel()
+    searchTask = .init { [weak self] in
+      guard let self else { return }
+      let matchingUserGroups: Array<UserGroupDetailsDSV>
+      let matchingUsers: Array<UserDetailsDSV>
+
       do {
-        return try await users.userAvatarImage(userID)
+        matchingUsers =
+          try await users
+          .filteredUsers(.init(text: newText))
+        matchingUserGroups =
+          try await userGroups
+          .filteredUserGroups(.init(userID: .none, text: newText))
       }
       catch {
-        error.logged()
-        return nil
+        return error.consume()
+      }
+      let existingPermissions: OrderedSet<ResourcePermission> =
+        await resourceShareForm
+        .currentPermissions()
+
+      let selectableUsersAndGroups: Array<SelectionRowViewModel> =
+        matchingUserGroups
+        .asSelectableItems(existingPermissions: existingPermissions)
+        + matchingUsers
+        .asSelectableItems(
+          existingPermissions: existingPermissions,
+          avatarLoader: loadAvatar(for:)
+        )
+
+      let existingUsersAndGroupsPermissions: Array<ExistingPermissionRowViewModel> =
+        matchingUserGroups
+        .asExistingItems(existingPermissions: existingPermissions)
+
+        + matchingUsers
+        .asExistingItems(
+          existingPermissions: existingPermissions,
+          avatarLoader: loadAvatar(for:)
+        )
+      self.viewState.update { state in
+        state.listSelectionRowViewModels = selectableUsersAndGroups
+        state.listExistingRowViewModels = existingUsersAndGroupsPermissions
       }
     }
-
-    self.viewState = .init(
-      initial: .init(
-        searchText: .empty,
-        selectedItems: .init(),
-        listSelectionRowViewModels: .init(),
-        listExistingRowViewModels: .init()
-      ),
-      updateFrom: searchText.asAnyUpdatable(),
-      update: { update, searchText in
-        let matchingUserGroups: Array<UserGroupDetailsDSV>
-        let matchingUsers: Array<UserDetailsDSV>
-
-        do {
-          matchingUsers =
-            try await users
-            .filteredUsers(.init(text: searchText.value))
-          matchingUserGroups =
-            try await userGroups
-            .filteredUserGroups(.init(userID: .none, text: searchText.value))
-        }
-        catch {
-          return error.consume()
-        }
-        let existingPermissions: OrderedSet<ResourcePermission> =
-          await resourceShareForm
-          .currentPermissions()
-
-        let selectableUsersAndGroups: Array<SelectionRowViewModel> =
-          matchingUserGroups
-          .asSelectableItems(existingPermissions: existingPermissions)
-          + matchingUsers
-          .asSelectableItems(
-            existingPermissions: existingPermissions,
-            avatarLoader: loadAvatar(for:)
-          )
-
-        let existingUsersAndGroupsPermissions: Array<ExistingPermissionRowViewModel> =
-          matchingUserGroups
-          .asExistingItems(existingPermissions: existingPermissions)
-
-          + matchingUsers
-          .asExistingItems(
-            existingPermissions: existingPermissions,
-            avatarLoader: loadAvatar(for:)
-          )
-        update { state in
-          state.listSelectionRowViewModels = selectableUsersAndGroups
-          state.listExistingRowViewModels = existingUsersAndGroupsPermissions
-        }
-      }
-    )
-    self.searchText = searchText
   }
 
   @Sendable internal func activate() async {
@@ -280,16 +265,6 @@ extension PermissionUsersAndGroupsSearchViewController {
         return "userGroup-\(model.id)"
       }
     }
-  }
-}
-
-extension Variable {
-
-  var binding: Binding<Value> {
-    Binding(
-      get: { self.value },
-      set: { self.value = $0 }
-    )
   }
 }
 

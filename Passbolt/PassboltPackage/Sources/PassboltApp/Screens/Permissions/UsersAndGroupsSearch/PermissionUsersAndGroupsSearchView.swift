@@ -58,7 +58,7 @@ internal struct PermissionUsersAndGroupsSearchView: ControlledView {
         prompt: .localized(
           key: "resource.permission.edit.user.and.group.search.prompt"
         ),
-        text: self.controller.searchText.binding
+        text: binding(to: \.searchText, updating: self.controller.updateSearchText)
       )
       .padding(
         top: 0,
@@ -87,6 +87,7 @@ internal struct PermissionUsersAndGroupsSearchView: ControlledView {
             key: "generic.user.search.list.empty"
           )
         )
+        .padding(.horizontal, -16)
       }
       else {
         List {
