@@ -178,6 +178,10 @@ extension AuthorizationViewController {
     catch is CancellationError {
       // no-op, not an error
     }
+    catch let error as SessionMFAAuthorizationRequired {
+      // do not show error message, just log as user will be redirected to MFA screen
+      error.logged()
+    }
     catch {
       SnackBarMessageEvent.send(.error(error))
       error.logged()
