@@ -1153,6 +1153,286 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       testedInstance.determineKeyType(true)
     XCTAssertNil(keyType, "Key should be nil")
   }
+
+  // MARK: - ensureCanEncrypt Tests
+
+  func testEnsureCanEncrypt_whenMetadataDisabled_shouldNotThrow() async throws {
+    // Setup: SessionConfiguration with metadata.enabled = false (default mock_1), v5 resource
+    // The default test setup uses mock_1 which has metadata.enabled = false
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_v5_default,
+      permission: .owner,
+      permissions: [.user(id: .mock_ada, permission: .owner, permissionID: .init())]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+
+    // Should not throw because metadata is disabled - early return
+    try await testedInstance.ensureCanEncrypt(resource: resource)
+  }
+
+  func testEnsureCanEncrypt_whenResourceIsV4Type_shouldNotThrow() async throws {
+    // Setup: SessionConfiguration with metadata.enabled = true, v4 resource
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_default,  // .passwordWithDescription is a v4 type
+      permission: .owner,
+      permissions: [.user(id: .mock_ada, permission: .owner, permissionID: .init())]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+
+    // Should not throw because resource is v4 type - early return
+    try await testedInstance.ensureCanEncrypt(resource: resource)
+  }
+
+  func testEnsureCanEncrypt_whenResourceIsTOTPType_shouldNotThrow() async throws {
+    // Setup: SessionConfiguration with metadata.enabled = true, totp resource (v4 type)
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_totp,  // .totp is a v4 type
+      permission: .owner,
+      permissions: [.user(id: .mock_ada, permission: .owner, permissionID: .init())]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+
+    // Should not throw because resource is v4 type - early return
+    try await testedInstance.ensureCanEncrypt(resource: resource)
+  }
+
+  func testEnsureCanEncrypt_whenV5ResourceAndMetadataEnabled_andNoSharedKey_shouldThrow() async throws {
+    // Setup: SessionConfiguration with metadata.enabled = true, v5 resource, no shared keys
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(
+        .init(
+          allowUsageOfPersonalKeys: false,
+          zeroKnowledgeKeyShare: false
+        )
+      )
+    )
+
+    // Shared resource (non-owner permission)
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_v5_default,
+      permission: .read,
+      permissions: [
+        .user(id: .mock_ada, permission: .read, permissionID: .init()),
+        .user(id: .mock_1, permission: .owner, permissionID: .init()),
+      ]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    // Should throw MetadataEncryptionKeyUnavailableError
+    asyncTestThrows(
+      MetadataEncryptionKeyUnavailableError.self,
+      test: {
+        try await testedInstance.ensureCanEncrypt(resource: resource)
+      }
+    )
+  }
+
+  func testEnsureCanEncrypt_whenV5ResourceAndMetadataEnabled_andSharedKeyAvailable_shouldNotThrow() async throws {
+    // Setup: SessionConfiguration with metadata.enabled = true, v5 resource, shared key available
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    let metadataKey = MetadataKeyDTO.mock
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([metadataKey])
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(
+        .init(
+          allowUsageOfPersonalKeys: false,
+          zeroKnowledgeKeyShare: false
+        )
+      )
+    )
+
+    // Shared resource
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_v5_default,
+      permission: .read,
+      permissions: [
+        .user(id: .mock_ada, permission: .read, permissionID: .init()),
+        .user(id: .mock_1, permission: .owner, permissionID: .init()),
+      ]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    // Should not throw because shared key is available
+    try await testedInstance.ensureCanEncrypt(resource: resource)
+  }
+
+  func testEnsureCanEncrypt_whenV5ResourceIsShared_andNoSharedKey_shouldThrow() async throws {
+    // Setup: v5 shared resource, no shared keys, metadata enabled
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(
+        .init(
+          allowUsageOfPersonalKeys: true,
+          zeroKnowledgeKeyShare: false
+        )
+      )
+    )
+
+    // Owner resource but with multiple permissions (shared)
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_v5_default,
+      permission: .owner,
+      permissions: [
+        .user(id: .mock_ada, permission: .owner, permissionID: .init()),
+        .user(id: .mock_1, permission: .read, permissionID: .init()),
+      ]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    // Should throw because resource is shared and no shared key is available
+    asyncTestThrows(
+      MetadataEncryptionKeyUnavailableError.self,
+      test: {
+        try await testedInstance.ensureCanEncrypt(resource: resource)
+      }
+    )
+  }
+
+  func testEnsureCanEncrypt_whenPersonalKeysAllowed_andResourceNotShared_shouldNotThrow() async throws {
+    // Setup: v5 non-shared resource, personal keys allowed, metadata enabled
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(
+        .init(
+          allowUsageOfPersonalKeys: true,
+          zeroKnowledgeKeyShare: false
+        )
+      )
+    )
+
+    // Non-shared resource (owner with single permission)
+    let resource: Resource = .init(
+      id: .mock_1,
+      type: .mock_v5_default,
+      permission: .owner,
+      permissions: [.user(id: .mock_ada, permission: .owner, permissionID: .init())]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    // Should not throw because personal keys are allowed and resource is not shared
+    try await testedInstance.ensureCanEncrypt(resource: resource)
+  }
+
+  func testEnsureCanEncrypt_whenResourceInSharedFolder_andNoSharedKey_shouldThrow() async throws {
+    // Setup: v5 resource in shared folder, no shared keys, metadata enabled
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(
+        .init(
+          allowUsageOfPersonalKeys: true,
+          zeroKnowledgeKeyShare: false
+        )
+      )
+    )
+
+    // Resource in shared folder
+    let resource: Resource = .init(
+      id: .mock_1,
+      path: [.init(id: .mock_1, name: "Shared Folder", shared: true)],
+      type: .mock_v5_default,
+      permission: .owner,
+      permissions: [.user(id: .mock_ada, permission: .owner, permissionID: .init())]
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    // Should throw because folder is shared and no shared key is available
+    asyncTestThrows(
+      MetadataEncryptionKeyUnavailableError.self,
+      test: {
+        try await testedInstance.ensureCanEncrypt(resource: resource)
+      }
+    )
+  }
 }
 
 private struct MetadataPinnedKeyMock {

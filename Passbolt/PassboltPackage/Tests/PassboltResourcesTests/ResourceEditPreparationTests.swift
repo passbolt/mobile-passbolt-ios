@@ -47,8 +47,8 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
       with: always(.init(defaultResourceTypes: .v4))
     )
     patch(
-      \MetadataKeysService.determineKeyType,
-      with: always(.userKey)
+      \MetadataKeysService.ensureCanEncrypt,
+      with: always(())
     )
   }
 
@@ -209,95 +209,5 @@ final class ResourceEditPreparationTests: FeaturesTestCase {
         availableTypes: [.mock_default]
       )
     )
-  }
-
-  func test_prepareNew_whenNoEncryptionKeyIsAvailable_throwsError() async throws {
-    patch(
-      \MetadataKeysService.determineKeyType,
-      with: always(.none)
-    )
-
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([.mock_default])
-    )
-
-    let tested: ResourceEditPreparation = try self.testedInstance()
-
-    await verifyIf(
-      try await tested.prepareNew(.passwordWithDescription, .none, .none),
-      throws: MetadataEncryptionKeyUnavailableError.self
-    )
-  }
-
-  func test_prepareExisting_whenNoEncryptionKeyIsAvailable_throwsError() async throws {
-    patch(
-      \MetadataKeysService.determineKeyType,
-      with: always(.none)
-    )
-
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([.mock_default])
-    )
-
-    patch(
-      \ResourceController.fetchSecretIfNeeded,
-      with: always(nil)
-    )
-
-    patch(
-      \ResourceController.state,
-      with: Constant(.mock_1).asAnyUpdatable()
-    )
-
-    let tested: ResourceEditPreparation = try self.testedInstance()
-
-    await verifyIf(
-      try await tested.prepareExisting(.mock_1),
-      throws: MetadataEncryptionKeyUnavailableError.self
-    )
-  }
-
-  func test_prepareExisting_shouldCalculateIfResourceIsShared_basedOnOwnership() async throws {
-    let expectation: XCTestExpectation = self.expectation(description: "Should attempt to determine key type.")
-
-    patch(
-      \MetadataKeysService.determineKeyType,
-      with: { (isShared: Bool) -> MetadataKeysService.EncryptionType? in
-        XCTAssertTrue(isShared, "If user is not owner, resource should be considered shared.")
-        expectation.fulfill()
-        return nil
-      }
-    )
-
-    patch(
-      \ResourceTypesFetchDatabaseOperation.execute,
-      with: always([.mock_default])
-    )
-
-    patch(
-      \ResourceController.fetchSecretIfNeeded,
-      with: always(nil)
-    )
-
-    patch(
-      \ResourceController.state,
-      with: Constant(
-        .mock_1.with {
-          $0.permission = .read
-        }
-      )
-      .asAnyUpdatable()
-    )
-
-    let tested: ResourceEditPreparation = try self.testedInstance()
-
-    await verifyIf(
-      try await tested.prepareExisting(.mock_1),
-      throws: MetadataEncryptionKeyUnavailableError.self
-    )
-
-    await fulfillment(of: [expectation], timeout: 1.0)
   }
 }
