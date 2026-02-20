@@ -76,15 +76,20 @@ private struct Tab<TabView: ControlledView>: View {
     NavigationStack {
       TabView(controller: self.controllerProvider())
         .overlay(alignment: .bottom) {
-          Rectangle()
-            .frame(height: 10)
-            .foregroundStyle(
-              LinearGradient(
-                colors: [.black.opacity(0), .black.opacity(0.05)],
-                startPoint: .top,
-                endPoint: .bottom
+          if #available(iOS 26, *) {
+            // skip the overlay on iOS 26 and later as the new tab bar style doesn't require it
+          }
+          else {
+            Rectangle()
+              .frame(height: 10)
+              .foregroundStyle(
+                LinearGradient(
+                  colors: [.black.opacity(0), .black.opacity(0.05)],
+                  startPoint: .top,
+                  endPoint: .bottom
+                )
               )
-            )
+          }
         }
     }
     .tabItem {

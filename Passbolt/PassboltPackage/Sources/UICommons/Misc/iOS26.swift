@@ -21,68 +21,14 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-import Commons
-import SwiftUI
-
-@MainActor
-public struct IconButton: View {
-
-  private let iconName: ImageNameConstant
-  private let action: @MainActor () async -> Void
-
-  public init(
-    iconName: ImageNameConstant,
-    action: @escaping @MainActor () async -> Void
-  ) {
-    self.iconName = iconName
-    self.action = action
-  }
-
-  public var body: some View {
-    AsyncButton(
-      action: self.action,
-      regularLabel: {
-        Image(named: self.iconName)
-      },
-      loadingLabel: {
-        SwiftUI.ProgressView()
-          .progressViewStyle(.circular)
-          .frame(
-            width: 40,
-            height: 40
-          )
-          .padding(8)
-      }
-    )
-    .foregroundColor(.passboltPrimaryText)
-    .tint(.passboltPrimaryText)
-    .backgroundColor(.clear)
+public func isIos26() -> Bool {
+  if #available(iOS 26.0, *) {
+    return true
+  } else {
+    return false
   }
 }
 
-#if DEBUG
-
-internal struct IconButton_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    VStack {
-      IconButton(
-        iconName: .bug,
-        action: {
-          print("TAP")
-          try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
-        }
-      )
-
-      IconButton(
-        iconName: .clock,
-        action: {
-          print("TAP")
-        }
-      )
-    }
-    .padding()
-  }
+public func isPreIos26() -> Bool {
+  !isIos26()
 }
-#endif
