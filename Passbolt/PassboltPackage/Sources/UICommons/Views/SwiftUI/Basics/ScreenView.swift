@@ -265,16 +265,15 @@ where TitleCenterView: View, TitleBottomView: View, TitleLeadingItem: View, Titl
           self.titleTrailingItem()
         }
       }
-      else if !self.hideLeadingItem {
+      else if !self.hideLeadingItem, isPreIos26() {
         ToolbarItem(placement: .topBarTrailing) {
-          // Placeholder to keep title centered when only leading item is shown
+          // Placeholder to keep title centered when only leading item is shown - pre-iOS 26 only.
           Rectangle()
             .foregroundStyle(Color.clear)
             .frame(width: 48, height: 48)
         }
       }
     }
-
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
   }

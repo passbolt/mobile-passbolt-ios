@@ -53,17 +53,18 @@ internal struct AuthorizationView: ControlledView {
             .navigationBarBackButtonHidden()
             .navigationTitle(displayable: "authorization.title")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(showLoadingOverlay ? .hidden : .visible, for: .navigationBar)
             .toolbar {
               if showLoadingOverlay == false {
 
-                ToolbarItemGroup(placement: .navigationBarLeading) {
+                ToolbarItemGroup(placement: .topBarLeading) {
                   BackButton(
                     action: {
                       await self.controller.back()
                     }
                   )
                 }
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
                   IconButton(
                     iconName: .help,
                     action: self.controller.presentHelp

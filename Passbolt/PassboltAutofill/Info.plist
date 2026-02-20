@@ -36,7 +36,5 @@
 		<key>NSExtensionPrincipalClass</key>
 		<string>RootViewController</string>
 	</dict>
-	<key>UIDesignRequiresCompatibility</key>
-	<true/>
 </dict>
 </plist>

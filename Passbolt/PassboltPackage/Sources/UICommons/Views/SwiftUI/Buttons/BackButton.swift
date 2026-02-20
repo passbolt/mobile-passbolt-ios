@@ -36,12 +36,6 @@ public struct BackButton: View {
       action: self.action,
       regularLabel: {
         Image(named: .arrowLeft)
-          .padding(
-            top: 8,
-            leading: -16,
-            bottom: 8,
-            trailing: 8
-          )
       },
       loadingLabel: {
         SwiftUI.ProgressView()
@@ -55,10 +49,6 @@ public struct BackButton: View {
     .foregroundColor(.passboltPrimaryText)
     .tint(.passboltPrimaryText)
     .backgroundColor(.clear)
-    .frame(
-      width: 48,
-      height: 48
-    )
   }
 }
 
