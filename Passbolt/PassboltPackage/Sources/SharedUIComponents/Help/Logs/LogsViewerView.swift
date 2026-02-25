@@ -39,7 +39,7 @@ public struct LogsViewerView: ControlledView {
       sheet: {
         with(\.sharingDiagnosticsInfo) { diagnosticsInfo in
           ActivityViewController(
-            activityItems: diagnosticsInfo
+            activityItems: [diagnosticsInfo]
           )
         }
       },
