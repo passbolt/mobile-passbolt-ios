@@ -39,11 +39,14 @@ public final class LogsViewerViewController: ViewController {
     internal var diagnosticsInfo: Array<String> = .init()
     internal var presentShareSheet: Bool = false
     internal let useCustomNavigationBar: Bool
-    internal var sharingDiagnosticsInfo: Array<String> {
-      [
-        "Passbolt"
-      ]
+    internal var sharingDiagnosticsInfo: String {
+      (
+        [
+          "Passbolt"
+        ]
         + diagnosticsInfo
+      )
+      .joined(separator: "\n")
     }
   }
 
