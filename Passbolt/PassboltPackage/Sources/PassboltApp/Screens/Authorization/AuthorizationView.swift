@@ -53,6 +53,7 @@ internal struct AuthorizationView: ControlledView {
             .navigationBarBackButtonHidden()
             .navigationTitle(displayable: "authorization.title")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(.hidden, for: .tabBar)
             .toolbar(showLoadingOverlay ? .hidden : .visible, for: .navigationBar)
             .toolbar {
               if showLoadingOverlay == false {
