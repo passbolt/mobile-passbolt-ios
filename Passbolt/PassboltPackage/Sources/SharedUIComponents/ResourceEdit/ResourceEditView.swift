@@ -139,10 +139,8 @@ public struct ResourceEditView: ControlledView {
           whenFalse(\.showsAdvancedSettings) {
             SecondaryButton(
               title: "resource.create.advanced.button",
-              action: {
-                withAnimation {
-                  self.controller.showAdvancedSettings()
-                }
+              action: { @MainActor in
+                self.controller.showAdvancedSettings()
               }
             )
             .padding(.bottom, 96)
