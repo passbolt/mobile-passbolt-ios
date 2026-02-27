@@ -98,14 +98,7 @@ public struct FormLongTextFieldView: View {
       }  // else skip
       ZStack {
         SwiftUI.TextEditor(
-          text: .init(
-            get: {
-              self.state.value
-            },
-            set: { (newValue: String) in
-              self.state.value = newValue
-            }
-          )
+          text: $state.value
         )
         .text(
           font: .inter(
