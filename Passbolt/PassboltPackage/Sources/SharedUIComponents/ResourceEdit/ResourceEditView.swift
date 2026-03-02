@@ -485,8 +485,7 @@ public struct ResourceEditView: ControlledView {
           }
         }
       ),
-      textFieldMinHeight: 100,
-      textFieldMaxHeight: 280
+      textFieldMinHeight: 100
     )
     .focused($focusState)
     .toolbar {
