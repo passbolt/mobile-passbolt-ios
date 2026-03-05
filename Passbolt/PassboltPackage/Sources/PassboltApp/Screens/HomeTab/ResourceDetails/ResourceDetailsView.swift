@@ -344,6 +344,7 @@ internal struct ResourceDetailsView: ControlledView {
           )
         }
       )
+      .fixedSize(horizontal: false, vertical: true)
     }
   }
 
