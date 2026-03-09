@@ -33,25 +33,105 @@ internal struct HomeView: ControlledView {
 
   internal var body: some View {
     with(\.currentPresentation) { presentation in
-      switch presentation {
-      case .plainResourcesList,
-        .favoriteResourcesList,
-        .modifiedResourcesList,
-        .sharedResourcesList,
-        .ownedResourcesList,
-        .expiredResourcesList:
-        ResourcesListView(controller: controller.prepareResourcesList(for: presentation))
+      if #unavailable(iOS 17) {
+        // iOS 16 fails to handle switch statement with views, so we need to use workaround
+        HomeContentHost(presentation: presentation, controller: controller)
+      }
+      else {
+        switch presentation {
+        case .plainResourcesList,
+          .favoriteResourcesList,
+          .modifiedResourcesList,
+          .sharedResourcesList,
+          .ownedResourcesList,
+          .expiredResourcesList:
+          ResourcesListView(controller: controller.prepareResourcesList(for: presentation))
 
-      case .foldersExplorer:
-        FoldersExplorerView(controller: controller.prepareController(context: .none))
+        case .foldersExplorer:
+          FoldersExplorerView(controller: controller.prepareController(context: .none))
 
-      case .tagsExplorer:
-        TagsExplorerView(controller: controller.prepareController(context: .none))
+        case .tagsExplorer:
+          TagsExplorerView(controller: controller.prepareController(context: .none))
 
-      case .resourceUserGroupsExplorer:
-        ResourceUserGroupsExplorerView(controller: controller.prepareController(context: .none))
+        case .resourceUserGroupsExplorer:
+          ResourceUserGroupsExplorerView(controller: controller.prepareController(context: .none))
+        }
       }
     }
     .task(self.controller.activate)
+  }
+}
+
+private struct HomeContentHost: UIViewControllerRepresentable {
+
+  let presentation: HomePresentationMode
+  let controller: HomeViewController
+
+  func makeUIViewController(context: Context) -> HomeContainerController {
+    let container: HomeContainerController = HomeContainerController()
+    container.updateContent(presentation: presentation, controller: controller)
+    return container
+  }
+
+  func updateUIViewController(_ container: HomeContainerController, context: Context) {
+    container.updateContent(presentation: presentation, controller: controller)
+  }
+}
+
+private final class HomeContainerController: UIViewController {
+
+  private var currentPresentation: HomePresentationMode?
+
+  func updateContent(
+    presentation: HomePresentationMode,
+    controller: HomeViewController
+  ) {
+    guard presentation != currentPresentation else { return }
+    currentPresentation = presentation
+
+    for child in children {
+      child.willMove(toParent: nil)
+      child.view.removeFromSuperview()
+      child.removeFromParent()
+    }
+
+    // Create appropriate SwiftUI view based on presentation mode
+    let contentView: AnyView
+    switch presentation {
+    case .plainResourcesList, .favoriteResourcesList, .modifiedResourcesList,
+      .sharedResourcesList, .ownedResourcesList, .expiredResourcesList:
+      contentView = AnyView(
+        ResourcesListView(controller: controller.prepareResourcesList(for: presentation))
+      )
+
+    case .foldersExplorer:
+      contentView = AnyView(
+        FoldersExplorerView(controller: controller.prepareController(context: .none))
+      )
+
+    case .tagsExplorer:
+      contentView = AnyView(
+        TagsExplorerView(controller: controller.prepareController(context: .none))
+      )
+
+    case .resourceUserGroupsExplorer:
+      contentView = AnyView(
+        ResourceUserGroupsExplorerView(controller: controller.prepareController(context: .none))
+      )
+    }
+
+    // Add new child UIHostingController
+    let hostingController: UIHostingController<AnyView> = UIHostingController(rootView: contentView)
+    hostingController.view.backgroundColor = .clear
+    addChild(hostingController)
+    hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(hostingController.view)
+    NSLayoutConstraint.activate([
+      hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
+      hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+    ])
+    hostingController.didMove(toParent: self)
   }
 }
