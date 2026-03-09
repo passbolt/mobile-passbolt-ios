@@ -53,7 +53,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
         self.contentView(with: state)
       }
     )
-    .environment(\.hideLeadingItem, true)
+    .environment(\.hideLeadingItem, state.groupID == .none)
   }
 
   @MainActor @ViewBuilder private func searchView(
