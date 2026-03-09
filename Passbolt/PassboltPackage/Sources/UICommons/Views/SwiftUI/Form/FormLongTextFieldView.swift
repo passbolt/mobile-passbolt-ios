@@ -228,7 +228,14 @@ private struct AutosizingTextView: UIViewRepresentable {
   }
 
   fileprivate func makeUIView(context: Context) -> UITextView {
-    let textView: UITextView = .init()
+    let textView: UITextView
+    if #unavailable(iOS 17) {
+      textView = .init(usingTextLayoutManager: false)
+    }
+    else {
+      textView = .init()
+    }
+
     textView.delegate = context.coordinator
     textView.font = .inter(ofSize: 14, weight: .regular)
     textView.isScrollEnabled = false

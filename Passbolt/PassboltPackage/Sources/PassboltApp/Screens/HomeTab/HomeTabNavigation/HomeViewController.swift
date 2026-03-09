@@ -60,7 +60,6 @@ internal final class HomeViewController: ViewController {
         }
       }
     )
-
   }
 
   @Sendable internal func activate() async {
