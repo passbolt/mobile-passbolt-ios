@@ -35,7 +35,7 @@ internal typealias NavigationToResourceFolderMenu =
 extension NavigationToResourceFolderMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: ResourceFolderMenuView.self
     )
   }

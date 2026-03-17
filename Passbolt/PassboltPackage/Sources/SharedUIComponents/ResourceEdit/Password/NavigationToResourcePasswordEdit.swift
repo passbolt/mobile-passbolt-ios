@@ -34,7 +34,7 @@ public typealias NavigationToResourcePasswordEdit = NavigationTo<ResourcePasswor
 extension NavigationToResourcePasswordEdit {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourcePasswordEditView.self
     )
   }

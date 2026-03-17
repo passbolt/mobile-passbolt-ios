@@ -33,6 +33,7 @@ import Users
 internal final class HomeViewController: @MainActor ViewController {
 
   internal let viewState: ViewStateSource<ViewState>
+  internal let setActiveNavigationState: @MainActor (NavigationState) -> Void
 
   private let homePresentation: HomePresentation
   private let features: Features
@@ -52,6 +53,8 @@ internal final class HomeViewController: @MainActor ViewController {
         context: context
       )
     self.features = features
+    let navigationStateRegistry: NavigationStateRegistry = try features.instance()
+    self.setActiveNavigationState = navigationStateRegistry.setActive
     let resetNavigation: NavigationToRoot = try features.instance()
     self.homePresentation = try features.instance()
     var lastMode: HomePresentationMode? = .none

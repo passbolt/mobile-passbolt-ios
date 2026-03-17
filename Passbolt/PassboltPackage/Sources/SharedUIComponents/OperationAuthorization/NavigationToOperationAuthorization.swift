@@ -51,7 +51,7 @@ public typealias NavigationToOperationAuthorization = NavigationTo<OperationAuth
 extension NavigationToOperationAuthorization {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: OperationAuthorizationView.self
     )
   }

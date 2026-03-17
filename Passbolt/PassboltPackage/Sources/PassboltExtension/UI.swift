@@ -41,7 +41,14 @@ extension UI {
     do {
       let navigationToAutofillRoot: NavigationToAutofillRoot = try self.features.instance()
       Task { @MainActor in
-        try await navigationToAutofillRoot.perform()
+        do {
+          try await navigationToAutofillRoot.perform()
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Failed to navigate to autofill root.")
+        }
       }
     }
     catch {
@@ -55,7 +62,14 @@ extension UI {
     do {
       let navigation: NavigationToExtensionSetupCompleted = try self.features.instance()
       Task { @MainActor in
-        try await navigation.perform()
+        do {
+          try await navigation.perform()
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Failed to navigate to extension setup.")
+        }
       }
     }
     catch {

@@ -34,7 +34,7 @@ internal typealias NavigationToResourceOTPDeleteAlert = NavigationTo<ResourceOTP
 extension NavigationToResourceOTPDeleteAlert {
 
   fileprivate static var live: FeatureLoader {
-    legacyAlertPresentationTransition(
+    alertPresentationTransition(
       using: ResourceOTPDeleteAlertController.self
     )
   }

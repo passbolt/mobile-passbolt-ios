@@ -34,7 +34,7 @@ public typealias NavigationToResourceIconEdit = NavigationTo<ResourceIconEditNav
 extension NavigationToResourceIconEdit {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceIconEditView.self
     )
   }

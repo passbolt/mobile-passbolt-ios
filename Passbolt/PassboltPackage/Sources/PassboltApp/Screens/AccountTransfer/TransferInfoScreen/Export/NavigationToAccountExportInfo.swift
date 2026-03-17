@@ -34,7 +34,7 @@ internal typealias NavigationToAccountExportInfo = NavigationTo<NavigationToAcco
 extension NavigationToAccountExportInfo {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: AccountExportInfoView.self)
+    pushTransition(to: AccountExportInfoView.self)
   }
 }
 

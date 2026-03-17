@@ -34,7 +34,7 @@ public typealias NavigationToOTPScanning = NavigationTo<OTPScanningNavigationDes
 extension NavigationToOTPScanning {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: OTPConfigurationScanningView.self
     )
   }

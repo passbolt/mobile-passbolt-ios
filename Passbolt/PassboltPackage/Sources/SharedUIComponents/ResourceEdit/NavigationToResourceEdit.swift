@@ -34,7 +34,7 @@ public typealias NavigationToResourceEdit = NavigationTo<ResourceEditNavigationD
 extension NavigationToResourceEdit {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceEditView.self
     )
   }

@@ -30,10 +30,21 @@ import UIKit
 @objc(RootViewController)
 @MainActor internal final class RootViewController: ASCredentialProviderViewController {
 
+  // Not using lazy var - super.init() may trigger viewDidLoad() before
+  // the lazy var backing storage is finalized, causing double initialization.
+  @MainActor private var applicationExtension: ApplicationExtension?
+
   @MainActor internal init() {
     super.init(nibName: nil, bundle: nil)
-    ApplicationExtension.shared.updateRootViewController(self)
-    ApplicationExtension.shared.initialize()
+    let appExtension: ApplicationExtension = .init(rootViewController: self)
+    self.applicationExtension = appExtension
+    appExtension.initialize()
+    let rootHostingController: UIViewController = appExtension.makeRootHostingController()
+    rootHostingController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    rootHostingController.view.frame = view.bounds
+    addChild(rootHostingController)
+    view.addSubview(rootHostingController.view)
+    rootHostingController.didMove(toParent: self)
   }
 
   @available(*, unavailable)
@@ -41,28 +52,21 @@ import UIKit
     unreachable(#function)
   }
 
-  override func viewDidLoad() {
-    super.viewDidLoad()
-    let placeholderViewController: UIViewController = UIViewController()
-    let navigationController: UINavigationController = UINavigationController(rootViewController: placeholderViewController)
-    navigationController.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-    navigationController.view.frame = view.bounds
-    addChild(navigationController)
-    view.addSubview(navigationController.view)
-    navigationController.didMove(toParent: self)
-  }
-
   @MainActor override internal func prepareCredentialList(
     for serviceIdentifiers: Array<ASCredentialServiceIdentifier>
   ) {
-    ApplicationExtension.shared
+    guard let applicationExtension: ApplicationExtension = self.applicationExtension
+    else { return }
+    applicationExtension
       .requestSuggestions(for: serviceIdentifiers)
-    ApplicationExtension.shared
+    applicationExtension
       .prepareCredentialList()
   }
 
   @MainActor override internal func prepareInterfaceForExtensionConfiguration() {
-    ApplicationExtension.shared
+    guard let applicationExtension: ApplicationExtension = self.applicationExtension
+    else { return }
+    applicationExtension
       .prepareInterfaceForExtensionConfiguration()
   }
 }

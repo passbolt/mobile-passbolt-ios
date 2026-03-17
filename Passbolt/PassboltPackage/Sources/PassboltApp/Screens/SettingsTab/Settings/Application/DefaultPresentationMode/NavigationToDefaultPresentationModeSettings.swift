@@ -33,7 +33,7 @@ internal typealias NavigationToDefaultPresentationModeSettings = NavigationTo<
 extension NavigationToDefaultPresentationModeSettings {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: DefaultPresentationModeSettingsView.self)
+    pushTransition(to: DefaultPresentationModeSettingsView.self)
   }
 }
 

@@ -35,7 +35,7 @@ internal typealias NavigationToResourceFolderPermissionList =
 extension NavigationToResourceFolderPermissionList {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: ResourceFolderPermissionListView.self)
+    pushTransition(to: ResourceFolderPermissionListView.self)
   }
 }
 

@@ -34,7 +34,7 @@ internal typealias NavigationToOTPEditAdvancedForm = NavigationTo<OTPEditAdvance
 extension NavigationToOTPEditAdvancedForm {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: OTPEditAdvancedFormView.self
     )
   }

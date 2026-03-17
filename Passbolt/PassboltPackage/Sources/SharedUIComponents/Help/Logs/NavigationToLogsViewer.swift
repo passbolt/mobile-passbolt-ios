@@ -34,7 +34,7 @@ public typealias NavigationToLogsViewer = NavigationTo<NavigationToLogsViewerDes
 extension NavigationToLogsViewer {
 
   fileprivate static var live: FeatureLoader {
-    legacySheetPresentationTransition(
+    sheetPresentationTransition(
       to: LogsViewerView.self
     )
   }

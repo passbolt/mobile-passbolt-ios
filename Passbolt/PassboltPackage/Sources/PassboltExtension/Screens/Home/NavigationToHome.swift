@@ -37,10 +37,8 @@ internal typealias NavigationToHome = NavigationTo<NavigationToHomeViewDestinati
 extension NavigationToHome {
 
   fileprivate static var live: FeatureLoader {
-
     replaceRoot(
-      with: HomeView.self,
-      createNavigationStack: true
+      with: HomeView.self
     )
   }
 }

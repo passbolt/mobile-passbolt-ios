@@ -27,7 +27,7 @@ internal final class PermissionsListScreen: Screen {
     [
       backButton,
       title,
-      editButton
+      editButton,
     ]
   }
 
@@ -72,12 +72,11 @@ extension PermissionsListScreen {
   }
 }
 
-
 extension XCUIElementQuery {
 
   public var asArray: Array<XCUIElement> {
     var result: Array<XCUIElement> = .init()
-    for index in 0..<self.count {
+    for index in 0 ..< self.count {
       let element = self.element(boundBy: index)
       result.append(element)
     }

@@ -21,28 +21,18 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+import SwiftUI
 
-internal enum AccountsSettingsNavigationDestination: NavigationDestination {}
-
-internal typealias NavigationToAccountsSettings = NavigationTo<AccountsSettingsNavigationDestination>
-
-extension NavigationToAccountsSettings {
-
-  fileprivate static var live: FeatureLoader {
-    pushTransition(
-      to: AccountsSettingsView.self
-    )
-  }
+/// Environment key for accessing NavigationState.
+private struct NavigationStateKey: EnvironmentKey {
+  static let defaultValue: NavigationState? = nil
 }
 
-extension FeaturesRegistry {
+extension EnvironmentValues {
 
-  internal mutating func useLiveNavigationToAccountsSettings() {
-    self.use(
-      NavigationToAccountsSettings.live,
-      in: SettingsScope.self
-    )
+  /// The navigation state for SwiftUI-native navigation.
+  public var navigationState: NavigationState? {
+    get { self[NavigationStateKey.self] }
+    set { self[NavigationStateKey.self] = newValue }
   }
 }

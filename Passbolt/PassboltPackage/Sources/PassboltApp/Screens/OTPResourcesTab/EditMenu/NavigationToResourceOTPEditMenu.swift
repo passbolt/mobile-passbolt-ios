@@ -34,7 +34,7 @@ internal typealias NavigationToResourceOTPEditMenu = NavigationTo<ResourceOTPEdi
 extension NavigationToResourceOTPEditMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: ResourceOTPEditMenuView.self
     )
   }

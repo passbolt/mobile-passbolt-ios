@@ -24,7 +24,8 @@
 public func isIos26() -> Bool {
   if #available(iOS 26.0, *) {
     return true
-  } else {
+  }
+  else {
     return false
   }
 }

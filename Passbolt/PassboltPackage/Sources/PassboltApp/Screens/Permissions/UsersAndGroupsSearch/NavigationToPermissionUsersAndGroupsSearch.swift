@@ -35,7 +35,7 @@ internal typealias NavigationToPermissionUsersAndGroupsSearch =
 extension NavigationToPermissionUsersAndGroupsSearch {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: PermissionUsersAndGroupsSearchView.self)
+    pushTransition(to: PermissionUsersAndGroupsSearchView.self)
   }
 }
 

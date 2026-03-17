@@ -26,7 +26,7 @@ internal class TOTPScannerScreen: Screen {
   override var requiredElements: Array<XCUIElement> {
     [
       header,
-      manualCreateButton
+      manualCreateButton,
     ]
   }
 

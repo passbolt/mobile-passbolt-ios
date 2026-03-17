@@ -38,7 +38,7 @@ internal final class AuthenticationScreen: Screen {
       urlLabel,
       passphraseTextField,
       passwordRevealButton,
-      signInButton
+      signInButton,
     ] + (mode == .signIn ? [forgotPasswordButton] : [])
   }
 
@@ -79,7 +79,12 @@ internal final class AuthenticationScreen: Screen {
   }
 
   @discardableResult
-  internal func enterPassphrase(_ passphrase: String, timeout: TimeInterval = 5.0, file: StaticString = #file, line: UInt = #line) throws -> Self {
+  internal func enterPassphrase(
+    _ passphrase: String,
+    timeout: TimeInterval = 5.0,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) throws -> Self {
     UIPasteboard.general.string = passphrase
     passphraseTextField.tap()
 

@@ -74,9 +74,15 @@ final class SettingsTests: UITestCase {
     //    Then      I see an confirmation modal
     assertPresentsString(matching: "Are you sure?")
     //    And       I see a sign out button
-    assertInteractive("settings.main.sign.out.alert.confirm.title", inside: "settings.main.sign.out.alert.confirm.title")
+    assertInteractive(
+      "settings.main.sign.out.alert.confirm.title",
+      inside: "settings.main.sign.out.alert.confirm.title"
+    )
     //    And       I see a cancel button
-    assertInteractive("settings.main.sign.out.alert.cancel.button", inside: "settings.main.sign.out.alert.cancel.button")
+    assertInteractive(
+      "settings.main.sign.out.alert.cancel.button",
+      inside: "settings.main.sign.out.alert.cancel.button"
+    )
     //    When      I click on the "Sign out" button
     try tap("settings.main.sign.out.alert.confirm.title", inside: "settings.main.sign.out.alert.confirm.title")
     //    Then      I see the “Sign in - List of accounts” welcome screen

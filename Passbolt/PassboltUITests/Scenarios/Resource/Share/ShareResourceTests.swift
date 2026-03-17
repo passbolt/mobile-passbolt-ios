@@ -27,7 +27,7 @@ internal final class ShareResourceTests: UITestCase {
     try super.beforeEachTestCase()
     try signIn()
     homeScreen.ensureDisplayed()
-    
+
     let resourceName = "TestiOS"
     homeScreen
       .search(for: resourceName)
@@ -76,7 +76,9 @@ internal final class ShareResourceTests: UITestCase {
     XCTAssertEqual(cells.count, 2)
 
     let bettyGroupCell = cells.first(where: { $0.nameLabel.label == "Only Betty Group" })
-    let bettyUser =  cells.first(where: { $0.nameLabel.label == "\(MockAccount.automation.firstName) \(MockAccount.automation.lastName)" })
+    let bettyUser = cells.first(where: {
+      $0.nameLabel.label == "\(MockAccount.automation.firstName) \(MockAccount.automation.lastName)"
+    })
 
     XCTAssertEqual(bettyGroupCell?.roleLabel.label, "can read")
     XCTAssertEqual(bettyUser?.roleLabel.label, "is owner")

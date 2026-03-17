@@ -34,7 +34,7 @@ internal typealias NavigationToMFA = NavigationTo<NavigationToMFADestination>
 extension NavigationToMFA {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: MFAView.self)
+    pushTransition(to: MFAView.self)
   }
 }
 

@@ -51,6 +51,8 @@ extension FeaturesRegistry {
     self.usePassboltResourcesModule()
     self.usePassboltExtensionAccountKitImport()
     self.usePassboltMetadataModule()
+    self.useLiveNavigationStateRegistry()
+    self.useLiveRootNavigation()
     // it is required until navigations will become fully integrated
     self.useResourceEditNavigation()
     self.useLiveNavigationToAutofillRoot()

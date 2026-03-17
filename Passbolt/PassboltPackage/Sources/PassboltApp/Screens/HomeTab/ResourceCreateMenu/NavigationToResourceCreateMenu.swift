@@ -34,7 +34,7 @@ internal typealias NavigationToResourceCreateMenu = NavigationTo<NavigationToRes
 extension NavigationToResourceCreateMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: ResourceCreateMenuView.self
     )
   }

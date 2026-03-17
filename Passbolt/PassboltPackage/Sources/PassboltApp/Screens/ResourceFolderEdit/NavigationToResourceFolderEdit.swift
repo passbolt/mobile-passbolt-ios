@@ -35,7 +35,7 @@ internal typealias NavigationToResourceFolderEdit =
 extension NavigationToResourceFolderEdit {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceFolderEditView.self
     )
   }

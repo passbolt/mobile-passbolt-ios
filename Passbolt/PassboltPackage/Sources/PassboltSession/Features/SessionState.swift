@@ -155,7 +155,7 @@ extension SessionState {
     // access only using SessionActor
     var currentPassphrase: Passphrase? = .none
     var currentPassphraseExpiration: Timestamp = 0
-    let passphraseExpirationTime: Timestamp = 5 * 60  // 5 Minutes
+    let passphraseExpirationTime: Timestamp = 1 * 30  // 5 Minutes
     var wipePassphraseUponTaskCompletion: Bool = false
     var runningTasks: Set<PassboltID> = .init() {
       didSet {

@@ -31,7 +31,7 @@ internal typealias NavigationToAccountKeyExportMenu = NavigationTo<AccountKeyExp
 extension NavigationToAccountKeyExportMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: AccountKeyExportMenuView.self
     )
   }

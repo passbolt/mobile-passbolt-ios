@@ -37,6 +37,7 @@ internal struct ResourceTagsDetailsView: ControlledView {
     self.contentView
       .backgroundColor(.passboltBackground)
       .foregroundColor(.passboltPrimaryText)
+      .useCustomBackButton()
       .task(self.controller.activate)
   }
 

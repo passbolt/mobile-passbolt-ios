@@ -41,9 +41,9 @@ final class TransferAccountTests: UITestCase {
   /// https://passbolt.testrail.io/index.php?/cases/view/8147
   func test_asAUserICanSeeAnExplanationOnHowToTransferAnExistingAccount() throws {
     settingsScreen
-      .openAccounts() //  Given   I’m logged in user on Accounts screen
+      .openAccounts()  //  Given   I’m logged in user on Accounts screen
       .ensureDisplayed()
-      .tapTransferButton() //  When    I click “Transfer account to another device”
+      .tapTransferButton()  //  When    I click “Transfer account to another device”
 
     //  Then  the “Transfer account details” explanation screen is presented with a corresponding title
     assertPresentsString(matching: "Transfer account details")
@@ -76,12 +76,12 @@ final class TransferAccountTests: UITestCase {
     authenticationScreen
       .set(mode: .unlock)
       .ensureDisplayed()
-    //    And   I see my current user's name
+      //    And   I see my current user's name
       .assertLabel(equals: "\(MockAccount.automation.firstName) \(MockAccount.automation.lastName)")
 
-    //    And   I see my current user's email
+      //    And   I see my current user's email
       .assertEmail(equals: MockAccount.automation.username)
-    //    And   I see the url of the server
+      //    And   I see the url of the server
       .assertURLLabel(equals: MockAccount.automation.domain)
   }
 

@@ -34,7 +34,7 @@ internal typealias NavigationToTransferSignIn = NavigationTo<NavigationToTransfe
 extension NavigationToTransferSignIn {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: TransferSignInView.self)
+    pushTransition(to: TransferSignInView.self)
   }
 }
 

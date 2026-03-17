@@ -141,7 +141,7 @@ final class FolderCreationTests: UITestCase {
     assertExists("Folder")
     //        And I see folder name
     assertPresentsString(matching: "Empty folder for testing")
-    //        And I see ‘3 dots’ // TODO: Currently, there is no such element 
+    //        And I see ‘3 dots’ // TODO: Currently, there is no such element
 
     //        And I see filters icon
     assertExists("Filter")

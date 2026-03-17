@@ -34,7 +34,7 @@ public typealias NavigationToOTPEditForm = NavigationTo<OTPEditFormNavigationDes
 extension NavigationToOTPEditForm {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: OTPEditFormView.self
     )
   }

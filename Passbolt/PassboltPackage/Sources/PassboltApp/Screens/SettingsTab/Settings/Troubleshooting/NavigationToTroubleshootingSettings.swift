@@ -31,7 +31,7 @@ internal typealias NavigationToTroubleshootingSettings = NavigationTo<Troublesho
 extension NavigationToTroubleshootingSettings {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: TroubleshootingSettingsView.self
     )
   }

@@ -34,7 +34,7 @@ internal typealias NavigationToTagContent = NavigationTo<NavigationToTagContentD
 extension NavigationToTagContent {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: TagsExplorerView.self
     )
   }

@@ -34,7 +34,7 @@ internal typealias NavigationToAuthorization = NavigationTo<NavigationToAuthoriz
 extension NavigationToAuthorization {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: AuthorizationView.self
     )
   }

@@ -35,7 +35,7 @@ public typealias NavigationToMetadataPinnedKeyValidationDialog =
 extension NavigationToMetadataPinnedKeyValidationDialog {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: MetadataPinnedKeyValidationDialogView.self
     )
   }

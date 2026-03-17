@@ -35,7 +35,7 @@ internal typealias NavigationToAccountExportAuthorization =
 extension NavigationToAccountExportAuthorization {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: AccountExportAuthorizationView.self)
+    pushTransition(to: AccountExportAuthorizationView.self)
   }
 }
 

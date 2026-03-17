@@ -21,28 +21,41 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+import SwiftUI
 
-internal enum AccountsSettingsNavigationDestination: NavigationDestination {}
+/// Root container view that observes RootNavigationState and renders the current root view.
+/// Optionally wraps the root in a NavigationContainer for navigation stack support.
+public struct RootView<FallbackContent: View>: View {
 
-internal typealias NavigationToAccountsSettings = NavigationTo<AccountsSettingsNavigationDestination>
+  @ObservedObject private var rootState: RootNavigationState
+  private let fallback: () -> FallbackContent
 
-extension NavigationToAccountsSettings {
-
-  fileprivate static var live: FeatureLoader {
-    pushTransition(
-      to: AccountsSettingsView.self
-    )
+  public init(
+    rootState: RootNavigationState,
+    @ViewBuilder fallback: @escaping () -> FallbackContent
+  ) {
+    self.rootState = rootState
+    self.fallback = fallback
   }
-}
 
-extension FeaturesRegistry {
-
-  internal mutating func useLiveNavigationToAccountsSettings() {
-    self.use(
-      NavigationToAccountsSettings.live,
-      in: SettingsScope.self
-    )
+  public var body: some View {
+    Group {
+      if let root = rootState.currentRoot {
+        if rootState.useNavigationStack {
+          NavigationContainer(navigationState: rootState.navigationState) {
+            root.makeView()
+          }
+          .id(root.id)
+        }
+        else {
+          root.makeView()
+            .id(root.id)
+        }
+      }
+      else {
+        fallback()
+      }
+    }
+    .animation(.easeInOut(duration: 0.3), value: rootState.currentRoot?.id)
   }
 }

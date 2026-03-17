@@ -34,7 +34,7 @@ public typealias NavigationToResourceCustomFieldsEdit = NavigationTo<ResourceCus
 extension NavigationToResourceCustomFieldsEdit {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceCustomFieldsEditView.self
     )
   }

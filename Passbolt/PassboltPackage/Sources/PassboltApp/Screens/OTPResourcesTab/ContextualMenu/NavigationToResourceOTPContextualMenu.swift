@@ -36,7 +36,7 @@ internal typealias NavigationToResourceOTPContextualMenu = NavigationTo<
 extension NavigationToResourceOTPContextualMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: ResourceOTPContextualMenuView.self
     )
   }

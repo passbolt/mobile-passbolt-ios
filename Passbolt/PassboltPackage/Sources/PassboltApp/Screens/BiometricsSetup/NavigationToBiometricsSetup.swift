@@ -34,7 +34,7 @@ internal typealias NavigationToBiometricsSetup = NavigationTo<NavigationToBiomet
 extension NavigationToBiometricsSetup {
 
   fileprivate static var live: FeatureLoader {
-    legacySheetPresentationTransition(to: BiometricsSetupView.self)
+    sheetPresentationTransition(to: BiometricsSetupView.self)
   }
 }
 

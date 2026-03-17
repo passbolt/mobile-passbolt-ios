@@ -32,9 +32,7 @@ internal typealias NavigationToOTPResourcesList = NavigationTo<OTPResourcesListN
 extension NavigationToOTPResourcesList {
 
   fileprivate static var live: FeatureLoader {
-    legacyPopTransition(
-      to: OTPResourcesListView.self
-    )
+    popToRoot()
   }
 }
 

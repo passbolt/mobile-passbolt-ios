@@ -27,6 +27,7 @@ import SharedUIComponents
 internal struct HomeView: ControlledView {
 
   internal let controller: HomeViewController
+  @StateObject private var navigationState = NavigationState()
 
   internal init(
     controller: HomeViewController
@@ -35,8 +36,13 @@ internal struct HomeView: ControlledView {
   }
 
   internal var body: some View {
-    WithViewState(from: self.controller) { state in
-      self.bodyView(with: state)
+    NavigationContainer(navigationState: navigationState) {
+      WithViewState(from: self.controller) { state in
+        self.bodyView(with: state)
+      }
+    }
+    .onAppear {
+      controller.setActiveNavigationState(navigationState)
     }
   }
 

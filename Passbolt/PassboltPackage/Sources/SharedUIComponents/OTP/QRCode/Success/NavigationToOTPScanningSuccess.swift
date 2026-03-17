@@ -34,7 +34,7 @@ internal typealias NavigationToOTPScanningSuccess = NavigationTo<OTPScanningSucc
 extension NavigationToOTPScanningSuccess {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: OTPScanningSuccessView.self
     )
   }

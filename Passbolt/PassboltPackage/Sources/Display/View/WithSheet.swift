@@ -55,6 +55,7 @@ where State: Equatable & Identifiable, SheetView: View, ContentView: View {
         item: self.binding,
         content: { (state: State) in
           self.sheet(state)
+            .solidPresentationBackground()
         }
       )
   }
@@ -91,6 +92,7 @@ where SheetView: View, ContentView: View {
         isPresented: self.binding,
         content: {
           self.sheet()
+            .solidPresentationBackground()
         }
       )
   }

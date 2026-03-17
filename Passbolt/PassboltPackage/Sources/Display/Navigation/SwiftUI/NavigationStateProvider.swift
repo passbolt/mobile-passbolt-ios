@@ -21,28 +21,46 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+import Features
 
-internal enum AccountsSettingsNavigationDestination: NavigationDestination {}
+/// Feature provider for NavigationState.
+/// Provides access to the NavigationState from the feature system.
+public struct NavigationStateProvider {
 
-internal typealias NavigationToAccountsSettings = NavigationTo<AccountsSettingsNavigationDestination>
+  public let state: NavigationState
 
-extension NavigationToAccountsSettings {
+  public init(state: NavigationState) {
+    self.state = state
+  }
+}
 
-  fileprivate static var live: FeatureLoader {
-    pushTransition(
-      to: AccountsSettingsView.self
-    )
+extension NavigationStateProvider: LoadableFeature {
+
+  #if DEBUG
+  public static var placeholder: Self {
+    unimplemented("NavigationStateProvider should not be used in tests directly.")
+  }
+  #endif
+}
+
+extension NavigationStateProvider {
+
+  @MainActor
+  fileprivate static func load(
+    features: Features
+  ) throws -> Self {
+    .init(state: NavigationState())
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToAccountsSettings() {
+  public mutating func useLiveNavigationStateProvider() {
     self.use(
-      NavigationToAccountsSettings.live,
-      in: SettingsScope.self
+      .lazyLoaded(
+        NavigationStateProvider.self,
+        load: NavigationStateProvider.load(features:)
+      )
     )
   }
 }

@@ -34,7 +34,7 @@ internal typealias NavigationToResourceShare = NavigationTo<ResourceShareNavigat
 extension NavigationToResourceShare {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: ResourcePermissionEditListView.self)
+    pushTransition(to: ResourcePermissionEditListView.self)
   }
 }
 

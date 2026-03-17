@@ -33,7 +33,7 @@ internal typealias NavigationToManageAccounts = NavigationTo<ManageAccountsNavig
 extension NavigationToManageAccounts {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: AccountSelectionView.self)
+    pushTransition(to: AccountSelectionView.self)
   }
 }
 

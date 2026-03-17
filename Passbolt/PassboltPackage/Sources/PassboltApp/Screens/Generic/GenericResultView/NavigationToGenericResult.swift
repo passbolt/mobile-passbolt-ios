@@ -34,9 +34,7 @@ internal typealias NavigationToGenericResult = NavigationTo<NavigationToGenericR
 extension NavigationToGenericResult {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: GenericResultView.self
-    )
+    pushTransition(to: GenericResultView.self)
   }
 }
 

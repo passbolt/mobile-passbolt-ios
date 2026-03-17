@@ -70,16 +70,29 @@ public struct AlertAction {
         return .destructive
       }
     }
+
+    internal var swiftUIAlertActionRole: SwiftUIAlertActionRole {
+      switch self {
+      case .default:
+        return .default
+
+      case .cancel:
+        return .cancel
+
+      case .destructive:
+        return .destructive
+      }
+    }
   }
 
   internal let title: DisplayableString
   internal let role: Role
-  internal let action: () -> Void
+  internal let action: @Sendable () -> Void
 
   public init(
     title: DisplayableString,
     role: Role = .default,
-    action: @escaping () -> Void = {}
+    action: @Sendable @escaping () -> Void = {}
   ) {
     self.title = title
     self.role = role
