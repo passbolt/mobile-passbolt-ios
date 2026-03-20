@@ -25,7 +25,7 @@ import Commons
 import SwiftUI
 
 public struct WithSheet<State, SheetView, ContentView>: View
-where State: Equatable & Identifiable, SheetView: View, ContentView: View {
+where State: Equatable & Identifiable & Sendable, SheetView: View, ContentView: View {
 
   @ObservedObject private var viewState: TrimmedViewState<State?>
   private let binding: Binding<State?>
@@ -35,8 +35,8 @@ where State: Equatable & Identifiable, SheetView: View, ContentView: View {
   public init<Controller>(
     from controller: Controller,
     at keyPath: WritableKeyPath<Controller.ViewState, State?>,
-    @ViewBuilder sheet: @escaping (State) -> SheetView,
-    @ViewBuilder content: @escaping () -> ContentView
+    @ViewBuilder sheet: @escaping @MainActor (State) -> SheetView,
+    @ViewBuilder content: @escaping @MainActor () -> ContentView
   ) where Controller: ViewController {
     self._viewState = .init(
       wrappedValue: .init(
@@ -72,8 +72,8 @@ where SheetView: View, ContentView: View {
   public init<Controller>(
     from controller: Controller,
     at keyPath: WritableKeyPath<Controller.ViewState, Bool>,
-    @ViewBuilder sheet: @escaping () -> SheetView,
-    @ViewBuilder content: @escaping () -> ContentView
+    @ViewBuilder sheet: @escaping @MainActor () -> SheetView,
+    @ViewBuilder content: @escaping @MainActor () -> ContentView
   ) where Controller: ViewController {
     self._viewState = .init(
       wrappedValue: .init(

@@ -39,7 +39,7 @@ extension View {
   }
 }
 
-public struct ExternalActivityConfiguration {
+public struct ExternalActivityConfiguration: Sendable {
 
   public let id: ObjectIdentifier
   fileprivate let itemsConfiguration: UIActivityItemsConfiguration

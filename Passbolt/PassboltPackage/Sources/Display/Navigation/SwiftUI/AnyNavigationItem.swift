@@ -25,7 +25,7 @@ import SwiftUI
 
 /// Type-erased navigation item for use with NavigationPath.
 /// Wraps a destination view and its identifier for routing.
-public struct AnyNavigationItem: Identifiable, Hashable {
+public struct AnyNavigationItem: Identifiable, Hashable, @unchecked Sendable {
 
   public let id: NavigationDestinationIdentifier
 
@@ -82,7 +82,7 @@ public struct NavigationItemContentView: View, Equatable {
     wrappedView
   }
 
-  public static func == (
+  nonisolated public static func == (
     lhs: NavigationItemContentView,
     rhs: NavigationItemContentView
   ) -> Bool {

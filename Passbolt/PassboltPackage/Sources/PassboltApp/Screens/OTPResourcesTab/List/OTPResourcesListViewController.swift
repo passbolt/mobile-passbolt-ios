@@ -97,20 +97,22 @@ internal final class OTPResourcesListViewController: ViewController {
           var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel> = .init()
           otpResources.reserveCapacity(searchState.result.count)
           for item: ResourceSearchResultItem in searchState.result {
-            let otpIterator: AnyAsyncIterator<OTPValue?> = resourcesOTPController
-              .currentOTP
-              .asAnyAsyncSequence()
-              .map { (update: Update<OTPValue>) -> OTPValue? in
-                if let otp: OTPValue = try? update.value, otp.resourceID == item.id {
-                  return otp
+            let otpIterator: UncheckedSendableBox<AnyAsyncIterator<OTPValue?>> = .init(
+              resourcesOTPController
+                .currentOTP
+                .asAnyAsyncSequence()
+                .map { (update: Update<OTPValue>) -> OTPValue? in
+                  if let otp: OTPValue = try? update.value, otp.resourceID == item.id {
+                    return otp
+                  }
+                  else {
+                    return .none
+                  }
                 }
-                else {
-                  return .none
-                }
-              }
-              .removeDuplicates()
-              .makeAsyncIterator()
-              .asAnyAsyncIterator()
+                .removeDuplicates()
+                .makeAsyncIterator()
+                .asAnyAsyncIterator()
+            )
 
             otpResources[item.id] = .init(
               id: item.id,
@@ -119,7 +121,7 @@ internal final class OTPResourcesListViewController: ViewController {
               icon: item.icon,
               resourceTypeSlug: item.typeInfo.typeSlug,
               generateOTP: { () async -> OTPValue? in
-                (try? await otpIterator.next())?.flatMap { $0 }
+                (try? await otpIterator.value.next())?.flatMap { $0 }
               }
             )
           }

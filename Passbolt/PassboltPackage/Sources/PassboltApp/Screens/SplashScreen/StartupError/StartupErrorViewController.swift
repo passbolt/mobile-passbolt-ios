@@ -63,7 +63,7 @@ internal final class StartupErrorViewController: @MainActor ViewController {
           .destructive(
             id: .init(),
             title: .localized(key: .signOut),
-            perform: self.exit
+            perform: { [weak self] in await self?.exit() }
           ),
         ]
       )

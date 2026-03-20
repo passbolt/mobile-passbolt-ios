@@ -23,7 +23,7 @@
 
 import Localization
 
-public struct Validated<Value> {
+public struct Validated<Value>: Sendable where Value: Sendable {
 
   public var value: Value
   public private(set) var error: TheError?

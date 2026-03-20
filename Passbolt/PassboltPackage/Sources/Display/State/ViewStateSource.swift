@@ -23,10 +23,10 @@
 
 import Commons
 
-public final class ViewStateSource<ViewState>
-where ViewState: Equatable {
+public final class ViewStateSource<ViewState>: @unchecked Sendable
+where ViewState: Equatable, ViewState: Sendable {
 
-  public var current: ViewState {
+  @MainActor public var current: ViewState {
     get async { await self.updateIfNeeded() }
   }
 
@@ -47,7 +47,8 @@ where ViewState: Equatable {
     Publishers.Share<Publishers.RemoveDuplicates<Publishers.Autoconnect<ViewUpdatesPublisher<ViewState>>>>
   private let viewUpdatesPublisher: ViewUpdatesPublisher<ViewState>
   private let checkSourceUpdate: @MainActor () -> Bool
-  private let updateFromSource: @Sendable (@MainActor (@MainActor (inout ViewState) -> Void) -> Void) async -> Void
+  private let updateFromSource:
+    (@Sendable (@Sendable @MainActor (@MainActor (inout ViewState) -> Void) -> Void) async -> Void)?
   @MainActor private var runningUpdate: Task<Void, Never>?
   private let sourceRef: AnyObject?
 
@@ -67,13 +68,16 @@ where ViewState: Equatable {
     self.checkSourceUpdate = { @MainActor [weak source] () -> Bool in
       lastUpdateGeneration < source?.generation ?? .uninitialized
     }
-    self.updateFromSource = { @MainActor [weak source] (mutate: (@MainActor (inout ViewState) -> Void) -> Void) async in
-
-      await consumingErrors {
+    self.updateFromSource = {
+      @MainActor [weak source] (mutate: @Sendable (@MainActor (inout ViewState) -> Void) -> Void) async in
+      do {
         guard let sourceUpdate: Update<Source.Value> = try await source?.lastUpdate
         else { return }  // can't update without source
         lastUpdateGeneration = sourceUpdate.generation
         try await update(mutate, sourceUpdate)
+      }
+      catch {
+        error.consume()
       }
     }
     self.viewUpdatesPublisher = .init(initial: self._value)
@@ -96,9 +100,7 @@ where ViewState: Equatable {
     self.sourceRef = .none
     self._value = initial
     self.checkSourceUpdate = { false }
-    self.updateFromSource = { _ in
-      // NOP
-    }
+    self.updateFromSource = .none
     self.viewUpdatesPublisher = .init(initial: self._value)
     self.updatesPublisher = self.viewUpdatesPublisher
       .autoconnect()
@@ -110,9 +112,7 @@ where ViewState: Equatable {
     self.sourceRef = .none
     self._value = Stateless()
     self.checkSourceUpdate = { false }
-    self.updateFromSource = { _ in
-      // NOP
-    }
+    self.updateFromSource = .none
     self.viewUpdatesPublisher = .init(initial: self._value)
     self.updatesPublisher = self.viewUpdatesPublisher
       .autoconnect()
@@ -131,7 +131,8 @@ where ViewState: Equatable {
     let runningUpdate: Task<Void, Never> = .init(
       priority: .userInitiated
     ) { @MainActor [weak self, updateFromSource] in
-      await updateFromSource { @MainActor [weak self] (mutate: @MainActor (inout ViewState) -> Void) in
+      guard let updateFromSource else { return }
+      await updateFromSource { @Sendable @MainActor [weak self] (mutate: @MainActor (inout ViewState) -> Void) in
         self?.update(mutate)
       }
     }
@@ -165,4 +166,4 @@ extension ViewStateSource {
   }
 }
 
-public struct Stateless: Equatable {}
+public struct Stateless: Equatable, Sendable {}

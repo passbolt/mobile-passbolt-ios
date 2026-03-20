@@ -27,7 +27,7 @@ import SwiftUI
 public struct WithEachViewState<State, ContentView, PlaceholderView>: View
 where
   State: RandomAccessCollection,
-  State: Equatable,
+  State: Equatable & Sendable,
   State.Element: Identifiable & Equatable,
   ContentView: View,
   PlaceholderView: View

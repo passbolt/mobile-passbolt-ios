@@ -126,13 +126,14 @@ internal struct AccountDetailsView: ControlledView {
     VStack(spacing: 8) {
       self.withValidatedBinding(
         \.currentAccountLabel,
-        updating: self.controller.setCurrentAccountLabel(_:)
-      ) { (label: Binding<Validated<String>>) in
-        FormTextFieldView(
-          title: "account.details.field.label.title",
-          state: label
-        )
-      }
+        updating: { self.controller.setCurrentAccountLabel($0) },
+        content: { (label: Binding<Validated<String>>) in
+          FormTextFieldView(
+            title: "account.details.field.label.title",
+            state: label
+          )
+        }
+      )
       Text(
         displayable: .localized(
           key: "account.details.field.label.editing.info"

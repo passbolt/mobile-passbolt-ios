@@ -348,6 +348,9 @@ let package = Package(
         "Features",
         "FeatureScopes",
         "UICommons",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(

@@ -88,7 +88,7 @@ public final class RootNavigationState: ObservableObject {
 // MARK: - RootNavigation Feature
 
 /// Feature wrapper for RootNavigationState that integrates with the Features DI container.
-public struct RootNavigation {
+public struct RootNavigation: @unchecked Sendable {
 
   public let state: RootNavigationState
 }

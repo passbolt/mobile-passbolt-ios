@@ -78,7 +78,7 @@ extension ControlledView {
     _ keyPath: KeyPath<ViewState, Optional<Value>>,
     @ViewBuilder content optionalView: @escaping (Value) -> OptionalView
   ) -> some View
-  where OptionalView: View, Value: Equatable {
+  where OptionalView: View, Value: Equatable & Sendable {
     WithViewState(
       from: self.controller,
       at: keyPath,
@@ -95,7 +95,7 @@ extension ControlledView {
     _ keyPath: KeyPath<ViewState, State>,
     @ViewBuilder content stateView: @escaping (State) -> StateView
   ) -> some View
-  where State: Equatable, StateView: View {
+  where State: Equatable & Sendable, StateView: View {
     WithViewState(
       from: self.controller,
       at: keyPath,
@@ -108,7 +108,7 @@ extension ControlledView {
     _ keyPath: WritableKeyPath<ViewState, State>,
     @ViewBuilder content stateView: @escaping (Binding<State>) -> StateView
   ) -> some View
-  where State: Equatable, StateView: View {
+  where State: Equatable & Sendable, StateView: View {
     WithBindingState(
       from: self.controller,
       at: keyPath,
@@ -122,7 +122,7 @@ extension ControlledView {
     updating: @escaping @MainActor (State) -> Void,
     @ViewBuilder content stateView: @escaping (Binding<State>) -> StateView
   ) -> some View
-  where State: Equatable, StateView: View {
+  where State: Equatable & Sendable, StateView: View {
     WithBindingState(
       from: self.controller,
       at: keyPath,
@@ -151,7 +151,12 @@ extension ControlledView {
     _ keyPath: KeyPath<ViewState, State>,
     @ViewBuilder content stateView: @escaping (State.Element) -> StateView
   ) -> some View
-  where State: RandomAccessCollection, State: Equatable, State.Element: Equatable & Identifiable, StateView: View {
+  where
+    State: RandomAccessCollection,
+    State: Equatable & Sendable,
+    State.Element: Equatable & Identifiable,
+    StateView: View
+  {
     WithEachViewState(
       from: self.controller,
       at: keyPath,
@@ -167,7 +172,7 @@ extension ControlledView {
   ) -> some View
   where
     State: RandomAccessCollection,
-    State: Equatable,
+    State: Equatable & Sendable,
     State.Element: Equatable & Identifiable,
     StateView: View,
     PlaceholderView: View
@@ -189,9 +194,9 @@ extension ControlledView {
   public func withAlert<State, ContentView>(
     _ keyPath: WritableKeyPath<ViewState, State?>,
     alert: @escaping @Sendable (State) -> AlertViewModel,
-    @ViewBuilder content: @escaping () -> ContentView
+    @ViewBuilder content: @escaping @MainActor () -> ContentView
   ) -> some View
-  where State: Equatable, ContentView: View {
+  where State: Equatable & Sendable, ContentView: View {
     WithAlert(
       from: self.controller,
       at: keyPath,
@@ -207,7 +212,7 @@ extension ControlledView {
   @_transparent
   public func withAlert<ContentView>(
     _ keyPath: WritableKeyPath<ViewState, AlertViewModel?>,
-    @ViewBuilder content: @escaping () -> ContentView
+    @ViewBuilder content: @escaping @MainActor () -> ContentView
   ) -> some View
   where ContentView: View {
     withAlert(keyPath, alert: { $0 }, content: content)
@@ -216,10 +221,10 @@ extension ControlledView {
   @_transparent
   public func withSheet<State, SheetView, ContentView>(
     _ keyPath: WritableKeyPath<ViewState, State?>,
-    @ViewBuilder sheet sheetView: @escaping (State) -> SheetView,
-    @ViewBuilder content contentView: @escaping () -> ContentView
+    @ViewBuilder sheet sheetView: @escaping @MainActor (State) -> SheetView,
+    @ViewBuilder content contentView: @escaping @MainActor () -> ContentView
   ) -> some View
-  where Controller: ViewController, State: Equatable & Identifiable, SheetView: View, ContentView: View {
+  where Controller: ViewController, State: Equatable & Identifiable & Sendable, SheetView: View, ContentView: View {
     WithSheet(
       from: self.controller,
       at: keyPath,
@@ -231,8 +236,8 @@ extension ControlledView {
   @_transparent
   public func withSheet<SheetView, ContentView>(
     _ keyPath: WritableKeyPath<ViewState, Bool>,
-    @ViewBuilder sheet sheetView: @escaping () -> SheetView,
-    @ViewBuilder content contentView: @escaping () -> ContentView
+    @ViewBuilder sheet sheetView: @escaping @MainActor () -> SheetView,
+    @ViewBuilder content contentView: @escaping @MainActor () -> ContentView
   ) -> some View
   where Controller: ViewController, SheetView: View, ContentView: View {
     WithToggledSheet(
@@ -245,7 +250,7 @@ extension ControlledView {
 
   @ViewBuilder @MainActor public func withExternalActivity<ContentView>(
     _ keyPath: WritableKeyPath<ViewState, ExternalActivityConfiguration?>,
-    @ViewBuilder content contentView: @escaping () -> ContentView
+    @ViewBuilder content contentView: @escaping @MainActor () -> ContentView
   ) -> some View
   where ContentView: View {
     WithExternalActivity(

@@ -23,7 +23,7 @@
 
 import Features
 
-public struct NavigationTo<Destination>
+public struct NavigationTo<Destination>: @unchecked Sendable
 where Destination: NavigationDestination {
 
   @usableFromInline internal var performAnimated:
@@ -93,7 +93,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func perform(
+  public func perform(
     animated: Bool = true,
     context: Destination.TransitionContext,
     file: StaticString = #fileID,
@@ -108,7 +108,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func performCatching(
+  public func performCatching(
     animated: Bool = true,
     context: Destination.TransitionContext,
     file: StaticString = #fileID,
@@ -130,7 +130,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func perform(
+  public func perform(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -145,7 +145,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func performCatching(
+  public func performCatching(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -167,7 +167,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func revert(
+  public func revert(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -180,7 +180,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func revertCatching(
+  public func revertCatching(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line

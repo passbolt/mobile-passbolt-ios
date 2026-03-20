@@ -57,7 +57,7 @@ internal struct OTPResourcesListView: ControlledView {
         prompt: "otp.resources.search.placeholder",
         text: self.binding(
           to: \.searchText,
-          updating: self.controller.setSearch(text:)
+          updating: { self.controller.setSearch(text: $0) }
         ),
         rightAccessory: {
           AsyncButton(

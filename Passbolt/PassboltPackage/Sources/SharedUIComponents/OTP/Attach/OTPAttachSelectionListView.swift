@@ -47,7 +47,7 @@ internal struct OTPAttachSelectionListView: ControlledView {
               .cancel(),
               .regular(
                 title: "otp.attach.alert.attach.button.title",
-                perform: self.controller.sendForm
+                perform: { await self.controller.sendForm() }
               ),
             ]
           )
@@ -60,7 +60,7 @@ internal struct OTPAttachSelectionListView: ControlledView {
               .cancel(),
               .regular(
                 title: "otp.attach.alert.replace.button.title",
-                perform: self.controller.sendForm
+                perform: { await self.controller.sendForm() }
               ),
             ]
           )
@@ -86,7 +86,7 @@ internal struct OTPAttachSelectionListView: ControlledView {
         prompt: "resources.search.placeholder",
         text: self.binding(
           to: \.searchText,
-          updating: self.controller.setSearch(text:)
+          updating: { self.controller.setSearch(text: $0) }
         )
       )
     }

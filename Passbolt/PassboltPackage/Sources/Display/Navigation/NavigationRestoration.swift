@@ -23,11 +23,11 @@
 
 import Features
 
-public struct NavigationRestoration {
+public struct NavigationRestoration: Sendable {
 
-  public var saveCurrent: () async throws -> Void
-  public var canRestore: () async throws -> Bool
-  public var restore: () async throws -> Void
+  public var saveCurrent: @Sendable () async throws -> Void
+  public var canRestore: @Sendable () async throws -> Bool
+  public var restore: @Sendable () async throws -> Void
 }
 
 extension NavigationRestoration: LoadableFeature {

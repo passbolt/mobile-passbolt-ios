@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum BiometricsAuthorizationAvailability {
+public enum BiometricsAuthorizationAvailability: Sendable {
 
   case unavailable
   case disabledFaceID

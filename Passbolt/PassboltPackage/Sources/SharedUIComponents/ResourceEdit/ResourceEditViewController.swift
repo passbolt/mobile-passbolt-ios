@@ -272,6 +272,7 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
+  @Sendable
   @MainActor private func confirmedSubmission() async {
     do {
       self.viewState.update(\.isLoading, to: true)
@@ -313,6 +314,7 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
+  @Sendable
   @MainActor internal func discardForm() async {
     await consumingErrors(
       errorDiagnostics: "Failed to discard resource edit form!"
@@ -982,7 +984,7 @@ extension ResourceType {
 
 extension AlertViewModel {
 
-  fileprivate static func weakPassword(onConfirm: @escaping () async -> Void) -> Self {
+  fileprivate static func weakPassword(onConfirm: @Sendable @escaping () async -> Void) -> Self {
     .init(
       title: "resource.edit.password.alert.weak.title",
       message: "resource.edit.password.alert.weak.message",
@@ -993,7 +995,7 @@ extension AlertViewModel {
     )
   }
 
-  fileprivate static func pwnedPassword(onConfirm: @escaping () async -> Void) -> Self {
+  fileprivate static func pwnedPassword(onConfirm: @Sendable @escaping () async -> Void) -> Self {
     .init(
       title: "resource.edit.password.alert.pwned.title",
       message: "resource.edit.password.alert.pwned.message",
@@ -1004,7 +1006,7 @@ extension AlertViewModel {
     )
   }
 
-  fileprivate static func passwordCheckError(onConfirm: @escaping () async -> Void) -> Self {
+  fileprivate static func passwordCheckError(onConfirm: @Sendable @escaping () async -> Void) -> Self {
     .init(
       title: "",
       message: "resource.edit.password.alert.password.check.error.message",
@@ -1015,7 +1017,7 @@ extension AlertViewModel {
     )
   }
 
-  fileprivate static func discardForm(onConfirm: @escaping () async -> Void) -> Self {
+  fileprivate static func discardForm(onConfirm: @Sendable @escaping () async -> Void) -> Self {
     .init(
       title: "generic.are.you.sure",
       message: "resource.edit.exit.confirmation.message",

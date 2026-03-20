@@ -35,7 +35,7 @@ where ContentView: View {
   public init<Controller>(
     from controller: Controller,
     at keyPath: WritableKeyPath<Controller.ViewState, ExternalActivityConfiguration?>,
-    @ViewBuilder content: @escaping () -> ContentView
+    @ViewBuilder content: @escaping @MainActor () -> ContentView
   ) where Controller: ViewController {
     self._viewState = .init(
       wrappedValue: .init(
