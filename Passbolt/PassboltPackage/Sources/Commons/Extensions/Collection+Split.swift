@@ -22,6 +22,7 @@
 //
 
 extension Collection {
+
   public func split(by length: Int) -> Array<SubSequence> {
     stride(from: 0, to: count, by: length)
       .map { index in

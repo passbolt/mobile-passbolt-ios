@@ -73,7 +73,7 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         Initialization.self,
-        load: Initialization.passbolt
+        load: { Initialization.passbolt(features: $0) }
       )
     )
   }

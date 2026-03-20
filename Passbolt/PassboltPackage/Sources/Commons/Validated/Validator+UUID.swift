@@ -49,7 +49,7 @@ extension Validator where Value == String {
 
 extension InvalidValue {
 
-  public static func notValidUUID<Value>(
+  public static func notValidUUID<Value: Sendable>(
     message: StaticString = "InvalidValue-NotMatchingUUID",
     validationRule: StaticString = "validUUID",
     value: Value,

@@ -105,7 +105,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         AccountImportResultHandler.self,
-        load: AccountImportResultHandler.load(using:)
+        load: { try AccountImportResultHandler.load(using: $0) }
       ),
       in: AccountTransferScope.self
     )

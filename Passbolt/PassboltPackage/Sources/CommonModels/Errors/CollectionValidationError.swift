@@ -25,7 +25,7 @@ public struct CollectionValidationError: TheError {
   public static func error(
     message: StaticString = "CollectionValidationError",
     underlyingError: Error? = .none,
-    details: Dictionary<String, Any>,
+    details: Dictionary<String, any Sendable>,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {

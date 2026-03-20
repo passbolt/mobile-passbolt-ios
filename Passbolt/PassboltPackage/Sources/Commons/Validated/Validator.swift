@@ -77,7 +77,7 @@ extension Validator {
 extension Validator {
 
   public func contraMap<MappedValue>(
-    _ mapping: @escaping (MappedValue) -> Value
+    _ mapping: @escaping @Sendable (MappedValue) -> Value
   ) -> Validator<MappedValue> {
     Validator<MappedValue> { mappedValue in
       if let error: TheError = self.validate(mapping(mappedValue)).error {

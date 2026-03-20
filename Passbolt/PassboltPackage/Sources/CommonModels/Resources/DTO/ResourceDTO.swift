@@ -251,11 +251,11 @@ extension ResourceDTO: Decodable {
         message: "Cannot find the resource type associated",
         underlyingError: .none,
         details: [
-          "resourceId": self.id,
+          "resourceId": self.id as any Sendable,
           "typeId": [
-            "id": self.typeID,
-            "exist": "The type does not match any stored type id",
-          ],
+            "id": self.typeID as any Sendable,
+            "exist": "The type does not match any stored type id" as any Sendable,
+          ] as any Sendable,
         ]
       )
     }
@@ -296,7 +296,7 @@ extension ResourceDTO: Decodable {
       try resource.validate()
     }
     catch {
-      var details: Dictionary<String, Any> = ["id": self.id]
+      var details: Dictionary<String, any Sendable> = ["id": self.id]
       if let errorDetails = error.asTheError().getDetails() {
         details.merge(errorDetails) { (current, _) in current }  // Retains existing values in case of conflict
       }

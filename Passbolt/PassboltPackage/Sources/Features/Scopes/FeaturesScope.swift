@@ -23,7 +23,7 @@
 
 public protocol FeaturesScope {
 
-  associatedtype Context = Void
+  associatedtype Context: Sendable = Void
 
   @MainActor static func verified<Branch>(
     branch features: Branch,

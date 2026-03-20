@@ -24,71 +24,9 @@
 import Combine
 
 extension Publisher
-where Failure == Never {
+where Output: Sendable {
 
   public func asAsyncSequence() -> AnyAsyncSequence<Output> {
     AnyAsyncSequence(self)
-  }
-}
-
-extension Publisher {
-
-  @_disfavoredOverload
-  public func asAsyncSequence() -> AnyAsyncSequence<Output> {
-    AnyAsyncSequence(self)
-  }
-}
-
-extension AsyncSequence {
-
-  // file:line captured only for diagnostics
-  public func asThrowingPublisher() -> AnyPublisher<Element, Error> {
-    ThrowingSequencePublisher(sequence: self)
-      .autoconnect()
-      .eraseToAnyPublisher()
-  }
-}
-
-private struct ThrowingSequencePublisher<PublishedSequence>: ConnectablePublisher
-where PublishedSequence: AsyncSequence {
-
-  fileprivate typealias Output = PublishedSequence.Element
-  fileprivate typealias Failure = Error
-
-  private let subject: CurrentValueSubject<Output?, Failure> = .init(.none)
-  private let sequence: PublishedSequence
-
-  fileprivate init(
-    sequence: PublishedSequence
-  ) {
-    self.sequence = sequence
-  }
-
-  public func receive<S>(
-    subscriber: S
-  ) where S: Subscriber, S.Input == Output, S.Failure == Failure {
-    self.subject
-      .compactMap({ $0 })
-      .receive(subscriber: subscriber)
-  }
-
-  public func connect() -> Cancellable {
-    let task: Task<Void, Never> = .init {
-      do {
-        for try await element: Output in self.sequence {
-          try Task.checkCancellation()
-          self.subject.send(element)
-        }
-        self.subject.send(completion: .finished)
-      }
-      catch is Cancelled {
-        self.subject.send(completion: .finished)
-      }
-      catch {
-        self.subject.send(completion: .failure(error))
-      }
-    }
-
-    return AnyCancellable(task.cancel)
   }
 }

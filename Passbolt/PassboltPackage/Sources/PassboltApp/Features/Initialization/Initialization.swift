@@ -75,7 +75,7 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         Initialization.self,
-        load: Initialization.load(using:)
+        load: { try Initialization.load(using: $0) }
       )
     )
   }

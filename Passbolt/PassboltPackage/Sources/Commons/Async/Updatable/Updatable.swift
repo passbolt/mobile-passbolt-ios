@@ -107,7 +107,7 @@ where Value: Sendable {
   }
 }
 
-@usableFromInline internal final class UpdateDelivery<Value> where Value: Sendable {
+@usableFromInline internal final class UpdateDelivery<Value>: @unchecked Sendable where Value: Sendable {
 
   private let awaiter: @Sendable (Update<Value>) -> Void
   private var next: UpdateDelivery?

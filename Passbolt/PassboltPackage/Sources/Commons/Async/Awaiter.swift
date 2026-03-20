@@ -52,8 +52,9 @@ public struct Awaiter<Value> {
   public func resume(
     returning value: Value
   ) {
+    let box: UncheckedSendableBox<Value> = UncheckedSendableBox(value)
     self.continuation?
-      .resume(returning: value)
+      .resume(returning: box.value)
   }
 
   @inlinable

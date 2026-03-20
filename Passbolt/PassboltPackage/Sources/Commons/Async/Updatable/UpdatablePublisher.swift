@@ -28,9 +28,10 @@ where Source: Updatable {
 
   public typealias Output = Update<Source.Value>
   public typealias Failure = Never
+  private typealias IteratorFactory = @Sendable () -> UpdatableIterator<Source.Value>
 
   private let subject: PassthroughSubject<Output, Failure> = .init()
-  private let makeIterator: @Sendable () -> UpdatableIterator<Source.Value>
+  private let makeIterator: IteratorFactory
 
   @usableFromInline internal init(
     source: Source
@@ -46,12 +47,14 @@ where Source: Updatable {
   }
 
   public func connect() -> Cancellable {
+    let box: UncheckedSendableBox<(makeIterator: IteratorFactory, subject: PassthroughSubject<Output, Failure>)> =
+      .init((makeIterator: self.makeIterator, subject: self.subject))
     let task: Task<Void, Never> = .init {
-      var iterator: UpdatableIterator<Source.Value> = self.makeIterator()
+      var iterator: UpdatableIterator<Source.Value> = box.value.makeIterator()
       while case .some(let update) = await iterator.next() {
-        self.subject.send(update)
+        box.value.subject.send(update)
       }
-      self.subject.send(completion: .finished)
+      box.value.subject.send(completion: .finished)
     }
 
     return AnyCancellable(task.cancel)

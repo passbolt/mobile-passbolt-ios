@@ -76,7 +76,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         NavigationRestoration.self,
-        load: NavigationRestoration.load(features:)
+        load: { try NavigationRestoration.load(features: $0) }
       )
     )
   }

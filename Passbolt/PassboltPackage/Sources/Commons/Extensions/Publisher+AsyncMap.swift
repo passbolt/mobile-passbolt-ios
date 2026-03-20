@@ -30,12 +30,21 @@ extension Publisher where Failure == Error {
   ) -> Publishers.FlatMap<Future<NewOutput, Error>, Self> {
     self.flatMap { output in
       Future<NewOutput, Error> { promise in
+        let box:
+          UncheckedSendableBox<
+            (
+              promise: Future<NewOutput, Error>.Promise,
+              transform: (Output) async throws -> NewOutput,
+              output: Output
+            )
+          > =
+            .init((promise: promise, transform: transform, output: output))
         Task {
           do {
-            try await promise(.success(transform(output)))
+            try await box.value.promise(.success(box.value.transform(box.value.output)))
           }
           catch {
-            promise(.failure(error))
+            box.value.promise(.failure(error))
           }
         }
       }
@@ -50,8 +59,17 @@ extension Publisher where Failure == Never {
   ) -> Publishers.FlatMap<Future<NewOutput, Never>, Self> {
     self.flatMap { output in
       Future<NewOutput, Never> { promise in
+        let box:
+          UncheckedSendableBox<
+            (
+              promise: Future<NewOutput, Never>.Promise,
+              transform: (Output) async -> NewOutput,
+              output: Output
+            )
+          > =
+            .init((promise: promise, transform: transform, output: output))
         Task {
-          await promise(.success(transform(output)))
+          await box.value.promise(.success(box.value.transform(box.value.output)))
         }
       }
     }
@@ -62,10 +80,19 @@ extension Publisher where Failure == Never {
   ) -> Publishers.FlatMap<Future<NewOutput, Never>, Self> {
     self.flatMap { output in
       Future<NewOutput, Never> { promise in
+        let box:
+          UncheckedSendableBox<
+            (
+              promise: Future<NewOutput, Never>.Promise,
+              transform: (Output) async -> NewOutput?,
+              output: Output
+            )
+          > =
+            .init((promise: promise, transform: transform, output: output))
         Task {
-          guard let transformed: NewOutput = await transform(output)
+          guard let transformed: NewOutput = await box.value.transform(box.value.output)
           else { return }
-          promise(.success(transformed))
+          box.value.promise(.success(transformed))
         }
       }
     }

@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public protocol FeatureImplementation {
+public protocol FeatureImplementation: Sendable {
 
   associatedtype Feature: LoadableFeature
 

@@ -493,7 +493,7 @@ extension PGP {
           PGPFingerprintInvalid
           .error("Failed to extract fingerptint from public PGP key")
           .recording(publicKey, for: "publicKey")
-          .recording(error as Any, for: "goError")
+          .recording(String(describing: error), for: "goError")
       }
     }
 
@@ -536,7 +536,7 @@ extension PGP {
               underlyingError:
                 PGPFingerprintInvalid
                 .error("Failed to extract public PGP key from a private key.")
-                .recording(error as Any, for: "goError")
+                .recording(String(describing: error), for: "goError")
             )
           )
         }

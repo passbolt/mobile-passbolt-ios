@@ -59,7 +59,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         NavigationStateProvider.self,
-        load: NavigationStateProvider.load(features:)
+        load: { try NavigationStateProvider.load(features: $0) }
       )
     )
   }

@@ -129,7 +129,7 @@ extension SignatureVerification {
                 PublicKeyInvalid
                 .error("Failed to prepare public key for signature verification")
                 .recording(key, for: "keyData")
-                .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+                .recording(String(describing: error?.takeRetainedValue()), for: "underlyingError")
             )
         )
       }
@@ -152,9 +152,9 @@ extension SignatureVerification {
               DataSignatureInvalid
               .error("Signature verification failed")
               .recording(key, for: "key")
-              .recording(signatureData, for: "signature")
-              .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
-              .recording(inputData, for: "input")
+              .recording(String(describing: signatureData), for: "signature")
+              .recording(String(describing: error?.takeRetainedValue()), for: "underlyingError")
+              .recording(String(describing: inputData), for: "input")
           )
         )
       }

@@ -21,8 +21,11 @@
 // @since         v1.0
 //
 
-@Sendable public func identity<A>(
-  _ arg: A
-) -> A {
-  arg
+public struct UncheckedSendableBox<Value>: @unchecked Sendable {
+
+  public let value: Value
+
+  public init(_ value: Value) {
+    self.value = value
+  }
 }

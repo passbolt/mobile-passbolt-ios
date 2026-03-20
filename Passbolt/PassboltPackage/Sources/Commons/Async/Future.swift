@@ -43,9 +43,10 @@
         guard !cancelled else { return }
 
         fulfill { (result: Result<Value, Error>) in
+          let box: UncheckedSendableBox<Result<Value, Error>> = UncheckedSendableBox(result)
           state
             .exchange(\.self, with: .none)?
-            .resume(with: result)
+            .resume(with: box.value)
         }
       }
     },
@@ -79,9 +80,10 @@
         guard !cancelled else { return }
 
         fulfill { (value: Value) in
+          let box: UncheckedSendableBox<Value> = UncheckedSendableBox(value)
           state
             .exchange(\.self, with: .none)?
-            .resume(returning: value)
+            .resume(returning: box.value)
         }
       }
     },

@@ -122,7 +122,7 @@ extension NDEFParser {
           underlyingError:
             NFCPayloadInvalid
             .error("NFC payload parsing failed")
-            .recording(messages, for: "messages")
+            .recording(String(describing: messages), for: "messages")
         )
       )
     }

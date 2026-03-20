@@ -29,8 +29,6 @@ import XCTest
 @MainActor
 open class FeaturesTestCase: TestCase {
 
-  public var cancellables: Cancellables { self.testFeatures.cancellables }  // for legacy elements
-
   private let testFeatures: TestFeaturesContainer = .init()
 
   open func commonPrepare() {

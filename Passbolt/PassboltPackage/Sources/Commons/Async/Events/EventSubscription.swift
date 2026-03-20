@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public final class EventSubscription<Description>
+public final class EventSubscription<Description>: @unchecked Sendable
 where Description: EventDescription {
 
   @usableFromInline internal let criticalSection: CriticalState<Void>

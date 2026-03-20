@@ -54,7 +54,7 @@ extension DiagnosticsContext {
   ///   - value: Value to be recorded.
   ///   - key: Key identifying recorded value.
   public mutating func record(
-    _ value: @autoclosure () -> Any,
+    _ value: @autoclosure () -> any Sendable,
     for key: StaticString
   ) {
     #if DEBUG
@@ -72,7 +72,7 @@ extension DiagnosticsContext {
   ///
   /// - Parameter values: Values to be recorded.
   public mutating func record(
-    values: @autoclosure () -> Dictionary<StaticString, Any>
+    values: @autoclosure () -> Dictionary<StaticString, any Sendable>
   ) {
     #if DEBUG
     // infoStack has always one or more elements
@@ -92,7 +92,7 @@ extension DiagnosticsContext {
   ///   - key: Key identifying recorded value.
   /// - Returns: Copy of this context with additional value associated.
   public func recording(
-    _ value: @autoclosure () -> Any,
+    _ value: @autoclosure () -> any Sendable,
     for key: StaticString
   ) -> Self {
     #if DEBUG
@@ -111,7 +111,7 @@ extension DiagnosticsContext {
   /// - Parameter values: Values to be recorded.
   /// - Returns: Copy of this context with additional values associated.
   public func recording(
-    values: @autoclosure () -> Dictionary<StaticString, Any>
+    values: @autoclosure () -> Dictionary<StaticString, any Sendable>
   ) -> Self {
     #if DEBUG
     var copy: Self = self

@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct FeatureLoader {
+public struct FeatureLoader: Sendable {
 
   internal let identifier: FeatureIdentifier
   internal let cache: Bool

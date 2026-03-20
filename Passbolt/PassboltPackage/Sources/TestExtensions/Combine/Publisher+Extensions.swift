@@ -23,26 +23,9 @@
 
 import Combine
 
-extension Publisher {
+extension Publisher where Failure == Never {
 
-  public func flatMapResult<Success>(
-    _ transform: @escaping (Output) -> Result<Success, Failure>
-  )
-    -> Publishers.SwitchToLatest<
-      AnyPublisher<Success, Self.Failure>, Publishers.Map<Self, AnyPublisher<Success, Self.Failure>>
-    >
-  {
-    self.map { output -> AnyPublisher<Success, Failure> in
-      switch transform(output) {
-      case .success(let value):
-        return Just(value)
-          .setFailureType(to: Failure.self)
-          .eraseToAnyPublisher()
-      case .failure(let error):
-        return Fail(error: error)
-          .eraseToAnyPublisher()
-      }
-    }
-    .switchToLatest()
+  public func eraseErrorType() -> Publishers.SetFailureType<Self, Error> {
+    self.setFailureType(to: Error.self)
   }
 }

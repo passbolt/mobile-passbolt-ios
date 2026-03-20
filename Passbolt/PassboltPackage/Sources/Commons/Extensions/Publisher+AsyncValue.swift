@@ -23,7 +23,8 @@
 
 import Combine
 
-extension Publisher {
+extension Publisher
+where Output: Sendable {
 
   public func asAsyncValue() async throws -> Output {
     let sequence: AnyAsyncSequence<Output> = self.asAsyncSequence()

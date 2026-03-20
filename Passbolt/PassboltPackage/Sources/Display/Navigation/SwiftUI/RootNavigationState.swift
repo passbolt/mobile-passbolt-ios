@@ -126,7 +126,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         RootNavigation.self,
-        load: RootNavigation.load(features:)
+        load: { try RootNavigation.load(features: $0) }
       )
     )
   }

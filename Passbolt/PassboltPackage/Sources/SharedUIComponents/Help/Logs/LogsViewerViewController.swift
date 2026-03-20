@@ -40,13 +40,11 @@ public final class LogsViewerViewController: ViewController {
     internal var presentShareSheet: Bool = false
     internal let useCustomNavigationBar: Bool
     internal var sharingDiagnosticsInfo: String {
-      (
-        [
-          "Passbolt"
-        ]
-        + diagnosticsInfo
-      )
-      .joined(separator: "\n")
+      ([
+        "Passbolt"
+      ]
+        + diagnosticsInfo)
+        .joined(separator: "\n")
     }
   }
 

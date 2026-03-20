@@ -37,15 +37,17 @@ public actor BatchExecutor {
   }
 
   public func execute() async throws {
+    let semaphore: AsyncSemaphore = self.semaphore
     try await withThrowingTaskGroup(of: Void.self) { group in
       while operations.count > 0 {
         let operation: Operation = operations.removeFirst()
+        let box: UncheckedSendableBox<Operation> = .init(operation)
         group.addTask {
-          await self.semaphore.wait()
+          await semaphore.wait()
           defer {
-            Task { await self.semaphore.signal() }
+            Task { await semaphore.signal() }
           }
-          try await operation()
+          try await box.value()
         }
       }
 

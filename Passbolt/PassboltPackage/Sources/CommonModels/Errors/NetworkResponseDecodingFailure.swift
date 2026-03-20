@@ -41,7 +41,7 @@ public struct NetworkResponseDecodingFailure: TheError {
             line: line
           )
         )
-        .recording(underlyingError as Any, for: "underlyingError"),
+        .recording(String(describing: underlyingError), for: "underlyingError"),
       displayableMessage: .localized(key: "error.network.response.decoding.failed"),
       response: response
     )

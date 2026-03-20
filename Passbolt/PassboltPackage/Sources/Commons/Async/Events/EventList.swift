@@ -46,7 +46,7 @@ extension EventList {
   }
 
   @_transparent @usableFromInline internal func nextEvent() async throws -> Description.Payload {
-    try await future { (fulfill: @escaping (Result<Description.Payload, Error>) -> Void) in
+    try await future { (fulfill: @escaping @Sendable (Result<Description.Payload, Error>) -> Void) in
       let id: IID = .init()
       self.subscriptions.set(
         \.[id],

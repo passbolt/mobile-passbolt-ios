@@ -126,7 +126,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         HomePresentation.self,
-        load: HomePresentation.load(using:)
+        load: { try HomePresentation.load(using: $0) }
       ),
       in: SessionScope.self
     )

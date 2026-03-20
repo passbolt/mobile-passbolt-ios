@@ -26,13 +26,16 @@ import Combine
 extension Task {
 
   @inlinable public func asPublisher() -> AnyPublisher<Success, Error> {
-    Future { promise in
+    let task: Task = self
+    return Future { promise in
+      let box: UncheckedSendableBox<(promise: Future<Success, Error>.Promise, task: Task)> =
+        .init((promise: promise, task: task))
       Task<Void, Never> {
         do {
-          try await promise(.success(self.value))
+          try await box.value.promise(.success(box.value.task.value))
         }
         catch {
-          promise(.failure(error))
+          box.value.promise(.failure(error))
         }
       }
     }
@@ -43,9 +46,12 @@ extension Task {
 extension Task where Failure == Never {
 
   @inlinable public func asPublisher() -> AnyPublisher<Success, Never> {
-    Future { promise in
+    let task: Task = self
+    return Future { promise in
+      let box: UncheckedSendableBox<(promise: Future<Success, Never>.Promise, task: Task)> =
+        .init((promise: promise, task: task))
       Task<Void, Never> {
-        await promise(self.result)
+        await box.value.promise(box.value.task.result)
       }
     }
     .eraseToAnyPublisher()

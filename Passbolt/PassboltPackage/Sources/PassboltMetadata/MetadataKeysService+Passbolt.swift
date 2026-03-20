@@ -400,9 +400,11 @@ extension MetadataKeysService {
           return false
         }
 
-        let currentUserFingerprint: String = try pgp.extractFingerprint(
-          userPublicKeyDSV.publicKey
-        ).get().rawValue.uppercased()
+        let currentUserFingerprint: String =
+          try pgp.extractFingerprint(
+            userPublicKeyDSV.publicKey
+          )
+          .get().rawValue.uppercased()
 
         for privateKey in privateKeys {
           guard let signature: PGP.Signature = privateKey.signature else {
@@ -706,8 +708,8 @@ extension MetadataKeyDTO {
         throw InvalidValue.invalid(
           validationRule: ValidationRule.fingerprintsMismatch,
           value: [
-            "publicKeyFingerprint": fingerprint,
-            "privateKeyFingerprint": privateKey.fingerprint,
+            "publicKeyFingerprint": fingerprint as any Sendable,
+            "privateKeyFingerprint": privateKey.fingerprint as any Sendable,
           ],
           displayable: "Public and private key fingerprints mismatch."
         )

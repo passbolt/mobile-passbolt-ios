@@ -264,6 +264,9 @@ let package = Package(
           name: "AsyncAlgorithms",
           package: "swift-async-algorithms"
         ),
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -289,6 +292,9 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(

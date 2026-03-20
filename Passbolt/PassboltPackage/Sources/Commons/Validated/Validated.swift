@@ -82,7 +82,7 @@ extension Validated {
     displayable: DisplayableString,
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Self {
+  ) -> Self where Value: Sendable {
     Self(
       value: value,
       error: InvalidValue.error(
