@@ -469,6 +469,7 @@
 "error.nfc.not.supported" = "NFC stöds inte.";
 "error.nfc.payload.invalid" = "Ogiltig NFC-payload.";
 "error.url.invalid" = "Ogiltig URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Kan inte ansluta till internet.";
 "error.client.certificate.invalid" = "Ogiltigt klientcertifikat.";
 "error.server.connection.issue" = "Kan inte ansluta till servern.";

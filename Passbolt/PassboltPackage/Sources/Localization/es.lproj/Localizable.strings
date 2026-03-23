@@ -471,6 +471,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.nfc.not.supported" = "El NFC no es compatible.";
 "error.nfc.payload.invalid" = "El payload del NFC no es válido.";
 "error.url.invalid" = "URL no válida.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "No es posible conectarse a internet.";
 "error.client.certificate.invalid" = "Certificado de cliente no válido.";
 "error.server.connection.issue" = "No es posible conectarse con el servidor.";

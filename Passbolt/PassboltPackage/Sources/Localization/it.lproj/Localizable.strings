@@ -469,6 +469,7 @@
 "error.nfc.not.supported" = "NFC non supportato.";
 "error.nfc.payload.invalid" = "Payload NFC non valido.";
 "error.url.invalid" = "URL non valido.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Impossibile collegarsi a internet.";
 "error.client.certificate.invalid" = "Certificato client non valido.";
 "error.server.connection.issue" = "Impossibile collegarsi al server.";

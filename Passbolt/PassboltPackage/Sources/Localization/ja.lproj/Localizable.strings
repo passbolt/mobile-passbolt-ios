@@ -470,6 +470,7 @@
 "error.nfc.not.supported" = "NFCはサポートされていません。";
 "error.nfc.payload.invalid" = "NFCペイロードが無効です。";
 "error.url.invalid" = "URLが無効です。";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "インターネットに接続できません。";
 "error.client.certificate.invalid" = "クライアント証明書が無効です。";
 "error.server.connection.issue" = "サーバーに接続できません。";

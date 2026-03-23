@@ -471,6 +471,7 @@ NFC, щоб це працювало.";
 "error.nfc.not.supported" = "NFC не підтримується.";
 "error.nfc.payload.invalid" = "Неправильний вміст NFC.";
 "error.url.invalid" = "Неправильний URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Неможливо під'єднатися до інтернету.";
 "error.client.certificate.invalid" = "Недійсний клієнтський сертифікат.";
 "error.server.connection.issue" = "Неможливо під'єднатися до сервера.";

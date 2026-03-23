@@ -512,6 +512,7 @@
 "error.nfc.not.supported" = "NFC nepalaikoma.";
 "error.nfc.payload.invalid" = "Neteisingas NFC turinys.";
 "error.url.invalid" = "Neteisingas URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Nepavyksta prisijungti prie interneto.";
 "error.client.certificate.invalid" = "Neteisingas kliento sertifikatas.";
 "error.server.connection.issue" = "Nepavyksta prisijungti prie serverio.";

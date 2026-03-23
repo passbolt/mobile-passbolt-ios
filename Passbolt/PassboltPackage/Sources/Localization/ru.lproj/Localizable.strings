@@ -472,6 +472,7 @@ NFC.";
 "error.nfc.not.supported" = "NFC не поддерживается.";
 "error.nfc.payload.invalid" = "Данные NFC не прошли проверку.";
 "error.url.invalid" = "Неверный URL-адрес.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Не удается подключиться к Интернету.";
 "error.client.certificate.invalid" = "Недопустимый сертификат клиента.";
 "error.server.connection.issue" = "Не удается подключиться к серверу.";

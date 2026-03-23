@@ -471,6 +471,7 @@ Neem contact op met je beheerder voor meer informatie.";
 "error.nfc.not.supported" = "NFC wordt niet ondersteund.";
 "error.nfc.payload.invalid" = "NFC-payload is ongeldig.";
 "error.url.invalid" = "Ongeldige URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Kan geen verbinding maken met internet.";
 "error.client.certificate.invalid" = "Cliëntcertificaat is ongeldig.";
 "error.server.connection.issue" = "Kan geen verbinding maken met de server.";

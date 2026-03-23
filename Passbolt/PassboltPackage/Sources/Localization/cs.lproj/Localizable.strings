@@ -470,6 +470,7 @@
 "error.nfc.not.supported" = "NFC není podporováno.";
 "error.nfc.payload.invalid" = "Neplatná data NFC.";
 "error.url.invalid" = "Neplatná URL adresa.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Nelze se připojit k internetu.";
 "error.client.certificate.invalid" = "Neplatný certifikát klienta.";
 "error.server.connection.issue" = "Nelze se spojit se serverem.";

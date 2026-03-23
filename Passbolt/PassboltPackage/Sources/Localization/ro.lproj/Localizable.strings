@@ -471,6 +471,7 @@ Contactați administratorul pentru mai multe informații.";
 "error.nfc.not.supported" = "NFC-ul nu este suportat.";
 "error.nfc.payload.invalid" = "Conținut NFC invalid.";
 "error.url.invalid" = "URL invalid.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Conectarea la internet nu este posibilă.";
 "error.client.certificate.invalid" = "Certificat client invalid.";
 "error.server.connection.issue" = "Conectarea la server nu este posibilă.";

@@ -471,6 +471,7 @@ NFC가 있어야 작동합니다.";
 "error.nfc.not.supported" = "NFC는 지원하지 않습니다.";
 "error.nfc.payload.invalid" = "NFC 페이로드가 잘못되었습니다.";
 "error.url.invalid" = "잘못된 URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "인터넷에 연결할 수 없습니다.";
 "error.client.certificate.invalid" = "클라이언트 인증서가 잘못되었습니다.";
 "error.server.connection.issue" = "서버에 연결할 수 없습니다.";

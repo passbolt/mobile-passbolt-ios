@@ -469,6 +469,7 @@
 "error.nfc.not.supported" = "NFC ni podprt.";
 "error.nfc.payload.invalid" = "NFC vsebina ni veljavna.";
 "error.url.invalid" = "Neveljavni URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "Ni povezave z internetom.";
 "error.client.certificate.invalid" = "Neveljaven certifikat odjemalca.";
 "error.server.connection.issue" = "Ni mogoče povezati s strežnikom.";
