@@ -687,15 +687,15 @@ private func checkKeychainItemExistsQuery(
   context: LAContext?
 ) -> CFDictionary {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
-  context?.interactionNotAllowed = true
+  let authContext: LAContext = context ?? LAContext()
+  authContext.interactionNotAllowed = true
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
     kSecMatchLimit: kSecMatchLimitOne,
     kSecReturnAttributes: kCFBooleanFalse as Any,
     kSecReturnData: kCFBooleanFalse as Any,
     kSecAttrService: key,
-    kSecUseAuthenticationUI: kSecUseAuthenticationUIFail as Any,
-    kSecUseAuthenticationContext: context as Any,
+    kSecUseAuthenticationContext: authContext,
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier

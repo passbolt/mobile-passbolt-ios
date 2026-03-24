@@ -23,7 +23,6 @@
 
 import Accounts
 import FeatureScopes
-import Features
 import Session
 import SessionData
 
@@ -36,7 +35,7 @@ public struct HomePresentation {
 
 extension HomePresentation: LoadableFeature {
 
-  @MainActor internal static func load(
+  @MainActor public static func load(
     using features: Features
   ) throws -> Self {
     let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
@@ -122,7 +121,7 @@ extension HomePresentation {
 
 extension FeaturesRegistry {
 
-  public mutating func useLiveHomePresentation() {
+  internal mutating func useHomePresentation() {
     self.use(
       .lazyLoaded(
         HomePresentation.self,
@@ -130,6 +129,5 @@ extension FeaturesRegistry {
       ),
       in: SessionScope.self
     )
-    self.useLiveNavigationToHomePresentationMenu()
   }
 }

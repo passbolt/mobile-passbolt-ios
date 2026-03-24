@@ -21,4 +21,24 @@
 // @since         v1.0
 //
 
-import Foundation
+import class Foundation.Bundle
+import struct Foundation.URL
+
+/// EFF Long Wordlist (7,776 words) for passphrase generation.
+/// Source: https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt
+internal enum EFFWordlist {
+
+  internal static let words: Array<String> = {
+    guard
+      let url: URL = Bundle.module.url(forResource: "eff_large_wordlist", withExtension: "txt"),
+      let content: String = try? String(contentsOf: url, encoding: .utf8)
+    else {
+      assertionFailure("EFF wordlist resource not found in bundle")
+      return .init()
+    }
+    return
+      content
+      .components(separatedBy: .newlines)
+      .filter { !$0.isEmpty }
+  }()
+}

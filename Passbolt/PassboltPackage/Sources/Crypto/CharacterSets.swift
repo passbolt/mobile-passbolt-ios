@@ -23,9 +23,50 @@
 
 import struct Foundation.CharacterSet
 
-public enum CharacterSets: Sendable {
+internal enum CharacterSets: Sendable {
 
-  internal static let lowercaseLetters: Set<Character> = .init([
+  case uppercaseLetters
+  case lowercaseLetters
+  case digits
+  case parenthesis
+  case specialChar1
+  case specialChar2
+  case specialChar3
+  case specialChar4
+  case specialChar5
+  case emoji
+  case alikeCharacters
+
+  internal var characters: Set<Character> {
+    switch self {
+    case .uppercaseLetters:
+      return Self.uppercaseLettersSet
+    case .lowercaseLetters:
+      return Self.lowercaseLettersSet
+    case .digits:
+      return Self.digitsSet
+    case .parenthesis:
+      return Self.parenthesisSet
+    case .specialChar1:
+      return Self.specialChar1Set
+    case .specialChar2:
+      return Self.specialChar2Set
+    case .specialChar3:
+      return Self.specialChar3Set
+    case .specialChar4:
+      return Self.specialChar4Set
+    case .specialChar5:
+      return Self.specialChar5Set
+    case .emoji:
+      return Self.emojiSet
+    case .alikeCharacters:
+      return .init([
+        "O", "l", "|", "I", "0", "1",
+      ])
+    }
+  }
+
+  private static let lowercaseLettersSet: Set<Character> = .init([
     "a", "b", "c", "d", "e", "f",
     "g", "h", "i", "j", "k", "l",
     "m", "n", "o", "p", "q", "r",
@@ -33,7 +74,7 @@ public enum CharacterSets: Sendable {
     "y", "z",
   ])
 
-  internal static let uppercaseLetters: Set<Character> = .init([
+  private static let uppercaseLettersSet: Set<Character> = .init([
     "A", "B", "C", "D", "E", "F",
     "G", "H", "I", "J", "K", "L",
     "M", "N", "O", "P", "Q", "R",
@@ -41,36 +82,42 @@ public enum CharacterSets: Sendable {
     "Y", "Z",
   ])
 
-  internal static let digits: Set<Character> = .init([
+  private static let digitsSet: Set<Character> = .init([
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
   ])
 
-  internal static let parenthesis: Set<Character> = .init([
+  private static let parenthesisSet: Set<Character> = .init([
     "{", "(", "[", "|", "]", ")", "}",
   ])
 
-  internal static let special: Set<Character> = .init([
-    "#", "$", "%", "&", "@", "^",
-    "~", ".", ",", ":", ";", "'",
-    "\"", "`", "/", "\\", "_", "-",
+  private static let specialChar1Set: Set<Character> = .init([
+    "#", "$", "%", "&", "@", "^", "~",
+  ])
+
+  private static let specialChar2Set: Set<Character> = .init([
+    ".", ",", ":", ";",
+  ])
+
+  private static let specialChar3Set: Set<Character> = .init([
+    "'", "\"", "`",
+  ])
+
+  private static let specialChar4Set: Set<Character> = .init([
+    "/", "\\", "_", "-",
+  ])
+
+  private static let specialChar5Set: Set<Character> = .init([
     "<", "*", "+", "!", "?", "=",
   ])
 
-  internal static var alphanumeric: Set<Set<Character>> {
-    [
-      lowercaseLetters,
-      uppercaseLetters,
-      digits,
-    ]
-  }
-
-  public static var all: Set<Set<Character>> {
-    [
-      lowercaseLetters,
-      uppercaseLetters,
-      digits,
-      parenthesis,
-      special,
-    ]
-  }
+  private static let emojiSet: Set<Character> = .init([
+    "😀", "😁", "😂", "😃", "😄", "😅", "😆", "😇", "😈", "😉",
+    "😊", "😋", "😌", "😍", "😎", "😏", "😐", "😑", "😒", "😓",
+    "😔", "😕", "😖", "😗", "😘", "😙", "😚", "😛", "😜", "😝",
+    "😞", "😟", "😠", "😡", "😢", "😣", "😤", "😥", "😦", "😧",
+    "😨", "😩", "😪", "😫", "😬", "😭", "😮", "😯", "😰", "😱",
+    "😲", "😳", "😴", "😵", "😶", "😷", "😸", "😹", "😺", "😻",
+    "😼", "😽", "😾", "😿", "🙀", "🙁", "🙂", "🙃", "🙄", "🙅",
+    "🙆", "🙇", "🙈", "🙉", "🙊", "🙋", "🙌", "🙍", "🙎", "🙏",
+  ])
 }

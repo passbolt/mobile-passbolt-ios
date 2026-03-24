@@ -21,6 +21,16 @@
 // @since         v1.0
 //
 
-@_exported import FeatureScopes
-@_exported import Shared
-@_exported import UICommons
+@_exported import CommonModels
+@_exported import Commons
+@_exported import Features
+
+extension FeaturesRegistry {
+
+  public mutating func useShared() {
+    self.usePwnedPasswordCheckNetworkOperation()
+    self.usePwnedPasswordChecker()
+    self.usePasswordService()
+    self.useHomePresentation()
+  }
+}

@@ -47,7 +47,7 @@ public final class ResourcePasswordEditViewController: ViewController {
   }
 
   private let resourceEditForm: ResourceEditForm
-  private let randomGenerator: RandomStringGenerator
+  private let secretGenerator: PasswordService
   private let navigationToSelf: NavigationToResourcePasswordEdit
 
   public nonisolated let viewState: ViewStateSource<ViewState>
@@ -64,8 +64,8 @@ public final class ResourcePasswordEditViewController: ViewController {
 
     self.context = context
 
-    let randomGenerator: RandomStringGenerator = try features.instance()
-    self.randomGenerator = randomGenerator
+    let secretGenerator: PasswordService = try features.instance()
+    self.secretGenerator = secretGenerator
 
     self.navigationToSelf = try features.instance()
     self.resourceEditForm = try features.instance()
@@ -84,11 +84,11 @@ public final class ResourcePasswordEditViewController: ViewController {
         let update: (resource: Resource, localState: LocalState) = try update.value
         assert(update.resource.secretAvailable, "Can't edit resource without secret!")
 
-        let countEntropy: (String) -> Entropy = { [randomGenerator] (input: String) -> Entropy in
-          randomGenerator.entropy(input, CharacterSets.all)
+        let countEntropy: (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
+          await secretGenerator.entropy(input)
         }
 
-        let fields: IdentifiedArray<ResourceEditFieldViewModel> = fields(
+        let fields: IdentifiedArray<ResourceEditFieldViewModel> = await fields(
           for: update.resource,
           edited: update.localState.editedFields,
           countEntropy: countEntropy
@@ -125,23 +125,24 @@ public final class ResourcePasswordEditViewController: ViewController {
 
   @MainActor internal func generatePassword(
     for field: ResourceType.FieldPath
-  ) {
-    let generated: String = self.randomGenerator.generate(
-      CharacterSets.all,
-      18,
-      Entropy.veryStrongPassword
-    )
-    self.resourceEditForm.update(field, to: generated)
-    self.localState.mutate { (state: inout LocalState) in
-      state.editedFields.insert(field)
+  ) async {
+    do {
+      let generated: String = try await self.secretGenerator.generate()
+      self.resourceEditForm.update(field, to: generated)
+      self.localState.mutate { (state: inout LocalState) in
+        state.editedFields.insert(field)
+      }
+    }
+    catch {
+      SnackBarMessageEvent.send(.error("resource.edit.unable.to.generate.secret"))
     }
   }
 }
 @MainActor private func fields(
   for resource: Resource,
   edited: Set<ResourceType.FieldPath>,
-  countEntropy: (String) -> Entropy
-) -> IdentifiedArray<ResourceEditFieldViewModel> {
+  countEntropy: (String) async -> Entropy
+) async -> IdentifiedArray<ResourceEditFieldViewModel> {
   if resource.type.specification.slug == .placeholder {
     return .init()  // show no fields for placeholder type
   }
@@ -152,18 +153,22 @@ public final class ResourcePasswordEditViewController: ViewController {
       .customFields,
       .allURIs,
     ]
-    let fields: Array<ResourceEditFieldViewModel> =
+    let filteredFields: Array<ResourceFieldSpecification> =
       resource
       .fields
       .filter { excludedFields.contains($0.name) == false }
-      .compactMap { (field: ResourceFieldSpecification) -> ResourceEditFieldViewModel? in
-        .init(
-          field,
-          in: resource,
-          edited: edited.contains(field.path),
-          countEntropy: countEntropy
-        )
+
+    var fields: Array<ResourceEditFieldViewModel> = .init()
+    for field: ResourceFieldSpecification in filteredFields {
+      if let viewModel: ResourceEditFieldViewModel = await .init(
+        field,
+        in: resource,
+        edited: edited.contains(field.path),
+        countEntropy: countEntropy
+      ) {
+        fields.append(viewModel)
       }
+    }
 
     var result: IdentifiedArray<ResourceEditFieldViewModel> = .init()
     for field: ResourceEditFieldViewModel in fields {

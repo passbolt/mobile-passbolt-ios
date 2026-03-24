@@ -30,5 +30,3 @@ public enum PasswordPoliciesFetchDatabaseOperationDescription: DatabaseOperation
 
   public typealias Output = PasswordPoliciesDSV
 }
-
-public typealias ResourcesFetchNetworkOperationResult = Array<ResourceDTO>

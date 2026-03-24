@@ -199,6 +199,16 @@
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
 
+"resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
+
+"resource.edit.password.alert.weak.title" = "Confirm your password";
+"resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
+"resource.edit.password.alert.pwned.title" = "Confirm your password";
+"resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
+
+"resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
+
+
 "help.logs.viewer.title" = "Logs";
 
 "help.menu.title" = "Help";

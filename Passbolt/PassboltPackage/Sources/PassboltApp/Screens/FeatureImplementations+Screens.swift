@@ -22,6 +22,7 @@
 //
 
 import Features
+import Shared
 import SharedUIComponents
 
 extension FeaturesRegistry {
@@ -58,7 +59,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToExtensionSetup()
 
     // MARK: - Home
-    self.useLiveHomePresentation()
     self.useLiveNavigationToTagContent()
     self.useLiveNavigationToGroupContent()
     self.useLiveNavigationToFolderContent()
@@ -109,5 +109,9 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountKeyExportMenu()
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+
+    // MARK: - Shared features
+    self.useShared()
+    self.useLiveNavigationToHomePresentationMenu()
   }
 }

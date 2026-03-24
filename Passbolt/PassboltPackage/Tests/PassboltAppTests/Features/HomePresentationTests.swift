@@ -28,6 +28,7 @@ import SessionData
 import TestExtensions
 import XCTest
 
+@testable import Shared
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
@@ -38,7 +39,7 @@ final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {
-    registry.useLiveHomePresentation()
+    registry.useHomePresentation()
   }
 
   override func prepare() throws {

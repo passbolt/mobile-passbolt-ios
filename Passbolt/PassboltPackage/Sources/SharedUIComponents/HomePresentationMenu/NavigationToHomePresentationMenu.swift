@@ -42,7 +42,7 @@ extension NavigationToHomePresentationMenu {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToHomePresentationMenu() {
+  public mutating func useLiveNavigationToHomePresentationMenu() {
     self.use(
       NavigationToHomePresentationMenu.live,
       in: SessionScope.self

@@ -26,69 +26,34 @@ import Display
 public struct ResourceEditView: ControlledView {
 
   public let controller: ResourceEditViewController
-  @State private var discardFormAlertVisible: Bool
   @FocusState private var focusState
 
   public init(
     controller: ResourceEditViewController
   ) {
     self.controller = controller
-    self.discardFormAlertVisible = false
   }
 
   public var body: some View {
-    self.contentView
-      .backgroundColor(.passboltBackground)
-      .alert(
-        isPresented: self.$discardFormAlertVisible,
-        title: "generic.are.you.sure",
-        message: "resource.edit.exit.confirmation.message",
-        actions: {
-          Button(
-            displayable: "resource.edit.exit.confirmation.button.edit.title",
-            role: .cancel,
-            action: { /* NOP */  }
-          )
-          AsyncButton(
-            role: .destructive,
-            action: {
-              await self.controller.discardForm()
-            },
-            label: {
-              Text(displayable: "resource.edit.exit.confirmation.button.revert.title")
-            }
-          )
-        }
-      )
-      .navigationBarBackButtonHidden()
-      .toolbar {  // replace back button
-        ToolbarItemGroup(placement: .navigationBarLeading) {
-          WithViewState(
-            from: self.controller,
-            at: \.edited
-          ) { (edited: Bool) in
-            BackButton(
-              action: {
-                if edited {
-                  self.discardFormAlertVisible = true
-                }
-                else {
-                  await self.controller.discardForm()
-                }
-              }
-            )
-          }
-        }
+    withAlert(\.alert) {
+      self.contentView
+        .backgroundColor(.passboltBackground)
+    }
+    .navigationBarBackButtonHidden()
+    .toolbar {  // replace back button
+      ToolbarItemGroup(placement: .navigationBarLeading) {
+        BackButton(action: self.controller.navigateBack)
       }
-      .navigationTitle(
-        displayable: self.controller.editsExisting
-          ? "resource.edit.title"
-          : "resource.edit.create.title"
-      )
-      .backgroundColor(.passboltBackground)
-      .foregroundColor(.passboltPrimaryText)
-      .accessibilityIdentifier("screen.resource.edit")
-      .tabbarHidden()
+    }
+    .navigationTitle(
+      displayable: self.controller.editsExisting
+        ? "resource.edit.title"
+        : "resource.edit.create.title"
+    )
+    .backgroundColor(.passboltBackground)
+    .foregroundColor(.passboltPrimaryText)
+    .accessibilityIdentifier("screen.resource.edit")
+    .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
@@ -429,9 +394,9 @@ public struct ResourceEditView: ControlledView {
             }
           ),
           accessory: {
-            Button(
+            AsyncButton(
               action: {
-                self.controller.generatePassword(for: fieldModel.path)
+                await self.controller.generatePassword(for: fieldModel.path)
               },
               label: {
                 Image(named: .dice)
@@ -507,15 +472,18 @@ public struct ResourceEditView: ControlledView {
   }
 
   @MainActor @ViewBuilder private var actionButtonView: some View {
-    PrimaryButton(
-      title: self.controller.editsExisting
-        ? "resource.form.update.button.title"
-        : isInExtensionContext
-          ? "resource.form.create.and.fill.button.title"
-          : "resource.form.create.button.title",
-      action: self.controller.sendForm
-    )
-    .backgroundColor(.passboltBackground)
-    .padding(16)
+    with(\.isLoading) { isLoading in
+      PrimaryButton(
+        title: self.controller.editsExisting
+          ? "resource.form.update.button.title"
+          : isInExtensionContext
+            ? "resource.form.create.and.fill.button.title"
+            : "resource.form.create.button.title",
+        isLoading: isLoading,
+        action: self.controller.sendForm
+      )
+      .backgroundColor(.passboltBackground)
+      .padding(16)
+    }
   }
 }
