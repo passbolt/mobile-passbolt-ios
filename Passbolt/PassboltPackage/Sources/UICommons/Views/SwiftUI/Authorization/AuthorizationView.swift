@@ -27,6 +27,8 @@ import SwiftUI
 public struct AuthorizationView<SupportActionView>: View
 where SupportActionView: View {
 
+  @State private var keyboardIsVisible: Bool = false
+
   private let label: String
   private let username: String
   private let domain: String
@@ -63,6 +65,25 @@ where SupportActionView: View {
   }
 
   public var body: some View {
+    GeometryReader { proxy in
+      self.content
+        .padding(16)
+        .frame(width: proxy.size.width, height: proxy.size.height)
+    }
+    .ignoresSafeArea(.keyboard)
+    .onNotification(named: UIResponder.keyboardWillShowNotification) {
+      withAnimation(.easeInOut(duration: 0.25)) {
+        self.keyboardIsVisible = true
+      }
+    }
+    .onNotification(named: UIResponder.keyboardWillHideNotification) {
+      withAnimation(.easeInOut(duration: 0.25)) {
+        self.keyboardIsVisible = false
+      }
+    }
+  }
+
+  private var content: some View {
     VStack(spacing: 16) {
       AvatarView {
         self.avatarImage
@@ -72,7 +93,7 @@ where SupportActionView: View {
           .resizable()
       }
       .frame(width: 96, height: 96)
-      .padding(top: 56)
+      .padding(top: self.keyboardIsVisible ? 8 : 56)
       .accessibilityIdentifier("authorization.passphrase.avatar")
 
       Text(self.label)
@@ -194,7 +215,6 @@ where SupportActionView: View {
       self.supportActionView()
         .padding(top: -8)
     }
-    .padding(16)
   }
 }
 
