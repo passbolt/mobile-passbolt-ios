@@ -23,34 +23,21 @@
 
 import CommonModels
 
-public struct ResourceFoldersFilter {
+public struct ResourceTagsFilter: Sendable {
 
-  public var sorting: ResourcesSorting
   public var text: String
-  public var folderID: ResourceFolder.ID?  // none means root
-  public var flattenContent: Bool
-  public var permissions: OrderedSet<Permission>
   public var limit: Int?
   public var offset: Int
 
   public init(
-    sorting: ResourcesSorting,
-    text: String,
-    folderID: ResourceFolder.ID?,
-    flattenContent: Bool,
-    permissions: OrderedSet<Permission>,
+    text: String = .init(),
     limit: Int? = .none,
     offset: Int = 0
   ) {
-    self.sorting = sorting
     self.text = text
-    self.folderID = folderID
-    self.flattenContent = flattenContent
-    self.permissions = permissions
     self.limit = limit
     self.offset = offset
   }
 }
 
-extension ResourceFoldersFilter: Hashable {}
-extension ResourceFoldersFilter: Sendable {}
+extension ResourceTagsFilter: Hashable {}

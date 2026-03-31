@@ -30,7 +30,7 @@ import Session
 extension ResourceTagsListFetchDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: String,
+    _ input: ResourceTagsDatabaseFilter,
     connection: SQLiteConnection
   ) throws -> Array<ResourceTagListItemDSV> {
     var statement: SQLiteStatement = """
@@ -52,7 +52,7 @@ extension ResourceTagsListFetchDatabaseOperation {
         1 -- equivalent of true, used to simplify dynamic query building
       """
 
-    if !input.isEmpty {
+    if !input.text.isEmpty {
       statement
         .append(
           """
@@ -60,13 +60,29 @@ extension ResourceTagsListFetchDatabaseOperation {
             slug LIKE '%' || ? || '%'
           """
         )
-      statement.appendArgument(input)
+      statement.appendArgument(input.text)
     }
     else {
       /* NOP */
     }
 
-    statement.append("ORDER BY slug COLLATE NOCASE ASC;")
+    statement.append("ORDER BY slug COLLATE NOCASE ASC")
+
+    if let limit: Int = input.limit {
+      statement
+        .append(
+          """
+          LIMIT ? OFFSET ?
+          """
+        )
+      statement.appendArgument(limit)
+      statement.appendArgument(input.offset)
+    }
+    else {
+      /* NOP */
+    }
+
+    statement.append(";")
 
     return
       try connection

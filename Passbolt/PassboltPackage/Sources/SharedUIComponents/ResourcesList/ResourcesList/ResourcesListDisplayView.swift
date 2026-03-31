@@ -37,11 +37,15 @@ public struct ResourcesListDisplayView: ControlledView {
     WithViewState(from: self.controller) { state in
       UICommons.ResourcesListView(
         suggestedResources: state.suggested,
-        resources: state.resources,
+        resources: binding(to: \.resources),
+        hasMoreData: state.hasMoreData,
+        isLoadingMore: state.isLoadingMore,
+        contentResetToken: state.contentResetToken,
         refreshAction: self.controller.refresh,
+        loadMoreAction: self.controller.loadMore,
         createAction: self.controller.createResource,
         resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenuCallback
+        resourceMenuAction: self.controller.showResourceMenu
       )
       .accessibilityIdentifier("resource.list.collection.view")
     }

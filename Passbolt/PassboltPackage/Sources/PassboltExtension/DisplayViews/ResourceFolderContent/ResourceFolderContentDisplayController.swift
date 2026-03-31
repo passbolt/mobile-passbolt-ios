@@ -61,6 +61,8 @@ internal final class ResourceFolderContentDisplayController: ViewController {
     self.selectResource = context.selectResource
     self.openResourceMenu = context.openResourceMenu
 
+    let pageSize: Int = context.pageSize
+
     self.viewState = .init(
       initial: .init(
         folderName: context.folderName,
@@ -69,29 +71,69 @@ internal final class ResourceFolderContentDisplayController: ViewController {
         nestedFolders: .init(),
         suggestedResources: .init(),
         directResources: .init(),
-        nestedResources: .init()
+        nestedResources: .init(),
+        isLoadingMore: false,
+        hasMoreFolders: true,
+        hasMoreData: true,
+        contentResetToken: 0,
+        lastFilterText: ""
       ),
       updateFrom: ComputedVariable(
         combined: context.filter,
         with: self.sessionData.lastUpdate
       ),
       update: { [resourceFolders, context] updateView, update in
-        let filter: ResourceFoldersFilter = try update.value.0
-        let filteredResourceFolderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(
-          filter
-        )
+        let baseFilter: ResourceFoldersFilter = try update.value.0
+
+        // fetch folders first
+        var folderFilter: ResourceFoldersFilter = baseFilter
+        folderFilter.limit = pageSize
+        folderFilter.offset = 0
+
+        let folderContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(folderFilter)
+        let fetchedFolders: Array<ResourceFolderListItemDSV> = folderContent.subfolders
+        let hasMoreFolders: Bool = fetchedFolders.count >= pageSize
+
+        // fill remaining page slots with resources
+        var fetchedResources: Array<ResourceListItemDSV> = .init()
+        var hasMoreResources: Bool = false
+        if !hasMoreFolders {
+          let remaining: Int = pageSize - fetchedFolders.count
+          if remaining > 0 {
+            var resourceFilter: ResourceFoldersFilter = baseFilter
+            resourceFilter.limit = remaining
+            resourceFilter.offset = 0
+
+            let resourceContent: ResourceFolderContent = try await resourceFolders.filteredFolderContent(
+              resourceFilter
+            )
+            fetchedResources = resourceContent.resources
+            hasMoreResources = fetchedResources.count >= remaining
+          }
+        }
 
         updateView { (viewState: inout ViewState) in
-          viewState.isSearchResult = !filter.text.isEmpty
-          viewState.suggestedResources = filteredResourceFolderContent.resources.filter(context.suggestionFilter)
-          viewState.directFolders = filteredResourceFolderContent.subfolders
-            .filter { $0.parentFolderID == filter.folderID }
-          viewState.nestedFolders = filteredResourceFolderContent.subfolders
-            .filter { $0.parentFolderID != filter.folderID }
-          viewState.directResources = filteredResourceFolderContent.resources
-            .filter { $0.parentFolderID == filter.folderID }
-          viewState.nestedResources = filteredResourceFolderContent.resources
-            .filter { $0.parentFolderID != filter.folderID }
+          viewState.isSearchResult = !baseFilter.text.isEmpty
+          viewState.suggestedResources = fetchedResources.filter(context.suggestionFilter)
+          viewState.directFolders =
+            fetchedFolders
+            .filter { $0.parentFolderID == baseFilter.folderID }
+          viewState.nestedFolders =
+            fetchedFolders
+            .filter { $0.parentFolderID != baseFilter.folderID }
+          viewState.directResources =
+            fetchedResources
+            .filter { $0.parentFolderID == baseFilter.folderID }
+          viewState.nestedResources =
+            fetchedResources
+            .filter { $0.parentFolderID != baseFilter.folderID }
+          viewState.hasMoreFolders = hasMoreFolders
+          viewState.hasMoreData = hasMoreFolders || hasMoreResources
+          viewState.isLoadingMore = false
+          if viewState.lastFilterText != baseFilter.text {
+            viewState.contentResetToken += 1
+          }
+          viewState.lastFilterText = baseFilter.text
         }
       }
     )
@@ -110,6 +152,29 @@ extension ResourceFolderContentDisplayController {
     internal var selectFolder: (ResourceFolder.ID) async throws -> Void
     internal var selectResource: (Resource.ID) async throws -> Void
     internal var openResourceMenu: ((Resource.ID) async throws -> Void)?
+    internal var pageSize: Int
+
+    internal init(
+      folderName: DisplayableString,
+      filter: AnyUpdatable<ResourceFoldersFilter>,
+      suggestionFilter: @escaping (ResourceListItemDSV) -> Bool,
+      createFolder: (() async throws -> Void)? = .none,
+      createResource: (() async throws -> Void)? = .none,
+      selectFolder: @escaping (ResourceFolder.ID) async throws -> Void,
+      selectResource: @escaping (Resource.ID) async throws -> Void,
+      openResourceMenu: ((Resource.ID) async throws -> Void)? = .none,
+      pageSize: Int = 50
+    ) {
+      self.folderName = folderName
+      self.filter = filter
+      self.suggestionFilter = suggestionFilter
+      self.createFolder = createFolder
+      self.createResource = createResource
+      self.selectFolder = selectFolder
+      self.selectResource = selectResource
+      self.openResourceMenu = openResourceMenu
+      self.pageSize = pageSize
+    }
   }
 
   internal struct ViewState: Equatable {
@@ -121,6 +186,11 @@ extension ResourceFolderContentDisplayController {
     internal var suggestedResources: Array<ResourceListItemDSV>
     internal var directResources: Array<ResourceListItemDSV>
     internal var nestedResources: Array<ResourceListItemDSV>
+    internal var isLoadingMore: Bool
+    internal var hasMoreFolders: Bool
+    internal var hasMoreData: Bool
+    internal var contentResetToken: Int
+    internal var lastFilterText: String
   }
 }
 
@@ -134,6 +204,93 @@ extension ResourceFolderContentDisplayController {
       error.consume(
         context: "Failed to refresh session data."
       )
+    }
+  }
+
+  @MainActor internal final func loadMore() async {
+    let currentState: ViewState = await viewState.current
+
+    guard currentState.hasMoreData, !currentState.isLoadingMore else { return }
+
+    self.viewState.update { state in
+      state.isLoadingMore = true
+    }
+
+    do {
+      let pageSize: Int = self.context.pageSize
+      let currentFilter: ResourceFoldersFilter = try await self.context.filter.value
+
+      let totalFolders: Int = currentState.directFolders.count + currentState.nestedFolders.count
+      let totalResources: Int = currentState.directResources.count + currentState.nestedResources.count
+      let folderID: ResourceFolder.ID? = currentFilter.folderID
+
+      var newFolders: Array<ResourceFolderListItemDSV> = .init()
+      var newResources: Array<ResourceListItemDSV> = .init()
+      var hasMoreFolders: Bool = currentState.hasMoreFolders
+      var hasMoreResources: Bool = false
+
+      if hasMoreFolders {
+        // try loading more folders
+        var folderFilter: ResourceFoldersFilter = currentFilter
+        folderFilter.limit = pageSize
+        folderFilter.offset = totalFolders
+
+        let folderContent: ResourceFolderContent = try await self.resourceFolders.filteredFolderContent(folderFilter)
+        newFolders = folderContent.subfolders
+        hasMoreFolders = newFolders.count >= pageSize
+
+        // fill remaining page slots with resources
+        if !hasMoreFolders {
+          let remaining: Int = pageSize - newFolders.count
+          if remaining > 0 {
+            var resourceFilter: ResourceFoldersFilter = currentFilter
+            resourceFilter.limit = remaining
+            resourceFilter.offset = totalResources
+
+            let resourceContent: ResourceFolderContent = try await self.resourceFolders.filteredFolderContent(
+              resourceFilter
+            )
+            newResources = resourceContent.resources
+            hasMoreResources = newResources.count >= remaining
+          }
+        }
+      }
+      else {
+        // folders exhausted, load only resources
+        var resourceFilter: ResourceFoldersFilter = currentFilter
+        resourceFilter.limit = pageSize
+        resourceFilter.offset = totalResources
+
+        let resourceContent: ResourceFolderContent = try await self.resourceFolders.filteredFolderContent(
+          resourceFilter
+        )
+        newResources = resourceContent.resources
+        hasMoreResources = newResources.count >= pageSize
+      }
+
+      self.viewState.update { viewState in
+        viewState.directFolders.append(
+          contentsOf: newFolders.filter { $0.parentFolderID == folderID }
+        )
+        viewState.nestedFolders.append(
+          contentsOf: newFolders.filter { $0.parentFolderID != folderID }
+        )
+        viewState.directResources.append(
+          contentsOf: newResources.filter { $0.parentFolderID == folderID }
+        )
+        viewState.nestedResources.append(
+          contentsOf: newResources.filter { $0.parentFolderID != folderID }
+        )
+        viewState.hasMoreFolders = hasMoreFolders
+        viewState.hasMoreData = hasMoreFolders || hasMoreResources
+        viewState.isLoadingMore = false
+      }
+    }
+    catch {
+      error.consume(context: "Failed to load more folder content.")
+      self.viewState.update { state in
+        state.isLoadingMore = false
+      }
     }
   }
 }

@@ -29,6 +29,6 @@ public typealias ResourceTagsListFetchDatabaseOperation = DatabaseOperation<
 
 public enum ResourceTagsListFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public typealias Input = String
+  public typealias Input = ResourceTagsDatabaseFilter
   public typealias Output = Array<ResourceTagListItemDSV>
 }

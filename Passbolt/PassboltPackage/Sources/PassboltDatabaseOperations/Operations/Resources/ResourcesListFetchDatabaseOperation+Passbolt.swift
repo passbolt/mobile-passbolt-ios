@@ -503,12 +503,23 @@ extension ResourcesListFetchDatabaseOperation {
 
     switch input.sorting {
     case .nameAlphabetically:
-      statement.append("ORDER BY resourceMetadata.name COLLATE NOCASE ASC")
+      statement.append("ORDER BY resourceMetadata.name COLLATE NOCASE ASC ")
 
     case .modifiedRecently:
-      statement.append("ORDER BY resources.modified DESC")
+      statement.append("ORDER BY resources.modified DESC ")
     case .expiryDate:
-      statement.append("ORDER BY resources.expired ASC")
+      statement.append("ORDER BY resources.expired ASC ")
+    }
+
+    // apply pagination if specified
+    if let limit: Int = input.limit {
+      statement.append("LIMIT ? ")
+      statement.appendArgument(limit)
+
+      if input.offset > 0 {
+        statement.append("OFFSET ? ")
+        statement.appendArgument(input.offset)
+      }
     }
 
     // end query

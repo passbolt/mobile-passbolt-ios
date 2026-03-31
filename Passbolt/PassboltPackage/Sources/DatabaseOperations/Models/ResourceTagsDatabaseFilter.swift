@@ -23,34 +23,25 @@
 
 import CommonModels
 
-public struct ResourceFoldersFilter {
+public struct ResourceTagsDatabaseFilter {
 
-  public var sorting: ResourcesSorting
+  // text search (AND) - empty ignores this parameter
   public var text: String
-  public var folderID: ResourceFolder.ID?  // none means root
-  public var flattenContent: Bool
-  public var permissions: OrderedSet<Permission>
+  // pagination limit - nil returns all results
   public var limit: Int?
+  // pagination offset - ignored if limit is nil
   public var offset: Int
 
   public init(
-    sorting: ResourcesSorting,
     text: String,
-    folderID: ResourceFolder.ID?,
-    flattenContent: Bool,
-    permissions: OrderedSet<Permission>,
     limit: Int? = .none,
     offset: Int = 0
   ) {
-    self.sorting = sorting
     self.text = text
-    self.folderID = folderID
-    self.flattenContent = flattenContent
-    self.permissions = permissions
     self.limit = limit
     self.offset = offset
   }
 }
 
-extension ResourceFoldersFilter: Hashable {}
-extension ResourceFoldersFilter: Sendable {}
+extension ResourceTagsDatabaseFilter: Hashable {}
+extension ResourceTagsDatabaseFilter: Sendable {}

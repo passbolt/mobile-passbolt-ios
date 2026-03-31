@@ -29,13 +29,21 @@ public struct UserGroupsDatabaseFilter {
   public var userID: User.ID?
   // text search (AND) - empty ignores this parameter
   public var text: String
+  // pagination limit - nil returns all results
+  public var limit: Int?
+  // pagination offset - ignored if limit is nil
+  public var offset: Int
 
   public init(
     userID: User.ID? = .none,
-    text: String
+    text: String,
+    limit: Int? = .none,
+    offset: Int = 0
   ) {
     self.userID = userID
     self.text = text
+    self.limit = limit
+    self.offset = offset
   }
 }
 

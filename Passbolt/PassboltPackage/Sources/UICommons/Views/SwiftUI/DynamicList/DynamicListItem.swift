@@ -21,36 +21,13 @@
 // @since         v1.0
 //
 
-import CommonModels
+/// A protocol for items displayed in a ``DynamicList``.
+///
+/// Conforming types provide an estimated height used for virtual scrolling layout calculations.
+/// The estimated height should be as close to the actual rendered height as possible to minimize
+/// layout jumps during scrolling.
+public protocol DynamicListItem: Identifiable & Hashable {
 
-public struct ResourceFoldersFilter {
-
-  public var sorting: ResourcesSorting
-  public var text: String
-  public var folderID: ResourceFolder.ID?  // none means root
-  public var flattenContent: Bool
-  public var permissions: OrderedSet<Permission>
-  public var limit: Int?
-  public var offset: Int
-
-  public init(
-    sorting: ResourcesSorting,
-    text: String,
-    folderID: ResourceFolder.ID?,
-    flattenContent: Bool,
-    permissions: OrderedSet<Permission>,
-    limit: Int? = .none,
-    offset: Int = 0
-  ) {
-    self.sorting = sorting
-    self.text = text
-    self.folderID = folderID
-    self.flattenContent = flattenContent
-    self.permissions = permissions
-    self.limit = limit
-    self.offset = offset
-  }
+  /// The estimated height of this item in points, used for layout positioning in the virtual scroll view.
+  var estimatedHeight: CGFloat { get }
 }
-
-extension ResourceFoldersFilter: Hashable {}
-extension ResourceFoldersFilter: Sendable {}

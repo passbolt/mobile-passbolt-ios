@@ -34,6 +34,8 @@ public struct ResourcesFilter {
   public var userGroups: Set<UserGroup.ID>
   public var folders: ResourcesFolderFilter?
   public var expiredOnly: Bool
+  public var limit: Int?
+  public var offset: Int
 
   public init(
     sorting: ResourcesSorting,
@@ -44,7 +46,9 @@ public struct ResourcesFilter {
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),
     folders: ResourcesFolderFilter? = .none,
-    expiredOnly: Bool = false
+    expiredOnly: Bool = false,
+    limit: Int? = .none,
+    offset: Int = 0
   ) {
     self.sorting = sorting
     self.text = text
@@ -55,6 +59,8 @@ public struct ResourcesFilter {
     self.userGroups = userGroups
     self.folders = folders
     self.expiredOnly = expiredOnly
+    self.limit = limit
+    self.offset = offset
   }
 }
 

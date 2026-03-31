@@ -24,50 +24,120 @@
 import CommonModels
 import SwiftUI
 
+// MARK: - Row Data Model
+private enum ResourceUserGroupsListRowData: DynamicListItem {
+
+  case userGroup(ResourceUserGroupListItemDSV)
+  case loadingIndicator
+
+  fileprivate var id: String {
+    switch self {
+    case .userGroup(let group):
+      return "group_\(group.id.rawValue.rawValue.uuidString)"
+    case .loadingIndicator:
+      return "loading"
+    }
+  }
+
+  fileprivate var estimatedHeight: CGFloat {
+    switch self {
+    case .userGroup:
+      return 64
+    case .loadingIndicator:
+      return 44
+    }
+  }
+}
+
+extension ResourceUserGroupsListRowData: Hashable {
+
+  fileprivate static func == (lhs: ResourceUserGroupsListRowData, rhs: ResourceUserGroupsListRowData) -> Bool {
+    lhs.id == rhs.id
+  }
+
+  fileprivate func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
 public struct ResourceUserGroupsListView: View {
 
-  @State var id: IID = .init()
   private let userGroups: Array<ResourceUserGroupListItemDSV>
-  private let contentEmpty: Bool
-  private let refreshAction: () async -> Void
+  private let hasMoreData: Bool
+  private let isLoadingMore: Bool
+  private let contentResetToken: Int
+  private let refreshAction: @Sendable () async -> Void
+  private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (() async throws -> Void)?
   private let groupTapAction: (UserGroup.ID) async throws -> Void
 
   public init(
     userGroups: Array<ResourceUserGroupListItemDSV>,
-    refreshAction: @escaping () async -> Void,
+    hasMoreData: Bool,
+    isLoadingMore: Bool,
+    contentResetToken: Int = 0,
+    refreshAction: @escaping @Sendable () async -> Void,
+    loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (() async throws -> Void)?,
     groupTapAction: @escaping (UserGroup.ID) async throws -> Void
   ) {
     self.userGroups = userGroups
-    self.contentEmpty = userGroups.isEmpty
+    self.hasMoreData = hasMoreData
+    self.isLoadingMore = isLoadingMore
+    self.contentResetToken = contentResetToken
     self.refreshAction = refreshAction
+    self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.groupTapAction = groupTapAction
   }
 
   public var body: some View {
-    List {
-      if let createAction: () async throws -> Void = self.createAction {
-        ResourceListAddView(action: createAction)
-      }  // else no create row
+    DynamicList(
+      items: rowData,
+      hasMoreData: hasMoreData,
+      isLoadingMore: isLoadingMore,
+      onLoadMore: loadMoreAction,
+      refreshAction: refreshAction,
+      contentResetToken: contentResetToken,
+      content: { viewForRow($0) }
+    )
+  }
 
-      if self.contentEmpty {
-        // empty
-        EmptyListView()
-      }
-      else {
-        ResourceUserGroupsListSectionView(
-          userGroups: self.userGroups,
-          tapAction: self.groupTapAction
-        )
-      }
+  private var rowData: Array<ResourceUserGroupsListRowData> {
+    var rows: Array<ResourceUserGroupsListRowData> = []
+
+    for group in self.userGroups {
+      rows.append(.userGroup(group))
     }
-    .refreshable {
-      await self.refreshAction()
+
+    if self.isLoadingMore {
+      rows.append(.loadingIndicator)
     }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
-    .id(self.id)
+
+    return rows
+  }
+
+  @ViewBuilder
+  private func viewForRow(_ row: ResourceUserGroupsListRowData) -> some View {
+    switch row {
+    case .userGroup(let group):
+      ResourceUserGroupListItemView(
+        name: group.name,
+        contentCount: group.contentCount,
+        action: {
+          try await self.groupTapAction(group.id)
+        }
+      )
+      .frame(height: row.estimatedHeight)
+
+    case .loadingIndicator:
+      HStack {
+        Spacer()
+        SwiftUI.ProgressView()
+        Spacer()
+      }
+      .frame(height: row.estimatedHeight)
+      .padding()
+    }
   }
 }

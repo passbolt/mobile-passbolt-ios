@@ -24,6 +24,63 @@
 import CommonModels
 import SwiftUI
 
+// MARK: - Row Data Model
+public enum FolderContentRowData: DynamicListItem {
+
+  case addResource
+  case sectionHeader(id: String, title: String)
+  case divider(id: String)
+  case folder(ResourceFolderListItemDSV)
+  case resource(ResourceListItemDSV)
+  case loadingIndicator
+  case emptyState
+
+  public var id: String {
+    switch self {
+    case .addResource:
+      return "add_resource"
+    case .sectionHeader(let id, _):
+      return "header_\(id)"
+    case .divider(let id):
+      return "divider_\(id)"
+    case .folder(let folder):
+      return "folder_\(folder.id.rawValue.rawValue.uuidString)"
+    case .resource(let resource):
+      return "resource_\(resource.id.rawValue.rawValue.uuidString)"
+    case .loadingIndicator:
+      return "loading"
+    case .emptyState:
+      return "empty"
+    }
+  }
+
+  public var estimatedHeight: CGFloat {
+    switch self {
+    case .addResource, .folder, .resource:
+      return 64
+    case .sectionHeader:
+      return 24
+    case .divider:
+      return 16
+    case .loadingIndicator:
+      return 44
+    case .emptyState:
+      return 200
+    }
+  }
+}
+
+extension FolderContentRowData: Hashable {
+
+  public static func == (lhs: FolderContentRowData, rhs: FolderContentRowData) -> Bool {
+    lhs.id == rhs.id
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
 public struct ResourceFolderContentView: View {
 
   @State var id: IID = .init()
@@ -38,7 +95,11 @@ public struct ResourceFolderContentView: View {
   private let suggestedContentEmpty: Bool
   private let directContentEmpty: Bool
   private let nestedContentEmpty: Bool
-  private let refreshAction: () async -> Void
+  private let hasMoreData: Bool
+  private let isLoadingMore: Bool
+  private let contentResetToken: Int
+  private let refreshAction: @Sendable () async -> Void
+  private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (() async throws -> Void)?
   private let folderTapAction: (ResourceFolder.ID) async throws -> Void
   private let resourceTapAction: (Resource.ID) async throws -> Void
@@ -52,7 +113,11 @@ public struct ResourceFolderContentView: View {
     suggestedResources: Array<ResourceListItemDSV>?,
     directResources: Array<ResourceListItemDSV>,
     nestedResources: Array<ResourceListItemDSV>,
-    refreshAction: @escaping () async -> Void,
+    hasMoreData: Bool,
+    isLoadingMore: Bool,
+    contentResetToken: Int = 0,
+    refreshAction: @escaping @Sendable () async -> Void,
+    loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (() async throws -> Void)?,
     folderTapAction: @escaping (ResourceFolder.ID) async throws -> Void,
     resourceTapAction: @escaping (Resource.ID) async throws -> Void,
@@ -78,7 +143,11 @@ public struct ResourceFolderContentView: View {
     self.nestedContentEmpty =
       nestedFolders.isEmpty
       && nestedResources.isEmpty
+    self.hasMoreData = hasMoreData
+    self.isLoadingMore = isLoadingMore
+    self.contentResetToken = contentResetToken
     self.refreshAction = refreshAction
+    self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.folderTapAction = folderTapAction
     self.resourceTapAction = resourceTapAction
@@ -86,157 +155,222 @@ public struct ResourceFolderContentView: View {
   }
 
   public var body: some View {
-    List {
-      if let createAction: () async throws -> Void = self.createAction {
-        ResourceListAddView(action: createAction)
-      }  // else no create row
-
-      if self.contentEmpty {
-        // empty
+    if self.contentEmpty {
+      ScrollView {
+        if let createAction: () async throws -> Void = self.createAction {
+          ResourceListAddView(action: createAction)
+        }
         EmptyListView()
       }
-      else if self.isSearchResult {
-        if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources {
-          ResourcesListSectionView(
-            title: .localized("autofill.extension.resource.list.section.suggested.title"),
-            resources: suggestedResources,
-            tapAction: self.resourceTapAction,
-            menuAction: self.resourceMenuAction
-          )
-        }  // else no suggested
+      .refreshable {
+        await self.refreshAction()
+      }
+    }
+    else {
+      DynamicList(
+        items: rowData,
+        hasMoreData: hasMoreData,
+        isLoadingMore: isLoadingMore,
+        onLoadMore: loadMoreAction,
+        refreshAction: refreshAction,
+        contentResetToken: contentResetToken,
+        content: { viewForRow($0) }
+      )
+    }
+  }
 
+  private var rowData: Array<FolderContentRowData> {
+    var rows: Array<FolderContentRowData> = []
+
+    if self.createAction != nil {
+      rows.append(.addResource)
+    }
+
+    if self.isSearchResult {
+      // suggested section
+      if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources, !suggestedResources.isEmpty {
+        rows.append(
+          .sectionHeader(
+            id: "suggested",
+            title: DisplayableString.localized("autofill.extension.resource.list.section.suggested.title").string()
+          )
+        )
+        for resource in suggestedResources {
+          rows.append(.resource(resource))
+        }
+      }
+
+      // direct section
+      if !self.directContentEmpty {
+        if !self.suggestedContentEmpty {
+          rows.append(.divider(id: "suggested_direct"))
+        }
+
+        rows.append(
+          .sectionHeader(
+            id: "direct",
+            title:
+              DisplayableString.localized(
+                key: "home.presentation.mode.folders.explorer.search.direct.results",
+                arguments: [self.folderName.string()]
+              )
+              .string()
+          )
+        )
+
+        for folder in self.directFolders {
+          rows.append(.folder(folder))
+        }
+        for resource in self.directResources {
+          rows.append(.resource(resource))
+        }
+      }
+
+      // nested section
+      if !self.nestedContentEmpty {
         if !self.directContentEmpty {
-          if !self.suggestedContentEmpty {
-            ListDividerView()
-          }  // else no divider
+          rows.append(.divider(id: "direct_nested"))
+        }
 
-          Text(
-            displayable: .localized(
-              key: "home.presentation.mode.folders.explorer.search.direct.results",
-              arguments: [self.folderName.string()]
-            )
+        rows.append(
+          .sectionHeader(
+            id: "nested",
+            title: DisplayableString.localized("home.presentation.mode.folders.explorer.search.nested.results")
+              .string()
           )
-          .text(
-            font: .inter(
-              ofSize: 14,
-              weight: .semibold
-            ),
-            color: .passboltPrimaryText
-          )
-          .padding(
-            leading: 16,
-            trailing: 16
-          )
-          .multilineTextAlignment(.leading)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .frame(height: 24)
-          .listRowSeparator(.hidden)
-          .listRowInsets(EdgeInsets())
-          .backgroundColor(.passboltBackground)
-
-          ResourceFoldersListSectionView(
-            folders: self.directFolders,
-            tapAction: self.folderTapAction
-          )
-
-          ResourcesListSectionView(
-            resources: self.directResources,
-            tapAction: self.resourceTapAction,
-            menuAction: self.resourceMenuAction
-          )
-        }  // else skip direct content
-
-        if !self.nestedContentEmpty {
-          if !self.directContentEmpty {
-            ListDividerView()
-          }  // else no divider
-
-          Text(displayable: .localized("home.presentation.mode.folders.explorer.search.nested.results"))
-            .text(
-              font: .inter(
-                ofSize: 14,
-                weight: .semibold
-              ),
-              color: .passboltPrimaryText
-            )
-            .padding(
-              leading: 16,
-              trailing: 16
-            )
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: 24)
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets())
-            .backgroundColor(.passboltBackground)
-
-          ResourceFoldersListSectionView(
-            folders: self.nestedFolders,
-            tapAction: self.folderTapAction
-          )
-          ResourcesListSectionView(
-            resources: self.nestedResources,
-            tapAction: self.resourceTapAction,
-            menuAction: self.resourceMenuAction
-          )
-        }  // else skip nested content
-      }
-      else if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources {
-        ResourcesListSectionView(
-          title: .localized("autofill.extension.resource.list.section.suggested.title"),
-          resources: suggestedResources,
-          tapAction: self.resourceTapAction,
-          menuAction: self.resourceMenuAction
         )
 
-        Text(displayable: .localized("autofill.extension.resource.list.section.all.title"))
-          .text(
-            font: .inter(
-              ofSize: 14,
-              weight: .semibold
-            ),
-            color: .passboltPrimaryText
-          )
-          .padding(
-            leading: 16,
-            trailing: 16
-          )
-          .multilineTextAlignment(.leading)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .frame(height: 24)
-          .listRowSeparator(.hidden)
-          .listRowInsets(EdgeInsets())
-          .backgroundColor(.passboltBackground)
-
-        ResourceFoldersListSectionView(
-          folders: self.directFolders,
-          tapAction: self.folderTapAction
-        )
-
-        ResourcesListSectionView(
-          resources: self.directResources,
-          tapAction: self.resourceTapAction,
-          menuAction: self.resourceMenuAction
-        )
-      }
-      else {
-        ResourceFoldersListSectionView(
-          folders: self.directFolders,
-          tapAction: self.folderTapAction
-        )
-
-        ResourcesListSectionView(
-          resources: self.directResources,
-          tapAction: self.resourceTapAction,
-          menuAction: self.resourceMenuAction
-        )
+        for folder in self.nestedFolders {
+          rows.append(.folder(folder))
+        }
+        for resource in self.nestedResources {
+          rows.append(.resource(resource))
+        }
       }
     }
-    .refreshable {
-      await self.refreshAction()
+    else if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources,
+      !suggestedResources.isEmpty
+    {
+      // non-search with suggestions (autofill extension)
+      rows.append(
+        .sectionHeader(
+          id: "suggested",
+          title: DisplayableString.localized("autofill.extension.resource.list.section.suggested.title").string()
+        )
+      )
+      for resource in suggestedResources {
+        rows.append(.resource(resource))
+      }
+
+      rows.append(
+        .sectionHeader(
+          id: "all",
+          title: DisplayableString.localized("autofill.extension.resource.list.section.all.title").string()
+        )
+      )
+      for folder in self.directFolders {
+        rows.append(.folder(folder))
+      }
+      for resource in self.directResources {
+        rows.append(.resource(resource))
+      }
     }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
-    .id(self.id)
+    else {
+      // default: direct content only
+      for folder in self.directFolders {
+        rows.append(.folder(folder))
+      }
+      for resource in self.directResources {
+        rows.append(.resource(resource))
+      }
+    }
+
+    if self.isLoadingMore {
+      rows.append(.loadingIndicator)
+    }
+
+    return rows
+  }
+
+  @ViewBuilder
+  private func viewForRow(_ row: FolderContentRowData) -> some View {
+    switch row {
+    case .addResource:
+      if let createAction: () async throws -> Void = self.createAction {
+        ResourceListAddView(action: createAction)
+          .frame(height: row.estimatedHeight)
+      }
+
+    case .sectionHeader(_, let title):
+      Text(title)
+        .text(
+          font: .inter(ofSize: 14, weight: .semibold),
+          color: .passboltPrimaryText
+        )
+        .padding(leading: 16, trailing: 16)
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: row.estimatedHeight)
+        .backgroundColor(.passboltBackground)
+
+    case .divider:
+      ListDividerView()
+        .padding(leading: 16, trailing: 16)
+        .frame(height: row.estimatedHeight)
+
+    case .folder(let folder):
+      ResourceFolderListItemView(
+        name: folder.name,
+        shared: folder.shared,
+        contentCount: folder.contentCount,
+        locationString: folder.location,
+        action: {
+          try await self.folderTapAction(folder.id)
+        }
+      )
+      .frame(height: row.estimatedHeight)
+
+    case .resource(let resource):
+      ResourceListItemView(
+        name: resource.name,
+        username: resource.username,
+        isExpired: resource.isExpired,
+        icon: resource.icon,
+        resourceTypeSlug: resource.typeInfo.typeSlug,
+        contentAction: {
+          try await self.resourceTapAction(resource.id)
+        },
+        rightAction: self.resourceMenuAction.map { action in
+          { try await action(resource.id) }
+        },
+        rightAccessory: {
+          if case .none = self.resourceMenuAction {
+            EmptyView()
+          }
+          else {
+            Image(named: .more)
+              .resizable()
+              .aspectRatio(1, contentMode: .fit)
+              .foregroundColor(Color.passboltIcon)
+              .frame(width: 44)
+              .padding(8)
+          }
+        }
+      )
+      .frame(height: row.estimatedHeight)
+
+    case .loadingIndicator:
+      HStack {
+        Spacer()
+        SwiftUI.ProgressView()
+        Spacer()
+      }
+      .frame(height: row.estimatedHeight)
+      .padding()
+
+    case .emptyState:
+      EmptyListView()
+        .frame(height: row.estimatedHeight)
+    }
   }
 }

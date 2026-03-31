@@ -38,19 +38,27 @@ public struct ResourceFoldersDatabaseFilter {
   public var flattenContent: Bool
   // included permissions search (AND) - empty ignores this parameter
   public var permissions: OrderedSet<Permission>
+  // pagination limit - nil returns all results
+  public var limit: Int?
+  // pagination offset - ignored if limit is nil
+  public var offset: Int
 
   public init(
     sorting: ResourceFoldersDatabaseSorting,
     text: String = .init(),
     folderID: ResourceFolder.ID?,
     flattenContent: Bool = false,
-    permissions: OrderedSet<Permission> = .init()
+    permissions: OrderedSet<Permission> = .init(),
+    limit: Int? = .none,
+    offset: Int = 0
   ) {
     self.sorting = sorting
     self.text = text
     self.folderID = folderID
     self.flattenContent = flattenContent
     self.permissions = permissions
+    self.limit = limit
+    self.offset = offset
   }
 }
 

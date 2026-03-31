@@ -71,7 +71,9 @@ extension UserGroups {
       try await resourceUserGroupsListFetchDatabaseOperation(
         .init(
           userID: filter.userID,
-          text: filter.text
+          text: filter.text,
+          limit: filter.limit,
+          offset: filter.offset
         )
       )
     }

@@ -54,6 +54,10 @@ public struct ResourcesDatabaseFilter {
   // set of folder related filters, none ignores this parameter
   // see ResourcesFolderDatabaseFilter for details
   public var folders: ResourcesFolderDatabaseFilter?
+  // pagination limit - nil returns all results
+  public var limit: Int?
+  // pagination offset - ignored if limit is nil
+  public var offset: Int
 
   public init(
     sorting: ResourcesDatabaseSorting,
@@ -68,7 +72,9 @@ public struct ResourcesDatabaseFilter {
     tags: Set<ResourceTag.ID> = .init(),
     userGroups: Set<UserGroup.ID> = .init(),
     folders: ResourcesFolderDatabaseFilter? = .none,
-    expiredOnly: Bool = false
+    expiredOnly: Bool = false,
+    limit: Int? = .none,
+    offset: Int = 0
   ) {
     precondition(includedTypeSlugs.isDisjoint(with: excludedTypeSlugs))
     self.sorting = sorting
@@ -84,6 +90,8 @@ public struct ResourcesDatabaseFilter {
     self.userGroups = userGroups
     self.folders = folders
     self.expiredOnly = expiredOnly
+    self.limit = limit
+    self.offset = offset
   }
 }
 

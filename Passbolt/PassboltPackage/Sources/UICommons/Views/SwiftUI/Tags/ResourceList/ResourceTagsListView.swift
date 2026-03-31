@@ -24,48 +24,121 @@
 import CommonModels
 import SwiftUI
 
+// MARK: - Row Data Model
+private enum ResourceTagsListRowData: DynamicListItem {
+
+  case tag(ResourceTagListItemDSV)
+  case loadingIndicator
+
+  fileprivate var id: String {
+    switch self {
+    case .tag(let tag):
+      return "tag_\(tag.id.rawValue.rawValue.uuidString)"
+    case .loadingIndicator:
+      return "loading"
+    }
+  }
+
+  fileprivate var estimatedHeight: CGFloat {
+    switch self {
+    case .tag:
+      return 64
+    case .loadingIndicator:
+      return 44
+    }
+  }
+}
+
+extension ResourceTagsListRowData: Hashable {
+
+  fileprivate static func == (lhs: ResourceTagsListRowData, rhs: ResourceTagsListRowData) -> Bool {
+    lhs.id == rhs.id
+  }
+
+  fileprivate func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
 public struct ResourceTagsListView: View {
 
   private let tags: Array<ResourceTagListItemDSV>
-  private let contentEmpty: Bool
-  private let refreshAction: () async -> Void
+  private let hasMoreData: Bool
+  private let isLoadingMore: Bool
+  private let contentResetToken: Int
+  private let refreshAction: @Sendable () async -> Void
+  private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (() async throws -> Void)?
   private let tagTapAction: (ResourceTag.ID) async throws -> Void
 
   public init(
     tags: Array<ResourceTagListItemDSV>,
-    refreshAction: @escaping () async -> Void,
+    hasMoreData: Bool,
+    isLoadingMore: Bool,
+    contentResetToken: Int = 0,
+    refreshAction: @escaping @Sendable () async -> Void,
+    loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (() async throws -> Void)?,
     tagTapAction: @escaping (ResourceTag.ID) async throws -> Void
   ) {
     self.tags = tags
-    self.contentEmpty = tags.isEmpty
+    self.hasMoreData = hasMoreData
+    self.isLoadingMore = isLoadingMore
+    self.contentResetToken = contentResetToken
     self.refreshAction = refreshAction
+    self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.tagTapAction = tagTapAction
   }
 
   public var body: some View {
-    List {
-      if let createAction: () async throws -> Void = self.createAction {
-        ResourceListAddView(action: createAction)
-      }  // else no create row
+    DynamicList(
+      items: rowData,
+      hasMoreData: hasMoreData,
+      isLoadingMore: isLoadingMore,
+      onLoadMore: loadMoreAction,
+      refreshAction: refreshAction,
+      contentResetToken: contentResetToken,
+      content: { viewForRow($0) }
+    )
+  }
 
-      if self.contentEmpty {
-        // empty
-        EmptyListView()
-      }
-      else {
-        ResourceTagsListSectionView(
-          tags: self.tags,
-          tapAction: self.tagTapAction
-        )
-      }
+  private var rowData: Array<ResourceTagsListRowData> {
+    var rows: Array<ResourceTagsListRowData> = []
+
+    for tag in self.tags {
+      rows.append(.tag(tag))
     }
-    .refreshable {
-      await self.refreshAction()
+
+    if self.isLoadingMore {
+      rows.append(.loadingIndicator)
     }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
+
+    return rows
+  }
+
+  @ViewBuilder
+  private func viewForRow(_ row: ResourceTagsListRowData) -> some View {
+    switch row {
+    case .tag(let tag):
+      ResourceTagListItemView(
+        name: tag.slug.rawValue,
+        shared: tag.shared,
+        contentCount: tag.contentCount,
+        action: {
+          try await self.tagTapAction(tag.id)
+        }
+      )
+      .frame(height: row.estimatedHeight)
+
+    case .loadingIndicator:
+      HStack {
+        Spacer()
+        SwiftUI.ProgressView()
+        Spacer()
+      }
+      .frame(height: row.estimatedHeight)
+      .padding()
+    }
   }
 }
