@@ -86,13 +86,23 @@ extension AccountPreferences {
         write: { $0.rawValue }
       )
 
+    let passphraseWipeOnBackgroundProperty: PassphraseWipeOnBackgroundStoredProperty = try features.instance()
+    let passphraseWipeOnBackground: StoredVariable<Bool> = passphraseWipeOnBackgroundProperty
+      .variable
+      .convert(
+        read: unwrapped(default: false),
+        write: { $0 }
+      )
+      .notifying(accountData.updates)
+
     return Self(
       updates: accountData.updates.asAnyUpdatable(),
       setLocalAccountLabel: setLocalAccountLabel(_:),
       isPassphraseStored: isPassphraseStored,
       storePassphrase: storePassphrase(_:),
       useLastHomePresentationAsDefault: useLastHomePresentationAsDefault,
-      defaultHomePresentation: defaultHomePresentation
+      defaultHomePresentation: defaultHomePresentation,
+      passphraseWipeOnBackground: passphraseWipeOnBackground
     )
   }
 }
@@ -113,6 +123,10 @@ extension FeaturesRegistry {
     )
     self.usePassboltStoredProperty(
       DefaultHomeModeStoredPropertyDescription.self,
+      in: SessionScope.self
+    )
+    self.usePassboltStoredProperty(
+      PassphraseWipeOnBackgroundStoredPropertyDescription.self,
       in: SessionScope.self
     )
   }
@@ -136,4 +150,15 @@ internal enum UseLastUsedHomePresentationAsDefaultStoredPropertyDescription: Sto
   public typealias Value = Bool
 
   public static var key: OSStoredPropertyKey { "UseLastUsedHomePresentationAsDefault" }
+}
+
+internal typealias PassphraseWipeOnBackgroundStoredProperty = StoredProperty<
+  PassphraseWipeOnBackgroundStoredPropertyDescription
+>
+
+internal enum PassphraseWipeOnBackgroundStoredPropertyDescription: StoredPropertyDescription {
+
+  public typealias Value = Bool
+
+  public static var key: OSStoredPropertyKey { "PassphraseWipeOnBackground" }
 }

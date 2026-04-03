@@ -109,6 +109,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountQRCodeExport()
     self.useLiveNavigationToAccountKeyInspector()
     self.useLiveNavigationToAccountKeyExportMenu()
+    self.useLiveNavigationToExpertSettings()
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
 

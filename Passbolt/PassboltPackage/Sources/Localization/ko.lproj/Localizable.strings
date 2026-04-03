@@ -673,7 +673,13 @@ NFC가 있어야 작동합니다.";
 "settings.main.item.accounts.title" = "계정";
 "settings.main.item.terms.and.licenses.title" = "약관과 라이선스";
 "settings.main.item.troubleshooting.title" = "디버그, 로그";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "로그아웃";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

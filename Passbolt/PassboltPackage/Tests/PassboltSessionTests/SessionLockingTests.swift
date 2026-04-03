@@ -34,14 +34,6 @@ final class SessionLockingTests: FeaturesTestCase {
       { $0.usePassboltSessionLocking() },
       for: SessionLocking.self
     )
-  }
-
-  func test_ensureAutolock_doesNotAffectAnythingWithoutTrigger() async throws {
-    patch(
-      \ApplicationLifecycle.lifecycle,
-      with: Empty<ApplicationLifecycle.Transition, Never>()
-        .asAsyncSequence()
-    )
     patch(
       \SessionState.updates,
       with: Variable(initial: Void())
@@ -50,6 +42,37 @@ final class SessionLockingTests: FeaturesTestCase {
     patch(
       \SessionState.account,
       with: always(.mock_ada)
+    )
+    patch(
+      \SessionState.pendingAuthorization,
+      with: always(.none)
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    set(
+      AccountScope.self,
+      context: .mock_ada
+    )
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .default
+      )
+    )
+    patch(
+      \AccountPreferences.passphraseWipeOnBackground,
+      with: .variable(initial: false)
+    )
+  }
+
+  func test_ensureAutolock_doesNotAffectAnythingWithoutTrigger() async throws {
+    patch(
+      \ApplicationLifecycle.lifecycle,
+      with: Empty<ApplicationLifecycle.Transition, Never>()
+        .asAsyncSequence()
     )
 
     await withSerialTaskExecutor {
@@ -63,7 +86,12 @@ final class SessionLockingTests: FeaturesTestCase {
     }
   }
 
-  func test_ensureAutolock_clearsPassphrase_whenEnteringBackground() async throws {
+  func test_ensureAutolock_wipesPassphraseImmediately_whenEnteringBackground_withWipeOnBackgroundEnabled() async throws
+  {
+    patch(
+      \AccountPreferences.passphraseWipeOnBackground,
+      with: .variable(initial: true)
+    )
     patch(
       \ApplicationLifecycle.lifecycle,
       with: Just(ApplicationLifecycle.Transition.didEnterBackground)
@@ -74,19 +102,6 @@ final class SessionLockingTests: FeaturesTestCase {
       with: { (force: Bool) in
         self.mockExecuted(with: force)
       }
-    )
-    patch(
-      \SessionState.pendingAuthorization,
-      with: always(.none)
-    )
-    patch(
-      \SessionState.updates,
-      with: Variable(initial: Void())
-        .asAnyUpdatable()
-    )
-    patch(
-      \SessionState.account,
-      with: always(.mock_ada)
     )
 
     await withSerialTaskExecutor {
@@ -100,30 +115,56 @@ final class SessionLockingTests: FeaturesTestCase {
     }
   }
 
-  func test_ensureAutolock_clearsPassphrase_whenEnteringForeground() async {
+  func test_ensureAutolock_defersPassphraseWipe_whenEnteringBackground_withWipeOnBackgroundDisabled() async throws {
+    patch(
+      \AccountPreferences.passphraseWipeOnBackground,
+      with: .variable(initial: false)
+    )
+    patch(
+      \ApplicationLifecycle.lifecycle,
+      with: AsyncStream<ApplicationLifecycle.Transition> { continuation in
+        continuation.yield(.didEnterBackground)
+        // Stream stays open — production lifecycle never completes, and an
+        // open stream prevents the outer task's defer from cancelling the
+        // deferred wipe task before it runs.
+      }
+      .asAnyAsyncSequence()
+    )
+    patch(
+      \OSTime.waitFor,
+      with: { (_: Seconds) in
+        // NOP - complete immediately for testing
+      }
+    )
+    patch(
+      \SessionState.passphraseWipe,
+      with: { (force: Bool) in
+        self.mockExecuted(with: force)
+      }
+    )
+
+    await withSerialTaskExecutor {
+      await withInstance(mockExecutedWith: false) { (testedInstance: SessionLocking) in
+        testedInstance.ensureLocking(.mock_ada)
+        // sleeping beacause of actor switching
+        // inside tasks causing the test to finish
+        // prematurely Task.yield is not enough here
+        try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
+      }
+    }
+  }
+
+  func test_ensureAutolock_requestsAuthorizationIfNeeded_whenEnteringForeground() async {
     patch(
       \ApplicationLifecycle.lifecycle,
       with: Just(ApplicationLifecycle.Transition.willEnterForeground)
         .asAsyncSequence()
     )
     patch(
-      \SessionState.authorizationRequested,
+      \SessionState.requestAuthorizationIfNeeded,
       with: { (request: SessionAuthorizationRequest) in
         self.mockExecuted(with: request)
       }
-    )
-    patch(
-      \SessionState.pendingAuthorization,
-      with: always(.none)
-    )
-    patch(
-      \SessionState.updates,
-      with: Variable(initial: Void())
-        .asAnyUpdatable()
-    )
-    patch(
-      \SessionState.account,
-      with: always(.mock_ada)
     )
 
     await withSerialTaskExecutor {
@@ -136,5 +177,15 @@ final class SessionLockingTests: FeaturesTestCase {
         try await Task.sleep(nanoseconds: 10 * NSEC_PER_MSEC)
       }
     }
+  }
+}
+
+extension StoredVariable {
+
+  fileprivate static func variable(initial: Value) -> Self {
+    .init(
+      fetch: { initial },
+      store: { _ in /* NOP */ }
+    )
   }
 }

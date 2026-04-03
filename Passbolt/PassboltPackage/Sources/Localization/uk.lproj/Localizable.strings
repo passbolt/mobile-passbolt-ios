@@ -673,7 +673,13 @@ NFC, щоб це працювало.";
 "settings.main.item.accounts.title" = "Облікові записи";
 "settings.main.item.terms.and.licenses.title" = "Умови та ліцензії";
 "settings.main.item.troubleshooting.title" = "Налагодження, журнали";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Вийти";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

@@ -546,6 +546,123 @@ final class StoredVariableTests: TestCase {
     )
   }
 
+  func test_notifying_triggersUpdates_onAssign() {
+    let updates: Updates = .init()
+    let initialGeneration: UpdateGeneration = updates.generation
+    let storedVariable: StoredVariable<Int> = StoredVariable<Int>(
+      fetch: { 42 },
+      store: { _ in }
+    )
+    .notifying(updates)
+
+    storedVariable.assign(99)
+
+    verifyIf(
+      updates.generation,
+      isGreaterThan: initialGeneration
+    )
+  }
+
+  func test_notifying_triggersUpdates_onValueModification() {
+    let updates: Updates = .init()
+    let storedVariable: StoredVariable<Int> = StoredVariable<Int>(
+      fetch: { 42 },
+      store: { _ in }
+    )
+    .notifying(updates)
+
+    let generationBeforeModification: UpdateGeneration = updates.generation
+    storedVariable.value += 10
+
+    verifyIf(
+      updates.generation,
+      isGreaterThan: generationBeforeModification
+    )
+  }
+
+  func test_notifying_triggersUpdates_onMutate() {
+    let updates: Updates = .init()
+    let storedVariable: StoredVariable<Int> = StoredVariable<Int>(
+      fetch: { 42 },
+      store: { _ in }
+    )
+    .notifying(updates)
+
+    let generationBeforeMutation: UpdateGeneration = updates.generation
+    storedVariable.mutate { $0 = 100 }
+
+    verifyIf(
+      updates.generation,
+      isGreaterThan: generationBeforeMutation
+    )
+  }
+
+  func test_notifying_propagatesValueToOriginal() {
+    let storedValue: CriticalState<Int?> = .init(.none)
+    let updates: Updates = .init()
+    let original: StoredVariable<Int> = .init(
+      fetch: { 42 },
+      store: { storedValue.set($0) }
+    )
+    let notifying: StoredVariable<Int> = original.notifying(updates)
+
+    notifying.assign(77)
+
+    verifyIf(
+      original.value,
+      isEqual: 77
+    )
+    verifyIf(
+      storedValue.get(),
+      isEqual: 77
+    )
+  }
+
+  func test_notifying_doesNotTriggerUpdates_withoutWrite() {
+    let updates: Updates = .init()
+    let storedVariable: StoredVariable<Int> = StoredVariable<Int>(
+      fetch: { 42 },
+      store: { _ in }
+    )
+    .notifying(updates)
+
+    let generationAfterCreation: UpdateGeneration = updates.generation
+    _ = storedVariable.value
+
+    verifyIf(
+      updates.generation,
+      isEqual: generationAfterCreation
+    )
+  }
+
+  func test_notifying_chainsWithConvert() {
+    let storedValue: CriticalState<Int?> = .init(.none)
+    let updates: Updates = .init()
+    let intVariable: StoredVariable<Int> = .init(
+      fetch: { 42 },
+      store: { storedValue.set($0) }
+    )
+    let stringVariable: StoredVariable<String> =
+      intVariable
+      .convert(
+        read: { String($0) },
+        write: { Int($0) ?? 0 }
+      )
+      .notifying(updates)
+
+    let initialGeneration: UpdateGeneration = updates.generation
+    stringVariable.assign("99")
+
+    verifyIf(
+      updates.generation,
+      isGreaterThan: initialGeneration
+    )
+    verifyIf(
+      storedValue.get(),
+      isEqual: 99
+    )
+  }
+
   func test_storedVariable_concurrentIninitalization() {
     let fetchCallCount: CriticalState<Int> = .init(0)
     let storedVariable: StoredVariable<Int> = .init(

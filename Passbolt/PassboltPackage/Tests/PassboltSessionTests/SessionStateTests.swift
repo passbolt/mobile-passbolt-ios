@@ -966,4 +966,60 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState> {
       await testedInstance.passphrase()
     }
   }
+
+  func test_requestAuthorizationIfNeeded_doesNothing_whenAlreadyAuthorizedWithValidPassphrase() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "refreshToken",
+        "mfaToken",
+        .init()
+      )
+      // Should not throw - passphrase is valid and not expired
+      try await testedInstance.requestAuthorizationIfNeeded(.passphrase(.mock_ada))
+
+      // Passphrase should still be present
+      await XCTAssertValue(equal: "passphrase") {
+        await testedInstance.passphrase()
+      }
+    }
+  }
+
+  func test_requestAuthorizationIfNeeded_requestsAuthorization_whenPassphraseExpired() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "refreshToken",
+        "mfaToken",
+        .init()
+      )
+      // Advance time past expiration
+      self.timestamp = (5 * 60 * 60) as Timestamp
+
+      // Should request authorization since passphrase is expired
+      try await testedInstance.requestAuthorizationIfNeeded(.passphrase(.mock_ada))
+
+      // Should have pending authorization
+      let pending: SessionState.PendingAuthorization? = await testedInstance.pendingAuthorization()
+      XCTAssertNotNil(pending)
+    }
+  }
+
+  func test_requestAuthorizationIfNeeded_requestsAuthorization_whenNoSession() {
+    withTestedInstance { (testedInstance: SessionState) in
+      // No session created - should request authorization
+      do {
+        try await testedInstance.requestAuthorizationIfNeeded(.passphrase(.mock_ada))
+        XCTFail("Expected requestAuthorizationIfNeeded to throw without session")
+      }
+      catch {
+        // Expected - no session means authorization request should throw
+        return
+      }
+    }
+  }
 }

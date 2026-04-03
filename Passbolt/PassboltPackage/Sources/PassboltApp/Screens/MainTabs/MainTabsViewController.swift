@@ -123,24 +123,7 @@ internal final class MainTabsViewController: ViewController {
   func otpTabAvailable() async -> Bool {
     do {
       let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
-
-      let sessionData: SessionData = try features.instance()
-      let resourcesCountFetchDatabaseOperation: ResourcesCountFetchDatabaseOperation = try features.instance()
-      let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
-      try await sessionData.refreshIfNeeded()
-      // If a user has access to otp resources just show
-      // them regardless of feature flag
-      let count: Int = try await resourcesCountFetchDatabaseOperation(ResourceSpecification.Slug.allTOTPTypes)
-      guard count == 0
-      else { return true }
-      // if there is no otp resource yet, check the flag
-      guard sessionConfiguration.resources.totpEnabled
-      else { return false }
-      // finally check if resource type is available
-      let availableResourceTypes: Array<ResourceType> = try await resourceTypesFetchDatabaseOperation()
-      return
-        availableResourceTypes
-        .contains { $0.specification.slug == .totp }
+      return sessionConfiguration.resources.totpEnabled
     }
     catch {
       error.logged()

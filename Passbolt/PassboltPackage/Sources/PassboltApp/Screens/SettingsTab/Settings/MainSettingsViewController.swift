@@ -35,6 +35,7 @@ internal final class MainSettingsViewController: ViewController {
   private let navigationToAccountsSettings: NavigationToAccountsSettings
   private let navigationToTermsAndLicenses: NavigationToTermsAndLicensesSettings
   private let navigationToTroubleshooting: NavigationToTroubleshootingSettings
+  private let navigationToExpertSettings: NavigationToExpertSettings
 
   private let features: Features
 
@@ -55,6 +56,7 @@ internal final class MainSettingsViewController: ViewController {
     self.navigationToAccountsSettings = try features.instance()
     self.navigationToTermsAndLicenses = try features.instance()
     self.navigationToTroubleshooting = try features.instance()
+    self.navigationToExpertSettings = try features.instance()
   }
 }
 
@@ -74,6 +76,10 @@ extension MainSettingsViewController {
 
   internal final func navigateToTroubleshooting() async {
     await navigationToTroubleshooting.performCatching()
+  }
+
+  internal final func navigateToExpertSettings() async {
+    await self.navigationToExpertSettings.performCatching()
   }
 
   internal final func signOut() async {

@@ -674,7 +674,13 @@ scanned!";
 "settings.main.item.accounts.title" = "Accounts";
 "settings.main.item.terms.and.licenses.title" = "Terms & licenses";
 "settings.main.item.troubleshooting.title" = "Debug, logs";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Sign out";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

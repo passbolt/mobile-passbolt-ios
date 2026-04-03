@@ -88,6 +88,8 @@ internal struct SessionState {
     ) throws -> Void
   /// Update with authorization request.
   internal var authorizationRequested: @SessionActor (SessionAuthorizationRequest) throws -> Void
+  /// Request authorization if currently not authorized with valid passphrase cache for the given request.
+  internal var requestAuthorizationIfNeeded: @SessionActor (SessionAuthorizationRequest) throws -> Void
   /// Remove passphrase cache, pass `true` to force immediate removal even if session tasks are running.
   internal var passphraseWipe: @SessionActor (Bool) -> Void
   /// Clear current access token data if any.
@@ -128,6 +130,7 @@ extension SessionState: LoadableFeature {
       passphraseProvided: unimplemented2(),
       mfaProvided: unimplemented2(),
       authorizationRequested: unimplemented1(),
+      requestAuthorizationIfNeeded: unimplemented1(),
       passphraseWipe: unimplemented1(),
       accessTokenInvalidate: unimplemented0(),
       mfaTokenInvalidate: unimplemented0(),
@@ -520,6 +523,16 @@ extension SessionState {
       SessionStateChangeEvent.send(.closed)
     }
 
+    @SessionActor func requestAuthorizationIfNeeded(_ request: SessionAuthorizationRequest) throws {
+      if request.account == currentAccount,
+        currentPassphrase != .none,
+        currentPassphraseExpiration >= osTime.timestamp()
+      {
+        return  // NOP - already authorized with current account and passphrase cache is valid.
+      }
+      try authorizationRequested(request)
+    }
+
     return Self(
       updates: updatesSource.asAnyUpdatable(),
       account: account,
@@ -536,6 +549,7 @@ extension SessionState {
       passphraseProvided: passphraseProvided(account:passphrase:),
       mfaProvided: mfaProvided(account:mfaToken:),
       authorizationRequested: authorizationRequested(_:),
+      requestAuthorizationIfNeeded: requestAuthorizationIfNeeded(_:),
       passphraseWipe: passphraseWipe(force:),
       accessTokenInvalidate: accessTokenInvalidate,
       mfaTokenInvalidate: mfaTokenInvalidate,

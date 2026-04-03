@@ -674,7 +674,13 @@ NFC.";
 "settings.main.item.accounts.title" = "Учетные записи";
 "settings.main.item.terms.and.licenses.title" = "Условия и лицензии";
 "settings.main.item.troubleshooting.title" = "Отладка, журналы";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Выйти";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

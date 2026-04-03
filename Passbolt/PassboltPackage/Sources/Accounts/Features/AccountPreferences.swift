@@ -45,13 +45,16 @@ public struct AccountPreferences: Sendable {
   /// for the context account.
   public var defaultHomePresentation: StoredVariable<HomePresentationMode>
 
+  public var passphraseWipeOnBackground: StoredVariable<Bool>
+
   public init(
     updates: AnyUpdatable<Void>,
     setLocalAccountLabel: @escaping @Sendable (_ label: String) throws -> Void,
     isPassphraseStored: @escaping @Sendable () -> Bool,
     storePassphrase: @escaping @Sendable (_ store: Bool) async throws -> Void,
     useLastHomePresentationAsDefault: StoredVariable<Bool>,
-    defaultHomePresentation: StoredVariable<HomePresentationMode>
+    defaultHomePresentation: StoredVariable<HomePresentationMode>,
+    passphraseWipeOnBackground: StoredVariable<Bool>
   ) {
     self.updates = updates
     self.setLocalAccountLabel = setLocalAccountLabel
@@ -59,6 +62,7 @@ public struct AccountPreferences: Sendable {
     self.storePassphrase = storePassphrase
     self.useLastHomePresentationAsDefault = useLastHomePresentationAsDefault
     self.defaultHomePresentation = defaultHomePresentation
+    self.passphraseWipeOnBackground = passphraseWipeOnBackground
   }
 }
 
@@ -74,7 +78,8 @@ extension AccountPreferences: LoadableFeature {
       isPassphraseStored: unimplemented0(),
       storePassphrase: unimplemented1(),
       useLastHomePresentationAsDefault: .placeholder,
-      defaultHomePresentation: .placeholder
+      defaultHomePresentation: .placeholder,
+      passphraseWipeOnBackground: .placeholder
     )
   }
   #endif

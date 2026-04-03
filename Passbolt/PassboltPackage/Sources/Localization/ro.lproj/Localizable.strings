@@ -674,7 +674,13 @@ scanat!";
 "settings.main.item.accounts.title" = "Conturi";
 "settings.main.item.terms.and.licenses.title" = "Termeni și licențe";
 "settings.main.item.troubleshooting.title" = "Depanare, loguri";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Deconectează-te";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

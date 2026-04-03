@@ -673,7 +673,13 @@ Póngase en contacto con su administrador para obtener más información.";
 "settings.main.item.accounts.title" = "Cuentas";
 "settings.main.item.terms.and.licenses.title" = "Términos y licencias";
 "settings.main.item.troubleshooting.title" = "Depurar, registros";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Cerrar sesión";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

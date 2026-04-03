@@ -144,6 +144,21 @@ extension StoredVariable {
 
 extension StoredVariable {
 
+  @Sendable public func notifying(
+    _ updates: Updates
+  ) -> StoredVariable<Value> {
+    StoredVariable<Value>(
+      fetch: { self.value },
+      store: { (newValue: Value) in
+        self.assign(newValue)
+        updates.update()
+      }
+    )
+  }
+}
+
+extension StoredVariable {
+
   #if DEBUG
   public static var placeholder: Self {
     .init(

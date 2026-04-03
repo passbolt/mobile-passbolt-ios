@@ -671,7 +671,13 @@
 "settings.main.item.accounts.title" = "Konton";
 "settings.main.item.terms.and.licenses.title" = "Villkor & licenser";
 "settings.main.item.troubleshooting.title" = "Felsökning, loggar";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Logga ut";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

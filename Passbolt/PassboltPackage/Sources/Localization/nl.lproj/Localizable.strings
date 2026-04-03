@@ -674,7 +674,13 @@ gescand!";
 "settings.main.item.accounts.title" = "Accounts";
 "settings.main.item.terms.and.licenses.title" = "Voorwaarden & licenties";
 "settings.main.item.troubleshooting.title" = "Debug, logboeken";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Afmelden";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

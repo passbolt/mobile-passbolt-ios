@@ -673,7 +673,13 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "settings.main.item.accounts.title" = "Konten";
 "settings.main.item.terms.and.licenses.title" = "Bedingungen & Lizenzen";
 "settings.main.item.troubleshooting.title" = "Debug, Logs";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Abmelden";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 

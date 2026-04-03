@@ -75,6 +75,13 @@ internal struct MainSettingsView: ControlledView {
       )
 
       SettingsActionRowView(
+        icon: .settings,
+        title: "settings.main.item.expert.title",
+        navigation: self.controller.navigateToExpertSettings
+      )
+      .accessibilityIdentifier("settings.main.item.expert.title")
+
+      SettingsActionRowView(
         icon: .exit,
         title: "settings.main.item.sign.out.title",
         action: {

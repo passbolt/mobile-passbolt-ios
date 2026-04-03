@@ -604,6 +604,7 @@ let package = Package(
         // Modules
         "Accounts",
         "Session",
+        "SessionData",
         "DatabaseOperations",
         "NetworkOperations",
       ],

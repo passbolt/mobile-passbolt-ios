@@ -21,8 +21,11 @@
 // @since         v1.0
 //
 
+import Accounts
+import FeatureScopes
 import Features
 import OSFeatures
+import SessionData
 
 // MARK: - Interface
 
@@ -55,8 +58,13 @@ extension SessionLocking {
   ) throws -> Self {
     let appLifecycle: ApplicationLifecycle = features.instance()
     let sessionState: SessionState = try features.instance()
+    let osTime: OSTime = features.instance()
+
+    // Currently hardcoded to 60s, but could be made configurable if needed
+    let passphraseWipeDelaySeconds: Seconds = 60
 
     let lockingTask: CriticalState<LockingTask?> = .init(.none)
+    let deferredTask: CriticalState<Task<Void, Never>?> = .init(.none)
 
     @Sendable nonisolated func ensureLocking(
       for account: Account
@@ -64,26 +72,79 @@ extension SessionLocking {
       lockingTask.access { (currentTask: inout LockingTask?) in
         guard currentTask?.account != account else { return }
         currentTask?.task.cancel()
+
         currentTask = .init(
           account: account,
           task: .detached { @Sendable @SessionActor in
             Diagnostics.logger.info("Session auto locking enabled!")
+            defer {
+              deferredTask.access { task in
+                task?.cancel()
+                task = .none
+              }
+            }
             do {
+              @Sendable func shouldWipePassphraseOnBackground() async -> Bool {
+                do {
+                  let sessionConfigurationLoader: SessionConfigurationLoader = try await features.instance()
+                  let configuration: SessionConfiguration =
+                    try await sessionConfigurationLoader.sessionConfiguration()
+                  let sessionScopeFeatures: Features =
+                    try await features
+                    .branch(scope: AccountScope.self, context: account)
+                    .branch(scope: SessionScope.self, context: .init(account: account, configuration: configuration))
+                  let accountPreferences: AccountPreferences = try await sessionScopeFeatures.instance()
+                  return accountPreferences.passphraseWipeOnBackground.value
+                }
+                catch {
+                  error.logged()
+                  return true  // default to wiping passphrase on background if we can't determine the setting
+                }
+              }
+
               for try await update in appLifecycle.lifecycle {
                 Diagnostics.logger.info("Application transition: \(update.rawValue)")
 
                 // Check if account changed
                 guard sessionState.account() == account
                 else {
+                  deferredTask.access { task in
+                    task?.cancel()
+                    task = .none
+                  }
                   continue
                 }  // account has changed
                 switch (sessionState.pendingAuthorization(), update) {
                 case (.none, .didEnterBackground):
-                  sessionState.passphraseWipe(false)
+                  if await shouldWipePassphraseOnBackground() {
+                    sessionState.passphraseWipe(false)
+                  }
+                  else {
+                    Diagnostics.logger.info("Deferring passphrase wipe...")
+                    deferredTask.access { task in
+                      task?.cancel()
+                      task = Task.detached {
+                        do {
+                          try await osTime.waitFor(passphraseWipeDelaySeconds)
+                        }
+                        catch is CancellationError {
+                          // NOP - just cancelled
+                        }
+                        catch {
+                          Diagnostics.logger.warning("Deferred passphrase wipe timer interrupted: \(error)")
+                        }
+                        guard !Task.isCancelled, await sessionState.account() == account else { return }
+                        await sessionState.passphraseWipe(false)
+                      }
+                    }
+                  }
 
                 case (.none, .willEnterForeground):
-                  try sessionState.authorizationRequested(.passphrase(account))
-
+                  try sessionState.requestAuthorizationIfNeeded(.passphrase(account))
+                  deferredTask.access { task in
+                    task?.cancel()
+                    task = .none
+                  }
                 case _:
                   break  // ignore
                 }

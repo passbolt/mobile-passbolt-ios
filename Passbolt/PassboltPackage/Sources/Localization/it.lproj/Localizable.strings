@@ -671,7 +671,13 @@
 "settings.main.item.accounts.title" = "Account";
 "settings.main.item.terms.and.licenses.title" = "Termini e licenze";
 "settings.main.item.troubleshooting.title" = "Debug, registri";
+"settings.main.item.expert.title" = "Expert settings";
 "settings.main.item.sign.out.title" = "Esci";
+
+// Settings - Expert
+
+"settings.expert.title" = "Expert settings";
+"settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
 
