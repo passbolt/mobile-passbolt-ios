@@ -22,7 +22,6 @@
 //
 
 import Display
-import UniformTypeIdentifiers
 
 internal struct HelpMenuView: ControlledView {
 
@@ -33,20 +32,6 @@ internal struct HelpMenuView: ControlledView {
   }
 
   internal var body: some View {
-    withSheet(
-      \.presentAccountKitPicker,
-      sheet: {
-        DocumentPicker(
-          onDocumentSelected: self.controller.importAccountKit
-        )
-      },
-      content: {
-        drawer
-      }
-    )
-  }
-
-  private var drawer: some View {
     DrawerMenu(
       closeTap: { await self.controller.closeMenu() },
       title: {
@@ -78,42 +63,6 @@ internal struct HelpMenuView: ControlledView {
       }
     )
     .ignoresSafeArea()
-  }
-}
-
-private struct DocumentPicker: UIViewControllerRepresentable {
-
-  private let onDocumentSelected: (URL?) -> Void
-
-  fileprivate init(onDocumentSelected: @escaping (URL?) -> Void) {
-    self.onDocumentSelected = onDocumentSelected
-  }
-
-  fileprivate func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-    let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item], asCopy: true)
-    picker.delegate = context.coordinator
-    picker.modalPresentationStyle = .fullScreen
-    return picker
-  }
-
-  fileprivate func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {
-    // no-op
-  }
-
-  fileprivate func makeCoordinator() -> Coordinator {
-    Coordinator(self)
-  }
-
-  fileprivate class Coordinator: NSObject, UIDocumentPickerDelegate {
-    private let parent: DocumentPicker
-
-    fileprivate init(_ parent: DocumentPicker) {
-      self.parent = parent
-    }
-
-    fileprivate func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-      parent.onDocumentSelected(urls.first)
-    }
   }
 }
 

@@ -33,6 +33,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToWelcomeScreen()
     self.useLiveNavigationToHelpMenu()
     self.useLiveNavigationToLogsViewer()
+    self.useLiveNavigationToAccountKitPicker()
     self.useLiveNavigationToGenericResult()
     self.useLiveNavigationToTransferSignIn()
     self.useLiveNavigationToAccountImportInfo()

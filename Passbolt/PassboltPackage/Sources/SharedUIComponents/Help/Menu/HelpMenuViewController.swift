@@ -29,26 +29,21 @@ public final class HelpMenuViewController: ViewController {
 
   public struct ViewState: Equatable {
     let actions: Array<Action>
-    var presentAccountKitPicker: Bool
   }
 
   public nonisolated let viewState: ViewStateSource<ViewState>
   private let navigationToSelf: NavigationToHelpMenu
-  private let accountKitImport: AccountKitImport
-  private let accountImportResultHandler: AccountImportResultHandler
-  private var cancellables: Set<AnyCancellable> = []
-
   private let transferFeatures: Features
 
   public init(context: Array<Action>, features: Features) throws {
     let linkOpener: OSLinkOpener = features.instance()
-    self.navigationToSelf = try features.instance()
+    let navigationToSelf: NavigationToHelpMenu = try features.instance()
+    self.navigationToSelf = navigationToSelf
 
     self.transferFeatures = try features.branch(scope: AccountTransferScope.self)
-    self.accountImportResultHandler = try transferFeatures.instance()
-    self.accountKitImport = try transferFeatures.instance()
+    let navigationToAccountKitPicker: NavigationToAccountKitPicker = try transferFeatures.instance()
+    let accountKitImport: AccountKitImport = try transferFeatures.instance()
     let navigationToLogsViewer: NavigationToLogsViewer = try features.instance()
-    let click: PassthroughSubject<Void, Never> = .init()
     self.viewState = .init(
       initial: .init(
         actions: context
@@ -65,7 +60,8 @@ public final class HelpMenuViewController: ViewController {
                 title: "help.menu.show.import.account.kit.title",
                 icon: .importFile,
                 action: { @MainActor in
-                  click.send()
+                  try await navigationToSelf.revert()
+                  try await navigationToAccountKitPicker.perform()
                 }
               )
               : nil,
@@ -78,42 +74,15 @@ public final class HelpMenuViewController: ViewController {
               }
             ),
           ]
-          .compactMap { $0 },
-        presentAccountKitPicker: false
+          .compactMap { $0 }
       )
     )
-    click.sink(receiveValue: self.presentAccountKitPicker).store(in: &self.cancellables)
   }
 
   internal func closeMenu() async {
     await consumingErrors {
       try await self.navigationToSelf.revert()
     }
-  }
-
-  internal func presentAccountKitPicker() {
-    self.viewState.update(\.presentAccountKitPicker, to: true)
-  }
-
-  internal func importAccountKit(from url: URL?) {
-    self.viewState.update(\.presentAccountKitPicker, to: false)
-    guard let url: URL = url else {
-      return
-    }
-    Task {
-      try await self.navigationToSelf.revert()
-      do {
-        let fileContents = try String(contentsOf: url, encoding: .utf8)
-
-        let accountTransferData = try self.accountKitImport.importAccountKit(fileContents)
-        try await self.accountImportResultHandler.handleImportResult(.success(accountTransferData))
-      }
-      catch {
-        error.logged()
-        try await self.accountImportResultHandler.handleImportResult(.failure(error))
-      }
-    }
-
   }
 
   public struct Action: Equatable, Hashable, Sendable {

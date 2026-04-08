@@ -21,59 +21,31 @@
 // @since         v1.0
 //
 
-import AegithalosCocoa
-import Commons
-import SwiftUI
+import Display
+import FeatureScopes
 
-@MainActor
-public struct IconButton: View {
+public enum NavigationToAccountKitPickerMenuDestination: NavigationDestination {
 
-  private let iconName: ImageNameConstant
-  private let action: @MainActor () async -> Void
+  public typealias TransitionContext = Void
+}
 
-  public init(
-    iconName: ImageNameConstant,
-    action: @escaping @MainActor () async -> Void
-  ) {
-    self.iconName = iconName
-    self.action = action
-  }
+public typealias NavigationToAccountKitPicker = NavigationTo<NavigationToAccountKitPickerMenuDestination>
 
-  public var body: some View {
-    AsyncButton(
-      action: self.action,
-      label: {
-        Image(named: self.iconName)
-      }
+extension NavigationToAccountKitPicker {
+
+  fileprivate static var live: FeatureLoader {
+    sheetPresentationTransition(
+      to: AccountKitPickerView.self
     )
-    .foregroundColor(.passboltPrimaryText)
-    .tint(.passboltPrimaryText)
-    .backgroundColor(.clear)
   }
 }
 
-#if DEBUG
+extension FeaturesRegistry {
 
-internal struct IconButton_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    VStack {
-      IconButton(
-        iconName: .bug,
-        action: {
-          print("TAP")
-          try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
-        }
-      )
-
-      IconButton(
-        iconName: .clock,
-        action: {
-          print("TAP")
-        }
-      )
-    }
-    .padding()
+  public mutating func useLiveNavigationToAccountKitPicker() {
+    self.use(
+      NavigationToAccountKitPicker.live,
+      in: AccountTransferScope.self
+    )
   }
 }
-#endif
