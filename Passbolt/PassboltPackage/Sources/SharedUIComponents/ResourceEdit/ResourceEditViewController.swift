@@ -234,8 +234,7 @@ public final class ResourceEditViewController: ViewController {
       try await self.resourceEditForm.updateExpiryDateIfNeeded(editedFields)
       try await self.resourceEditForm.validateForm()
       let resource: Resource = try await self.resourceEditForm.state.value
-      if let path = resource.firstPasswordPath, editedFields.contains(path) == false {
-        // if password field was not edited, we don't need to validate it again
+      if resource.requiresPasswordValidation(editedFields: editedFields) == false {
         return await self.confirmedSubmission()
       }
       if let password: String = resource.firstPasswordString {
@@ -1026,5 +1025,15 @@ extension AlertViewModel {
         .destructive(title: "resource.edit.exit.confirmation.button.revert.title", perform: onConfirm),
       ]
     )
+  }
+}
+
+extension Resource {
+
+  fileprivate func requiresPasswordValidation(editedFields: Set<ResourceType.FieldPath>) -> Bool {
+    if let passwordPath = self.firstPasswordPath {
+      return editedFields.contains(passwordPath)
+    }
+    return false
   }
 }

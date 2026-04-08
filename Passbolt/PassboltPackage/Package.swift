@@ -931,6 +931,15 @@ let package = Package(
         "TestExtensions",
       ]
     ),
+    .testTarget(
+      name: "SharedUIComponentsTests",
+      dependencies: [
+        "SharedUIComponents",
+        "Shared",
+        "CoreTest",
+        "TestExtensions",
+      ]
+    ),
   ],
   swiftLanguageModes: [.v5]
 )
