@@ -187,7 +187,7 @@ extension View {
   @ViewBuilder
   internal func solidPresentationBackground() -> some View {
     if #available(iOS 16.4, *) {
-      self.presentationBackground(Color.white)
+      self.presentationBackground(Color.passboltSheetBackground)
     }
     else {
       self

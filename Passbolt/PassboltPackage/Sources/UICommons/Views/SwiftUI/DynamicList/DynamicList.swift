@@ -186,7 +186,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
       .onAppear {
         recomputeVisibleRange()
       }
-      .onChange(of: numberOfItems) { newValue in
+      .onChangeBackport(of: numberOfItems) { _, newValue in
         handleItemCountChange(newValue)
       }
       .onChange(of: contentResetToken) { _ in
@@ -395,5 +395,49 @@ private struct ViewportSizePreferenceKey: PreferenceKey {
   static var defaultValue: CGSize = .zero
   static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
     value = nextValue()
+  }
+}
+
+extension View {
+  @ViewBuilder
+  fileprivate func onChangeBackport<V: Equatable>(
+    of value: V,
+    initial: Bool = false,
+    _ action: @escaping (_ oldValue: V, _ newValue: V) -> Void
+  ) -> some View {
+    if #available(iOS 17, *) {
+      self.onChange(of: value, initial: initial, action)
+    }
+    else {
+      self.modifier(OnChangeBackportModifier(value: value, initial: initial, action: action))
+    }
+  }
+}
+/// Backport implementation of `onChange` for iOS 16 and earlier, using a `ViewModifier` and `@State` to track the old value.
+private struct OnChangeBackportModifier<V: Equatable>: ViewModifier {
+  private let value: V
+  private let initial: Bool
+  private let action: (_ oldValue: V, _ newValue: V) -> Void
+
+  @State private var oldValue: V
+
+  fileprivate init(value: V, initial: Bool, action: @escaping (_ oldValue: V, _ newValue: V) -> Void) {
+    self.value = value
+    self.initial = initial
+    self.action = action
+    self._oldValue = State(initialValue: value)
+  }
+
+  fileprivate func body(content: Content) -> some View {
+    content
+      .onAppear {
+        if initial {
+          action(value, value)
+        }
+      }
+      .onChange(of: value) { newValue in
+        action(oldValue, newValue)
+        oldValue = newValue
+      }
   }
 }
