@@ -37,6 +37,12 @@ internal final class ExtensionSetupViewController: ViewController {
   internal struct Context: Sendable {
 
     internal let allowSkipping: Bool
+    internal let onDismiss: (@Sendable () async -> Void)?
+
+    internal init(allowSkipping: Bool, onDismiss: (@Sendable () async -> Void)? = nil) {
+      self.allowSkipping = allowSkipping
+      self.onDismiss = onDismiss
+    }
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
@@ -46,6 +52,7 @@ internal final class ExtensionSetupViewController: ViewController {
   private let applicationLifecycle: ApplicationLifecycle
   private let linkOpener: OSLinkOpener
   private let navigationToSelf: NavigationToExtensionSetup
+  private let onDismiss: (@Sendable () async -> Void)?
   private var shouldAutoDismissOnAppear: Bool = false
 
   internal init(
@@ -57,6 +64,7 @@ internal final class ExtensionSetupViewController: ViewController {
     self.applicationLifecycle = features.instance()
     self.linkOpener = features.instance()
     self.navigationToSelf = try features.instance()
+    self.onDismiss = context.onDismiss
 
     self.viewState = .init(initial: .init(showSkipButton: context.allowSkipping))
   }
@@ -91,16 +99,26 @@ internal final class ExtensionSetupViewController: ViewController {
   }
 
   internal func skipSetup() async {
-    await self.navigationToSelf.revertCatching()
     self.accountInitialSetup.completeSetup(.autofill)
+    if let onDismiss: @Sendable () async -> Void = self.onDismiss {
+      await onDismiss()
+    }
+    else {
+      await self.navigationToSelf.revertCatching()
+    }
   }
 
   internal func dismissIfNeeded() {
     guard self.shouldAutoDismissOnAppear else {
       return
     }
-    Task {
-      try? await self.navigationToSelf.revert()
+    Task { [onDismiss, navigationToSelf] in
+      if let onDismiss: @Sendable () async -> Void = onDismiss {
+        await onDismiss()
+      }
+      else {
+        try? await navigationToSelf.revert()
+      }
     }
   }
 }

@@ -58,6 +58,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountDetails()
     self.useLiveNavigationToManageAccounts()
     self.useLiveNavigationToExtensionSetup()
+    self.useLiveNavigationToExtensionSetupSheet()
 
     // MARK: - Home
     self.useLiveNavigationToTagContent()

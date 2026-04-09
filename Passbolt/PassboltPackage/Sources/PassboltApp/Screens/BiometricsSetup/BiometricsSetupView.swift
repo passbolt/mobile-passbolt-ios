@@ -26,13 +26,14 @@ import Display
 internal struct BiometricsSetupView: ControlledView {
 
   internal let controller: BiometricsSetupViewController
+  @StateObject private var sheetNavigationState: NavigationState = NavigationState()
 
   internal init(controller: BiometricsSetupViewController) {
     self.controller = controller
   }
 
   internal var body: some View {
-    NavigationStack {
+    NavigationContainer(navigationState: sheetNavigationState) {
       WithViewState(self.controller.viewState) { state in
         InfoView(
           icon: state.icon,
@@ -44,6 +45,9 @@ internal struct BiometricsSetupView: ControlledView {
           secondaryButtonAction: self.controller.skipSetup
         )
       }
+    }
+    .onAppear {
+      self.controller.setSheetNavigationState(self.sheetNavigationState)
     }
   }
 }

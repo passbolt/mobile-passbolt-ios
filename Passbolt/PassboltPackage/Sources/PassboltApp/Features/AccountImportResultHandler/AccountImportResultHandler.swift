@@ -30,10 +30,10 @@ extension AccountImportResultHandler {
   @MainActor internal static func load(
     using features: Features
   ) throws -> Self {
+    let ownedFeatures: FeaturesContainer = features.takeOwned()
     let navigationToResultView: NavigationToGenericResult = try features.instance()
     let navigationToAccountSelection: NavigationToAccountSelection = try features.instance()
     let accountTransfer: AccountImport = try features.instance()
-    let navigationToTransferSignIn: NavigationToTransferSignIn = try features.instance()
 
     @Sendable func createFailureViewContext(
       title: DisplayableString,
@@ -85,7 +85,8 @@ extension AccountImportResultHandler {
             title: "transfer.account.kit.result.success.title",
             message: "",
             buttonTitle: .localized(key: .continue),
-            buttonAction: {
+            buttonAction: { @MainActor in
+              let navigationToTransferSignIn: NavigationToTransferSignIn = try ownedFeatures.instance()
               try await navigationToTransferSignIn.perform()
             }
           )

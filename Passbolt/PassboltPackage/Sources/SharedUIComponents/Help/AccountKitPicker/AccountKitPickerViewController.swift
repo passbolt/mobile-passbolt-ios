@@ -26,18 +26,25 @@ import Display
 
 internal final class AccountKitPickerViewController: ViewController {
 
+  private let features: Features
   private let navigationToSelf: NavigationToAccountKitPicker
   private let accountKitImport: AccountKitImport
   private let accountImportResultHandler: AccountImportResultHandler
+  private var importTask: Task<Void, Never>?
 
   internal init(context: (), features: Features) throws {
+    let features: Features = features.takeOwned()
+    self.features = features
     self.navigationToSelf = try features.instance()
     self.accountKitImport = try features.instance()
     self.accountImportResultHandler = try features.instance()
   }
 
   internal func onAccountKitSelected(_ url: URL?) {
-    Task {
+    guard self.importTask == nil else {
+      return
+    }
+    importTask = Task {
       await consumingErrors { [weak self] in
         try await self?.navigationToSelf.revert()
         guard let url: URL = url else {

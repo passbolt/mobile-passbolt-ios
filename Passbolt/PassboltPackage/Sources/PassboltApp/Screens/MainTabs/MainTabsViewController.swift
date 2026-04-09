@@ -106,10 +106,15 @@ internal final class MainTabsViewController: ViewController {
           .performCatching()
 
       case .autofillSetup:
-        let navigationToExtensionSetup: NavigationToExtensionSetup? = try self.features.instance()
-        await navigationToExtensionSetup?
+        let navigationToExtensionSetupSheet: NavigationToExtensionSetupSheet = try self.features.instance()
+        await navigationToExtensionSetupSheet
           .performCatching(
-            context: .init(allowSkipping: true)
+            context: .init(
+              allowSkipping: true,
+              onDismiss: { [navigationToExtensionSetupSheet] in
+                await navigationToExtensionSetupSheet.revertCatching()
+              }
+            )
           )
       }
     }
