@@ -85,16 +85,13 @@ extension AutofillRootViewController {
         try await navigationToAccountSelection.perform(
           context: .signIn
         )
-      }
-
-      if let account: AccountWithProfile = initialAccount {
-        await consumingErrors {
-          let navigationToAccountSelection: NavigationToAuthorization = try features.instance()
-          try await navigationToAccountSelection.perform(
+        if let account: AccountWithProfile = initialAccount {
+          let navigationToAuthorization: NavigationToAuthorization = try features.instance()
+          try await navigationToAuthorization.perform(
             context: account.account
           )
         }
-      }  // else NOP
+      }
     }
 
     Self.sessionSubscriptionTask.access { task in

@@ -294,4 +294,35 @@ final class SessionPassphraseWipeTests: LoadableFeatureTestCase<SessionState> {
       }
     }
   }
+
+  func test_closedSession_cancelsRunningTasks() {
+    withTestedInstance { (testedInstance: SessionState) in
+      await testedInstance.createdSession(
+        .mock_ada,
+        "passphrase",
+        .valid,
+        "refreshToken",
+        "mfaToken",
+        .init()
+      )
+
+      let cancellationExpectation: XCTestExpectation = .init(
+        description: "Task was cancelled"
+      )
+      let task: Task<Void, Error> = Task {
+        try await withTaskCancellationHandler {
+          try await Task.sleep(nanoseconds: 60_000_000_000)
+        } onCancel: {
+          cancellationExpectation.fulfill()
+        }
+      }
+      let taskID: SessionTaskID = .init()
+      await testedInstance.sessionTaskStarted(taskID)
+      await testedInstance.sessionTaskRegistered(taskID, task)
+
+      await testedInstance.closedSession()
+
+      await self.fulfillment(of: [cancellationExpectation], timeout: 1.0)
+    }
+  }
 }
