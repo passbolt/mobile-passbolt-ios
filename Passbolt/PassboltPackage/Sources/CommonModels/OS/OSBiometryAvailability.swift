@@ -28,3 +28,19 @@ public enum OSBiometryAvailability: Hashable, Sendable {
   case touchID
   case faceID
 }
+
+extension OSBiometryAvailability {
+
+  /// Returns the effective biometry availability for an account,
+  /// considering both OS availability and whether the passphrase is stored.
+  public func accountAvailability(isPassphraseStored: Bool) -> OSBiometryAvailability {
+    guard isPassphraseStored
+    else { return .unavailable }
+    switch self {
+    case .unavailable, .unconfigured:
+      return .unavailable
+    case .faceID, .touchID:
+      return self
+    }
+  }
+}

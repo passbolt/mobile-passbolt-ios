@@ -94,21 +94,8 @@ internal final class OperationAuthorizationViewController: ViewController {
           )
         }
 
-        let biometricsAvailability: OSBiometryAvailability
-        if accountDetails.isPassphraseStored() {
-          switch biometry.availability() {
-          case .unavailable, .unconfigured:
-            biometricsAvailability = .unavailable
-          case .faceID:
-            biometricsAvailability = .faceID
-
-          case .touchID:
-            biometricsAvailability = .touchID
-          }
-        }
-        else {
-          biometricsAvailability = .unavailable
-        }
+        let biometricsAvailability: OSBiometryAvailability = biometry.availability()
+          .accountAvailability(isPassphraseStored: accountDetails.isPassphraseStored())
 
         updateView { (viewState: inout ViewState) in
           viewState.biometricsAvailability = biometricsAvailability

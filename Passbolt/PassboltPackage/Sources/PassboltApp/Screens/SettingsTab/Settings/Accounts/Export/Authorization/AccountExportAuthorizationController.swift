@@ -64,19 +64,8 @@ internal final class AccountExportAuthorizationController: ViewController {
 
     let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
-    let biometricsAvailability: OSBiometryAvailability = { [biometry, accountPreferences] in
-      guard accountPreferences.isPassphraseStored()
-      else { return .unavailable }
-      switch biometry.availability() {
-      case .unavailable, .unconfigured:
-        return .unavailable
-      case .faceID:
-        return .faceID
-
-      case .touchID:
-        return .touchID
-      }
-    }()
+    let biometricsAvailability: OSBiometryAvailability = biometry.availability()
+      .accountAvailability(isPassphraseStored: accountPreferences.isPassphraseStored())
 
     self.viewState = .init(
       initial:
