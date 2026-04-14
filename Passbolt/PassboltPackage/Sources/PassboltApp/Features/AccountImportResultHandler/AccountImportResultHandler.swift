@@ -32,7 +32,6 @@ extension AccountImportResultHandler {
   ) throws -> Self {
     let ownedFeatures: FeaturesContainer = features.takeOwned()
     let navigationToResultView: NavigationToGenericResult = try features.instance()
-    let navigationToAccountSelection: NavigationToAccountSelection = try features.instance()
     let accountTransfer: AccountImport = try features.instance()
 
     @Sendable func createFailureViewContext(
@@ -44,7 +43,7 @@ extension AccountImportResultHandler {
         title: title,
         buttonTitle: .localized(key: .continue),
         buttonAction: {
-          try await navigationToAccountSelection.perform(context: .init(isSignIn: true))
+          try await navigationToResultView.revert()
         }
       )
     }
