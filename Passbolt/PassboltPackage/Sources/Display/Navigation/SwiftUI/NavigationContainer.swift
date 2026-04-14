@@ -135,13 +135,28 @@ extension NavigationContainer {
 
 private struct DynamicDetent: ViewModifier {
   @State private var height: CGFloat = 0
-  private var currentHeight: CGFloat {
+
+  /// Maximum sheet height, reserving space for status bar, navigation bar, and safe area insets.
+  private var maxAvailableHeight: CGFloat {
+    UIScreen.main.bounds.height - 140
+  }
+
+  private var desiredHeight: CGFloat {
     max(height + 40, 100)
+  }
+
+  private var currentHeight: CGFloat {
+    min(desiredHeight, maxAvailableHeight)
+  }
+
+  private var isClamped: Bool {
+    desiredHeight > maxAvailableHeight
   }
 
   fileprivate func body(content: Content) -> some View {
     content
-      .fixedSize(horizontal: false, vertical: true)
+      .fixedSize(horizontal: false, vertical: !isClamped)
+      .frame(maxHeight: isClamped ? currentHeight : nil)
       .overlay {
         GeometryReader { reader in
           Color.clear.preference(
@@ -151,7 +166,9 @@ private struct DynamicDetent: ViewModifier {
         }
       }
       .onPreferenceChange(ContentSizePreferenceKey.self) { height in
-        self.height = height
+        if !self.isClamped {
+          self.height = height
+        }
       }
       .presentationDetents([.height(currentHeight)])
   }

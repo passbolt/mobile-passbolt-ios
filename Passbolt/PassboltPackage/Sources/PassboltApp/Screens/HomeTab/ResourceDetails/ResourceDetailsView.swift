@@ -190,6 +190,7 @@ internal struct ResourceDetailsView: ControlledView {
               .padding(.horizontal, 16)
           }
         }
+        .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity)
         .padding(8)
         .background(Color.passboltBackgroundGray)
@@ -470,6 +471,7 @@ private struct ColoredPasswordView: View {
         ),
         color: .none
       )
+      .fixedSize(horizontal: false, vertical: true)
   }
 
   private var coloredPassword: AttributedString {
