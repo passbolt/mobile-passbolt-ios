@@ -21,14 +21,11 @@
 // @since         v1.0
 //
 
-import Accounts
 import Display
 import FeatureScopes
-import Foundation
 import Metadata
 import OSFeatures
 import Resources
-import Session
 import SessionData
 import SharedUIComponents
 
@@ -36,108 +33,146 @@ internal final class OTPResourcesListViewController: ViewController {
 
   internal struct ViewState: Equatable {
 
-    internal var accountAvatarImage: Data?
-    internal var searchText: String
-    internal var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel>
+    internal var otpResources: Array<TOTPResourceViewModel> = .init()
+    internal var isLoadingMore: Bool = false
+    internal var hasMoreData: Bool = true
+    internal var contentResetToken: Int = 0
+    internal var lastFilterText: String = .init()
+  }
+
+  internal struct Context {
+
+    internal let pageSize: Int
+
+    internal init(pageSize: Int) {
+      self.pageSize = pageSize
+    }
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
   internal let createAvailable: Bool
 
-  private let currentAccount: Account
-
   private let pasteboard: OSPasteboard
 
-  private let accountDetails: AccountDetails
-  private let resourceSearchController: ResourceSearchController
   private let resourcesOTPController: ResourcesOTPController
   private let resourceEditPreparation: ResourceEditPreparation
-
-  private let navigationToAccountMenu: NavigationToAccountMenu
-  private let navigationToSelf: NavigationToOTPResourcesList
+  private let resources: ResourcesController
+  private let sessionData: SessionData
+  internal let searchController: ResourceSearchDisplayController
 
   private let features: Features
+  private let context: Context
 
   internal init(
-    context: Void,
+    context: Context,
     features: Features
   ) throws {
     try features.ensureScope(SessionScope.self)
 
     self.features = features
+    self.context = context
+    self.resources = try features.instance()
+    self.sessionData = try features.instance()
 
     self.createAvailable = try features.sessionConfiguration().resources.totpEnabled
-
+    let otpController: ResourcesOTPController = try features.instance()
+    self.resourcesOTPController = otpController
     self.pasteboard = features.instance()
 
-    self.currentAccount = try features.sessionAccount()
+    let navigationToAccountMenu: NavigationToAccountMenu = try features.instance()
 
-    self.accountDetails = try features.instance()
-    self.resourceSearchController = try features.instance()
-    self.resourceSearchController.updateFilter { filter in
-      // set initial filter
-      filter.includedTypes = [.totp, .passwordWithTOTP, .v5StandaloneTOTP, .v5DefaultWithTOTP]
-    }
-    self.resourcesOTPController = try features.instance()
+    self.searchController = try features.instance(
+      context: .init(
+        searchPrompt: "otp.resources.search.placeholder",
+        onPresentationMenuTap: .none,
+        onAvatarTap: { [otpController] in
+          otpController.hideOTP()
+          try await navigationToAccountMenu.perform()
+        }
+      )
+    )
+
     self.resourceEditPreparation = try features.instance()
 
-    self.navigationToAccountMenu = try features.instance()
-    self.navigationToSelf = try features.instance()
-
     self.viewState = .init(
-      initial: .init(
-        searchText: .init(),
-        otpResources: .init()
+      initial: .init(),
+      updateFrom: ComputedVariable(
+        combined: searchController.searchText.asAnyUpdatable(),
+        with: sessionData.lastUpdate,
+        combine: { (update: (Update<String>, Update<Timestamp>)) in
+          try update.0.value
+        }
       ),
-      updateFrom: self.resourceSearchController.state,
-      update: { [accountDetails, resourcesOTPController] (updateView, update: Update<ResourceSearchState>) in
+      update: { [resources, resourcesOTPController] (updateState, update: Update<String>) in
         do {
-          let searchState: ResourceSearchState = try update.value
-          var otpResources: OrderedDictionary<Resource.ID, TOTPResourceViewModel> = .init()
-          otpResources.reserveCapacity(searchState.result.count)
-          for item: ResourceSearchResultItem in searchState.result {
-            let otpIterator: UncheckedSendableBox<AnyAsyncIterator<OTPValue?>> = .init(
-              resourcesOTPController
-                .currentOTP
-                .asAnyAsyncSequence()
-                .map { (update: Update<OTPValue>) -> OTPValue? in
-                  if let otp: OTPValue = try? update.value, otp.resourceID == item.id {
-                    return otp
-                  }
-                  else {
-                    return .none
-                  }
-                }
-                .removeDuplicates()
-                .makeAsyncIterator()
-                .asAnyAsyncIterator()
-            )
+          var filter: ResourcesFilter = .init(sorting: .nameAlphabetically, otpOnly: true)
+          filter.text = try update.value
+          filter.limit = context.pageSize
+          filter.offset = 0
+          let otpResources: Array<TOTPResourceViewModel> =
+            try await resources
+            .filteredResourcesList(filter)
+            .toTOTPResourceViewModels(using: resourcesOTPController)
 
-            otpResources[item.id] = .init(
-              id: item.id,
-              name: item.name,
-              isExpired: item.isExpired,
-              icon: item.icon,
-              resourceTypeSlug: item.typeInfo.typeSlug,
-              generateOTP: { () async -> OTPValue? in
-                (try? await otpIterator.value.next())?.flatMap { $0 }
-              }
-            )
-          }
-          updateView { (viewState: inout ViewState) in
+          updateState { (viewState: inout ViewState) in
             viewState.otpResources = otpResources
-          }
-          let avatarImage: Data? = try await accountDetails.avatarImage()
-          updateView { (viewState: inout ViewState) in
-            viewState.accountAvatarImage = avatarImage
+            viewState.hasMoreData = otpResources.count >= context.pageSize
+            viewState.isLoadingMore = false
+            if viewState.lastFilterText != filter.text {
+              viewState.contentResetToken += 1
+            }
+            viewState.lastFilterText = filter.text
           }
         }
         catch {
-          SnackBarMessageEvent.send(.error(error))
+          error.consume()
         }
       }
     )
+  }
+
+  @MainActor @Sendable internal final func loadMore() async {
+
+    let currentState: ViewState = await viewState.current
+    let hasMore: Bool = currentState.hasMoreData
+    let isLoading: Bool = currentState.isLoadingMore
+
+    guard hasMore, !isLoading else { return }
+
+    self.viewState.update { (state: inout ViewState) in
+      state.isLoadingMore = true
+    }
+
+    do {
+      let pageSize: Int = context.pageSize
+      let filterText: String = self.searchController.searchText.value
+      let expectedOffset: Int = currentState.otpResources.count
+      var filter: ResourcesFilter = .init(sorting: .nameAlphabetically, otpOnly: true)
+      filter.text = filterText
+      filter.limit = pageSize
+      filter.offset = expectedOffset
+
+      let nextPageResources: Array<ResourceListItemDSV> = try await self.resources.filteredResourcesList(filter)
+
+      self.viewState.update { (state: inout ViewState) in
+        // Discard the page if a filter update or refresh reset the list mid-flight.
+        guard state.lastFilterText == filterText, state.otpResources.count == expectedOffset
+        else {
+          state.isLoadingMore = false
+          return
+        }
+        state.otpResources.append(contentsOf: nextPageResources.toTOTPResourceViewModels(using: resourcesOTPController))
+        state.hasMoreData = nextPageResources.count >= pageSize
+        state.isLoadingMore = false
+      }
+    }
+    catch {
+      error.consume(context: "Failed to load more resources.")
+      self.viewState.update { (state: inout ViewState) in
+        state.isLoadingMore = false
+      }
+    }
   }
 }
 
@@ -145,18 +180,15 @@ extension OTPResourcesListViewController {
 
   @Sendable internal func refreshList() async {
     await consumingErrors {
-      try await self.resourceSearchController.refreshIfNeeded()
+      try await self.sessionData.refreshIfNeeded()
     }
   }
 
-  internal func setSearch(text: String) {
-    self.resourceSearchController.updateFilter { filter in
-      filter.text = text
-      filter.includedTypes = ResourceSpecification.Slug.allTOTPTypes
-    }
+  internal var createOTPAction: (() async -> Void)? {
+    self.createAvailable ? self.createOTP : .none
   }
 
-  internal func createOTP() async {
+  private func createOTP() async {
     await consumingErrors {
       let metadataTypeSettings: MetadataSettingsService = try self.features.instance()
       let totpType: ResourceSpecification.Slug =
@@ -206,7 +238,7 @@ extension OTPResourcesListViewController {
     }
   }
 
-  internal func showCentextualMenu(
+  internal func showContextualMenu(
     for resourceID: Resource.ID
   ) async {
     await consumingErrors(
@@ -233,15 +265,6 @@ extension OTPResourcesListViewController {
     }
   }
 
-  internal func showAccountMenu() async {
-    await consumingErrors(
-      errorDiagnostics: "Failed to navigate to account menu."
-    ) {
-      self.hideOTPCodes()
-      try await navigationToAccountMenu.perform()
-    }
-  }
-
   internal func hideOTPCodes() {
     self.resourcesOTPController.hideOTP()
   }
@@ -255,6 +278,22 @@ internal struct TOTPResourceViewModel {
   internal var icon: ResourceIcon
   internal var resourceTypeSlug: ResourceSpecification.Slug?
   internal var generateOTP: @Sendable () async -> OTPValue?
+
+  internal init(
+    id: Resource.ID,
+    name: String,
+    isExpired: Bool,
+    icon: ResourceIcon,
+    resourceTypeSlug: ResourceSpecification.Slug?,
+    generateOTP: @Sendable @escaping () async -> OTPValue?
+  ) {
+    self.id = id
+    self.name = name
+    self.isExpired = isExpired
+    self.icon = icon
+    self.resourceTypeSlug = resourceTypeSlug
+    self.generateOTP = generateOTP
+  }
 }
 
 extension TOTPResourceViewModel: Equatable {
@@ -269,3 +308,45 @@ extension TOTPResourceViewModel: Equatable {
 }
 
 extension TOTPResourceViewModel: Identifiable {}
+
+extension Array where Element == ResourceListItemDSV {
+
+  fileprivate func toTOTPResourceViewModels(
+    using resourcesOTPController: ResourcesOTPController
+  ) -> Array<TOTPResourceViewModel> {
+    var list: Array<TOTPResourceViewModel> = .init()
+
+    for item in self {
+      let otpIterator: UncheckedSendableBox<AnyAsyncIterator<OTPValue?>> = .init(
+        resourcesOTPController
+          .currentOTP
+          .asAnyAsyncSequence()
+          .map { (update: Update<OTPValue>) -> OTPValue? in
+            if let otp: OTPValue = try? update.value, otp.resourceID == item.id {
+              return otp
+            }
+            else {
+              return .none
+            }
+          }
+          .removeDuplicates()
+          .makeAsyncIterator()
+          .asAnyAsyncIterator()
+      )
+      list.append(
+        .init(
+          id: item.id,
+          name: item.name,
+          isExpired: item.isExpired,
+          icon: item.icon,
+          resourceTypeSlug: item.typeInfo.typeSlug,
+          generateOTP: { () async -> OTPValue? in
+            (try? await otpIterator.value.next())?.flatMap { $0 }
+          }
+        )
+      )
+    }
+
+    return list
+  }
+}

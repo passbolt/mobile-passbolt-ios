@@ -65,7 +65,7 @@ internal final class MainTabsViewController: ViewController {
     self.homeController = try self.features.instance()
     self.settingsController = try self.features.instance()
     let otpFeatures: Features = try self.features.branch(scope: OTPResourcesTabScope.self)
-    self.otpController = try otpFeatures.instance()
+    self.otpController = try otpFeatures.instance(context: .init(pageSize: 50))
     self.configureAppearance()
   }
 

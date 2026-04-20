@@ -26,20 +26,25 @@ import SwiftUI
 public struct CommonListSection<Header, Content>: View
 where Header: View, Content: View {
 
+  private let hasSectionPadding: Bool
   private let header: @MainActor () -> Header
   private let content: @MainActor () -> Content
 
   public init(
+    hasSectionPadding: Bool = true,
     @ViewBuilder header: @escaping @MainActor () -> Header,
     @ViewBuilder content: @escaping @MainActor () -> Content
   ) {
+    self.hasSectionPadding = hasSectionPadding
     self.header = header
     self.content = content
   }
 
   public init(
+    hasSectionPadding: Bool = true,
     @ViewBuilder content: @escaping @MainActor () -> Content
   ) where Header == EmptyView {
+    self.hasSectionPadding = hasSectionPadding
     self.header = EmptyView.init
     self.content = content
   }
@@ -62,8 +67,8 @@ where Header: View, Content: View {
     .listRowInsets(EdgeInsets())  // removes default padding
     .buttonStyle(.plain)  // prevents list selection UI
     .padding(
-      leading: 16,
-      trailing: 16
+      leading: self.hasSectionPadding ? 16 : 0,
+      trailing: self.hasSectionPadding ? 16 : 0
     )
   }
 }

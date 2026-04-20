@@ -81,12 +81,12 @@ extension ResourceSearchDisplayController {
   public struct Context {
 
     internal var searchPrompt: DisplayableString
-    internal var onPresentationMenuTap: () async throws -> Void
+    internal var onPresentationMenuTap: (() async throws -> Void)?
     internal var onAvatarTap: () async throws -> Void
 
     public init(
       searchPrompt: DisplayableString,
-      onPresentationMenuTap: @escaping () async throws -> Void,
+      onPresentationMenuTap: (() async throws -> Void)?,
       onAvatarTap: @escaping () async throws -> Void
     ) {
       self.searchPrompt = searchPrompt
@@ -127,11 +127,11 @@ extension ResourceSearchDisplayController {
     }
   }
 
-  internal final func showPresentationMenu() async throws {
-    try await self.context.onPresentationMenuTap()
+  internal var onShowPresentationMenu: (() async throws -> Void)? {
+    self.context.onPresentationMenuTap
   }
 
-  internal final func signOut() async {
+  internal final func onAvatarTap() async {
     do {
       try await self.context.onAvatarTap()
     }

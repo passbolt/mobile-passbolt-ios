@@ -31,8 +31,8 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
   private let icon: ResourceIcon
   private let resourceTypeSlug: ResourceSpecification.Slug?
   private let nextOTP: @Sendable () async -> OTPValue?
-  private let contentAction: @MainActor (OTPValue?) async -> Void
-  private let accessoryAction: (@MainActor () async -> Void)?
+  private let contentAction: @MainActor (OTPValue?) async throws -> Void
+  private let accessoryAction: (@MainActor () async throws -> Void)?
   private let accessory: @MainActor () -> AccessoryView
   @State private var currentOTP: OTPValue?
 
@@ -42,8 +42,8 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
     icon: ResourceIcon,
     resourceTypeSlug: ResourceSpecification.Slug?,
     otpGenerator: @escaping @Sendable () async -> OTPValue?,
-    contentAction: @escaping @MainActor (OTPValue?) async -> Void,
-    accessoryAction: (@MainActor () async -> Void)? = .none,
+    contentAction: @escaping @MainActor (OTPValue?) async throws -> Void,
+    accessoryAction: (@MainActor () async throws -> Void)? = .none,
     @ViewBuilder accessory: @escaping @MainActor () -> AccessoryView
   ) {
     self.name = name
@@ -75,73 +75,114 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
   }
 
   public var body: some View {
-    CommonListRow(
-      content: {
-        HStack(spacing: 8) {
-          ZStack(alignment: .bottomTrailing) {
-            ResourceIconView(
-              resourceIcon: icon,
-              resourceTypeSlug: resourceTypeSlug
-            )
-            .frame(
-              width: 40,
-              height: 40,
-              alignment: .center
-            )
-            if isExpired == true {
-              Image(named: .exclamationMark)
-                .resizable()
-                .frame(
-                  width: 12,
-                  height: 12
-                )
-                .alignmentGuide(.trailing) { dim in
-                  dim[HorizontalAlignment.center] + 2
-                }
-                .alignmentGuide(.bottom) { dim in
-                  dim[VerticalAlignment.center] + 2
-                }
-            }
-          }
-
-          VStack(alignment: .leading, spacing: 4) {
-            Text(name)
-              .font(.inter(ofSize: 14, weight: .semibold))
-              .lineLimit(1)
-              .foregroundColor(Color.passboltPrimaryText)
-
-            AsyncButton(
-              action: {
-                await self.contentAction(self.currentOTP)
-              },
-              regularLabel: {
-                OTPValueView(
-                  value: self.currentOTP,
-                  accessory: self.currentOTP == nil
-                    ? .toggle
-                    : .contextual
-                )
-              },
-              loadingLabel: {
-                OTPValueView(
-                  value: self.currentOTP,
-                  accessory: .loader
-                )
+    HStack(spacing: 0) {
+      HStack(spacing: 0) {
+        ZStack(alignment: .bottomTrailing) {
+          ResourceIconView(
+            resourceIcon: icon,
+            resourceTypeSlug: resourceTypeSlug
+          )
+          .frame(
+            width: 40,
+            height: 40,
+            alignment: .center
+          )
+          if isExpired == true {
+            Image(named: .exclamationMark)
+              .resizable()
+              .frame(
+                width: 12,
+                height: 12
+              )
+              .alignmentGuide(.trailing) { dim in
+                dim[HorizontalAlignment.center] + 2
               }
-            )
+              .alignmentGuide(.bottom) { dim in
+                dim[VerticalAlignment.center] + 2
+              }
           }
         }
-        .frame(height: 64)
-        .task {
-          while !Task.isCancelled {
-            self.currentOTP = await self.nextOTP()
-          }
-          self.currentOTP = .none
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text(name)
+            .font(.inter(ofSize: 14, weight: .semibold))
+            .lineLimit(1)
+            .foregroundColor(Color.passboltPrimaryText)
+
+          AsyncButton(
+            action: {
+              try await self.contentAction(self.currentOTP)
+            },
+            regularLabel: {
+              OTPValueView(
+                value: self.currentOTP,
+                accessory: self.currentOTP == nil
+                  ? .toggle
+                  : .contextual
+              )
+            },
+            loadingLabel: {
+              OTPValueView(
+                value: self.currentOTP,
+                accessory: .loader
+              )
+            }
+          )
         }
-      },
-      accessoryAction: self.accessoryAction,
-      accessory: self.accessory
+        .frame(
+          maxWidth: .infinity,
+          maxHeight: 52,
+          alignment: .leading
+        )
+        .padding(
+          leading: 8,
+          trailing: 8
+        )
+      }
+      .frame(maxWidth: .infinity)
+
+      if let accessoryAction: @MainActor () async throws -> Void = self.accessoryAction {
+        AsyncButton(
+          action: accessoryAction,
+          label: {
+            self.accessory()
+              .frame(
+                maxHeight: 52,
+                alignment: .trailing
+              )
+          }
+        )
+        .contentShape(
+          .interaction,
+          Rectangle()
+        )
+      }
+      else {
+        self.accessory()
+          .frame(
+            maxHeight: 52,
+            alignment: .trailing
+          )
+      }
+    }
+    .foregroundColor(.passboltPrimaryText)
+    .padding(
+      top: 12,
+      leading: 16,
+      bottom: 12,
+      trailing: 16
     )
+    .frame(height: 76)
+    .frame(maxWidth: .infinity)
+    .listRowSeparator(.hidden)
+    .listRowInsets(EdgeInsets())
+    .buttonStyle(.plain)
+    .task {
+      while !Task.isCancelled {
+        self.currentOTP = await self.nextOTP()
+      }
+      self.currentOTP = .none
+    }
   }
 }
 
@@ -151,7 +192,7 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
 internal struct CommonListResourceOTPView_Previews: PreviewProvider {
   internal static var previews: some View {
     CommonList {
-      CommonListSection {
+      CommonListSection(hasSectionPadding: false) {
         CommonListResourceOTPView(
           name: "Resource",
           isExpired: false,

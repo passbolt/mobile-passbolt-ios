@@ -46,20 +46,25 @@ public struct ResourceSearchDisplayView: ControlledView {
     with state: ViewState
   ) -> some View {
     SearchView(
-      prompt: .localized(key: "resources.search.placeholder"),
+      prompt: state.searchPrompt,
       text: self.binding(
         to: \.searchText,
         updating: { self.controller.updateSearchText($0) }
       ),
       leftAccessory: {
-        AsyncButton(
-          action: self.controller.showPresentationMenu,
-          label: { ImageWithPadding(4, named: .filter) }
-        )
+        if let action = self.controller.onShowPresentationMenu {
+          AsyncButton(
+            action: action,
+            label: { ImageWithPadding(4, named: .filter) }
+          )
+        }
+        else {
+          ImageWithPadding(4, named: .search)
+        }
       },
       rightAccessory: {
         AsyncButton(
-          action: self.controller.signOut,
+          action: self.controller.onAvatarTap,
           label: {
             UserAvatarView(imageData: state.accountAvatar)
               .padding(

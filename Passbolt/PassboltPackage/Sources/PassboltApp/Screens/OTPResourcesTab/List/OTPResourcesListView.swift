@@ -22,6 +22,7 @@
 //
 
 import Display
+import SharedUIComponents
 import UICommons
 
 internal struct OTPResourcesListView: ControlledView {
@@ -35,14 +36,24 @@ internal struct OTPResourcesListView: ControlledView {
   }
 
   internal var body: some View {
+    WithViewState(from: self.controller) { state in
+      self.bodyView(with: state)
+    }
+  }
+
+  @MainActor @ViewBuilder private func bodyView(
+    with state: ViewState
+  ) -> some View {
     ScreenView(
       titleIcon: .otp,
       title: "otp.resources.list.title",
+      titleExtensionView: {
+        self.searchView(with: state)
+      },
+      titleLeadingItem: EmptyView.init,
+      titleTrailingItem: EmptyView.init,
       contentView: {
-        VStack(spacing: 0) {
-          self.search
-          self.list
-        }
+        self.contentView(with: state)
       }
     )
     .backgroundColor(.passboltBackground)
@@ -51,102 +62,204 @@ internal struct OTPResourcesListView: ControlledView {
     .environment(\.hideLeadingItem, true)
   }
 
-  @ViewBuilder @MainActor private var search: some View {
-    with(\.searchText) { (searchText: String) in
-      SearchView(
-        prompt: "otp.resources.search.placeholder",
-        text: self.binding(
-          to: \.searchText,
-          updating: { self.controller.setSearch(text: $0) }
-        ),
-        rightAccessory: {
-          AsyncButton(
-            action: self.controller.showAccountMenu,
-            label: {
-              with(\.accountAvatarImage) { (accountAvatarImage: Data?) in
-                UserAvatarView(
-                  imageData: accountAvatarImage
-                )
-                .padding(
-                  trailing: 6
-                )
-              }
-            }
-          )
-        }
-      )
-    }
-    .padding(
-      top: 10,
-      leading: 24,
-      bottom: 16,
-      trailing: 24
+  @MainActor @ViewBuilder private func contentView(
+    with state: ViewState
+  ) -> some View {
+    OTPResourcesList(
+      resources: binding(to: \.otpResources),
+      hasMoreData: state.hasMoreData,
+      isLoadingMore: state.isLoadingMore,
+      contentResetToken: state.contentResetToken,
+      refreshAction: self.controller.refreshList,
+      loadMoreAction: self.controller.loadMore,
+      createAction: self.controller.createOTPAction,
+      resourceTapAction: self.controller.revealAndCopyOTP(for:),
+      resourceMenuAction: self.controller.showContextualMenu(for:)
     )
+    .accessibilityIdentifier("totp.collection.view")
+    .shadowTopEdgeOverlay()
   }
 
-  @ViewBuilder @MainActor private var emptyListPlaceholder: some View {
-    VStack(
-      alignment: .center,
-      spacing: 12
-    ) {
-      Text(displayable: "otp.resources.list.empty.message")
-        .multilineTextAlignment(.center)
-        .font(
-          .inter(
-            ofSize: 20,
-            weight: .semibold
-          )
-        )
+  @MainActor @ViewBuilder private func searchView(
+    with state: ViewState
+  ) -> some View {
+    ResourceSearchDisplayView(
+      controller: self.controller.searchController
+    )
+    .padding(.horizontal, 8)
+  }
+}
 
-      Image(named: .emptyState)
+private enum OTPResourcesListData: DynamicListItem {
+  case addResource
+  case resource(TOTPResourceViewModel)
+  case loadingIndicator
+
+  var estimatedHeight: CGFloat {
+    switch self {
+    case .addResource:
+      return 64
+    case .resource:
+      return 64
+    case .loadingIndicator:
+      return 44
     }
-    .frame(
-      maxWidth: .infinity,
-      alignment: .center
-    )
-    .listRowSeparator(.hidden)
-    .listRowInsets(
-      EdgeInsets(
-        top: 32,
-        leading: 16,
-        bottom: 12,
-        trailing: 16
-      )
-    )
   }
 
-  @ViewBuilder @MainActor private var list: some View {
-    CommonList {
-      CommonListSection {
-        if self.controller.createAvailable {
-          CommonListCreateRow(action: self.controller.createOTP)
-            .accessibilityIdentifier("totp.create.button")
-        }  // else no view
+  var id: String {
+    switch self {
+    case .addResource:
+      return "addResource"
+    case .resource(let resource):
+      return resource.id.rawValue.rawValue.uuidString
+    case .loadingIndicator:
+      return "loadingIndicator"
+    }
+  }
 
-        withEach(\.otpResources.values) { (item: TOTPResourceViewModel) in
-          CommonListResourceOTPView(
-            name: item.name,
-            isExpired: item.isExpired,
-            icon: item.icon,
-            resourceTypeSlug: item.resourceTypeSlug,
-            otpGenerator: item.generateOTP,
-            contentAction: { (otp: OTPValue?) in
-              await self.controller.revealAndCopyOTP(for: item.id)
-            },
-            accessoryAction: {
-              await self.controller.showCentextualMenu(for: item.id)
-            },
-            accessory: {
-              Image(named: .more)
-            }
-          )
-        } placeholder: {
-          self.emptyListPlaceholder
-        }
+  var isResource: Bool {
+    switch self {
+    case .resource:
+      return true
+    default:
+      return false
+    }
+  }
+}
+
+extension OTPResourcesListData: Hashable {
+
+  public static func == (lhs: OTPResourcesListData, rhs: OTPResourcesListData) -> Bool {
+    lhs.id == rhs.id
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
+private struct OTPResourcesList: View {
+
+  @Binding private var resources: Array<TOTPResourceViewModel>
+  private let hasMoreData: Bool
+  private let isLoadingMore: Bool
+  private let contentResetToken: Int
+  private let refreshAction: @Sendable () async -> Void
+  private let loadMoreAction: @Sendable () async -> Void
+  private let createAction: (() async -> Void)?
+  private let resourceTapAction: (Resource.ID) async -> Void
+  private let resourceMenuAction: ((Resource.ID) async -> Void)?
+
+  fileprivate init(
+    resources: Binding<Array<TOTPResourceViewModel>>,
+    hasMoreData: Bool,
+    isLoadingMore: Bool,
+    contentResetToken: Int,
+    refreshAction: @Sendable @escaping () async -> Void,
+    loadMoreAction: @Sendable @escaping () async -> Void,
+    createAction: (() async -> Void)?,
+    resourceTapAction: @escaping (Resource.ID) async -> Void,
+    resourceMenuAction: ((Resource.ID) async -> Void)?
+  ) {
+    self._resources = resources
+    self.hasMoreData = hasMoreData
+    self.isLoadingMore = isLoadingMore
+    self.contentResetToken = contentResetToken
+    self.refreshAction = refreshAction
+    self.loadMoreAction = loadMoreAction
+    self.createAction = createAction
+    self.resourceTapAction = resourceTapAction
+    self.resourceMenuAction = resourceMenuAction
+  }
+
+  fileprivate var body: some View {
+    DynamicList(
+      items: rowData,
+      hasMoreData: hasMoreData,
+      isLoadingMore: isLoadingMore,
+      onLoadMore: loadMoreAction,
+      refreshAction: refreshAction,
+      content: { viewForRow($0) }
+    )
+    .id(contentResetToken)
+    .background {
+      if rowData.hasResources == false {
+        EmptyListView(message: "otp.resources.list.empty.message")
       }
     }
-    .refreshable(action: self.controller.refreshList)
-    .shadowTopEdgeOverlay()
-    .accessibilityIdentifier("totp.collection.view")
+  }
+
+  private var rowData: Array<OTPResourcesListData> {
+    var rows: Array<OTPResourcesListData> = .init()
+    if self.createAction != nil {
+      rows.append(.addResource)
+    }
+
+    for resource: TOTPResourceViewModel in self.resources {
+      rows.append(.resource(resource))
+    }
+
+    if self.isLoadingMore {
+      rows.append(.loadingIndicator)
+    }
+
+    return rows
+  }
+
+  @ViewBuilder
+  private func viewForRow(_ row: OTPResourcesListData) -> some View {
+    switch row {
+    case .addResource:
+      if let createAction: () async -> Void = self.createAction {
+        ResourceListAddView(action: createAction)
+          .frame(height: row.estimatedHeight)
+          .accessibilityIdentifier("totp.create.button")
+      }
+
+    case .resource(let item):
+      CommonListResourceOTPView(
+        name: item.name,
+        isExpired: item.isExpired,
+        icon: item.icon,
+        resourceTypeSlug: item.resourceTypeSlug,
+        otpGenerator: item.generateOTP,
+        contentAction: { (otp: OTPValue?) in
+          await self.resourceTapAction(item.id)
+        },
+        accessoryAction: {
+          await self.resourceMenuAction?(item.id)
+        },
+        accessory: {
+          Image(named: .more)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .foregroundColor(Color.passboltIcon)
+            .frame(width: 44)
+            .padding(8)
+        }
+      )
+      .frame(height: row.estimatedHeight)
+
+    case .loadingIndicator:
+      HStack {
+        Spacer()
+        SwiftUI.ProgressView()
+        Spacer()
+      }
+      .frame(height: row.estimatedHeight)
+      .padding()
+    }
+  }
+}
+
+extension Array where Element == OTPResourcesListData {
+
+  // isEmpty is not sufficient, as the list can contain the "add resource" item even when there are no resources.
+  fileprivate var hasResources: Bool {
+    if self.isEmpty {
+      return false
+    }
+
+    return self.contains { $0.isResource }
   }
 }
