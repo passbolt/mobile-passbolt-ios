@@ -373,6 +373,7 @@
 "mfa.yubiKey.description" = "Vaš YubiKey mora podpirati NFC.";
 "mfa.yubiKey.scan" = "Skenirajte svoj YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Ta naprava ne podpira NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Poskusite z drugim ponudnikom";
 "mfa.remember.token" = "Zapomni si to napravo za 30 dni";
 "mfa.unsupported.provider.title" = "Vaš ponudnik MFA (Multi-factor authentication) ni podprt";
@@ -417,7 +418,6 @@
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Išči v passboltu...";
 
 "mfa.required.title" = "Zahtevana je večfaktorska avtentikacija";
-"autofill.extension.mfa.required.description" = "Uporabite aplikacijo Passbolt za dokončanje avtentikacije.";
 
 "folder.edit.form.create.title" = "Ustvari mapo";
 "folder.edit.form.name.field.placeholder" = "Nepoimenovana mapa";

@@ -373,6 +373,7 @@
 "mfa.yubiKey.description" = "Všimněte si, že váš Yubikey musí podporovat NFC, aby to fungovalo.";
 "mfa.yubiKey.scan" = "Použijte svůj YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Toto zařízení nepodporuje NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Vyzkoušet s jiným poskytovatelem";
 "mfa.remember.token" = "Pamatovat si toto zařízení po dobu 30 dní";
 "mfa.unsupported.provider.title" = "Váš poskytovatel MFA není podporován";
@@ -418,7 +419,6 @@
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Hledat v passboltu...";
 
 "mfa.required.title" = "MFA je povinné";
-"autofill.extension.mfa.required.description" = "Prosím použijte aplikaci Passbolt k dokončení vašeho ověření.";
 
 "folder.edit.form.create.title" = "Vytvořit složku";
 "folder.edit.form.name.field.placeholder" = "Složka bez názvu";

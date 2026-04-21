@@ -374,6 +374,7 @@
 NFC pentru ca acest lucru să funcționeze.";
 "mfa.yubiKey.scan" = "Scanați YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Acest dispozitiv nu suportă NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Încercați cu un alt furnizor";
 "mfa.remember.token" = "Memorează acest dispozitiv pentru 30 de zile";
 "mfa.unsupported.provider.title" = "Furnizorul tău multi-factor nu este suportat";
@@ -419,7 +420,6 @@ Contactați administratorul pentru mai multe informații.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Căutare în Passbolt...";
 
 "mfa.required.title" = "Autentificare multi-factor necesară";
-"autofill.extension.mfa.required.description" = "Vă rugăm să folosiți aplicația Passbolt pentru a finaliza autentificarea.";
 
 "folder.edit.form.create.title" = "Creați folder";
 "folder.edit.form.name.field.placeholder" = "Folder fără titlu";

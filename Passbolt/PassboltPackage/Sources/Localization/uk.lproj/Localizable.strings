@@ -374,6 +374,7 @@
 NFC, щоб це працювало.";
 "mfa.yubiKey.scan" = "Скануйте ваш YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Цей пристрій не підтримує NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Спробуйте іншого провайдера";
 "mfa.remember.token" = "Запамʼятати цей пристрій на 30 днів";
 "mfa.unsupported.provider.title" = "Ваш постачальник MFA не підтримується";
@@ -419,7 +420,6 @@ NFC, щоб це працювало.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Шукати в Passbolt…";
 
 "mfa.required.title" = "Потрібна MFA";
-"autofill.extension.mfa.required.description" = "Будь ласка, скористайтеся застосунком Passbolt, щоб завершити автентифікацію.";
 
 "folder.edit.form.create.title" = "Створити теку";
 "folder.edit.form.name.field.placeholder" = "Тека без назви";

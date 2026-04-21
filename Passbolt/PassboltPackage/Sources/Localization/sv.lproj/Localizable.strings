@@ -373,6 +373,7 @@
 "mfa.yubiKey.description" = "Observera att din YubiKey måste stödja\nNFC för att detta ska fungera.";
 "mfa.yubiKey.scan" = "Skanna din YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Den här enheten stöder inte NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Försök med en annan leverantör";
 "mfa.remember.token" = "Kom ihåg enheten i 30 dagar";
 "mfa.unsupported.provider.title" = "Din MFA-leverantör stöds inte";
@@ -417,7 +418,6 @@
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Sök i Passbolt...";
 
 "mfa.required.title" = "MFA krävs";
-"autofill.extension.mfa.required.description" = "Vänligen använd Passbolt-appen för att slutföra din autentisering.";
 
 "folder.edit.form.create.title" = "Skapa mapp";
 "folder.edit.form.name.field.placeholder" = "Namnlös mapp";

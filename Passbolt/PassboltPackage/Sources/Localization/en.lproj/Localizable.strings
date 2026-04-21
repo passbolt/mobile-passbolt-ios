@@ -377,6 +377,7 @@
 NFC for this to work.";
 "mfa.yubiKey.scan" = "Scan your YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "This device does not support NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Try with another provider";
 "mfa.remember.token" = "Remember this device for 30 days";
 "mfa.unsupported.provider.title" = "Your MFA provider is not supported";
@@ -422,7 +423,6 @@ Contact your administrator for more information.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Search in passbolt...";
 
 "mfa.required.title" = "MFA is required";
-"autofill.extension.mfa.required.description" = "Please use the Passbolt app to finalise your authentication.";
 
 "folder.edit.form.create.title" = "Create folder";
 "folder.edit.form.name.field.placeholder" = "Untitled folder";

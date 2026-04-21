@@ -24,72 +24,91 @@
 import Display
 import Session
 
-internal final class MFAViewController: ViewController {
-  internal typealias Context = Array<SessionMFAProvider>
+public final class MFAViewController: ViewController {
+  public typealias Context = Array<SessionMFAProvider>
 
-  internal struct ViewState: Equatable {
-    internal var currentProvider: SessionMFAProvider
-    internal var isLoading: Bool = false
+  public struct ViewState: Equatable {
+    public var currentProvider: SessionMFAProvider
+    public var isLoading: Bool = false
   }
 
-  internal nonisolated let viewState: ViewStateSource<ViewState>
+  public nonisolated let viewState: ViewStateSource<ViewState>
 
   private let features: Features
   private let context: Context
-  private let navigationToSelf: NavigationToMFA
 
-  internal init(context: Context, features: Features) throws {
-    guard let initialProvider = context.first else {
+  internal let totpController: TOTPViewController?
+  internal let duoController: DUOAuthorizationViewController?
+  internal let yubiKeyController: YubiKeyViewController?
+
+  public init(context: Context, features: Features) throws {
+    guard let initialProvider: SessionMFAProvider = context.first else {
       throw InternalInconsistency.error("MFAViewController initialized with empty context")
     }
     self.features = features
     self.context = context
-    self.navigationToSelf = try features.instance()
-    self.viewState = .init(
+    let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         currentProvider: initialProvider
       )
     )
+    self.viewState = viewState
+
+    self.totpController =
+      context.contains(.totp)
+      ? Self.makeTOTPController(features: features, viewState: viewState)
+      : nil
+    self.duoController =
+      context.contains(.duo)
+      ? Self.makeDUOController(features: features)
+      : nil
+    self.yubiKeyController =
+      context.contains(.yubiKey)
+      ? Self.makeYubiKeyController(features: features)
+      : nil
   }
 
-  internal func prepareTOTP() -> TOTPViewController? {
+  private static func makeTOTPController(
+    features: Features,
+    viewState: ViewStateSource<ViewState>
+  ) -> TOTPViewController? {
     do {
       return try features.instance(
         context: .init(
-          loadingCallback: { [weak self] in
-            self?.viewState.update(\.isLoading, to: $0)
+          loadingCallback: { [weak viewState] (isLoading: Bool) in
+            viewState?.update(\.isLoading, to: isLoading)
           }
         )
       )
     }
     catch {
       SnackBarMessageEvent.send(.error(error))
+      return nil
     }
-    return nil
   }
 
-  internal func prepareDUO() -> DUOAuthorizationViewController? {
+  private static func makeDUOController(features: Features) -> DUOAuthorizationViewController? {
     do {
       return try features.instance()
     }
     catch {
       SnackBarMessageEvent.send(.error(error))
+      return nil
     }
-    return nil
   }
 
-  internal func prepareYubiKey() -> YubiKeyViewController? {
+  private static func makeYubiKeyController(features: Features) -> YubiKeyViewController? {
     do {
       return try features.instance()
     }
     catch {
       SnackBarMessageEvent.send(.error(error))
+      return nil
     }
-    return nil
   }
 
   internal func nextProvider() async {
-    let currentProvider = await viewState.current.currentProvider
+    let currentProvider: SessionMFAProvider = await viewState.current.currentProvider
     guard let currentIndex: Array.Index = context.firstIndex(of: currentProvider)
     else { return }
 

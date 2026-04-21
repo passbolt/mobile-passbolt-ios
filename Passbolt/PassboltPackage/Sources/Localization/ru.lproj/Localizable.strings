@@ -375,6 +375,7 @@
 NFC.";
 "mfa.yubiKey.scan" = "Сканируйте ваш YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Это устройство не поддерживает NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Попробуйте обратиться к другому поставщику";
 "mfa.remember.token" = "Запомнить это устройство на 30 дней";
 "mfa.unsupported.provider.title" = "Ваш поставщик MFA не поддерживается";
@@ -420,7 +421,6 @@ NFC.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Поиск в passbolt...";
 
 "mfa.required.title" = "Требуется MFA";
-"autofill.extension.mfa.required.description" = "Пожалуйста, используйте приложение Passbolt для завершения авторизации.";
 
 "folder.edit.form.create.title" = "Создать папку";
 "folder.edit.form.name.field.placeholder" = "Без названия";

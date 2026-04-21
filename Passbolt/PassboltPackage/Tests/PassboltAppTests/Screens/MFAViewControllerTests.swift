@@ -25,7 +25,7 @@ import FeatureScopes
 import TestExtensions
 
 @testable import Display
-@testable import PassboltApp
+@testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class MFAViewControllerTests: FeaturesTestCase {
@@ -96,7 +96,7 @@ final class MFAViewControllerTests: FeaturesTestCase {
       context: [.totp]
     )
 
-    let totpViewController = tested.prepareTOTP()
+    let totpViewController = tested.totpController
 
     XCTAssertNotNil(totpViewController)
   }
@@ -106,7 +106,7 @@ final class MFAViewControllerTests: FeaturesTestCase {
       context: [.duo]
     )
 
-    let duoViewController = tested.prepareDUO()
+    let duoViewController = tested.duoController
 
     XCTAssertNotNil(duoViewController)
   }
@@ -116,7 +116,7 @@ final class MFAViewControllerTests: FeaturesTestCase {
       context: [.yubiKey]
     )
 
-    let yubikeyViewController = tested.prepareYubiKey()
+    let yubikeyViewController = tested.yubiKeyController
 
     XCTAssertNotNil(yubikeyViewController)
   }

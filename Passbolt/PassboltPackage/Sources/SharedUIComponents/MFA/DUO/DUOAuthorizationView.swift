@@ -88,12 +88,10 @@ internal struct DUOAuthorizationView: ControlledView {
               leading: 16,
               trailing: 16
             )
-            Button(
+            IconButton(
+              iconName: .close,
               action: {
                 self.controller.handleAuthorization(error: Cancelled.error())
-              },
-              label: {
-                Image(named: .close)
               }
             )
             .padding(16)

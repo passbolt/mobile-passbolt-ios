@@ -22,7 +22,6 @@
 //
 
 import Display
-import SharedUIComponents
 
 internal struct TOTPView: ControlledView {
 
@@ -125,8 +124,8 @@ private struct OTPInputView: UIViewRepresentable {
     fileprivate func configure(_ view: UICommons.OTPInput) {
       cancellable = view.textPublisher
         .filter { $0.count == view.length }
-        .sink { otp in
-          self.onCodeEntered(otp)
+        .sink { [weak self] (otp: String) in
+          self?.onCodeEntered(otp)
         }
     }
   }

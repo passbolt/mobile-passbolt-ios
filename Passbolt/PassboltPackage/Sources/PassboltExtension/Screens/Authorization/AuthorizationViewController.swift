@@ -157,10 +157,10 @@ extension AuthorizationViewController {
       }
       try await session.authorize(authorizationMethod)
     }
-    catch is SessionMFAAuthorizationRequired {
+    catch let mfaRequired as SessionMFAAuthorizationRequired {
       await consumingErrors {
-        let navigationToMFA: NavigationToMFARequired = try features.instance()
-        try await navigationToMFA.perform()
+        let navigationToMFA: NavigationToMFA = try features.instance()
+        try await navigationToMFA.perform(context: mfaRequired.mfaProviders)
       }
     }
     catch let error as ServerPGPFingeprintInvalid {

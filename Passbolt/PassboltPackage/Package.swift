@@ -257,6 +257,7 @@ let package = Package(
       dependencies: [
         "Shared",
         "SharedUIComponents",
+        "NFC",
         "Crypto",
         // Base
         "Commons",

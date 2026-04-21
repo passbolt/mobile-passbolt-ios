@@ -374,6 +374,7 @@
 NFC unterstützen muss, damit dies funktioniert.";
 "mfa.yubiKey.scan" = "Scannen Sie Ihren YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Dieses Gerät unterstützt kein NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Versuchen Sie es mit einem anderen Anbieter";
 "mfa.remember.token" = "Merken Sie sich dieses Gerät für 30 Tage";
 "mfa.unsupported.provider.title" = "Ihr Multi-Faktor-Authentifizierungs-Anbieter wird nicht unterstützt";
@@ -419,7 +420,6 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Suche in Passbolt...";
 
 "mfa.required.title" = "MFA ist erforderlich";
-"autofill.extension.mfa.required.description" = "Bitte verwenden Sie die Passbolt-App, um Ihre Authentifizierung abzuschließen.";
 
 "folder.edit.form.create.title" = "Ordner anlegen";
 "folder.edit.form.name.field.placeholder" = "Unbenannter Ordner";

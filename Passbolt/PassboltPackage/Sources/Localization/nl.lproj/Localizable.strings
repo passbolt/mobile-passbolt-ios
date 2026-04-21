@@ -374,6 +374,7 @@
 NFC moet ondersteunen om dit te laten werken.";
 "mfa.yubiKey.scan" = "Scan je YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Dit apparaat ondersteunt geen NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Probeer een andere aanbieder";
 "mfa.remember.token" = "Onthoud dit apparaat 30 dagen lang";
 "mfa.unsupported.provider.title" = "Je MFA-aanbieder wordt niet ondersteund";
@@ -419,7 +420,6 @@ Neem contact op met je beheerder voor meer informatie.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Zoek in Passbolt...";
 
 "mfa.required.title" = "MFA is vereist";
-"autofill.extension.mfa.required.description" = "Gebruik de Passbolt-app om je authenticatie af te ronden.";
 
 "folder.edit.form.create.title" = "Map aanmaken";
 "folder.edit.form.name.field.placeholder" = "Naamloze map";

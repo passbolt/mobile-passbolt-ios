@@ -415,6 +415,7 @@
 "mfa.yubiKey.description" = "Atkreipkite dėmesį, kad jūsų Yubikey privalo palaikyti\nNFC, kad tai veiktų.";
 "mfa.yubiKey.scan" = "Skenuokite savo YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "Šis įrenginys nepalaiko NFC.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "Pabandykite su kitu teikėju";
 "mfa.remember.token" = "Prisiminkite šį įrenginį 30 dienų";
 "mfa.unsupported.provider.title" = "Jūsų MFA teikėjas nepalaikomas";
@@ -459,7 +460,6 @@
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Ieškoti Passbolt...";
 
 "mfa.required.title" = "Reikalingas MFA";
-"autofill.extension.mfa.required.description" = "Prašome naudoti Passbolt programėlę, kad baigtumėte autentifikavimą.";
 
 "folder.edit.form.create.title" = "Sukurti aplanką";
 "folder.edit.form.name.field.placeholder" = "Aplankas be pavadinimo";

@@ -373,6 +373,7 @@
 "mfa.yubiKey.description" = "ご使用のユビキーがNFCに対応している必要がありますのでご注意ください。";
 "mfa.yubiKey.scan" = "ユビキーをスキャン";
 "mfa.yubiKey.nfc.not.supported" = "このデバイスはNFCをサポートしていません。";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "別のプロバイダーを試してみてください";
 "mfa.remember.token" = "この端末を30日間記憶しておきます。";
 "mfa.unsupported.provider.title" = "ご利用のMFAプロバイダーはサポートされていません";
@@ -418,7 +419,6 @@
 "autofill.extension.autofill.extension.resources.search.placeholder" = "パスボルトで検索…";
 
 "mfa.required.title" = "MFAが必要です";
-"autofill.extension.mfa.required.description" = "認証を完了するにはパスボルトアプリを使用してください。";
 
 "folder.edit.form.create.title" = "フォルダを作成";
 "folder.edit.form.name.field.placeholder" = "無題のフォルダ";

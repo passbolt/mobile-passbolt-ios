@@ -23,29 +23,28 @@
 
 import Display
 import FeatureScopes
+import SharedUIComponents
 
-internal enum NavigationToMFARequiredDestination: NavigationDestination {
+internal enum NavigationToMFADestination: NavigationDestination {
 
-  internal typealias TransitionContext = MFARequiredViewController.Context
+  internal typealias TransitionContext = MFAViewController.Context
 }
 
-internal typealias NavigationToMFARequired = NavigationTo<NavigationToMFARequiredDestination>
+internal typealias NavigationToMFA = NavigationTo<NavigationToMFADestination>
 
-extension NavigationToMFARequired {
+extension NavigationToMFA {
 
   fileprivate static var live: FeatureLoader {
-    replaceRoot(
-      with: MFARequiredView.self
-    )
+    replaceRoot(with: MFAView.self)
   }
 }
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToMFAInput() {
+  internal mutating func useLiveNavigationToMFA() {
     self.use(
-      NavigationToMFARequired.live,
-      in: AccountScope.self
+      NavigationToMFA.live,
+      in: RootFeaturesScope.self
     )
   }
 }

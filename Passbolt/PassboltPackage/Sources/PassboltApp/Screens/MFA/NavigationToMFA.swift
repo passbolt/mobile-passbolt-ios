@@ -23,6 +23,7 @@
 
 import Display
 import FeatureScopes
+import SharedUIComponents
 
 internal enum NavigationToMFADestination: NavigationDestination {
 

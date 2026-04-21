@@ -22,31 +22,31 @@
 //
 
 import Display
-import SharedUIComponents
+import Session
 
-internal struct MFAView: ControlledView {
+public struct MFAView: ControlledView {
 
-  internal let controller: MFAViewController
+  public let controller: MFAViewController
 
-  internal init(controller: MFAViewController) {
+  public init(controller: MFAViewController) {
     self.controller = controller
   }
 
-  internal var body: some View {
+  public var body: some View {
     VStack(spacing: 0) {
-      with(\.currentProvider) { provider in
+      with(\.currentProvider) { (provider: SessionMFAProvider) in
         switch provider {
         case .totp:
-          if let controller = self.controller.prepareTOTP() {
-            TOTPView(controller: controller)
+          if let totpController: TOTPViewController = self.controller.totpController {
+            TOTPView(controller: totpController)
           }
         case .yubiKey:
-          if let controller = self.controller.prepareYubiKey() {
-            YubiKeyView(controller: controller)
+          if let yubiKeyController: YubiKeyViewController = self.controller.yubiKeyController {
+            YubiKeyView(controller: yubiKeyController)
           }
         case .duo:
-          if let controller = self.controller.prepareDUO() {
-            DUOAuthorizationView(controller: controller)
+          if let duoController: DUOAuthorizationViewController = self.controller.duoController {
+            DUOAuthorizationView(controller: duoController)
           }
         }
       }

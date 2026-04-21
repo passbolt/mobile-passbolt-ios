@@ -54,24 +54,34 @@ internal struct YubiKeyView: ControlledView {
         .foregroundStyle(Color.passboltPrimaryText)
         .padding(.top, 24)
 
-      Text(displayable: "mfa.yubiKey.description")
+      with(\.scanningAvailable) { (available: Bool) in
+        Text(
+          displayable: available
+            ? "mfa.yubiKey.description"
+            : "mfa.yubiKey.unavailable.description"
+        )
         .font(.inter(ofSize: 14, weight: .regular))
         .multilineTextAlignment(.center)
         .minimumScaleFactor(0.5)
         .padding(.top, 16)
+      }
 
       Spacer()
 
-      Toggle(isOn: self.binding(to: \.rememberDevice)) {
-        Text(displayable: "totp.remember.device.toggle.label")
-          .font(.inter(ofSize: 14, weight: .semibold))
-          .foregroundStyle(Color.passboltPrimaryText)
+      with(\.scanningAvailable) { (available: Bool) in
+        if available {
+          Toggle(isOn: self.binding(to: \.rememberDevice)) {
+            Text(displayable: "totp.remember.device.toggle.label")
+              .font(.inter(ofSize: 14, weight: .semibold))
+              .foregroundStyle(Color.passboltPrimaryText)
+          }
+          .padding(.bottom, 32)
+          PrimaryButton(
+            title: "mfa.yubiKey.scan",
+            action: self.controller.startScanning
+          )
+        }
       }
-      .padding(.bottom, 32)
-      PrimaryButton(
-        title: "mfa.yubiKey.scan",
-        action: self.controller.startScanning
-      )
     }
     .padding(.horizontal, 16)
   }

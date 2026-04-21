@@ -374,6 +374,7 @@
 NFC가 있어야 작동합니다.";
 "mfa.yubiKey.scan" = "YubiKey 스캔";
 "mfa.yubiKey.nfc.not.supported" = "이 기기는 NFC를 지원하지 않습니다.";
+"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
 "mfa.provider.try.another" = "다른 공급자로 시도하세요.";
 "mfa.remember.token" = "이 기기를 30일 동안 기억";
 "mfa.unsupported.provider.title" = "다단계인증 공급자가 지원되지 않습니다.";
@@ -419,7 +420,6 @@ NFC가 있어야 작동합니다.";
 "autofill.extension.autofill.extension.resources.search.placeholder" = "Passbolt에서 검색 중...";
 
 "mfa.required.title" = "다단계인증 필요";
-"autofill.extension.mfa.required.description" = "Passbolt 앱을 사용하여 인증을 완료하세요.";
 
 "folder.edit.form.create.title" = "폴더 생성";
 "folder.edit.form.name.field.placeholder" = "새 폴더";

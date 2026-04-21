@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import CoreNFC
 import Display
 import Session
 
@@ -29,17 +30,24 @@ internal final class YubiKeyViewController: ViewController {
   internal struct ViewState: Equatable {
     internal var alert: AlertViewModel?
     internal var rememberDevice: Bool = true
+    internal var scanningAvailable: Bool
   }
 
-  internal nonisolated let viewState: ViewStateSource<ViewState> = .init(initial: .init())
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   private let session: Session
 
   internal init(context: (), features: Features) throws {
     session = try features.instance()
+    self.viewState = .init(
+      initial: .init(
+        scanningAvailable: NFCNDEFReaderSession.readingAvailable
+      )
+    )
   }
 
   internal func startScanning() async {
-    let rememberDevice = await self.viewState.current.rememberDevice
+    guard await self.viewState.current.scanningAvailable else { return }
+    let rememberDevice: Bool = await self.viewState.current.rememberDevice
     do {
       try await session
         .authorizeMFA(

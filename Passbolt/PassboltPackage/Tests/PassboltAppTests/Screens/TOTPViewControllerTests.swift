@@ -26,7 +26,7 @@ import FeatureScopes
 import TestExtensions
 
 @testable import Display
-@testable import PassboltApp
+@testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class TOTPViewControllerTests: FeaturesTestCase {

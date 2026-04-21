@@ -82,7 +82,7 @@ extension DUOAuthorizationViewController {
           duoCode: tokens.code,  // duoCode
           duoToken: tokens.duoToken,  // duoToken
           passboltToken: tokens.passboltToken,  // passboltToken
-          rememberDevice: false  // remember option is not supported yet
+          rememberDevice: true
         )
       )
     }

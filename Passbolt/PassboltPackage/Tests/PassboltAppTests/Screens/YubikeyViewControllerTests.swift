@@ -26,7 +26,7 @@ import FeatureScopes
 import TestExtensions
 
 @testable import Display
-@testable import PassboltApp
+@testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class YubikeyViewControllerTests: FeaturesTestCase {
@@ -71,6 +71,7 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
     let tested: YubiKeyViewController = try self.testedInstance(
       context: ()
     )
+    tested.viewState.update(\.scanningAvailable, to: true)
 
     await tested.startScanning()
 
@@ -88,6 +89,7 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
     let tested: YubiKeyViewController = try self.testedInstance(
       context: ()
     )
+    tested.viewState.update(\.scanningAvailable, to: true)
 
     await tested.startScanning()
 
@@ -113,6 +115,7 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
     let tested: YubiKeyViewController = try self.testedInstance(
       context: ()
     )
+    tested.viewState.update(\.scanningAvailable, to: true)
 
     await tested.startScanning()
 
@@ -138,6 +141,7 @@ final class YubikeyViewControllerTests: FeaturesTestCase {
       context: ()
     )
 
+    tested.viewState.update(\.scanningAvailable, to: true)
     tested.viewState.update(\.rememberDevice, to: true)
     await tested.startScanning()
 
