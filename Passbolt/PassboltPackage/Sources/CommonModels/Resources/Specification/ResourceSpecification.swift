@@ -120,6 +120,15 @@ extension ResourceSpecification.Slug {
   public var isSimplePasswordType: Bool {
     [.password, .v5Password].contains(self)
   }
+
+  /// Checks if the resource type includes a username field in meta.
+  public var hasUsername: Bool {
+    [
+      .v5CustomFields,
+      .v5StandaloneNote,
+    ]
+    .contains(self) == false
+  }
 }
 
 extension ResourceSpecification {

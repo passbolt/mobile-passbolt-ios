@@ -100,19 +100,25 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
             }
           }
 
-          Text(
-            self.username
-              ?? DisplayableString
-              .localized(key: "resource.list.username.empty.placeholder")
-              .string()
-          )
-          .font(
-            self.username == nil
-              ? .interItalic(ofSize: 12, weight: .regular)
-              : .inter(ofSize: 12, weight: .regular)
-
-          )
-          .foregroundColor(Color.passboltSecondaryText)
+          if self.resourceTypeSlug.hasUsername == true {
+            Text(
+              self.username
+                ?? DisplayableString
+                .localized(key: "resource.list.username.empty.placeholder")
+                .string()
+            )
+            .font(
+              self.username == nil
+                ? .interItalic(ofSize: 12, weight: .regular)
+                : .inter(ofSize: 12, weight: .regular)
+            )
+            .foregroundColor(Color.passboltSecondaryText)
+          }
+          else {
+            Rectangle()
+              .fill(Color.clear)
+              .frame(height: 12)
+          }
         }
       },
       rightAction: self.rightAction,
