@@ -30,7 +30,7 @@ import Session
 extension ResourceFolderPathFetchDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: ResourceFolder.ID,
+    _ input: (folderID: ResourceFolder.ID, userID: User.ID),
     connection: SQLiteConnection
   ) throws -> OrderedSet<ResourceFolderPathItem> {
     let selectPathStatement: SQLiteStatement =
@@ -40,7 +40,6 @@ extension ResourceFolderPathFetchDatabaseOperation {
           pathItems(
             id,
             name,
-            shared,
             parentID
           )
         AS
@@ -48,7 +47,6 @@ extension ResourceFolderPathFetchDatabaseOperation {
           SELECT
             resourceFolders.id AS id,
             resourceFolders.name AS name,
-            resourceFolders.shared AS shared,
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders
@@ -60,7 +58,6 @@ extension ResourceFolderPathFetchDatabaseOperation {
           SELECT
             resourceFolders.id AS id,
             resourceFolders.name AS name,
-            resourceFolders.shared AS shared,
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders,
@@ -70,12 +67,27 @@ extension ResourceFolderPathFetchDatabaseOperation {
         )
         SELECT
           pathItems.id,
-          pathItems.shared,
+          (
+            EXISTS (
+              SELECT 1 FROM usersResourceFolders
+              WHERE usersResourceFolders.resourceFolderID = pathItems.id
+                AND usersResourceFolders.userID != ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM userGroupsResourceFolders
+              INNER JOIN usersGroups
+                ON usersGroups.userGroupID = userGroupsResourceFolders.userGroupID
+              WHERE userGroupsResourceFolders.resourceFolderID = pathItems.id
+              GROUP BY userGroupsResourceFolders.userGroupID
+              HAVING COUNT(usersGroups.userID) > 1
+            )
+          ) AS shared,
           pathItems.name AS name
         FROM
           pathItems;
         """,
-        arguments: input
+        arguments: input.folderID,
+        input.userID
       )
 
     return

@@ -50,7 +50,8 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
           name: "",
           path: [],
           permission: .owner,
-          permissions: []
+          permissions: [],
+          shared: false
         )
       )
     )
@@ -81,7 +82,8 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         name: "",
         path: [],
         permission: .owner,
-        permissions: []
+        permissions: [],
+        shared: false
       )
     )
 
@@ -108,7 +110,8 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         name: newFolderName,
         path: [],
         permission: .owner,
-        permissions: []
+        permissions: [],
+        shared: false
       )
     )
 
@@ -164,7 +167,8 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
         name: "",
         path: [],
         permission: .owner,
-        permissions: []
+        permissions: [],
+        shared: false
       )
     )
 

@@ -33,6 +33,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
     _ input: ResourceFoldersDatabaseFilter,
     connection: SQLiteConnection
   ) throws -> Array<ResourceFolderListItemDSV> {
+    let userID: User.ID = input.userID
     var statement: SQLiteStatement
 
     // note that current filters application is not optimal,
@@ -48,15 +49,13 @@ extension ResourceFoldersListFetchDatabaseOperation {
             id,
             name,
             permission,
-            parentFolderID,
-            shared
+            parentFolderID
           ) AS (
             SELECT
               resourceFolders.id,
               resourceFolders.name,
               resourceFolders.permission,
-              resourceFolders.parentFolderID,
-              resourceFolders.shared
+              resourceFolders.parentFolderID
             FROM
               resourceFolders
             WHERE
@@ -68,8 +67,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
               resourceFolders.id,
               resourceFolders.name,
               resourceFolders.permission,
-              resourceFolders.parentFolderID,
-              resourceFolders.shared
+              resourceFolders.parentFolderID
             FROM
               resourceFolders,
               flattenedResourceFolders
@@ -81,7 +79,21 @@ extension ResourceFoldersListFetchDatabaseOperation {
             flattenedResourceFolders.name AS name,
             flattenedResourceFolders.permission AS permission,
             flattenedResourceFolders.parentFolderID AS parentFolderID,
-            flattenedResourceFolders.shared AS shared,
+            (
+              EXISTS (
+                SELECT 1 FROM usersResourceFolders
+                WHERE usersResourceFolders.resourceFolderID = flattenedResourceFolders.id
+                  AND usersResourceFolders.userID != ?
+              )
+              OR EXISTS (
+                SELECT 1 FROM userGroupsResourceFolders
+                INNER JOIN usersGroups
+                  ON usersGroups.userGroupID = userGroupsResourceFolders.userGroupID
+                WHERE userGroupsResourceFolders.resourceFolderID = flattenedResourceFolders.id
+                GROUP BY userGroupsResourceFolders.userGroupID
+                HAVING COUNT(usersGroups.userID) > 1
+              )
+            ) AS shared,
             (
               SELECT
                 (
@@ -153,6 +165,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
             1 -- equivalent of true, used to simplify dynamic query building
         """
       statement.appendArgument(input.folderID)
+      statement.appendArgument(userID)
     }
     else {
       statement = """
@@ -161,7 +174,21 @@ extension ResourceFoldersListFetchDatabaseOperation {
           resourceFolders.name AS name,
           resourceFolders.permission AS permission,
           resourceFolders.parentFolderID AS parentFolderID,
-          resourceFolders.shared AS shared,
+          (
+            EXISTS (
+              SELECT 1 FROM usersResourceFolders
+              WHERE usersResourceFolders.resourceFolderID = resourceFolders.id
+                AND usersResourceFolders.userID != ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM userGroupsResourceFolders
+              INNER JOIN usersGroups
+                ON usersGroups.userGroupID = userGroupsResourceFolders.userGroupID
+              WHERE userGroupsResourceFolders.resourceFolderID = resourceFolders.id
+              GROUP BY userGroupsResourceFolders.userGroupID
+              HAVING COUNT(usersGroups.userID) > 1
+            )
+          ) AS shared,
           (
             SELECT
               (
@@ -232,6 +259,7 @@ extension ResourceFoldersListFetchDatabaseOperation {
         WHERE
           resourceFolders.parentFolderID IS ?
         """
+      statement.appendArgument(userID)
       statement.appendArgument(input.folderID)
       statement.appendArgument(input.folderID)
     }

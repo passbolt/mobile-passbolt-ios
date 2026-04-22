@@ -28,7 +28,6 @@ public struct ResourceFolderDTO {
   public var id: ResourceFolder.ID
   public var parentID: ResourceFolder.ID?
   public var name: String
-  public var shared: Bool
   public var permission: Permission
   public var permissions: OrderedSet<GenericPermissionDTO>
 
@@ -36,14 +35,12 @@ public struct ResourceFolderDTO {
     id: ResourceFolder.ID,
     parentID: ResourceFolder.ID?,
     name: String,
-    shared: Bool,
     permission: Permission,
     permissions: OrderedSet<GenericPermissionDTO>
   ) {
     self.id = id
     self.parentID = parentID
     self.name = name
-    self.shared = shared
     self.permission = permission
     self.permissions = permissions
   }
@@ -59,7 +56,6 @@ extension ResourceFolderDTO: Decodable {
     self.name = try container.decode(String.self, forKey: .name)
     self.permission = try container.nestedContainer(keyedBy: PermissionTypeCodingKeys.self, forKey: .permission)
       .decode(Permission.self, forKey: .permission)
-    self.shared = try !container.decode(Bool.self, forKey: .personal)
     self.parentID = try container.decode(ResourceFolder.ID?.self, forKey: .parentID)
     self.permissions = try container.decode(OrderedSet<GenericPermissionDTO>.self, forKey: .permissions)
   }
@@ -69,7 +65,6 @@ extension ResourceFolderDTO: Decodable {
     case id = "id"
     case name = "name"
     case permission = "permission"
-    case personal = "personal"
     case parentID = "folder_parent_id"
     case permissions = "permissions"
   }

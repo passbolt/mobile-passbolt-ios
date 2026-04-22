@@ -35,6 +35,7 @@ extension ResourceFolders {
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
+    let currentAccount: Account = try features.sessionAccount()
     let resourceFoldersListFetchDatabaseOperation: ResourceFoldersListFetchDatabaseOperation =
       try features.instance()
     let resourcesListFetchDatabaseOperation: ResourcesListFetchDatabaseOperation = try features.instance()
@@ -59,6 +60,7 @@ extension ResourceFolders {
       let folders: Array<ResourceFolderListItemDSV> =
         try await resourceFoldersListFetchDatabaseOperation(
           .init(
+            userID: currentAccount.userID,
             sorting: .nameAlphabetically,
             text: filter.text,
             folderID: filter.folderID,

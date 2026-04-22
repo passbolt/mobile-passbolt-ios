@@ -30,9 +30,10 @@ import Session
 extension ResourceFolderDetailsFetchDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: ResourceFolder.ID,
+    _ input: (folderID: ResourceFolder.ID, userID: User.ID),
     connection: SQLiteConnection
   ) throws -> ResourceFolder {
+    let userID: User.ID = input.userID
     let selectFolderStatement: SQLiteStatement =
       .statement(
         """
@@ -40,14 +41,29 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           resourceFolders.id AS id,
           resourceFolders.name AS name,
           resourceFolders.permission AS permission,
-          resourceFolders.shared AS shared,
+          (
+            EXISTS (
+              SELECT 1 FROM usersResourceFolders
+              WHERE usersResourceFolders.resourceFolderID = resourceFolders.id
+                AND usersResourceFolders.userID != ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM userGroupsResourceFolders
+              INNER JOIN usersGroups
+                ON usersGroups.userGroupID = userGroupsResourceFolders.userGroupID
+              WHERE userGroupsResourceFolders.resourceFolderID = resourceFolders.id
+              GROUP BY userGroupsResourceFolders.userGroupID
+              HAVING COUNT(usersGroups.userID) > 1
+            )
+          ) AS shared,
           resourceFolders.parentFolderID AS parentFolderID
         FROM
           resourceFolders
         WHERE
           resourceFolders.id == ?;
         """,
-        arguments: input
+        arguments: userID,
+        input.folderID
       )
 
     let selectResourceFolderPathStatement: SQLiteStatement =
@@ -57,7 +73,6 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           pathItems(
             id,
             name,
-            shared,
             parentID
           )
         AS
@@ -65,7 +80,6 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           SELECT
             resourceFolders.id AS id,
             resourceFolders.name AS name,
-            resourceFolders.shared AS shared,
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders
@@ -77,7 +91,6 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           SELECT
             resourceFolders.id AS id,
             resourceFolders.name AS name,
-            resourceFolders.shared AS shared,
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders,
@@ -87,7 +100,21 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         )
         SELECT
           pathItems.id,
-          pathItems.shared,
+          (
+            EXISTS (
+              SELECT 1 FROM usersResourceFolders
+              WHERE usersResourceFolders.resourceFolderID = pathItems.id
+                AND usersResourceFolders.userID != ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM userGroupsResourceFolders
+              INNER JOIN usersGroups
+                ON usersGroups.userGroupID = userGroupsResourceFolders.userGroupID
+              WHERE userGroupsResourceFolders.resourceFolderID = pathItems.id
+              GROUP BY userGroupsResourceFolders.userGroupID
+              HAVING COUNT(usersGroups.userID) > 1
+            )
+          ) AS shared,
           pathItems.name AS name
         FROM
           pathItems;
@@ -107,7 +134,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         WHERE
           usersResourceFolders.resourceFolderID == ?;
         """,
-        arguments: input
+        arguments: input.folderID
       )
 
     let selectFolderUserGroupsPermissionsStatement: SQLiteStatement =
@@ -123,7 +150,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         WHERE
           userGroupsResourceFolders.resourceFolderID == ?;
         """,
-        arguments: input
+        arguments: input.folderID
       )
 
     return
@@ -132,8 +159,8 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
         guard
           let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
           let name: String = dataRow.name,
-          let _: Bool = dataRow.shared,
-          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:))
+          let permission: Permission = dataRow.permission.flatMap(Permission.init(rawValue:)),
+          let shared: Bool = dataRow.shared
         else {
           throw
             DatabaseIssue
@@ -203,6 +230,7 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
               using:
                 selectResourceFolderPathStatement
                 .appendingArgument(parentFolderID)
+                .appendingArgument(userID)
             ) { dataRow in
               guard
                 let id: ResourceFolder.ID = dataRow.id.flatMap(ResourceFolder.ID.init(rawValue:)),
@@ -235,7 +263,8 @@ extension ResourceFolderDetailsFetchDatabaseOperation {
           name: name,
           path: path.asOrderedSet(),
           permission: permission,
-          permissions: OrderedSet(usersPermissions + userGroupsPermissions)
+          permissions: OrderedSet(usersPermissions + userGroupsPermissions),
+          shared: shared
         )
       }
   }

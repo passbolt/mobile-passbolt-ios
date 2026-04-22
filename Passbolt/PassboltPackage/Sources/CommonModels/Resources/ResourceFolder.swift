@@ -42,6 +42,9 @@ public struct ResourceFolder {
   public var permissions: OrderedSet<ResourceFolderPermission> {
     didSet { self.isLocallyEdited = true }
   }
+  public var shared: Bool {
+    didSet { self.isLocallyEdited = true }
+  }
   public private(set) var isLocallyEdited: Bool
 
   public init(
@@ -49,13 +52,15 @@ public struct ResourceFolder {
     name: String,
     path: OrderedSet<ResourceFolderPathItem>,
     permission: Permission,
-    permissions: OrderedSet<ResourceFolderPermission>
+    permissions: OrderedSet<ResourceFolderPermission>,
+    shared: Bool
   ) {
     self.id = id
     self.name = name
     self.path = path
     self.permission = permission
     self.permissions = permissions
+    self.shared = shared
     // if creating new local it is always locally edited
     self.isLocallyEdited = id == nil
   }
@@ -74,19 +79,6 @@ extension ResourceFolder {
 
   public var parentFolderID: ID? {
     self.path.last?.id
-  }
-
-  public var shared: Bool {
-    self.permissions.count > 1
-      || self.permissions.contains { (permission: ResourceFolderPermission) in
-        switch permission {
-        case .user:
-          return false
-
-        case .userGroup:
-          return true
-        }
-      }
   }
 }
 

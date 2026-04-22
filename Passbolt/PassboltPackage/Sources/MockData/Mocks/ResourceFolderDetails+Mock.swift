@@ -37,7 +37,8 @@ extension ResourceFolder {
         permission: .owner,
         permissionID: .mock_1
       )
-    ]
+    ],
+    shared: false
   )
 
   public static let mock_shared: Self = .init(
@@ -56,7 +57,8 @@ extension ResourceFolder {
         permission: .write,
         permissionID: .mock_2
       ),
-    ]
+    ],
+    shared: false
   )
 
   public static let mock_group: Self = .init(
@@ -75,6 +77,7 @@ extension ResourceFolder {
         permission: .write,
         permissionID: .mock_2
       ),
-    ]
+    ],
+    shared: false
   )
 }

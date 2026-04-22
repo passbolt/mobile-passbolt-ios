@@ -940,6 +940,14 @@ let package = Package(
         "TestExtensions",
       ]
     ),
+    .testTarget(
+      name: "PassboltDatabaseOperationsTests",
+      dependencies: [
+        "PassboltDatabaseOperations",
+        "CoreTest",
+        "TestExtensions",
+      ]
+    ),
   ],
   swiftLanguageModes: [.v5]
 )

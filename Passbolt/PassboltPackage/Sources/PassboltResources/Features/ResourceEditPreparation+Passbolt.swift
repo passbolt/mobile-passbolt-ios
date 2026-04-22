@@ -32,6 +32,7 @@ extension ResourceEditPreparation {
   @MainActor fileprivate static func load(
     using features: Features
   ) throws -> ResourceEditPreparation {
+    let currentAccount: Account = try features.sessionAccount()
     let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
     let resourceFolderPathFetchDatabaseOperation: ResourceFolderPathFetchDatabaseOperation = try features.instance()
     let metadataService: MetadataKeysService = try features.instance()
@@ -47,7 +48,9 @@ extension ResourceEditPreparation {
       else { throw InvalidResourceTypeError.error() }
       let folderPath: OrderedSet<ResourceFolderPathItem>
       if let parentFolderID {
-        folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(parentFolderID)
+        folderPath = try await resourceFolderPathFetchDatabaseOperation.execute(
+          (folderID: parentFolderID, userID: currentAccount.userID)
+        )
       }
       else {
         folderPath = .init()

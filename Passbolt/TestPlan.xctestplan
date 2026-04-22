@@ -24,31 +24,8 @@
       "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
-        "identifier" : "PassboltUsersTests",
-        "name" : "PassboltUsersTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "SharedUIComponentsTests",
-        "name" : "SharedUIComponentsTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltResourcesTests",
         "name" : "PassboltResourcesTests"
-      }
-    },
-    {
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "PassboltNetworkOperationsTests",
-        "name" : "PassboltNetworkOperationsTests"
       }
     },
     {
@@ -60,66 +37,10 @@
       }
     },
     {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "CommonModelsTests",
-        "name" : "CommonModelsTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "PassboltAccountSetupTests",
-        "name" : "PassboltAccountSetupTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "CommonsTests",
-        "name" : "CommonsTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "FeaturesTests",
-        "name" : "FeaturesTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "PassboltAccountsTests",
-        "name" : "PassboltAccountsTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "CryptoTests",
-        "name" : "CryptoTests"
-      }
-    },
-    {
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltMetadataTests",
         "name" : "PassboltMetadataTests"
-      }
-    },
-    {
-      "parallelizable" : true,
-      "target" : {
-        "containerPath" : "container:PassboltPackage",
-        "identifier" : "NFCTests",
-        "name" : "NFCTests"
       }
     },
     {
@@ -134,6 +55,37 @@
       "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
+        "identifier" : "CommonModelsTests",
+        "name" : "CommonModelsTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltDatabaseOperationsTests",
+        "name" : "PassboltDatabaseOperationsTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "FeaturesTests",
+        "name" : "FeaturesTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltUsersTests",
+        "name" : "PassboltUsersTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltAppTests",
         "name" : "PassboltAppTests"
       }
@@ -142,8 +94,55 @@
       "parallelizable" : true,
       "target" : {
         "containerPath" : "container:PassboltPackage",
+        "identifier" : "NFCTests",
+        "name" : "NFCTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltSessionTests",
         "name" : "PassboltSessionTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "CryptoTests",
+        "name" : "CryptoTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltNetworkOperationsTests",
+        "name" : "PassboltNetworkOperationsTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "CommonsTests",
+        "name" : "CommonsTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltAccountsTests",
+        "name" : "PassboltAccountsTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "PassboltAccountSetupTests",
+        "name" : "PassboltAccountSetupTests"
       }
     }
   ],

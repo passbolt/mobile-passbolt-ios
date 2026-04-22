@@ -25,6 +25,8 @@ import Commons
 
 public struct ResourceFoldersDatabaseFilter {
 
+  // current user ID for computing shared status
+  public var userID: User.ID
   // ordering of results
   public var sorting: ResourceFoldersDatabaseSorting
   // text search (AND) - empty ignores this parameter
@@ -44,6 +46,7 @@ public struct ResourceFoldersDatabaseFilter {
   public var offset: Int
 
   public init(
+    userID: User.ID,
     sorting: ResourceFoldersDatabaseSorting,
     text: String = .init(),
     folderID: ResourceFolder.ID?,
@@ -52,6 +55,7 @@ public struct ResourceFoldersDatabaseFilter {
     limit: Int? = .none,
     offset: Int = 0
   ) {
+    self.userID = userID
     self.sorting = sorting
     self.text = text
     self.folderID = folderID

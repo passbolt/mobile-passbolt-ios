@@ -61,7 +61,6 @@ extension ResourceFoldersStoreDatabaseOperation {
               id,
               name,
               permission,
-              shared,
               parentFolderID
             )
           VALUES
@@ -69,8 +68,7 @@ extension ResourceFoldersStoreDatabaseOperation {
               ?1,
               ?2,
               ?3,
-              ?4,
-              ?5
+              ?4
             )
           ON CONFLICT
             (
@@ -79,14 +77,12 @@ extension ResourceFoldersStoreDatabaseOperation {
           DO UPDATE SET
             name=?2,
             permission=?3,
-            shared=?4,
-            parentFolderID=?5
+            parentFolderID=?4
           ;
           """,
           arguments: folder.id,
           folder.name,
           folder.permission.rawValue,
-          folder.shared,
           folder.parentID
         )
       )

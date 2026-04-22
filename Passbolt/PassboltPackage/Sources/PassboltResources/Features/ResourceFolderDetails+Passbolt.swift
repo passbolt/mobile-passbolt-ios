@@ -35,6 +35,7 @@ extension ResourceFolderController {
     features: Features
   ) throws -> Self {
     let resourceFolderID: ResourceFolder.ID = try features.context(of: ResourceFolderScope.self)
+    let currentAccount: Account = try features.sessionAccount()
     let sessionData: SessionData = try features.instance()
     let resourceFolderDetailsFetchDatabaseOperation: ResourceFolderDetailsFetchDatabaseOperation =
       try features.instance()
@@ -43,7 +44,7 @@ extension ResourceFolderController {
       transformed: sessionData.lastUpdate
     ) { _ in
       try await resourceFolderDetailsFetchDatabaseOperation(
-        resourceFolderID
+        (folderID: resourceFolderID, userID: currentAccount.userID)
       )
     }
 

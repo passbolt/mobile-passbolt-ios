@@ -29,6 +29,6 @@ public typealias ResourceFolderDetailsFetchDatabaseOperation = DatabaseOperation
 
 public enum ResourceFolderDetailsFetchDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public typealias Input = ResourceFolder.ID
+  public typealias Input = (folderID: ResourceFolder.ID, userID: User.ID)
   public typealias Output = ResourceFolder
 }

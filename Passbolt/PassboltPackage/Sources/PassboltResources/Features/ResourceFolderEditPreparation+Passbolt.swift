@@ -44,7 +44,9 @@ extension ResourceFolderEditPreparation {
       try await sessionData.refreshIfNeeded()
       let resourceFolder: ResourceFolder
       if let parentFolderID {
-        let parentFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(parentFolderID)
+        let parentFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(
+          (folderID: parentFolderID, userID: currentAccount.userID)
+        )
 
         guard parentFolder.permission.canEdit
         else {
@@ -85,7 +87,8 @@ extension ResourceFolderEditPreparation {
                 )
               }
             }
-            .asOrderedSet()
+            .asOrderedSet(),
+          shared: parentFolder.shared
         )
       }
       else {
@@ -100,7 +103,8 @@ extension ResourceFolderEditPreparation {
               permission: .owner,
               permissionID: .none  // local does not have ID
             )
-          ]
+          ],
+          shared: false
         )
       }
 
@@ -118,7 +122,9 @@ extension ResourceFolderEditPreparation {
       resourceFolderID: ResourceFolder.ID
     ) async throws -> FeaturesContainer {
       try await sessionData.refreshIfNeeded()
-      let resourceFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(resourceFolderID)
+      let resourceFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(
+        (folderID: resourceFolderID, userID: currentAccount.userID)
+      )
 
       guard resourceFolder.permission.canEdit
       else {
