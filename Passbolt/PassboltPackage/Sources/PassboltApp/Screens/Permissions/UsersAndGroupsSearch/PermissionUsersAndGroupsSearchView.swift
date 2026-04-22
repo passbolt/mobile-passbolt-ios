@@ -21,20 +21,16 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
-import UIComponents
 
-internal struct PermissionUsersAndGroupsSearchView: ComponentView {
+internal struct PermissionUsersAndGroupsSearchView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: PermissionUsersAndGroupsSearchViewController
 
   internal init(
-    state: ObservableValue<ViewState>,
-    controller: PermissionUsersAndGroupsSearchController
+    controller: PermissionUsersAndGroupsSearchViewController
   ) {
-    self.state = state
     self.controller = controller
   }
 
@@ -44,13 +40,16 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
         key: "resource.permission.edit.user.and.group.search.title"
       ),
       contentView: {
-        VStack(spacing: 0) {
-          self.searchBar
-          self.list
-          self.saveButton
+        WithViewState(from: controller) { state in
+          VStack(spacing: 0) {
+            self.searchBar
+            self.list(for: state)
+            self.saveButton
+          }
         }
       }
     )
+    .task(self.controller.activate)
   }
 
   private var searchBar: some View {
@@ -59,77 +58,82 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
         prompt: .localized(
           key: "resource.permission.edit.user.and.group.search.prompt"
         ),
-        text: self.$state.searchText
+        text: binding(to: \.searchText, updating: self.controller.updateSearchText)
       )
       .padding(
         top: 0,
         leading: 16,
         trailing: 16
       )
+      with(\.selectedItems) { selectedItems in
 
-      OverlappingAvatarStackView(
-        Array(self.state.selectedItems)
-      )
-      .frame(height: 40)
-      .padding(
-        top: 8,
-        leading: 16,
-        bottom: 8,
-        trailing: 16
-      )
+        OverlappingAvatarStackView(selectedItems)
+          .frame(height: 40)
+          .padding(
+            top: 8,
+            leading: 16,
+            bottom: 8,
+            trailing: 16
+          )
+      }
     }
   }
 
-  private var list: some View {
+  private func list(for state: Controller.ViewState) -> some View {
     Group {
-      if self.state.listSelectionRowViewModels.isEmpty && self.state.listExistingRowViewModels.isEmpty {
+      if state.listSelectionRowViewModels.isEmpty && state.listExistingRowViewModels.isEmpty {
         EmptyListView(
           message: .localized(
             key: "generic.user.search.list.empty"
           )
         )
+        .padding(.horizontal, -16)
       }
       else {
         List {
           Section {
-            ForEach(self.state.listSelectionRowViewModels) { listRow in
+            ForEach(state.listSelectionRowViewModels) { listRow in
               switch listRow {
               case .user(let userRow):
                 UserListRowView(
                   model: userRow,
                   contentAction: {
-                    self.controller.toggleUserSelection(userRow)
+                    await self.controller.toggleUserSelection(userRow)
                   },
                   rightAccesory: {
-                    SelectionIndicator(
-                      selected: self.state.selectedItems.contains { item in
-                        switch item {
-                        case .user(let id, _, _):
-                          return userRow.id == id
-                        case .userGroup:
-                          return false
+                    with(\.selectedItems) { selectedItems in
+                      SelectionIndicator(
+                        selected: selectedItems.contains { item in
+                          switch item {
+                          case .user(let id, _, _):
+                            return userRow.id == id
+                          case .userGroup:
+                            return false
+                          }
                         }
-                      }
-                    )
+                      )
+                    }
                   }
                 )
               case .userGroup(let userGroupRow):
                 UserGroupListRowView(
                   model: userGroupRow,
                   contentAction: {
-                    self.controller.toggleUserGroupSelection(userGroupRow.id)
+                    await self.controller.toggleUserGroupSelection(userGroupRow.id)
                   },
                   rightAccesory: {
-                    SelectionIndicator(
-                      selected: self.state.selectedItems.contains { item in
-                        switch item {
-                        case .userGroup(let id):
-                          return userGroupRow.id == id
-                        case .user:
-                          return false
+                    with(\.selectedItems) { selectedItems in
+                      SelectionIndicator(
+                        selected: selectedItems.contains { item in
+                          switch item {
+                          case .userGroup(let id):
+                            return userGroupRow.id == id
+                          case .user:
+                            return false
+                          }
                         }
-                      }
-                    )
+                      )
+                    }
                   }
                 )
               }
@@ -138,7 +142,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
           .listSectionSeparator(.hidden)
           .backgroundColor(.passboltBackground)
 
-          if !self.state.listExistingRowViewModels.isEmpty {
+          if !state.listExistingRowViewModels.isEmpty {
             Section {
               Text(
                 displayable: .localized(
@@ -161,13 +165,13 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
               .listRowInsets(EdgeInsets())
               .frame(height: 24)
 
-              ForEach(self.state.listExistingRowViewModels) { listRow in
+              ForEach(state.listExistingRowViewModels) { listRow in
                 switch listRow {
                 case .user(let userRow, let permission):
                   UserListRowView(
                     model: userRow,
                     contentAction: {
-                      self.controller.toggleUserSelection(userRow)
+                      await self.controller.toggleUserSelection(userRow)
                     },
                     rightAccesory: {
                       ResourcePermissionTypeCompactView(
@@ -179,7 +183,7 @@ internal struct PermissionUsersAndGroupsSearchView: ComponentView {
                   UserGroupListRowView(
                     model: userGroupRow,
                     contentAction: {
-                      self.controller.toggleUserGroupSelection(userGroupRow.id)
+                      await self.controller.toggleUserGroupSelection(userGroupRow.id)
                     },
                     rightAccesory: {
                       ResourcePermissionTypeCompactView(

@@ -181,7 +181,7 @@ extension GenericPermissionDTO: Encodable {
       try container.encode(resourceID, forKey: .itemID)
       try container.encode(permission, forKey: .permission)
 
-    case .userGroupToFolder(let id, let userGroupID, let folderID, let permission):
+    case .userGroupToFolder(let id, _, let folderID, let permission):
       try container.encode(id, forKey: .id)
       try container.encode("Group", forKey: .subject)
       try container.encode(userID, forKey: .subjectID)

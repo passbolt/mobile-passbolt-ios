@@ -24,3 +24,14 @@
 public enum TimeSecondsTag {}
 
 public typealias Seconds = Tagged<Int64, TimeSecondsTag>
+
+public enum TimeDaysTag {}
+
+public typealias Days = Tagged<Int64, TimeDaysTag>
+
+extension Days {
+
+  public var inSeconds: Seconds {
+    .init(rawValue: self.rawValue * 24 * 60 * 60)
+  }
+}

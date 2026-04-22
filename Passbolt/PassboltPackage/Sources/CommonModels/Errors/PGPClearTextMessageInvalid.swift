@@ -25,16 +25,15 @@ import Localization
 
 public struct PGPClearTextMessageInvalid: TheError {
 
-  /**
-   * Creates a new error instance specific to the AccountKit domain.
-   *
-   * This static function constructs an error related to Account Kit processing
-   *
-   * @param {Error} [underlyingError] - An optional underlying error that may have caused this error.
-   * @param {StaticString} [file] - The file where the error is being created, defaults to the current file.
-   * @param {UInt} [line] - The line number in the file where the error is being created, defaults to the current  line.
-   * @returns {ErrorType} An instance of the error type, configured with the provided context and underlying error.
-   */
+  /// Creates a new error instance indicating an invalid PGP clear text message.
+  ///
+  /// This static function constructs a `PGPClearTextMessageInvalid` error, typically used when a PGP clear text message fails validation or parsing.
+  ///
+  /// - Parameters:
+  ///   - message: A static string describing the error context. Defaults to "PGPClearTextMessageInvalid".
+  ///   - file: The file where the error is being created, defaults to the current file.
+  ///   - line: The line number in the file where the error is being created, defaults to the current line.
+  /// - Returns: An instance of `PGPClearTextMessageInvalid`, configured with the provided context and an optional underlying error.
   public static func error(
     _ message: StaticString = "PGPClearTextMessageInvalid",
     file: StaticString = #fileID,

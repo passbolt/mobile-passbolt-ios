@@ -35,7 +35,7 @@ extension SessionPassphrase {
     let account: Account = try features.sessionAccount()
     let sessionState: SessionState = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
-    let accountsDataStore: AccountsDataStore = try features.instance()
+    let accountPassphraseStorage: AccountPassphraseStorage = try features.instance()
 
     @SessionActor @Sendable func storeWithBiometry(
       _ store: Bool
@@ -49,10 +49,10 @@ extension SessionPassphrase {
       if store {
         let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
 
-        return try accountsDataStore.storeAccountPassphrase(account.localID, passphrase)
+        return try accountPassphraseStorage.storeAccountPassphrase(account.localID, passphrase)
       }
       else {
-        return try accountsDataStore.deleteAccountPassphrase(account.localID)
+        return try accountPassphraseStorage.deleteAccountPassphrase(account.localID)
       }
     }
 

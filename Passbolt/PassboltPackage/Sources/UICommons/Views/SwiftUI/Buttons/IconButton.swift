@@ -44,11 +44,6 @@ public struct IconButton: View {
       action: self.action,
       regularLabel: {
         Image(named: self.iconName)
-          .frame(
-            width: 40,
-            height: 40
-          )
-          .padding(8)
       },
       loadingLabel: {
         SwiftUI.ProgressView()
@@ -63,10 +58,6 @@ public struct IconButton: View {
     .foregroundColor(.passboltPrimaryText)
     .tint(.passboltPrimaryText)
     .backgroundColor(.clear)
-    .frame(
-      width: 48,
-      height: 48
-    )
   }
 }
 

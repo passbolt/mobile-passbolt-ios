@@ -44,6 +44,14 @@
 		B2EC08332C80B59A0046C414 /* DeleteResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC08322C80B59A0046C414 /* DeleteResourceTests.swift */; };
 		B2EC08352C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EC08342C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift */; };
 		B90996BF2B63A524006ACE70 /* PassboltAccountSetup in Frameworks */ = {isa = PBXBuildFile; productRef = B90996BE2B63A524006ACE70 /* PassboltAccountSetup */; };
+		C04F9C1C2EF4121400C916B7 /* AuthenticationScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */; };
+		C09C2B432EF53BB100FB5CD7 /* MainScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */; };
+		C09C2B452EF53C7900FB5CD7 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B442EF53C7900FB5CD7 /* SettingsScreen.swift */; };
+		C09C2B472EF53F5000FB5CD7 /* AccountsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B462EF53F5000FB5CD7 /* AccountsScreen.swift */; };
+		C09C2B4A2EF5688D00FB5CD7 /* ShareResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B492EF5688D00FB5CD7 /* ShareResourceTests.swift */; };
+		C09C2B4C2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B4B2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift */; };
+		C09C2B4E2EF5710A00FB5CD7 /* PermissionsListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B4D2EF5710A00FB5CD7 /* PermissionsListScreen.swift */; };
+		C09C2B502EF5788B00FB5CD7 /* PermissionsEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B4F2EF5788B00FB5CD7 /* PermissionsEditScreen.swift */; };
 		C0B4B25B2EC5E27300C91A59 /* MainTOTPScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B25A2EC5E27300C91A59 /* MainTOTPScreen.swift */; };
 		C0B4B25E2EC5E3B400C91A59 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B25D2EC5E3B400C91A59 /* String+Extensions.swift */; };
 		C0B4B2612EC5E64100C91A59 /* TOTPCommonFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B2602EC5E64100C91A59 /* TOTPCommonFlows.swift */; };
@@ -68,7 +76,6 @@
 		DD673CFB26F0B58C0051EEB5 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DD673CFD26F0B58C0051EEB5 /* InfoPlist.strings */; };
 		DD8979C6270F13E600D95978 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = DD8979C5270F13E600D95978 /* Settings.bundle */; };
 		DDB2A675263B09500014C895 /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = DDB2A674263B09500014C895 /* Launch Screen.storyboard */; };
-		EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD1A3E8297ACBF900125727 /* FolderCreationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -141,7 +148,15 @@
 		C00FE53D2DE6FF7A007B3EC2 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C00FE53E2DE70049007B3EC2 /* uk */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = uk; path = uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C00FE53F2DE70F62007B3EC2 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationScreen.swift; sourceTree = "<group>"; };
 		C08E424E2E4B40F70044C421 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreen.swift; sourceTree = "<group>"; };
+		C09C2B442EF53C7900FB5CD7 /* SettingsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsScreen.swift; sourceTree = "<group>"; };
+		C09C2B462EF53F5000FB5CD7 /* AccountsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountsScreen.swift; sourceTree = "<group>"; };
+		C09C2B492EF5688D00FB5CD7 /* ShareResourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareResourceTests.swift; sourceTree = "<group>"; };
+		C09C2B4B2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceDetailsScreen.swift; sourceTree = "<group>"; };
+		C09C2B4D2EF5710A00FB5CD7 /* PermissionsListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsListScreen.swift; sourceTree = "<group>"; };
+		C09C2B4F2EF5788B00FB5CD7 /* PermissionsEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsEditScreen.swift; sourceTree = "<group>"; };
 		C0B4B25A2EC5E27300C91A59 /* MainTOTPScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTOTPScreen.swift; sourceTree = "<group>"; };
 		C0B4B25D2EC5E3B400C91A59 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		C0B4B2602EC5E64100C91A59 /* TOTPCommonFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TOTPCommonFlows.swift; sourceTree = "<group>"; };
@@ -287,6 +302,7 @@
 		B26894252C61099800B4FE65 /* Resource */ = {
 			isa = PBXGroup;
 			children = (
+				C09C2B482EF5683A00FB5CD7 /* Share */,
 				B2EC08312C80B5750046C414 /* DeleteResource */,
 				B268942A2C610C8D00B4FE65 /* ViewResourceDetails */,
 				B2EC082E2C7C83D50046C414 /* EditResource */,
@@ -375,6 +391,31 @@
 			path = DeleteResource;
 			sourceTree = "<group>";
 		};
+		C04F9C1A2EF411F200C916B7 /* Account */ = {
+			isa = PBXGroup;
+			children = (
+				C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */,
+			);
+			path = Account;
+			sourceTree = "<group>";
+		};
+		C09C2B412EF53BA200FB5CD7 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				C09C2B442EF53C7900FB5CD7 /* SettingsScreen.swift */,
+				C09C2B462EF53F5000FB5CD7 /* AccountsScreen.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		C09C2B482EF5683A00FB5CD7 /* Share */ = {
+			isa = PBXGroup;
+			children = (
+				C09C2B492EF5688D00FB5CD7 /* ShareResourceTests.swift */,
+			);
+			path = Share;
+			sourceTree = "<group>";
+		};
 		C0B4B25C2EC5E3AA00C91A59 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -407,6 +448,9 @@
 			children = (
 				C0B4B26A2EC5FDF000C91A59 /* ResourceFormScreen.swift */,
 				C0B4B26C2EC5FE2100C91A59 /* CreateResourceMenuScreen.swift */,
+				C09C2B4B2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift */,
+				C09C2B4D2EF5710A00FB5CD7 /* PermissionsListScreen.swift */,
+				C09C2B4F2EF5788B00FB5CD7 /* PermissionsEditScreen.swift */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -414,9 +458,12 @@
 		C0DBE3FA2EC5DA28005B4920 /* Screens */ = {
 			isa = PBXGroup;
 			children = (
+				C09C2B412EF53BA200FB5CD7 /* Settings */,
+				C04F9C1A2EF411F200C916B7 /* Account */,
 				C0B4B2692EC5FDD500C91A59 /* Resource */,
 				C0B4B2642EC5ED3300C91A59 /* Home */,
 				C0DBE3FB2EC5DA31005B4920 /* TOTP */,
+				C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */,
 			);
 			path = Screens;
 			sourceTree = "<group>";
@@ -695,6 +742,7 @@
 		};
 		42A55678272977F700FE5E6A /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -713,6 +761,7 @@
 		};
 		DDBB9861261C8851008B178F /* Run Linter */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -742,6 +791,7 @@
 				C0B4B25B2EC5E27300C91A59 /* MainTOTPScreen.swift in Sources */,
 				C0B4B26D2EC5FE2100C91A59 /* CreateResourceMenuScreen.swift in Sources */,
 				B21C75532A1BC199006E0938 /* AppSettingsTests.swift in Sources */,
+				C09C2B4E2EF5710A00FB5CD7 /* PermissionsListScreen.swift in Sources */,
 				B26894292C610C4D00B4FE65 /* ViewResourceDetailsTests.swift in Sources */,
 				C0B4B2682EC5FD0C00C91A59 /* HomeFilterScreen.swift in Sources */,
 				42F1154E2A20F22F00475E42 /* UITestCase+CommonFlows.swift in Sources */,
@@ -749,6 +799,7 @@
 				B2EC08352C874BC00046C414 /* UITestCase+NonExistenceAssertions.swift in Sources */,
 				C0B4B2662EC5ED4300C91A59 /* HomeScreen.swift in Sources */,
 				B26BE26A2C5B8C9B00138744 /* TOTPDrawerTests.swift in Sources */,
+				C09C2B472EF53F5000FB5CD7 /* AccountsScreen.swift in Sources */,
 				425A582A292550AF00C19E05 /* WelcomeScreenUITests.swift in Sources */,
 				B23A853D2A24DD3500C65133 /* TermsAndLicensesTests.swift in Sources */,
 				B2EC08332C80B59A0046C414 /* DeleteResourceTests.swift in Sources */,
@@ -758,14 +809,18 @@
 				C0B4B26F2EC5FEA800C91A59 /* ResourceCommonFlows.swift in Sources */,
 				C0DBE3FD2EC5DA3F005B4920 /* TOTPScannerScreen.swift in Sources */,
 				C0E890E22EC7BC8400B59D43 /* HomeCommonFlows.swift in Sources */,
+				C09C2B432EF53BB100FB5CD7 /* MainScreen.swift in Sources */,
 				42F1154C2A20D3BF00475E42 /* TestFailure.swift in Sources */,
+				C09C2B4A2EF5688D00FB5CD7 /* ShareResourceTests.swift in Sources */,
+				C04F9C1C2EF4121400C916B7 /* AuthenticationScreen.swift in Sources */,
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
+				C09C2B4C2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift in Sources */,
 				C0DBE3F62EC5D880005B4920 /* Screen.swift in Sources */,
+				C09C2B502EF5788B00FB5CD7 /* PermissionsEditScreen.swift in Sources */,
 				B26BE2672C5A731E00138744 /* CreateTOTPTests.swift in Sources */,
-				EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */,
+				C09C2B452EF53C7900FB5CD7 /* SettingsScreen.swift in Sources */,
 				B242301E2B2781DB00796887 /* TOTPListTests.swift in Sources */,
 				C0DBE3FF2EC5DBDA005B4920 /* TOTPCreateScreen.swift in Sources */,
-				EBD1A3E9297ACBF900125727 /* FolderCreationTests.swift in Sources */,
 				B236448A2A167C6A00F0A374 /* SettingsTests.swift in Sources */,
 				C0B4B2612EC5E64100C91A59 /* TOTPCommonFlows.swift in Sources */,
 				B23C4F6429BA45C1001D9687 /* TransferAccountTests.swift in Sources */,
@@ -948,7 +1003,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2.6.1;
+				MARKETING_VERSION = 2.7.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1007,7 +1062,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 2.6.1;
+				MARKETING_VERSION = 2.7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

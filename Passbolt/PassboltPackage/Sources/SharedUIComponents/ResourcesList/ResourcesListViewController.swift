@@ -49,7 +49,9 @@ public final class ResourcesListViewController: ViewController {
     let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
         title: context.title,
-        titleIconName: context.titleIconName
+        titleIconName: context.titleIconName,
+        showBackButton: context.callbacks.backAction != nil,
+        showCloseButton: context.callbacks.onClose != nil
       )
     )
     self.viewState = viewState
@@ -109,6 +111,7 @@ extension ResourcesListViewController {
     internal let createResource: () async throws -> Void
     internal let selectResource: (Resource.ID) async throws -> Void
     internal let contextualMenuAction: ((Resource.ID) async throws -> Void)?
+    internal let backAction: (() async throws -> Void)?
 
     public init(
       suggestionFilter: ((ResourceListItemDSV) -> Bool)? = nil,
@@ -117,7 +120,8 @@ extension ResourcesListViewController {
       onAvatarTap: @escaping () async throws -> Void,
       createResource: @escaping () async throws -> Void,
       selectResource: @escaping (Resource.ID) async throws -> Void,
-      contextualMenuAction: ((Resource.ID) async throws -> Void)? = .none
+      contextualMenuAction: ((Resource.ID) async throws -> Void)? = .none,
+      backAction: (() async throws -> Void)?
     ) {
       self.suggestionFilter = suggestionFilter
       self.onClose = onClose
@@ -126,6 +130,7 @@ extension ResourcesListViewController {
       self.createResource = createResource
       self.selectResource = selectResource
       self.contextualMenuAction = contextualMenuAction
+      self.backAction = backAction
     }
   }
 
@@ -133,6 +138,8 @@ extension ResourcesListViewController {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
+    internal var showBackButton: Bool
+    internal var showCloseButton: Bool
   }
 }
 

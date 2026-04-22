@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Accounts
 import Crypto
 import Features
 import NetworkOperations
@@ -79,7 +80,7 @@ extension SessionNetworkAuthorization {
     features: Features
   ) throws -> Self {
 
-    let accountData: AccountsDataStore = try features.instance()
+    let serverFingerprintStorage: ServerFingerprintStorage = try features.instance()
     let time: OSTime = features.instance()
     let pgp: PGP = features.instance()
     let uuidGenerator: UUIDGenerator = features.instance()
@@ -137,10 +138,9 @@ extension SessionNetworkAuthorization {
 
       let serverFingerprint: Fingerprint
       do {
-        serverFingerprint =
-          try pgp
-          .extractFingerprint(publicKey)
-          .get()
+        // temporary variable to bypass Swift warning (no errors are thrown in 'do' block)
+        let result = pgp.extractFingerprint(publicKey)
+        serverFingerprint = try result.get()
       }
       catch {
         throw
@@ -152,7 +152,9 @@ extension SessionNetworkAuthorization {
           .recording(error, for: "underlyingError")
       }
 
-      if let storedServerFingerprint: Fingerprint = try accountData.loadServerFingerprint(account.localID) {
+      if let storedServerFingerprint: Fingerprint = try serverFingerprintStorage.loadServerFingerprint(
+        account.localID
+      ) {
         let keysMatch: Bool =
           try pgp
           .verifyPublicKeyFingerprint(
@@ -174,7 +176,7 @@ extension SessionNetworkAuthorization {
         }
       }
       else {
-        try accountData
+        try serverFingerprintStorage
           .storeServerFingerprint(
             account.localID,
             serverFingerprint
@@ -407,11 +409,9 @@ extension SessionNetworkAuthorization {
     ) {
       let verificationToken: String = uuidGenerator.uuid()
 
-      async let (serverPublicPGPKey, serverTimeDiff): (ArmoredPGPPublicKey, Seconds) =
-        fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
-      async let serverPublicRSAKey: PEMRSAPublicKey = fetchServerPublicRSAKey(for: authorizationData.account)
-
-      let timeDiff: Seconds = try await serverTimeDiff
+      let (serverPublicPGPKey, timeDiff): (ArmoredPGPPublicKey, Seconds) =
+        try await fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
+      let serverPublicRSAKey: PEMRSAPublicKey = try await fetchServerPublicRSAKey(for: authorizationData.account)
 
       pgp.setTimeOffset(timeDiff)
 
@@ -447,7 +447,7 @@ extension SessionNetworkAuthorization {
           SessionAccessToken,
           SessionRefreshToken,
           Array<SessionMFAProvider>
-        ) = try await decodeEncryptedResponse(
+        ) = try decodeEncryptedResponse(
           account: authorizationData.account,
           passphrase: authorizationData.passphrase,
           accountPrivateKey: authorizationData.privateKey,

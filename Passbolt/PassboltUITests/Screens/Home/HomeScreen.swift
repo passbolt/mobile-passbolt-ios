@@ -43,7 +43,8 @@ internal class HomeScreen: Screen {
     app.buttons["search.view.menu"]
   }
 
-  internal func search(for text: String) {
+  @discardableResult
+  internal func search(for text: String) -> Self {
     type(text, to: searchField)
   }
 
@@ -61,5 +62,9 @@ internal class HomeScreen: Screen {
 
   internal var createMenuScreen: CreateResourceMenuScreen {
     screen()
+  }
+
+  internal func selectItem(at index: Int) {
+    app.collectionViews["resource.list.collection.view"].cells.element(boundBy: index).tap()
   }
 }

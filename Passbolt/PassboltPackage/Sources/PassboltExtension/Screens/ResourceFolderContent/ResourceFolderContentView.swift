@@ -63,6 +63,8 @@ internal struct ResourceFolderContentView: ControlledView {
           .shadowTopEdgeOverlay()
       }
     )
+    .environment(\.hideTrailingItem, state.isRoot)
+    .environment(\.hideLeadingItem, state.isRoot)
   }
 
   @MainActor @ViewBuilder private func searchView(

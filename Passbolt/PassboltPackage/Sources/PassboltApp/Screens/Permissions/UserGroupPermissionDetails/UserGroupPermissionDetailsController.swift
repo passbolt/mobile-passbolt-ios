@@ -24,45 +24,39 @@
 import Accounts
 import Display
 import OSFeatures
-import UIComponents
 import Users
 
-internal struct UserGroupPermissionDetailsController {
+internal final class UserGroupPermissionDetailsViewController: @MainActor ViewController {
 
-  internal var viewState: ObservableValue<ViewState>
-  internal var showGroupMembers: () async -> Void
-  internal var navigateBack: () -> Void
-}
-
-extension UserGroupPermissionDetailsController: ComponentController {
-
-  internal typealias ControlledView = UserGroupPermissionDetailsView
   internal typealias Context = UserGroupPermissionDetailsDSV
 
-  @MainActor static func instance(
-    in context: Context,
-    with features: inout Features,
-    cancellables: Cancellables
-  ) throws -> Self {
+  internal struct ViewState: Equatable {
+    internal let permissionDetails: UserGroupPermissionDetailsDSV
+    internal let groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
+  }
 
-    let navigation: DisplayNavigation = try features.instance()
+  internal let viewState: ViewStateSource<ViewState>
+
+  private let navigationToGroupMembersList: NavigationToUserGroupMembersList
+  private let context: Context
+
+  internal init(context: UserGroupPermissionDetailsDSV, features: Features) throws {
+    self.context = context
+    self.navigationToGroupMembersList = try features.instance()
+
     let users: Users = try features.instance()
 
-    func userAvatarImageFetch(
-      _ userID: User.ID
-    ) -> () async -> Data? {
-      {
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
+    func userAvatarImageFetch(_ userID: User.ID) async -> Data? {
+      do {
+        return try await users.userAvatarImage(userID)
+      }
+      catch {
+        error.logged()
+        return nil
       }
     }
 
-    let viewState: ObservableValue<ViewState> = .init(
+    self.viewState = .init(
       initial: .init(
         permissionDetails: context,
         groupMembersPreviewItems: context
@@ -70,31 +64,19 @@ extension UserGroupPermissionDetailsController: ComponentController {
           .map { user in
             .user(
               user.id,
-              avatarImage: userAvatarImageFetch(user.id),
+              avatarImage: { await userAvatarImageFetch(user.id) },
               isSuspended: user.isSuspended
             )
           }
       )
     )
+  }
 
-    func showGroupMembers() async {
-      await navigation
-        .push(
-          legacy: UserGroupMembersListView.self,
-          context: context.asUserGroupDetails
-        )
+  internal func showGroupMembers() async {
+    await consumingErrors {
+      try await self.navigationToGroupMembersList.perform(
+        context: context.asUserGroupDetails
+      )
     }
-
-    nonisolated func navigateBack() {
-      Task {
-        await navigation.pop(if: UserGroupPermissionDetailsView.self)
-      }
-    }
-
-    return Self(
-      viewState: viewState,
-      showGroupMembers: showGroupMembers,
-      navigateBack: navigateBack
-    )
   }
 }

@@ -23,7 +23,8 @@
 
 import AegithalosCocoa
 
-extension ImageNameConstant: Hashable {
+extension ImageNameConstant: @retroactive Equatable {}
+extension ImageNameConstant: @retroactive Hashable {
 
   public static func == (
     _ lhs: Self,

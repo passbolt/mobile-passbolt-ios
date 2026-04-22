@@ -65,14 +65,15 @@ internal struct OTPAttachSelectionListView: ControlledView {
             ]
           )
         }
+      },
+      content: {
+        VStack(spacing: 0) {
+          self.search
+          self.list
+          self.actionButton
+        }
       }
-    ) {
-      VStack(spacing: 0) {
-        self.search
-        self.list
-        self.actionButton
-      }
-    }
+    )
     .frame(maxHeight: .infinity)
     .navigationTitle(
       displayable: "otp.attach.list.title"

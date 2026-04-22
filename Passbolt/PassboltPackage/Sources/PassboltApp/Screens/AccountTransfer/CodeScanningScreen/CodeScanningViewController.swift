@@ -19,224 +19,197 @@
 // @license       https://opensource.org/licenses/AGPL-3.0 AGPL License
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
+//
 
-import Session
+import AccountSetup
+import Display
 import SharedUIComponents
-import UIComponents
 
-internal final class CodeScanningViewController: PlainViewController, UIComponent {
+internal final class CodeScanningViewController: ViewController {
 
-  internal typealias ContentView = CodeScanningView
-  internal typealias Controller = CodeScanningController
+  internal struct ViewState: Equatable {
+    internal var progress: Double = 0.0
+    internal var alert: AlertViewModel? = .none
+  }
 
-  internal static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  internal nonisolated let viewState: ViewStateSource<ViewState> = .init(initial: .init())
+
+  private var updatesTask: Task<Void, Never>?
+  private let accountTransfer: AccountImport
+  private let navigationToSelf: NavigationToCodeScanning
+  private let navigationToHelp: NavigationToHelpMenu
+  private let navigationToResult: NavigationToGenericResult
+  private let navigationToSignIn: NavigationToTransferSignIn
+  private let navigationToAccountImportInfo: NavigationToAccountImportInfo
+  private let features: Features
+
+  internal init(context: (), features: Features) throws {
+    let features = try features.branch(scope: AccountTransferScope.self)
+    self.navigationToSelf = try features.instance()
+    self.navigationToHelp = try features.instance()
+    self.navigationToResult = try features.instance()
+
+    self.navigationToAccountImportInfo = try features.instance()
+
+    self.navigationToSignIn = try features.instance()
+    accountTransfer = try features.instance()
+    self.features = features
+
+    // Start listening for updates
+    self.updatesTask = Task { [weak self, accountTransfer] in
+      guard let self else { return }
+      for await _ in accountTransfer.updates {
+        let progress = accountTransfer.progress()
+        let progressValue: Double
+        switch progress {
+        case .configuration:
+          progressValue = 0
+        case .scanningProgress(let value):
+          progressValue = value
+        case .scanningFinished:
+          progressValue = 1
+        }
+        await MainActor.run {
+          self.viewState.update(\.progress, to: progressValue)
+        }
+
+        // Handle completion
+        if case .scanningFinished = progress {
+          await MainActor.run {
+            self.handle(result: .success(()))
+          }
+          break
+        }
+      }
+    }
+  }
+
+  deinit {
+    updatesTask?.cancel()
+  }
+
+  private func handle(result: Result<Void, Error>) {
+    switch result {
+    case .success:
+      Task {
+        try await navigationToResult.perform(
+          context: .init(
+            icon: .successMark,
+            title: "transfer.account.result.success.title",
+            message: "",
+            buttonTitle: .localized(key: .continue),
+            buttonAction: { [weak self] in
+              try await self?.navigationToSignIn.perform()
+            }
+          )
+        )
+      }
+    case .failure(let error) where error is Cancelled:
+      Task {
+        try await self.navigationToSelf.revert()
+      }
+    case .failure(let error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
+      Task {
+        try await navigationToResult.perform(
+          context: .init(
+            icon: .duplicateMark,
+            title: "transfer.account.result.already.linked.title",
+            message: "",
+            buttonTitle: .localized(key: .continue),
+            buttonAction: { [weak self] in
+              try await self?.navigationToSelf.revert()
+            }
+          )
+        )
+      }
+    case .failure(let error):
+      Task {
+        try await navigationToResult.perform(
+          context: .init(
+            icon: .failureMark,
+            title: "geenric.error",
+            message: error.asTheError().displayableMessage,
+            buttonTitle: "generic.try.again",
+            buttonAction: { [weak self] in
+              try await self?.navigationToAccountImportInfo.revert()
+            }
+          )
+        )
+      }
+    }
+  }
+
+  internal func showHelp() async {
+    await consumingErrors {
+      try await navigationToHelp.perform(
+        context: [
+          .init(
+            title: "code.scanning.help.menu.button.title",
+            icon: .camera,
+            action: { [weak self] in await self?.showQRCodeHelp() }
+          )
+        ]
+      )
+    }
+  }
+
+  private func showQRCodeHelp() async {
+    await consumingErrors {
+      try await navigationToHelp.revert()
+    }
+    self.viewState.update(
+      \.alert,
+      to: .init(
+        title: "code.scanning.help.title",
+        message: "code.scanning.help.message",
+        actions: [
+          .regular(
+            id: .init(),
+            title: .localized(key: .gotIt),
+            perform: {
+              /** no-op */
+            }
+          )
+        ]
+      )
     )
   }
 
-  internal private(set) lazy var contentView: ContentView = .init()
-  internal let components: UIComponentFactory
-  private let controller: Controller
-  private let progressView: ProgressView = .init()
-
-  internal init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
+  internal func backButtonTapped() async {
+    self.viewState.update(
+      \.alert,
+      to: .init(
+        title: "transfer.account.exit.confirmation.title",
+        message: "transfer.account.exit.confirmation.message",
+        actions: [
+          .cancel(
+            id: .init(),
+            title: .localized(key: .cancel)
+          ),
+          .destructive(
+            id: .init(),
+            title: "transfer.account.import.exit.confirmation.confirm.button.title",
+            perform: { [weak self] in
+              await self?.cancelImport()
+            }
+          ),
+        ]
       )
+    )
   }
 
-  internal func setupView() {
-    setupNavigationBar()
-    setupCodeReaderView()
-    setupSubscriptions()
-  }
-
-  private func setupNavigationBar() {
-    mut(progressView) {
-      .combined(
-        .tintColor(dynamic: .secondaryRed)
-      )
-    }
-    mut(navigationItem) {
-      .combined(
-        .leftBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .backStyle(),
-              .accessibilityIdentifier("button.exit"),
-              .action { [weak self] in
-                self?.controller.presentExitConfirmation()
-              }
-            )
-            .instantiate()
-        ),
-        .titleView(progressView),
-        .rightBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .style(.done),
-              .image(named: .help, from: .uiCommons),
-              .accessibilityIdentifier("button.help"),
-              .action { [weak self] in
-                self?.controller.presentHelp()
-              }
-            )
-            .instantiate()
-        )
-      )
+  internal func cancelImport() async {
+    await consumingErrors {
+      try await navigationToAccountImportInfo.revert()
+      accountTransfer.cancelTransfer()
     }
   }
 
-  private func setupCodeReaderView() {
-    self.cancellables.executeOnMainActor { [weak self] in
-      guard let self = self else { return }
-      await self.addChild(
-        CodeReaderViewController.self,
-        viewSetup: { parentView, childView in
-          parentView.set(embeded: childView)
-        }
-      )
-    }
+  internal func handleCodeScannerAlert(_ alert: AlertViewModel) {
+    self.viewState.update(\.alert, to: alert)
   }
 
-  private func setupSubscriptions() {
-    controller
-      .progressPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] progress in
-        self?.progressView.update(progress: progress, animated: true)
-      }
-      .store(in: cancellables)
-
-    controller
-      .exitConfirmationPresentationPublisher()
-      .sink { [weak self] presented in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            if presented {
-              await self?.present(CodeScanningExitConfirmationViewController.self)
-            }
-            else {
-              await self?.dismiss(CodeScanningExitConfirmationViewController.self)
-            }
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .helpPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] presented in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            if presented {
-              await self?
-                .presentSheetMenu(
-                  HelpMenuViewController.self,
-                  in: [
-                    .init(
-                      iconName: .camera,
-                      iconBundle: .uiCommons,
-                      title: .localized("code.scanning.help.menu.button.title"),
-                      handler: { [weak self] in
-                        self?.cancellables
-                          .executeOnMainActor { [weak self] in
-                            await self?
-                              .dismiss(
-                                HelpMenuViewController.self
-                              )
-                            await self?.present(CodeScanningHelpViewController.self)
-                          }
-                      }
-                    )
-                  ]
-                )
-            }
-            else {
-              await self?.dismiss(HelpMenuViewController.self)
-            }
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .resultPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          self?.cancellables
-            .executeOnMainActor { [weak self] in
-              guard let self else { return }
-              switch completion {
-              case .finished:
-                await self
-                  .push(
-                    CodeScanningSuccessViewController.self
-                  )
-                await self.popAll(Self.self, animated: false)
-
-              case .failure(let error) where error is Cancelled:
-                switch self.navigationController {
-                case .some(_ as WelcomeNavigationViewController):
-                  await self.popToRoot()
-
-                case .some(_ as AuthorizationNavigationViewController):
-                  await self.pop(to: AccountSelectionViewController.self)
-
-                case .some:
-                  if await self.pop(to: AccountSelectionViewController.self) ?? false {
-                    /* NOP */
-                  }
-                  else {
-                    await self.popToRoot()
-                  }
-
-                case .none:
-                  await self.dismiss(Self.self)
-                }
-
-              case .failure(let error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
-                await self
-                  .push(
-                    CodeScanningDuplicateViewController.self
-                  )
-                await self.popAll(Self.self, animated: false)
-
-              case .failure(let error):
-                try await self
-                  .push(
-                    OperationResultControlledView(
-                      controller: OperationResultViewController(
-                        context: OperationResultConfiguration(
-                          for: error.asTheError(),
-                          confirmation: { [weak self] in
-                            await self?.pop(to: TransferInfoScreenViewController.self)
-                          }
-                        ),
-                        features: self.components.features
-                      )
-                    ),
-                    animated: true
-                  )
-              }
-            }
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
+  internal func processPayload(_ string: String) async throws {
+    try await self.accountTransfer.processPayload(string)
   }
 }

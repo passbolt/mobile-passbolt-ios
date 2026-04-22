@@ -74,7 +74,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       }
     )
 
-    let feature: ResourceTags = try await self.testedInstance()
+    let feature: ResourceTags = try self.testedInstance()
 
     _ = try await feature.filteredTagsList(expectedResult)
 
@@ -87,7 +87,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       with: alwaysThrow(MockIssue.error())
     )
 
-    let feature: ResourceTags = try await self.testedInstance()
+    let feature: ResourceTags = try self.testedInstance()
 
     await XCTAssertError(matches: MockIssue.self) {
       try await feature.filteredTagsList("filter")
@@ -109,7 +109,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
       with: always(expectedResult)
     )
 
-    let feature: ResourceTags = try await self.testedInstance()
+    let feature: ResourceTags = try self.testedInstance()
 
     let result: Array<ResourceTagListItemDSV> = try await feature.filteredTagsList("filter")
 

@@ -27,14 +27,30 @@ import SharedUIComponents
 extension FeaturesRegistry {
 
   public mutating func useLiveNavigation() {
+    // MARK: - Initial
+    self.useLiveNavigationToSplashScreen()
+    self.useLiveNavigationToWelcomeScreen()
+    self.useLiveNavigationToHelpMenu()
+    self.useLiveNavigationToLogsViewer()
+    self.useLiveNavigationToGenericResult()
+    self.useLiveNavigationToTransferSignIn()
+    self.useLiveNavigationToAccountImportInfo()
+    self.useLiveNavigationToAccountExportInfo()
+    self.useLiveNavigationToCodeScanning()
+    self.useLiveNavigationToUnsupportedMFA()
+    self.useLiveNavigationToServerFingerprintInvalid()
+    self.useLiveNavigationToBiometricsInfo()
+    self.useLiveNavigationToStatupError()
+    self.useLiveNavigationToMainTabs()
+
     // MARK: - Global
-    self.useLiveNavigationToLogs()
+    self.useLiveNavigationToDiagnostics()
     self.useLiveNavigationToOperationAuthorization()
     self.useLiveNavigationToExternalActivity()
-    self.useLiveNavigationToOperationResult()
-    self.useLiveNavigationToTransferInfo()
 
     // MARK: - Session
+    self.useLiveNavigationToAccountSelection()
+    self.useLiveNavigationToMFA()
     self.useLiveNavigationToAccountMenu()
     self.useLiveNavigationToAuthorization()
     self.useLiveNavigationToAccountDetails()
@@ -42,19 +58,20 @@ extension FeaturesRegistry {
     self.useLiveNavigationToExtensionSetup()
 
     // MARK: - Home
-    self.useLiveNavigationToHomePresentationMenu()
+    self.useLiveHomePresentation()
     self.useLiveNavigationToTagContent()
     self.useLiveNavigationToGroupContent()
     self.useLiveNavigationToFolderContent()
     self.useLiveNavigationToResourceFolderEdit()
     self.useLiveNavigationToResourceFolderMenu()
     self.useLiveNavigationToResourceFolderDetails()
-    
+
     // MARK: - Resource details
     self.useLiveNavigationToResourceDetails()
     self.useLiveNavigationToResourceLocationDetails()
     self.useLiveNavigationToResourceTagsDetails()
-    self.useLiveNavigationToResourcePermissionsDetails()
+    self.usePermissionsNavigation()
+    self.useLiveNavigationToResourceFolderLocationDetails()
 
     // MARK: - Resource menu
     self.useLiveNavigationToResourceContextualMenu()
@@ -64,7 +81,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceCreateMenu()
 
     // MARK: - OTP Tab
-    self.useLiveNavigationToOTPResourcesTab()
     self.useLiveNavigationToOTPResourcesList()
 
     // MARK: - OTP menu
@@ -87,7 +103,8 @@ extension FeaturesRegistry {
     self.useLiveNavigationToApplicationSettings()
     self.useLiveNavigationToDefaultPresentationModeSettings()
     self.useLiveNavigationToAccountsSettings()
-    self.useLiveNavigationToAccountExport()
+    self.useLiveNavigationToAccountExportAuthorization()
+    self.useLiveNavigationToAccountQRCodeExport()
     self.useLiveNavigationToAccountKeyInspector()
     self.useLiveNavigationToAccountKeyExportMenu()
 

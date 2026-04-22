@@ -38,7 +38,7 @@ internal final class TagsExplorerViewController: ViewController {
   internal struct ViewState: Equatable {
 
     internal var title: DisplayableString
-    internal var resourceTagID: ResourceTag.ID?
+    internal let resourceTagID: ResourceTag.ID?
     internal var tags: Array<ResourceTagListItemDSV> = .init()
     internal var resources: Array<ResourceListItemDSV> = .init()
   }
@@ -106,7 +106,8 @@ internal final class TagsExplorerViewController: ViewController {
       // Initialized without a tag, show all tags
       self.viewState = .init(
         initial: .init(
-          title: .localized(key: "home.presentation.mode.tags.explorer.title")
+          title: .localized(key: "home.presentation.mode.tags.explorer.title"),
+          resourceTagID: .none
         ),
         updateFrom: ComputedVariable(combined: sessionData.lastUpdate, with: searchController.searchText),
         update: { updateState, updates in

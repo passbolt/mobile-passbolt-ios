@@ -25,7 +25,6 @@ import AccountSetup
 import Accounts
 import CommonModels
 import Session
-import UIComponents
 
 internal struct WindowController {
 
@@ -44,14 +43,62 @@ extension WindowController {
   }
 }
 
-extension WindowController: UIController {
+extension WindowController: LoadableFeature {
+  static var placeholder: WindowController {
+    .init(
+      initialAccount: unimplemented0(),
+      screenStateDispositionSequence: unimplemented0()
+    )
+  }
+}
 
-  internal typealias Context = Void
+extension WindowController {
 
+  @MainActor internal static func load(
+    features: Features
+  ) throws -> Self {
+    let accounts: Accounts = try features.instance()
+    let sessionStateChangeSubscription: EventSubscription<SessionStateChangeEvent> = SessionStateChangeEvent.subscribe()
+
+    @Sendable nonisolated func initialAccount() -> Account? {
+      let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
+      if let lastUsedAccount: AccountWithProfile = accounts.lastUsedAccount() {
+        return lastUsedAccount.account
+      }
+      else if storedAccounts.count == 1, let singleAccount: AccountWithProfile = storedAccounts.first {
+        return singleAccount.account
+      }
+      else {
+        return .none
+      }
+    }
+
+    @Sendable nonisolated func screenStateDispositionSequence() -> AnyAsyncSequence<ScreenStateDisposition> {
+      sessionStateChangeSubscription
+        .map { (event: SessionStateChangeEvent) -> ScreenStateDisposition in
+          switch event {
+          case .authorized(let account):
+            return .useAuthorizedScreenState(for: account)
+          case .requestedPassphrase(let account):
+            return .requestPassphrase(account, message: .none)
+          case .requestedMFA(let account, let providers):
+            return .requestMFA(account, providers: providers)
+          case .closed:
+            return .useInitialScreenState
+          }
+        }
+        .asAnyAsyncSequence()
+    }
+
+    return Self(
+      initialAccount: initialAccount,
+      screenStateDispositionSequence: screenStateDispositionSequence
+    )
+  }
+
+  @MainActor
   internal static func instance(
-    in context: Void,
-    with features: inout Features,
-    cancellables: Cancellables
+    with features: inout Features
   ) throws -> Self {
     let accounts: Accounts = try features.instance()
     let sessionStateChangeSubscription: EventSubscription<SessionStateChangeEvent> = SessionStateChangeEvent.subscribe()

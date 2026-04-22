@@ -21,35 +21,38 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
-import UIComponents
 
-internal struct UserGroupPermissionEditView: ComponentView {
+internal struct UserGroupPermissionEditView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: Controller
 
   internal init(
-    state: ObservableValue<ViewState>,
-    controller: UserGroupPermissionEditController
+    controller: UserGroupPermissionEditViewController
   ) {
-    self.state = state
     self.controller = controller
   }
 
   internal var body: some View {
-    ScreenView(
-      title: .localized(
-        key: "resource.permission.details.title"
-      )
-    ) {
-      self.contentView
-    }
-    .alert(presenting: self.$state.deleteConfirmationAlert)
+    withAlert(
+      \.alert,
+      content: {
+        ScreenView(
+          title: .localized(
+            key: "resource.permission.details.title"
+          )
+        ) {
+          WithViewState(
+            from: controller,
+            content: contentView(with:)
+          )
+        }
+      }
+    )
   }
 
-  @ViewBuilder private var contentView: some View {
+  private func contentView(with state: Controller.ViewState) -> some View {
     VStack(spacing: 0) {
       UserGroupAvatarView()
         .frame(
@@ -59,7 +62,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
         )
         .padding(8)
 
-      Text(displayable: self.state.name)
+      Text(displayable: state.name)
         .text(
           font: .inter(
             ofSize: 20,
@@ -90,7 +93,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
           AsyncButton(
             action: self.controller.showGroupMembers,
             label: {
-              OverlappingAvatarStackView(self.state.groupMembersPreviewItems)
+              OverlappingAvatarStackView(state.groupMembersPreviewItems)
             }
           )
           .frame(maxWidth: .infinity)
@@ -137,8 +140,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
         ) { (permission: Permission) in
           AsyncButton(
             action: {
-              await self.controller
-                .setPermissionType(permission)
+              self.controller.setPermissionType(permission)
             },
             label: {
               HStack(spacing: 0) {
@@ -151,11 +153,16 @@ internal struct UserGroupPermissionEditView: ComponentView {
                 )
 
                 Image(
-                  named: self.state.permission == permission
+                  named: state.permission == permission
                     ? .circleSelected
                     : .circleUnselected
                 )
                 .resizable()
+                .foregroundStyle(
+                  state.permission == permission
+                    ? Color.passboltPrimaryBlue
+                    : Color.passboltIcon
+                )
                 .frame(width: 20, height: 20)
                 .padding(4)
               }
@@ -175,10 +182,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
         title: .localized(
           key: .apply
         ),
-        action: {
-          self.controller
-            .saveChanges()
-        }
+        action: self.controller.saveChanges
       )
 
       SecondaryButton(
@@ -186,10 +190,7 @@ internal struct UserGroupPermissionEditView: ComponentView {
           key: "resource.permission.edit.button.delete.title"
         ),
         iconName: .trash,
-        action: {
-          self.controller
-            .deletePermission()
-        }
+        action: self.controller.deletePermission
       )
     }
     .padding(
@@ -197,16 +198,5 @@ internal struct UserGroupPermissionEditView: ComponentView {
       bottom: 16,
       trailing: 16
     )
-  }
-}
-
-extension UserGroupPermissionEditView {
-
-  internal struct ViewState: Equatable {
-
-    internal var name: DisplayableString
-    internal var permission: Permission
-    internal var groupMembersPreviewItems: Array<OverlappingAvatarStackView.Item>
-    internal var deleteConfirmationAlert: ConfirmationAlertMessage? = .none
   }
 }

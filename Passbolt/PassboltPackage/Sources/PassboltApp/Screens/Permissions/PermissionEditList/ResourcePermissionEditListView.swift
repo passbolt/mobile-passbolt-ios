@@ -21,37 +21,38 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 import UICommons
-import UIComponents
 
-internal struct ResourcePermissionEditListView: ComponentView {
+internal struct ResourcePermissionEditListView: ControlledView {
 
-  @ObservedObject private var state: ObservableValue<ViewState>
-  private let controller: Controller
+  internal let controller: ResourcePermissionEditListController
 
   internal init(
-    state: ObservableValue<ViewState>,
     controller: ResourcePermissionEditListController
   ) {
-    self.state = state
     self.controller = controller
   }
 
   internal var body: some View {
-    ScreenView(
-      title: .localized(
-        key: "resource.permission.edit.list.title"
-      ),
-      loading: self.state.loading
-    ) {
-      self.contentView
+    WithViewState(from: self.controller) { state in
+      ScreenView(
+        title: .localized(
+          key: "resource.permission.edit.list.title"
+        ),
+        loading: state.loading
+      ) {
+        self.contentView(with: state)
+      }
+      .tabbarHidden()
     }
   }
 
-  @ViewBuilder private var contentView: some View {
+  @ViewBuilder private func contentView(
+    with state: Controller.ViewState
+  ) -> some View {
     VStack(spacing: 0) {
-      if self.state.permissionListItems.isEmpty {
+      if state.permissionListItems.isEmpty {
         self.addPermissionButton
           .padding(.horizontal, 16)
         EmptyListView(
@@ -69,7 +70,7 @@ internal struct ResourcePermissionEditListView: ComponentView {
               .buttonStyle(.plain)
 
             ForEach(
-              self.state.permissionListItems,
+              state.permissionListItems,
               id: \PermissionListRowItem.self
             ) { item in
               PermissionListRowView(
@@ -77,10 +78,10 @@ internal struct ResourcePermissionEditListView: ComponentView {
                 action: {
                   switch item {
                   case .user(let details, _):
-                    self.controller.showUserPermissionEdit(details)
+                    await self.controller.showUserPermissionEdit(details)
 
                   case .userGroup(let details):
-                    self.controller.showUserGroupPermissionEdit(details)
+                    await self.controller.showUserGroupPermissionEdit(details)
                   }
                 }
               )
@@ -96,11 +97,11 @@ internal struct ResourcePermissionEditListView: ComponentView {
         action: self.controller.saveChanges
       )
       .opacity(
-        self.state.permissionListItems.isEmpty
+        state.permissionListItems.isEmpty
           ? 0.5
           : 1
       )
-      .disabled(self.state.permissionListItems.isEmpty)
+      .disabled(state.permissionListItems.isEmpty)
       .padding(16)
     }
   }
@@ -133,14 +134,5 @@ internal struct ResourcePermissionEditListView: ComponentView {
       bottom: 8
     )
     .frame(height: 64)
-  }
-}
-
-extension ResourcePermissionEditListView {
-
-  internal struct ViewState: Equatable {
-
-    internal var permissionListItems: Array<PermissionListRowItem>
-    internal var loading: Bool = false
   }
 }

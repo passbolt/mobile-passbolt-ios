@@ -40,7 +40,7 @@ internal final class AccountDetailsViewController: @MainActor ViewController {
 
   private let accountDetails: AccountDetails
   private let accountPreferences: AccountPreferences
-  private let navigationToTransferInfo: NavigationToTransferInfo
+  private let navigationToAccountExportInfo: NavigationToAccountExportInfo
   private let navigationToSelf: NavigationToAccountDetails
 
   private let accountLabelValidator: Validator<String> =
@@ -59,7 +59,7 @@ internal final class AccountDetailsViewController: @MainActor ViewController {
     self.accountDetails = try features.instance()
     self.accountPreferences = try features.instance()
 
-    self.navigationToTransferInfo = try features.instance()
+    self.navigationToAccountExportInfo = try features.instance()
     self.navigationToSelf = try features.instance()
 
     self.viewState = .init(
@@ -128,7 +128,7 @@ extension AccountDetailsViewController {
   }
 
   internal func transferAccount() async throws {
-    try await self.navigationToTransferInfo.perform(context: .export)
+    try await self.navigationToAccountExportInfo.perform()
   }
 }
 

@@ -31,7 +31,7 @@ public struct AsyncToggle: View {
 
   public init(
     state: Bool,
-    @_inheritActorContext toggle: @escaping (Bool) async -> Void
+    toggle: @MainActor @escaping (Bool) async -> Void
   ) {
     self.state = state
     self.toggle = toggle

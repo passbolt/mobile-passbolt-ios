@@ -81,8 +81,8 @@ private final class DUOWebView: WKWebView, WKNavigationDelegate, UIScrollViewDel
 
   @MainActor fileprivate init(
     request: DUOWebAuthorizationRequest,
-    receiveTokens: @escaping @Sendable (String, String, String) -> Void,
-    handleFailure: @escaping @Sendable (Error) -> Void
+    receiveTokens: @escaping (String, String, String) -> Void,
+    handleFailure: @escaping (Error) -> Void
   ) {
     self.request = request
     self.receiveTokens = receiveTokens

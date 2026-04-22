@@ -41,6 +41,7 @@ internal struct TermsAndLicensesView: ControlledView {
         self.content
       }
     )
+    .tabbarHidden()
   }
 
   @ViewBuilder @MainActor private var content: some View {

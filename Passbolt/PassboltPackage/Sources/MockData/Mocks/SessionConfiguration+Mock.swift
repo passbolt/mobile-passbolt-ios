@@ -49,19 +49,33 @@ extension SessionConfiguration {
       passwordPoliciesEnabled: true,
       passwordPoliciesUpdateEnabled: true
     ),
-    metadata: .init(enabled: false)
+    metadata: .init(enabled: false),
+    passwordExpiry: .init(enabled: false)
   )
 
   public func with(metadataEnabled: Bool) -> Self {
-    .init(
-      termsURL: termsURL,
-      privacyPolicyURL: privacyPolicyURL,
-      resources: resources,
-      folders: folders,
-      tags: tags,
-      share: share,
-      passwordPolicies: passwordPolicies,
-      metadata: .init(enabled: metadataEnabled)
-    )
+    with {
+      $0.metadata = .init(enabled: true)
+    }
+  }
+
+  public func with(_ builder: (inout Self) -> Void) -> Self {
+    var copy = self
+    builder(&copy)
+    return copy
+  }
+}
+
+extension PasswordExpiryFeatureConfiguration {
+
+  public init(
+    automaticUpdate: Bool,
+    automaticExpiry: Bool,
+    defaultExpiryPeriod: Int?
+  ) {
+    self.init(enabled: true)
+    self.automaticUpdate = automaticUpdate
+    self.automaticExpiry = automaticExpiry
+    self.defaultExpiryPeriod = defaultExpiryPeriod
   }
 }

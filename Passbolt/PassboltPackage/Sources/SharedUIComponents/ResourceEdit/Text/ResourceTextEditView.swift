@@ -103,8 +103,7 @@ internal struct ResourceTextEditView: ControlledView {
                     }
                   }
                 ),
-                textFieldMinHeight: 100,
-                textFieldMaxHeight: 280
+                textFieldMinHeight: 100
               )
               .focused($focusState)
               .toolbar {
@@ -136,6 +135,7 @@ internal struct ResourceTextEditView: ControlledView {
         }
       }
       .backgroundColor(.passboltBackground)
+      .padding(.bottom, 100)  // extra padding, so field won't interfere with action buttons
     }
   }
 }

@@ -21,176 +21,131 @@
 // @since         v1.0
 //
 
-import Features
-import UICommons
-import UIComponents
-import UniformTypeIdentifiers
+import AccountSetup
+import Display
+import OSFeatures
 
-public final class HelpMenuViewController: PlainViewController, UIComponent, UIDocumentPickerDelegate {
+public final class HelpMenuViewController: ViewController {
 
-  public typealias ContentView = HelpMenuView
-  public typealias Controller = HelpMenuController
+  public struct ViewState: Equatable {
+    let actions: Array<Action>
+    var presentAccountKitPicker: Bool
+  }
 
-  public private(set) lazy var contentView: ContentView = .init()
+  public nonisolated let viewState: ViewStateSource<ViewState>
+  private let navigationToSelf: NavigationToHelpMenu
+  private let accountKitImport: AccountKitImport
+  private let accountImportResultHandler: AccountImportResultHandler
+  private var cancellables: Set<AnyCancellable> = []
 
-  public let components: UIComponentFactory
-  private let controller: Controller
-  public static let navigationToPassphraseValidationSubject: PassthroughSubject<Void, Never> = .init()
+  private let transferFeatures: Features
 
-  public static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  public init(context: Array<Action>, features: Features) throws {
+    let linkOpener: OSLinkOpener = features.instance()
+    self.navigationToSelf = try features.instance()
+
+    self.transferFeatures = try features.branch(scope: AccountTransferScope.self)
+    self.accountImportResultHandler = try transferFeatures.instance()
+    self.accountKitImport = try transferFeatures.instance()
+    let navigationToLogsViewer: NavigationToLogsViewer = try features.instance()
+    let click: PassthroughSubject<Void, Never> = .init()
+    self.viewState = .init(
+      initial: .init(
+        actions: context
+          + [
+            .init(
+              title: "help.menu.show.logs.action.title",
+              icon: .bug,
+              action: {
+                try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
+              }
+            ),
+            accountKitImport.isImportAccountKitAvailable()
+              ? .init(
+                title: "help.menu.show.import.account.kit.title",
+                icon: .importFile,
+                action: { @MainActor in
+                  click.send()
+                }
+              )
+              : nil,
+            .init(
+              title: "help.menu.show.web.help.action.title",
+              icon: .open,
+              action: {
+                try await linkOpener
+                  .openURL("https://help.passbolt.com")
+              }
+            ),
+          ]
+          .compactMap { $0 },
+        presentAccountKitPicker: false
+      )
     )
+    click.sink(receiveValue: self.presentAccountKitPicker).store(in: &self.cancellables)
   }
 
-  public init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
+  internal func closeMenu() async {
+    await consumingErrors {
+      try await self.navigationToSelf.revert()
+    }
   }
 
-  public func setupView() {
-    title =
-      DisplayableString
-      .localized(
-        key: "help.menu.title"
-      )
-      .string()
-
-    contentView.setActions(controller.actions())
-
-    setupSubscriptions()
+  internal func presentAccountKitPicker() {
+    self.viewState.update(\.presentAccountKitPicker, to: true)
   }
 
-  // Navigation to account transfer (callback)
-  public var navigateToAccountTransfer: (() -> Void)?
-
-  /**
-   * Sets up subscriptions to various publishers from the controller.
-   * @returns {void}
-   */
-  private func setupSubscriptions() {
-    controller
-      .logsPresentationPublisher()
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            if let parent: AnyUIComponent = self?.presentingViewController as? AnyUIComponent {
-              await self?.dismiss(Self.self)
-              await parent.present(PlainNavigationViewController<LogsViewerViewController>.self)
-            }
-            else {
-              await self?.present(PlainNavigationViewController<LogsViewerViewController>.self)
-            }
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .websiteHelpPresentationPublisher()
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            await self?.dismiss(Self.self)
-          }
-      }
-      .store(in: cancellables)
-
-    controller
-      .importAccountKitPresentationPublisher()
-      .sink { [weak self] in
-        self?.cancellables
-          .executeOnMainActor { [weak self] in
-            self?.presentDocumentPicker()
-          }
-      }
-      .store(in: cancellables)
-  }
-
-  /**
-   * Presents a document picker to the user.
-   *
-   * The document picker is configured to allow the user to select any type of document, and it's presented in full-screen mode.
-   * @returns {void}
-   */
-  private func presentDocumentPicker() {
-    let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item], asCopy: true)
-    documentPicker.delegate = self
-    documentPicker.modalPresentationStyle = .fullScreen
-    present(documentPicker, animated: true, completion: nil)
-  }
-
-  /**
-   * Handles the selection of a document in the document picker.
-   *
-   * This delegate function is called when a user picks a document using the document picker.
-   *
-   * @param {UIDocumentPickerViewController} controller - The document picker view controller.
-   * @param {URL[]} urls - An array of URLs pointing to the selected documents.
-   * @returns {void}
-   */
-  public func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-    //Do not continue if the user does not select any file
-    guard let selectedFileURL = urls.first else {
+  internal func importAccountKit(from url: URL?) {
+    self.viewState.update(\.presentAccountKitPicker, to: false)
+    guard let url: URL = url else {
       return
     }
-    // Retrieve the file content and launch
-    do {
-      let fileContents = try String(contentsOf: selectedFileURL, encoding: .utf8)
-      //Send file content to controller
-      self.handleAccountKitImportation(fileContents)
+    Task {
+      try await self.navigationToSelf.revert()
+      do {
+        let fileContents = try String(contentsOf: url, encoding: .utf8)
+
+        let accountTransferData = try self.accountKitImport.importAccountKit(fileContents)
+        try await self.accountImportResultHandler.handleImportResult(.success(accountTransferData))
+      }
+      catch {
+        error.logged()
+        try await self.accountImportResultHandler.handleImportResult(.failure(error))
+      }
     }
-    catch {
-      error.logged()
-    }
+
   }
 
-  /**
-   * Handles the importation of an account kit.
-   *
-   * This function initiates the account kit importation process
-   *
-   * @param {string} payload - The payload for the account kit importation.
-   * @returns {void}
-   */
-  private func handleAccountKitImportation(_ payload: String) {
-    controller.proceedAccountKitImportationPublisher(payload)
-      .sink(
-        receiveCompletion: { [weak self] completion in
-          self?.cancellables
-            .executeOnMainActor { [weak self] in
-              guard let self else { return }
-              switch completion {
-              case .finished:
-                break
-              case .failure(let error):
-                //Send error to parent
-                NotificationCenter.default.post(name: .helpMenuActionAccountKitNotification, object: error)
-                break
-              }
-              await self.dismiss(Self.self)
-            }
+  public struct Action: Equatable, Hashable, Sendable {
 
-        },
-        receiveValue: { [weak self] accountTransferData in
-          // Handle the AccountTransferData and send it to parent
-          NotificationCenter.default.post(name: .helpMenuActionAccountKitNotification, object: accountTransferData)
-        }
-      )
-      .store(in: self.cancellables)
+    internal let title: DisplayableString
+    internal let icon: ImageNameConstant
+    internal let action: @Sendable () async throws -> Void
+
+    public init(
+      title: DisplayableString,
+      icon: ImageNameConstant,
+      action: @Sendable @escaping () async throws -> Void
+    ) {
+      self.title = title
+      self.icon = icon
+      self.action = action
+    }
+
+    public static func == (
+      lhs: HelpMenuViewController.Action,
+      rhs: HelpMenuViewController.Action
+    ) -> Bool {
+      lhs.title == rhs.title && lhs.icon == rhs.icon
+    }
+
+    public func hash(into hasher: inout Hasher) {
+      hasher.combine(self.title)
+      hasher.combine(self.icon)
+    }
   }
+}
+
+extension ImageNameConstant: @retroactive @unchecked Sendable {
 
 }

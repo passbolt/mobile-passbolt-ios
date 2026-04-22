@@ -42,6 +42,8 @@ internal struct ApplicationSettingsView: ControlledView {
         self.content
       }
     )
+    .navigationBarBackButtonHidden(true)
+    .toolbar(.hidden, for: .tabBar)
   }
 
   @ViewBuilder @MainActor private var content: some View {

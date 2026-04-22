@@ -83,7 +83,7 @@ internal final class OperationAuthorizationViewController: ViewController {
       update: { [accountDetails, biometry] (updateView, _) in
         do {
           let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.accountLabel = accountWithProfile.label
             viewState.accountUsername = accountWithProfile.username
           }
@@ -110,13 +110,13 @@ internal final class OperationAuthorizationViewController: ViewController {
           biometricsAvailability = .unavailable
         }
 
-        await updateView { (viewState: inout ViewState) in
+        updateView { (viewState: inout ViewState) in
           viewState.biometricsAvailability = biometricsAvailability
         }
 
         do {
           let accountAvatarImage: Data? = try await accountDetails.avatarImage()
-          await updateView { (viewState: inout ViewState) in
+          updateView { (viewState: inout ViewState) in
             viewState.accountAvatarImage = accountAvatarImage
           }
         }

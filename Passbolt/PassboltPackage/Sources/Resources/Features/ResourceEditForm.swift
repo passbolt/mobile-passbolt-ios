@@ -41,6 +41,7 @@ public struct ResourceEditForm: Sendable {
   // Update resource, publicly exposing only dedicated methods
   // in order to avoid mutable access to the whole resource
   internal var updateField: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
+  public var updateExpiryDateIfNeeded: @Sendable (Set<Resource.FieldPath>) async throws -> Void
 
   public init(
     state: AnyUpdatable<Resource>,
@@ -48,7 +49,8 @@ public struct ResourceEditForm: Sendable {
     updateType: @escaping @Sendable (ResourceType) throws -> Void,
     validateForm: @escaping @Sendable () async throws -> Void,
     validateField: @escaping @Sendable (Resource.FieldPath) async throws -> Void,
-    sendForm: @escaping @Sendable () async throws -> Resource
+    sendForm: @escaping @Sendable () async throws -> Resource,
+    updateExpiryDateIfNeeded: @escaping @Sendable (Set<Resource.FieldPath>) async throws -> Void
   ) {
     self.state = state
     self.updateField = updateField
@@ -56,6 +58,7 @@ public struct ResourceEditForm: Sendable {
     self.validateForm = validateForm
     self.validateField = validateField
     self.sendForm = sendForm
+    self.updateExpiryDateIfNeeded = updateExpiryDateIfNeeded
   }
 }
 
@@ -69,7 +72,8 @@ extension ResourceEditForm: LoadableFeature {
       updateType: unimplemented1(),
       validateForm: unimplemented0(),
       validateField: unimplemented1(),
-      sendForm: unimplemented0()
+      sendForm: unimplemented0(),
+      updateExpiryDateIfNeeded: unimplemented1()
     )
   }
   #endif

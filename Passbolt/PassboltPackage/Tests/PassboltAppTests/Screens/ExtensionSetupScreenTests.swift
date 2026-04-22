@@ -25,16 +25,11 @@ import Combine
 import FeatureScopes
 import Features
 import TestExtensions
-import UIComponents
 
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ExtensionSetupScreenTests: FeaturesTestCase {
-
-  override func commonPrepare() {
-
-  }
 
   func test_whenSkippingAllowed_skipButtonShouldBeVisible() async throws {
     await withInstance(
@@ -76,8 +71,8 @@ final class ExtensionSetupScreenTests: FeaturesTestCase {
     )
 
     patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(Just(.didBecomeActive).eraseToAnyPublisher())
+      \ApplicationLifecycle.lifecycle,
+      with: always(Array<ApplicationLifecycle.Transition>([.didBecomeActive]).asAnyAsyncSequence())()
     )
 
     patch(
@@ -109,8 +104,8 @@ final class ExtensionSetupScreenTests: FeaturesTestCase {
     )
 
     patch(
-      \ApplicationLifecycle.lifecyclePublisher,
-      with: always(Just(.didBecomeActive).eraseToAnyPublisher())
+      \ApplicationLifecycle.lifecycle,
+      with: always(Array<ApplicationLifecycle.Transition>([.didBecomeActive]).asAnyAsyncSequence())()
     )
 
     patch(

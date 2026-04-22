@@ -88,6 +88,7 @@ public struct ResourceEditView: ControlledView {
       .backgroundColor(.passboltBackground)
       .foregroundColor(.passboltPrimaryText)
       .accessibilityIdentifier("screen.resource.edit")
+      .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
@@ -138,10 +139,8 @@ public struct ResourceEditView: ControlledView {
           whenFalse(\.showsAdvancedSettings) {
             SecondaryButton(
               title: "resource.create.advanced.button",
-              action: {
-                withAnimation {
-                  self.controller.showAdvancedSettings()
-                }
+              action: { @MainActor in
+                self.controller.showAdvancedSettings()
               }
             )
             .padding(.bottom, 96)
@@ -486,8 +485,7 @@ public struct ResourceEditView: ControlledView {
           }
         }
       ),
-      textFieldMinHeight: 100,
-      textFieldMaxHeight: 280
+      textFieldMinHeight: 100
     )
     .focused($focusState)
     .toolbar {

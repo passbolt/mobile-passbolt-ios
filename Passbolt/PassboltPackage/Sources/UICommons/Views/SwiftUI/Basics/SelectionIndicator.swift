@@ -40,7 +40,7 @@ public struct SelectionIndicator: View {
     }
     else {
       Image(named: .circleUnselected)
-        .foregroundColor(.passboltDivider)
+        .foregroundColor(.passboltIcon)
     }
   }
 }

@@ -117,41 +117,6 @@ extension FeaturesTestCase {
   }
 }
 
-// Legacy support
-extension FeaturesTestCase {
-
-  public final func testedInstance<Controller>(
-    _ featureType: Controller.Type = Controller.self,
-    context: Controller.Context
-  ) throws -> Controller
-  where Controller: UIController {
-    var features: Features = self.testFeatures
-    let instance: Controller = try .instance(
-      in: context,
-      with: &features,
-      cancellables: self.cancellables
-    )
-    guard features as? FeaturesContainer === self.testFeatures
-    else { unreachable("Test container can't be changed") }
-    return instance
-  }
-
-  public final func testedInstance<Controller>(
-    _ featureType: Controller.Type = Controller.self
-  ) throws -> Controller
-  where Controller: UIController, Controller.Context == Void {
-    var features: Features = self.testFeatures
-    let instance: Controller = try .instance(
-      in: Void(),
-      with: &features,
-      cancellables: self.cancellables
-    )
-    guard features as? FeaturesContainer === self.testFeatures
-    else { unreachable("Test container can't be changed") }
-    return instance
-  }
-}
-
 extension FeaturesTestCase {
 
   public func set<Scope>(

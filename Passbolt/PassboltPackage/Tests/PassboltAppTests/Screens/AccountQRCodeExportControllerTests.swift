@@ -39,8 +39,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
     await XCTAssertValue(
       equal: AccountQRCodeExportController.ViewState(
-        currentQRcode: Data(),
-        exitConfirmationAlertPresented: false
+        currentQRcode: Data()
       )
     ) {
 
@@ -69,8 +68,7 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
     await XCTAssertValue(
       equal: AccountQRCodeExportController.ViewState(
-        currentQRcode: Data([0x65, 0x66]),
-        exitConfirmationAlertPresented: false
+        currentQRcode: Data([0x65, 0x66])
       )
     ) {
       await tested.viewState.current
@@ -79,11 +77,6 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
   }
 
   func test_controller_navigates_whenTransferStateUpdatesToError() async throws {
-    XCTExpectFailure(
-      "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
-    )
-    return XCTFail()
-
     let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
@@ -93,15 +86,22 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       \AccountChunkedExport.status,
       with: always(.error(MockIssue.error()))
     )
+    patch(
+      \NavigationToGenericResult.mockPerform,
+      with: { _, context in
+        if context.icon == .failureMark {
+          self.mockExecuted()
+        }
+      }
+    )
     let tested: AccountQRCodeExportController = try self.testedInstance()
+
+    _ = await tested.viewState.current  // force state reload
+
+    await verify(self.mockWasExecuted)
   }
 
   func test_controller_navigates_whenTransferStateUpdatesToFinished() async throws {
-    XCTExpectFailure(
-      "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
-    )
-    return XCTFail()
-
     let updatesSource: Updates = .init()
     patch(
       \AccountChunkedExport.updates,
@@ -111,7 +111,19 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
       \AccountChunkedExport.status,
       with: always(.finished)
     )
+    patch(
+      \NavigationToGenericResult.mockPerform,
+      with: { _, context in
+        if context.icon == .successMark {
+          self.mockExecuted()
+        }
+      }
+    )
     let tested: AccountQRCodeExportController = try self.testedInstance()
+
+    _ = await tested.viewState.current  // force state reload
+
+    await verify(self.mockWasExecuted)
   }
 
   func test_cancelTransfer_cancelsDataExport() async throws {
@@ -122,22 +134,18 @@ final class AccountQRCodeExportControllerTests: FeaturesTestCase {
 
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
-    tested.cancelTransfer()
+    await tested.cancelTransfer()
     XCTAssertTrue(self.mockWasExecuted)
   }
 
   func test_cancelTransfer_navigates() async throws {
-    XCTExpectFailure(
-      "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
-    )
-    return XCTFail()
-
     patch(
       \AccountChunkedExport.cancel,
-      with: always(Void())
+      with: always(self.mockExecuted())
     )
     let tested: AccountQRCodeExportController = try self.testedInstance()
 
-    tested.cancelTransfer()
+    await tested.cancelTransfer()
+    XCTAssertTrue(self.mockWasExecuted)
   }
 }

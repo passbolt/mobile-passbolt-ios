@@ -53,9 +53,10 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
 
   func test_currentOTP_neverReturns_withoutRevealedOTP() async throws {
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: AnyUpdatable<OTPValue> = tested.currentOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
-        try? await tested.currentOTP.value
+        try? await test.value
       }
       await Task.yield()
       task.cancel()
@@ -70,9 +71,10 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
-        try? await tested.revealOTP(.mock_1)
+        try? await test(.mock_1)
       }
       await Task.yield()
       task.cancel()
@@ -92,9 +94,10 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
-        try? await tested.revealOTP(.mock_1)
+        try? await test(.mock_1)
       }
       await Task.yield()
       task.cancel()
@@ -114,9 +117,10 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
-        try? await tested.revealOTP(.mock_1)
+        try? await test(.mock_1)
       }
       await Task.yield()
       task.cancel()
@@ -147,9 +151,10 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
     try await withSerialTaskExecutor {
       await verifyIf(
-        try await tested.revealOTP(.mock_1),
+        try await test(.mock_1),
         isEqual: .totp(expectedResult)
       )
     }
@@ -176,8 +181,9 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
     try await withSerialTaskExecutor {
-      let initial: OTPValue = try await tested.revealOTP(.mock_1)
+      let initial: OTPValue = try await test(.mock_1)
       await verifyIf(
         try await tested.currentOTP.value,
         isEqual: initial
@@ -220,8 +226,9 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
     try await withSerialTaskExecutor {
-      let initial: OTPValue = try await tested.revealOTP(.mock_1)
+      let initial: OTPValue = try await test(.mock_1)
       await verifyIf(
         initial.resourceID,
         isEqual: .mock_1
@@ -313,6 +320,7 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
+    let test: AnyUpdatable<OTPValue> = tested.currentOTP
     try await withSerialTaskExecutor {
       let initial: OTPValue = try await tested.revealOTP(.mock_1)
       await verifyIf(
@@ -321,7 +329,7 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       )
       tested.hideOTP()
       let task: Task<OTPValue?, Never> = .detached {
-        try? await tested.currentOTP.value
+        try? await test.value
       }
       await Task.yield()
       task.cancel()

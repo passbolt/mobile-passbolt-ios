@@ -23,36 +23,42 @@
 
 import XCTest
 
-/// Asserts that a value eventually equals an expected value within a timeout period.
-/// - Parameters:
-///   - call: A closure that returns the value to be tested.
-///   - expectedValue: The expected value to compare against.
-///   - timeout: The maximum time to wait for the value to equal the expected value.
-///   - timeResoultion: The interval between successive checks of the value.
-///   - description: An optional description to include in the failure message.
-///   - file: The file name to use in the failure message.
-///   - line: The line number to use in the failure message.
-public func verifyIf<Value>(
-  _ operation: @autoclosure () async throws -> Value,
-  eventuallyEquals expectedValue: Value,
-  timeout: TimeInterval = 1.0,
-  timeResoultion: UInt64 = 100,
-  description: @autoclosure () -> String = "",
-  file: StaticString = #file,
-  line: UInt = #line,
-) async throws where Value: Equatable {
+extension XCTestCase {
+  /// Asserts that a value eventually equals an expected value within a timeout period.
+  /// - Parameters:
+  ///   - operation: An autoclosure that asynchronously returns the value to be tested.
+  ///   - expectedValue: The expected value to compare against.
+  ///   - timeout: The maximum time to wait for the value to equal the expected value.
+  ///   - timeResoultion: The interval in nanoseconds between successive checks of the value.
+  ///   - description: An optional description to include in the failure message.
+  ///   - file: The file name to use in the failure message.
+  ///   - line: The line number to use in the failure message.
+  /// - Throws: Rethrows any error thrown by the operation closure.
+  public func verifyIf<Value>(
+    _ operation: @autoclosure () async throws -> Value,
+    eventuallyEquals expectedValue: Value,
+    timeout: TimeInterval = 1.0,
+    timeResoultion: UInt64 = 100,
+    description: @autoclosure () -> String = "",
+    file: StaticString = #file,
+    line: UInt = #line,
+  ) async throws where Value: Equatable {
+    let startTime: Date = .now
+    let endTime: Date = startTime.addingTimeInterval(timeout)
 
-  let startTime: Date = .now
-  let endTime: Date = startTime.addingTimeInterval(timeout)
+    while Date.now < endTime {
+      let result = try await operation()
+      if result == expectedValue {
+        return
+      }
 
-  while Date.now < endTime {
-    let result = try await operation()
-    if result == expectedValue {
-      return
+      try await Task.sleep(nanoseconds: timeResoultion)
     }
 
-    try await Task.sleep(nanoseconds: timeResoultion)
+    XCTFail(
+      "\(description()) - Expected value: \(expectedValue) not reached within \(timeout) seconds",
+      file: file,
+      line: line
+    )
   }
-
-  XCTFail("\(description()) - Expected value: \(expectedValue) not reached within \(timeout) seconds", file: file, line: line)
 }

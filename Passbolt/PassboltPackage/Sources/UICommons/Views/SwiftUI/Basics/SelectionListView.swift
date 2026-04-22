@@ -126,7 +126,7 @@ internal struct SelectionListView_Previews: PreviewProvider {
           title: "Own"
         ),
       ]
-
+    // swift-format-ignore: NeverForceUnwrap
     SelectionListView(
       items: allItems,
       selectedItems: [allItems.randomElement()!.id],

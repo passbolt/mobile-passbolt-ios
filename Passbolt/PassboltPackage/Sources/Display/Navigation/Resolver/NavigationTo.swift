@@ -284,6 +284,10 @@ extension NavigationTo {
             rootView: prepareTransitionView(features, context)
           )
           anchor.destinationIdentifier = Destination.identifier
+          // Hide UIKit-backed navigation items to avoid conflicts with SwiftUI navigation bars
+          anchor.navigationItem.leftBarButtonItem = .none
+          anchor.navigationItem.backBarButtonItem = .none
+          anchor.navigationItem.hidesBackButton = true
           try await navigationResolver
             .push(
               anchor,
@@ -336,6 +340,43 @@ extension NavigationTo {
         try DestinationView(controller: features.instance(context: context))
       }
     )
+  }
+
+  /// Navigation that attempts to find top-most navigation stack and pops it to initial view controller.
+  public static func popToRoot() -> FeatureLoader {
+    .disposable(Self.self) { features in
+      let navigationResolver: NavigationResolver = try features.instance()
+
+      @MainActor @Sendable func perform(
+        animated: Bool,
+        context: Destination.TransitionContext,
+        file: StaticString,
+        line: UInt
+      ) async throws {
+        navigationResolver.popToRoot()
+      }
+
+      @MainActor @Sendable func revert(
+        animated: Bool,
+        file: StaticString,
+        line: UInt
+      ) async throws {
+        assertionFailure("Can't revert pop to root!")
+      }
+
+      @MainActor func canPerform(
+        file: StaticString,
+        line: UInt
+      ) -> Bool {
+        true
+      }
+
+      return .init(
+        performAnimated: perform(animated:context:file:line:),
+        revertAnimated: revert(animated:file:line:),
+        canPerformCheck: canPerform(file:line:)
+      )
+    }
   }
 
   public static func legacyPushTransition<DestinationView>(
@@ -439,123 +480,6 @@ extension NavigationTo {
     )
   }
 
-  public static func legacySheetPresentationTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self,
-    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws ->
-      DestinationViewController
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let anchor: NavigationAnchor = try prepareTransitionView(features, context)
-          anchor.destinationIdentifier = Destination.identifier
-          try await navigationResolver
-            .present(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  public static func legacySheetPresentationTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self,
-    context: DestinationViewController.Controller.Context
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent {
-    self.legacySheetPresentationTransition(
-      toLegacy: DestinationViewController.self,
-      { features, _ in
-        var features: Features = features
-        let cancellables: Cancellables = .init()
-
-        let controller: DestinationViewController.Controller = try .instance(
-          in: context,
-          with: &features,
-          cancellables: cancellables
-        )
-
-        return
-          DestinationViewController
-          .instance(
-            using: controller,
-            with: .init(features: features),
-            cancellables: cancellables
-          )
-      }
-    )
-  }
-
-  public static func legacySheetPresentationTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self
-  ) -> FeatureLoader
-  where
-    DestinationViewController: UIComponent,
-    DestinationViewController.Controller.Context == Destination.TransitionContext
-  {
-    self.legacySheetPresentationTransition(
-      toLegacy: DestinationViewController.self,
-      { features, context in
-        var features: Features = features
-        let cancellables: Cancellables = .init()
-
-        let controller: DestinationViewController.Controller = try .instance(
-          in: context,
-          with: &features,
-          cancellables: cancellables
-        )
-
-        return
-          DestinationViewController
-          .instance(
-            using: controller,
-            with: .init(features: features),
-            cancellables: cancellables
-          )
-      }
-    )
-  }
-
   public static func legacyPartialSheetPresentationTransition<DestinationView>(
     to: DestinationView.Type = DestinationView.self,
     _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
@@ -633,177 +557,6 @@ extension NavigationTo {
     )
   }
 
-  public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self,
-    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws ->
-      DestinationViewController
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let anchor: NavigationAnchor = try prepareTransitionView(features, context)
-
-          anchor.sheetPresentationController?.detents = [
-            navigationResolver.dynamicLegacySheetDetent(for: anchor)
-          ]
-
-          anchor.destinationIdentifier = Destination.identifier
-          try await navigationResolver
-            .present(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent, DestinationViewController.Controller.Context == Void {
-    self.legacyPartialSheetPresentationTransition(
-      toLegacy: DestinationViewController.self,
-      { features, _ in
-        var features: Features = features
-        let cancellables: Cancellables = .init()
-
-        let controller: DestinationViewController.Controller = try .instance(
-          with: &features,
-          cancellables: cancellables
-        )
-
-        return
-          DestinationViewController
-          .instance(
-            using: controller,
-            with: .init(features: features),
-            cancellables: cancellables
-          )
-      }
-    )
-  }
-
-  public static func legacyPartialSheetPresentationTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent, Destination.TransitionContext == DestinationViewController.Controller.Context {
-    self.legacyPartialSheetPresentationTransition(
-      toLegacy: DestinationViewController.self,
-      { features, context in
-        var features: Features = features
-        let cancellables: Cancellables = .init()
-
-        let controller: DestinationViewController.Controller = try .instance(
-          in: context,
-          with: &features,
-          cancellables: cancellables
-        )
-
-        return
-          DestinationViewController
-          .instance(
-            using: controller,
-            with: .init(features: features),
-            cancellables: cancellables
-          )
-      }
-    )
-  }
-
-  public static func legacyTabSwitch<DestinationViewController>(
-    to: DestinationViewController.Type = DestinationViewController.self
-  ) -> FeatureLoader
-  where DestinationViewController: UIViewController, Destination.TransitionContext == Void {
-    .disposable(
-      Self.self,
-      load: { features in
-        precondition(
-          Destination.isUnique,
-          "Tab switch has to be unique!"
-        )
-
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .legacyTabSwitch(
-              to: DestinationViewController.self,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          throw
-            InternalInconsistency
-            .error("Invalid navigation - can't revert tab switching!")
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
   public static func legacyAlertPresentationTransition<Alert>(
     using: Alert.Type = Alert.self,
     _ prepare: @escaping @MainActor (Features, Destination.TransitionContext) throws -> Alert
@@ -827,18 +580,17 @@ extension NavigationTo {
               message: alert.message?.string(),
               preferredStyle: .alert
             )
-            alert.actions
-              .forEach { action in
-                alertController.addAction(
-                  .init(
-                    title: action.title.string(),
-                    style: action.role.style,
-                    handler: { _ in
-                      action.action()
-                    }
-                  )
+            for action in alert.actions {
+              alertController.addAction(
+                .init(
+                  title: action.title.string(),
+                  style: action.role.style,
+                  handler: { _ in
+                    action.action()
+                  }
                 )
-              }
+              )
+            }
             return alertController
           }()
           anchor.destinationIdentifier = Destination.identifier
@@ -899,128 +651,6 @@ extension NavigationTo {
 }
 
 extension NavigationTo {
-
-  public static func legacyPushTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self,
-    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws ->
-      DestinationViewController
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func isActive() async -> Bool {
-          navigationResolver
-            .exists(with: Destination.identifier)
-        }
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let anchor: NavigationAnchor = try prepareTransitionView(features, context)
-          anchor.destinationIdentifier = Destination.identifier
-          try await navigationResolver
-            .push(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  public static func legacyPushTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self,
-    context: DestinationViewController.Controller.Context
-  ) -> FeatureLoader
-  where DestinationViewController: UIComponent {
-    self.legacyPushTransition(
-      toLegacy: DestinationViewController.self,
-      { features, _ in
-        var features: Features = features
-        let cancellables: Cancellables = .init()
-
-        let controller: DestinationViewController.Controller = try .instance(
-          in: context,
-          with: &features,
-          cancellables: cancellables
-        )
-
-        return
-          DestinationViewController
-          .instance(
-            using: controller,
-            with: .init(features: features),
-            cancellables: cancellables
-          )
-      }
-    )
-  }
-
-  public static func legacyPushTransition<DestinationViewController>(
-    toLegacy: DestinationViewController.Type = DestinationViewController.self
-  ) -> FeatureLoader
-  where
-    DestinationViewController: UIComponent,
-    DestinationViewController.Controller.Context == Destination.TransitionContext
-  {
-    self.legacyPushTransition(
-      toLegacy: DestinationViewController.self,
-      { features, context in
-        var features: Features = features
-        let cancellables: Cancellables = .init()
-
-        let controller: DestinationViewController.Controller = try .instance(
-          in: context,
-          with: &features,
-          cancellables: cancellables
-        )
-
-        return
-          DestinationViewController
-          .instance(
-            using: controller,
-            with: .init(features: features),
-            cancellables: cancellables
-          )
-      }
-    )
-  }
 
   public static func legacyPopTransition<DestinationView>(
     to: DestinationView.Type = DestinationView.self

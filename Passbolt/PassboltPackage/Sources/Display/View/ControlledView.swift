@@ -180,19 +180,37 @@ extension ControlledView {
     )
   }
 
+  /// Extends content view with support for system alert presentation from provided State.
+  /// Parameters:
+  ///  - keyPath: A key path to an optional State in the ViewState - if non-nil, alert will be shown, if nil - alert will disapear.
+  ///  - alert: A closure that transforms State into AlertViewModel.
+  ///  - content: A view builder that creates the content view.
   @_transparent
   public func withAlert<State, ContentView>(
     _ keyPath: WritableKeyPath<ViewState, State?>,
     alert: @escaping @Sendable (State) -> AlertViewModel,
-    @ViewBuilder content contentView: @escaping () -> ContentView
+    @ViewBuilder content: @escaping () -> ContentView
   ) -> some View
   where State: Equatable, ContentView: View {
     WithAlert(
       from: self.controller,
       at: keyPath,
       alert: alert,
-      content: contentView
+      content: content
     )
+  }
+
+  /// Extends content view with support for system alert presentation from provided view model.
+  ///  Parameters:
+  ///   - keyPath: A key path to an optional AlertViewModel in the ViewState - if non-nil, alert will be shown, if nil - alert will disapear.
+  ///   - content: A view builder that creates the content view.
+  @_transparent
+  public func withAlert<ContentView>(
+    _ keyPath: WritableKeyPath<ViewState, AlertViewModel?>,
+    @ViewBuilder content: @escaping () -> ContentView
+  ) -> some View
+  where ContentView: View {
+    withAlert(keyPath, alert: { $0 }, content: content)
   }
 
   @_transparent

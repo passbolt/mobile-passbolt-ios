@@ -22,7 +22,6 @@
 //
 
 import Features
-import UIComponents
 import XCTest
 
 @available(iOS, introduced: 16.0.0, deprecated, message: "Please switch to `LoadableFeatureTestCase`")
@@ -85,29 +84,5 @@ open class MainActorTestCase: AsyncTestCase {
   ) throws -> Feature
   where Feature: LoadableFeature {
     try features.instance(of: featureType)
-  }
-
-  public final func testController<Controller: UIController>(
-    _ type: Controller.Type = Controller.self,
-    context: Controller.Context
-  ) throws -> Controller {
-    var features: Features = self.features
-    return try Controller.instance(
-      in: context,
-      with: &features,
-      cancellables: cancellables
-    )
-  }
-
-  public final func testController<Controller: UIController>(
-    _ type: Controller.Type = Controller.self
-  ) throws -> Controller
-  where Controller.Context == Void {
-    var features: Features = self.features
-    return try Controller.instance(
-      in: Void(),
-      with: &features,
-      cancellables: cancellables
-    )
   }
 }

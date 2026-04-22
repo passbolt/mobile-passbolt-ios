@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-@MainActor
 public struct BackButton: View {
 
   private let action: @MainActor () async -> Void
@@ -37,12 +36,6 @@ public struct BackButton: View {
       action: self.action,
       regularLabel: {
         Image(named: .arrowLeft)
-          .padding(
-            top: 8,
-            leading: -16,
-            bottom: 8,
-            trailing: 8
-          )
       },
       loadingLabel: {
         SwiftUI.ProgressView()
@@ -56,10 +49,6 @@ public struct BackButton: View {
     .foregroundColor(.passboltPrimaryText)
     .tint(.passboltPrimaryText)
     .backgroundColor(.clear)
-    .frame(
-      width: 48,
-      height: 48
-    )
   }
 }
 
@@ -86,3 +75,33 @@ internal struct BackButton_Previews: PreviewProvider {
   }
 }
 #endif
+
+extension View {
+
+  public func useCustomBackButton() -> some View {
+    modifier(CustomBackButtonModifier())
+  }
+
+  public func tabbarHidden() -> some View {
+    self.toolbar(.hidden, for: .tabBar)
+  }
+}
+
+private struct CustomBackButtonModifier: ViewModifier {
+
+  @Environment(\.dismiss) private var dismiss
+
+  fileprivate func body(content: Content) -> some View {
+    content
+      .navigationBarBackButtonHidden()
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          BackButton(
+            action: {
+              self.dismiss()
+            }
+          )
+        }
+      }
+  }
+}

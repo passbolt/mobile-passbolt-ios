@@ -30,11 +30,11 @@ public struct AvatarButton: View {
 
   @State private var currentImage: Image
   private let resolveImage: @Sendable () async -> Data?
-  private let action: @MainActor () async -> Void
+  private let action: @Sendable @MainActor () async -> Void
 
   public init(
     resolveImage: @escaping @Sendable () async -> Data?,
-    action: @escaping @MainActor () async -> Void
+    action: @Sendable @escaping @MainActor () async -> Void
   ) {
     self.currentImage = Image(named: .person)
     self.resolveImage = resolveImage

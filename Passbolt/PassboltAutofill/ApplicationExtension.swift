@@ -25,7 +25,6 @@ import Crypto
 import Display
 import Features
 import PassboltExtension
-import UIComponents
 
 import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier
@@ -34,18 +33,21 @@ import struct AuthenticationServices.ASExtensionError
 @MainActor
 internal final class ApplicationExtension {
 
+  internal static let shared: ApplicationExtension = .init()
+
   private let ui: UI
   private let features: Features
   private let requestedServiceIdentifiers:
     CriticalState<[AutofillExtensionContext.ServiceIdentifier]>
+  private let rootViewControllerRef: WeakRef<ASCredentialProviderViewController>
+  private var isInitialized: Bool = false
 
-  @MainActor internal init(
-    rootViewController: ASCredentialProviderViewController
-  ) {
+  @MainActor private init() {
     let requestedServiceIdentifiers:
       CriticalState<[AutofillExtensionContext.ServiceIdentifier]> = .init(
         .init()
       )
+    let rootViewControllerRef: WeakRef<ASCredentialProviderViewController> = .init()
     let features: Features = FeaturesFactory {
       (registry: inout FeaturesRegistry) in
       registry.useExtensionRootAnchorProvider()
@@ -54,7 +56,7 @@ internal final class ApplicationExtension {
       registry.use(
         ConfigurationExtensionContext(
           completeExtensionConfiguration: {
-            rootViewController
+            rootViewControllerRef.value?
               .extensionContext
               .completeExtensionConfigurationRequest()
           }
@@ -63,7 +65,7 @@ internal final class ApplicationExtension {
       registry.use(
         AutofillExtensionContext(
           completeWithCredential: { credential in
-            rootViewController
+            rootViewControllerRef.value?
               .extensionContext
               .completeRequest(
                 withSelectedCredential: .init(
@@ -74,12 +76,12 @@ internal final class ApplicationExtension {
               )
           },
           completeWithError: { error in
-            rootViewController
+            rootViewControllerRef.value?
               .extensionContext
               .cancelRequest(withError: error)
           },
           cancelAndCloseExtension: {
-            rootViewController
+            rootViewControllerRef.value?
               .extensionContext
               .cancelRequest(withError: ASExtensionError(.userCanceled))
           },
@@ -102,13 +104,25 @@ internal final class ApplicationExtension {
     )
     self.features = features
     self.requestedServiceIdentifiers = requestedServiceIdentifiers
-    setupSnackBarMessages(within: rootViewController.view)
+    self.rootViewControllerRef = rootViewControllerRef
   }
 }
 
 extension ApplicationExtension {
 
+  @MainActor internal func updateRootViewController(
+    _ rootViewController: ASCredentialProviderViewController
+  ) {
+    self.rootViewControllerRef.value = rootViewController
+    self.requestedServiceIdentifiers.access { identifiers in
+      identifiers = .init()
+    }
+    setupSnackBarMessages(within: rootViewController.view)
+  }
+
   @MainActor internal func initialize() {
+    guard !self.isInitialized else { return }
+    self.isInitialized = true
     do {
       try self.features
         .instance(of: Initialization.self)
@@ -124,10 +138,6 @@ extension ApplicationExtension {
     for identifiers: [ASCredentialServiceIdentifier]
   ) {
     self.requestedServiceIdentifiers.access { requestedIdentifiers in
-      assert(
-        requestedIdentifiers.isEmpty,
-        "Requested suggestions should not change during extension lifetime"
-      )
       requestedIdentifiers =
         identifiers
         .map { identifier in
@@ -144,5 +154,18 @@ extension ApplicationExtension {
 
   internal func prepareInterfaceForExtensionConfiguration() {
     self.ui.prepareInterfaceForExtensionConfiguration()
+  }
+}
+
+/// Mutable weak reference wrapper used to allow closures
+/// to read the current root view controller without
+/// capturing a specific instance.
+@MainActor
+private final class WeakRef<T: AnyObject> {
+
+  fileprivate weak var value: T?
+
+  fileprivate init() {
+    self.value = .none
   }
 }

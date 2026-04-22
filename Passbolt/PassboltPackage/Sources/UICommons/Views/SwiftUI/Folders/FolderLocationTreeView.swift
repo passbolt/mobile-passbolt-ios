@@ -61,6 +61,7 @@ public struct FolderLocationTreeView: View {
           )
       }
     )
+    .tint(.passboltPrimaryText)
 
   }
 

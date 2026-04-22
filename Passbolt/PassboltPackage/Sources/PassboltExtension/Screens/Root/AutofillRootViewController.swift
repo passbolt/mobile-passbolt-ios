@@ -28,7 +28,9 @@ import Session
 import SessionData
 import SharedUIComponents
 
-internal final class AutofillRootViewController: ViewController  {
+internal final class AutofillRootViewController: ViewController {
+
+  private static let sessionSubscriptionTask: CriticalState<Task<Void, Never>?> = .init(.none)
 
   private let accounts: Accounts
   private let session: Session
@@ -54,6 +56,10 @@ internal final class AutofillRootViewController: ViewController  {
 extension AutofillRootViewController {
 
   @Sendable internal final func activate() async {
+    // Close any existing session to ensure fresh authorization
+    // produces a new `.authorized` event on re-invocation.
+    await self.session.close(.none)
+
     let storedAccounts: Array<AccountWithProfile> = accounts.storedAccounts()
 
     if storedAccounts.isEmpty {
@@ -91,103 +97,84 @@ extension AutofillRootViewController {
       }  // else NOP
     }
 
-    Task {
-      do {
-        try await SessionStateChangeEvent.subscribe { (event: SessionStateChangeEvent) async throws in
-          switch event {
-          case .authorized(let account):
-            if let restorationAccount: Account = self.restorationAccount.get(),
-              restorationAccount == account,
-              try await self.navigationRestoration.canRestore()
-            {
-              self.restorationAccount.set(.none)
-              try await self.navigationRestoration.restore()
-            }
-            else {
-              let features: Features = try await self.features
-                .branchIfNeeded(scope: AccountScope.self, context: account)
-                .branchIfNeeded(
-                  scope: SessionScope.self,
+    Self.sessionSubscriptionTask.access { task in
+      task?.cancel()
+      task = Task {
+        do {
+          try await SessionStateChangeEvent.subscribe { (event: SessionStateChangeEvent) async throws in
+            switch event {
+            case .authorized(let account):
+              if let restorationAccount: Account = self.restorationAccount.get(),
+                restorationAccount == account,
+                try await self.navigationRestoration.canRestore()
+              {
+                self.restorationAccount.set(.none)
+                try await self.navigationRestoration.restore()
+              }
+              else {
+                let features: Features = try await self.features
+                  .branchIfNeeded(scope: AccountScope.self, context: account)
+                  .branchIfNeeded(
+                    scope: SessionScope.self,
+                    context: .init(
+                      account: account,
+                      configuration: await self.sessionConfigurationLoader.sessionConfiguration()
+                    )
+                  )
+                let navigationToHome: NavigationToHome = try await features.instance()
+                try await navigationToHome.perform(
                   context: .init(
                     account: account,
-                    configuration: await self.sessionConfigurationLoader.sessionConfiguration()
+                    configuration: self.sessionConfigurationLoader.sessionConfiguration()
                   )
                 )
-              let navigationToHome: NavigationToHome = try await features.instance()
-              try await navigationToHome.perform(
-                context: .init(
-                  account: account,
-                  configuration: self.sessionConfigurationLoader.sessionConfiguration()
-                )
-              )
-            }
+              }
+            case .requestedPassphrase(let account):
+              self.restorationAccount.set(account)
 
-            if let previousAccount: Account = self.restorationAccount
-              .get(),
-              account == previousAccount
-            {
-              try await self.navigationRestoration.restore()
-            }
-            else {
-              let features: Features = try await self.features
-                .branchIfNeeded(scope: AccountScope.self, context: account)
-                .branchIfNeeded(
-                  scope: SessionScope.self,
-                  context: .init(
-                    account: account,
-                    configuration: await self.sessionConfigurationLoader.sessionConfiguration()
-                  )
-                )
-              let navigationToHome: NavigationToHome = try await features.instance()
-              try await navigationToHome.perform(
-                context: .init(
-                  account: account,
-                  configuration: self.sessionConfigurationLoader.sessionConfiguration()
-                )
-              )
-            }
-          case .requestedPassphrase(let account):
-            self.restorationAccount.set(account)
-
-            await consumingErrors {
-              try await self.navigationRestoration.saveCurrent()
-              let navigationToAccountSelection: NavigationToAccountSelection = try await self.features.instance()
-              try await navigationToAccountSelection.perform(
-                context: .signIn
-              )
-
-              let navigationToAuthorization: NavigationToAuthorization = try await self.features.instance()
-              try await navigationToAuthorization.perform(context: account)
-
-            }
-
-          case .requestedMFA(let account, _):
-            let features: Features = try await self.features.branch(scope: AccountScope.self, context: account)
-            let navigationToMFA: NavigationToMFARequired = try await features.instance()
-            await navigationToMFA.performCatching()
-
-          case .closed:
-            self.restorationAccount.set(.none)
-            if self.accounts.storedAccounts().isEmpty {
-              let navigateToNoAccounts: NavigationToNoAccounts = try await self.features.instance()
-              try await navigateToNoAccounts.perform()
-            }
-            else {
               await consumingErrors {
                 try await self.navigationRestoration.saveCurrent()
                 let navigationToAccountSelection: NavigationToAccountSelection = try await self.features.instance()
                 try await navigationToAccountSelection.perform(
                   context: .signIn
                 )
+
+                let navigationToAuthorization: NavigationToAuthorization = try await self.features.instance()
+                try await navigationToAuthorization.perform(context: account)
+
+              }
+
+            case .requestedMFA(let account, _):
+              let features: Features = try await self.features.branch(scope: AccountScope.self, context: account)
+              let navigationToMFA: NavigationToMFARequired = try await features.instance()
+              await navigationToMFA.performCatching()
+
+            case .closed:
+              self.restorationAccount.set(.none)
+              if self.accounts.storedAccounts().isEmpty {
+                let navigateToNoAccounts: NavigationToNoAccounts = try await self.features.instance()
+                try await navigateToNoAccounts.perform()
+              }
+              else {
+                await consumingErrors {
+                  try await self.navigationRestoration.saveCurrent()
+                  let navigationToAccountSelection: NavigationToAccountSelection = try await self.features.instance()
+                  try await navigationToAccountSelection.perform(
+                    context: .signIn
+                  )
+                }
               }
             }
           }
         }
-      }
-      catch {
-        error
-          .asTheError()
-          .asFatalError(message: "Session monitoring broken.")
+        catch is CancellationError {
+          // Expected when a new controller's activate() cancels this subscription
+        }
+        catch {
+          error
+            .asTheError()
+            .asFatalError(message: "Session monitoring broken.")
+        }
       }
     }
   }

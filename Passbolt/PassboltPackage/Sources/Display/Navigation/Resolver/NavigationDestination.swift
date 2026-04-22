@@ -23,7 +23,7 @@
 
 public protocol NavigationDestination {
 
-  associatedtype TransitionContext = Void
+  associatedtype TransitionContext: Sendable = Void
 
   // Used to determine if there can be more than one view
   // for the same transition (transition done more than once).

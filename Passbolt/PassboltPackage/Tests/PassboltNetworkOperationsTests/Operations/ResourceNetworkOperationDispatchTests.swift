@@ -46,6 +46,10 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       \MetadataKeysService.determineKeyType,
       with: always(.userKey)
     )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(.init(allowUsageOfPersonalKeys: false, zeroKnowledgeKeyShare: false))
+    )
   }
 
   func test_givenV4ResourceType_whenCallingCreateResource_shouldExecuteV4ResourceNetworkOperation() async throws {
@@ -252,5 +256,53 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       true
     )
     await fulfillment(of: [sharedEncryptionExpectation, createNetworkOperationExpectation], timeout: 1)
+  }
+
+  func test_givenV5ResourceType_whenPrivateKeysAreNotAllowed_shouldUseSharedKey() async throws {
+    let sharedEncryptionExpectation: XCTestExpectation = .init(description: "Should call shared key encryption")
+
+    let editNetworkOperationExpectation: XCTestExpectation = .init(
+      description: "Should call edit network operation"
+    )
+    let sharedMetadataKeyID: MetadataKeyDTO.ID = .init()
+    patch(
+      \MetadataKeysService.determineKeyType,
+      with: always(.sharedKey(sharedMetadataKeyID))
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(.init(allowUsageOfPersonalKeys: false, zeroKnowledgeKeyShare: false))
+    )
+
+    patch(
+      \ResourceEditNetworkOperation.execute,
+      with: { input in
+        editNetworkOperationExpectation.fulfill()
+        XCTAssertEqual(input.metadataKeyType, .shared)
+        XCTAssertEqual(input.metadataKeyID, sharedMetadataKeyID)
+
+        return .init(
+          resourceID: .mock_1
+        )
+      }
+    )
+    patch(
+      \MetadataKeysService.encrypt,
+      with: { input, key async throws in
+        XCTAssert(key == .sharedKey(sharedMetadataKeyID))
+        sharedEncryptionExpectation.fulfill()
+        return .init(rawValue: input)
+      }
+    )
+
+    let sut: ResourceNetworkOperationDispatch = try self.testedInstance()
+    _ = try await sut.editResource(
+      .init(
+        type: .init(id: .mock_1, slug: .v5Default)
+      ),
+      .init(),
+      .init([.mock_1])
+    )
+    await fulfillment(of: [sharedEncryptionExpectation, editNetworkOperationExpectation], timeout: 1)
   }
 }

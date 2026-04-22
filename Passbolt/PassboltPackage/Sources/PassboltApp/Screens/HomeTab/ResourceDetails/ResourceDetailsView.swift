@@ -54,6 +54,8 @@ internal struct ResourceDetailsView: ControlledView {
       .backgroundColor(.passboltBackground)
       .foregroundColor(.passboltPrimaryText)
       .onDisappear(perform: self.controller.coverAllFields)
+      .useCustomBackButton()
+      .tabbarHidden()
   }
 
   @MainActor @ViewBuilder private var contentView: some View {
@@ -178,6 +180,7 @@ internal struct ResourceDetailsView: ControlledView {
         Text(displayable: section.title)
           .font(.inter(ofSize: 16, weight: .bold))
           .padding(.bottom, 16)
+          .accessibilityIdentifier("resource.detail.section.\(section.accessibilityIdenitifier).title")
         VStack(spacing: 0) {
           ForEach(section.fields) { (fieldModel: ResourceDetailsFieldViewModel) in
             rowView(for: fieldModel, hideTitles: section.hideFieldTitles)
@@ -191,6 +194,7 @@ internal struct ResourceDetailsView: ControlledView {
         .padding(8)
         .background(Color.passboltBackgroundGray)
         .cornerRadius(4)
+        .accessibilityIdentifier("resource.detail.section.\(section.accessibilityIdenitifier).content")
       }
       CommonListSpacer(minHeight: 8)
     }
@@ -200,6 +204,7 @@ internal struct ResourceDetailsView: ControlledView {
           Text(displayable: "resource.detail.section.permissions")
             .font(.inter(ofSize: 16, weight: .bold))
             .padding(.bottom, 16)
+            .accessibilityIdentifier("resource.detail.section.permissions.title")
           CommonListRow(
             contentAction: self.controller.showPermissionsDetails,
             content: {
@@ -210,6 +215,7 @@ internal struct ResourceDetailsView: ControlledView {
                     .frame(height: 40)
                 }
               )
+              .accessibilityIdentifier("resource.detail.section.permissions.content")
             },
             accessory: DisclosureIndicatorImage.init
           )

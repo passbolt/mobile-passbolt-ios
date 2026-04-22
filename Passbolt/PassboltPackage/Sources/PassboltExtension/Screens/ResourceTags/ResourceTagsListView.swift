@@ -60,6 +60,8 @@ internal struct ResourceTagsListView: ControlledView {
         self.contentView(with: state)
       }
     )
+    .environment(\.hideTrailingItem, true)
+    .environment(\.hideLeadingItem, true)
   }
 
   @MainActor @ViewBuilder private func searchView(

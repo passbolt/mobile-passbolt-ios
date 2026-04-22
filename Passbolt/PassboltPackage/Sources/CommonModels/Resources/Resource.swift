@@ -44,7 +44,7 @@ public struct Resource: Sendable {
   public let modified: Timestamp?  // local resources does not have modified date
   public var meta: JSON
   public var secret: JSON  // null means that secret was not fetched yet as it is requested and filled separately
-  public let expired: Timestamp?
+  public var expired: Timestamp?
   public var metadataKeyId: MetadataKeyDTO.ID?
   public var metadataKeyType: MetadataKeyDTO.MetadataKeyType?
 
@@ -225,6 +225,12 @@ extension Resource {
   ) -> ResourceFieldSpecification? {
     self.type.fieldSpecification(for: path)
   }
+
+  public func isSecret(
+    _ path: FieldPath
+  ) -> Bool {
+    self.type.secretPaths.contains(path) || self.customFieldsSecretPaths.contains(path)
+  }
 }
 
 // MARK: - Updates
@@ -330,7 +336,6 @@ extension Resource {
       .values.map { $0 }
 
     for field in removedFields {
-      #warning("To verify - this should not leave any junk values!")
       self[keyPath: field.path].remove()
     }
     // update metadata resource type if needed

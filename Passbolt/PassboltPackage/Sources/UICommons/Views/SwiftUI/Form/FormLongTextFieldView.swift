@@ -31,10 +31,10 @@ public struct FormLongTextFieldView: View {
   private let mandatory: Bool
   private let encrypted: Bool?
   private let textFieldMinHeight: CGFloat
-  private let textFieldMaxHeight: CGFloat?
   @Binding private var state: Validated<String>
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
+  @State private var height: CGFloat
 
   public init(
     title: DisplayableString = .raw(""),
@@ -42,15 +42,14 @@ public struct FormLongTextFieldView: View {
     mandatory: Bool = false,
     encrypted: Bool? = .none,
     state: Binding<Validated<String>>,
-    textFieldMinHeight: CGFloat = 34,
-    textFieldMaxHeight: CGFloat? = nil
+    textFieldMinHeight: CGFloat = 34
   ) {
     self.title = title.string()
     self.prompt = prompt?.string()
     self.mandatory = mandatory
     self.encrypted = encrypted
+    self.height = textFieldMinHeight
     self.textFieldMinHeight = textFieldMinHeight
-    self.textFieldMaxHeight = textFieldMaxHeight
     self._state = state
   }
 
@@ -97,31 +96,23 @@ public struct FormLongTextFieldView: View {
         )
       }  // else skip
       ZStack {
-        SwiftUI.TextEditor(
-          text: .init(
-            get: {
-              self.state.value
-            },
-            set: { (newValue: String) in
-              self.state.value = newValue
-            }
+        AutosizingTextView(text: $state.value, height: $height)
+          .text(
+            font: .inter(
+              ofSize: 14,
+              weight: .regular
+            ),
+            color: .passboltPrimaryText
           )
-        )
-        .text(
-          font: .inter(
-            ofSize: 14,
-            weight: .regular
-          ),
-          color: .passboltPrimaryText
-        )
-        .multilineTextAlignment(.leading)
-        .focused(self.$focused)
-        .backport.hideScrollContentBackground()
-        .frame(minHeight: textFieldMinHeight, maxHeight: textFieldMaxHeight)
-        .fixedSize(
-          horizontal: false,
-          vertical: true
-        )
+          .multilineTextAlignment(.leading)
+          .focused(self.$focused)
+          .backport.hideScrollContentBackground()
+          .frame(minHeight: textFieldMinHeight)
+          .frame(height: max(height, textFieldMinHeight))
+          .fixedSize(
+            horizontal: false,
+            vertical: true
+          )
 
         if self.state.value.isEmpty, let prompt {
           Text(prompt)
@@ -196,6 +187,94 @@ public struct FormLongTextFieldView: View {
     .animation(
       .easeIn,
       value: self.state.displayableErrorMessage
+    )
+  }
+}
+
+private struct AutosizingTextView: UIViewRepresentable {
+
+  @Binding private var text: String
+  @Binding private var height: CGFloat
+
+  fileprivate init(text: Binding<String>, height: Binding<CGFloat>) {
+    self._text = text
+    self._height = height
+  }
+
+  fileprivate func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+  fileprivate final class Coordinator: NSObject, UITextViewDelegate {
+
+    private var parent: AutosizingTextView
+
+    fileprivate init(_ parent: AutosizingTextView) {
+      self.parent = parent
+    }
+
+    fileprivate func textViewDidChange(_ textView: UITextView) {
+      parent.text = textView.text
+      self.parent.height = textView.sizeThatFits().height
+    }
+
+    @objc
+    fileprivate func doneButtonTapped() {
+      UIApplication.shared.sendAction(
+        #selector(UIResponder.resignFirstResponder),
+        to: nil,
+        from: nil,
+        for: nil
+      )
+    }
+  }
+
+  fileprivate func makeUIView(context: Context) -> UITextView {
+    let textView: UITextView
+    if #unavailable(iOS 17) {
+      textView = .init(usingTextLayoutManager: false)
+    }
+    else {
+      textView = .init()
+    }
+
+    textView.delegate = context.coordinator
+    textView.font = .inter(ofSize: 14, weight: .regular)
+    textView.isScrollEnabled = false
+    textView.backgroundColor = .clear
+    textView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+    let toolbar: UIToolbar = .init()
+    toolbar.sizeToFit()
+    let flexSpace: UIBarButtonItem = .init(
+      barButtonSystemItem: .flexibleSpace,
+      target: nil,
+      action: nil
+    )
+    let doneButton: UIBarButtonItem = .init(
+      title: DisplayableString(stringLiteral: "generic.done").string(),
+      style: .done,
+      target: context.coordinator,
+      action: #selector(Coordinator.doneButtonTapped)
+    )
+    toolbar.items = [flexSpace, doneButton]
+    textView.inputAccessoryView = toolbar
+
+    DispatchQueue.main.async {
+      height = textView.sizeThatFits().height
+    }
+    return textView
+  }
+
+  fileprivate func updateUIView(_ uiView: UITextView, context: Context) {
+    if uiView.text != text {
+      uiView.text = text
+    }
+  }
+}
+
+extension UITextView {
+
+  fileprivate func sizeThatFits() -> CGSize {
+    self.sizeThatFits(
+      CGSize(width: self.frame.width, height: .infinity)
     )
   }
 }

@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum OSBiometryAvailability: Hashable {
+public enum OSBiometryAvailability: Hashable, Sendable {
 
   case unavailable
   case unconfigured

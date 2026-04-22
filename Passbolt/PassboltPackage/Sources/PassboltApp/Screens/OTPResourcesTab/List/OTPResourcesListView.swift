@@ -48,6 +48,7 @@ internal struct OTPResourcesListView: ControlledView {
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
     .onDisappear(perform: self.controller.hideOTPCodes)
+    .environment(\.hideLeadingItem, true)
   }
 
   @ViewBuilder @MainActor private var search: some View {
@@ -66,6 +67,9 @@ internal struct OTPResourcesListView: ControlledView {
                 UserAvatarView(
                   imageData: accountAvatarImage
                 )
+                .padding(
+                  trailing: 6
+                )
               }
             }
           )
@@ -73,9 +77,10 @@ internal struct OTPResourcesListView: ControlledView {
       )
     }
     .padding(
-      leading: 16,
+      top: 10,
+      leading: 24,
       bottom: 16,
-      trailing: 16
+      trailing: 24
     )
   }
 

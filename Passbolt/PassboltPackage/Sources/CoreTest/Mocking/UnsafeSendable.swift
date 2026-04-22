@@ -26,6 +26,7 @@
 // in unit tests where data races are not possible
 public final class UnsafeSendable<Value>: @unchecked Sendable {
 
+  // swift-format-ignore: NoLeadingUnderscores
   private var _value: Value?
 
   public init(

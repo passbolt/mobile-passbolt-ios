@@ -50,63 +50,21 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
   }
 
   func test_importAccountKit_checkAccountKitFormat_shouldNotAllowEmptyString() async throws {
-
     let accountKitImport: AccountKitImport = try testedInstance()
-
-    var result: Error?
-    accountKitImport
-      .importAccountKit("")
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitImportFailure {
-
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("The account kit is required."))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitImportFailure")
-    }
+    await assert(
+      try accountKitImport.importAccountKit(""),
+      throws: AccountKitImportFailure.self,
+      with: "The account kit is required."
+    )
   }
 
   func test_importAccountKit_checkAccountKitFormat_shouldNotAllowNonBase64() async throws {
-
     let accountKitImport: AccountKitImport = try testedInstance()
-
-    var result: Error?
-    accountKitImport
-      .importAccountKit("this is not a base 64")
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitImportFailure {
-
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("The account kit should be a base 64 format."))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitImportFailure")
-    }
+    await assert(
+      try accountKitImport.importAccountKit("this is not a base 64"),
+      throws: AccountKitImportFailure.self,
+      with: "The account kit should be a base 64 format."
+    )
   }
 
   func test_importAccountKit_extractPGPMessage_shouldNotExtractInvalidPGPMessage() async throws {
@@ -119,30 +77,11 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
     )
 
     let accountKitImport: AccountKitImport = try testedInstance()
-
-    var result: Error?
-    accountKitImport
-      .importAccountKit("VGhpcyBpcyBub3QgYSB2YWxpZCBhY2NvdW50IGtpdA==")
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitImportFailure {
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("Failed to decode PGPMessage."))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitImportFailure")
-    }
+    await assert(
+      try accountKitImport.importAccountKit("VGhpcyBpcyBub3QgYSB2YWxpZCBhY2NvdW50IGtpdA=="),
+      throws: AccountKitImportFailure.self,
+      with: "Failed to decode PGPMessage."
+    )
   }
 
   func test_importAccountKit_extractAccountKit_shouldNotExtractInvalidJSONKit() async throws {
@@ -154,29 +93,11 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
 
     let accountKitImport: AccountKitImport = try testedInstance()
     let base64AccountKit = (invalidAccountKitJSON.data(using: .utf8)?.base64EncodedString())!
-    var result: Error?
-    accountKitImport
-      .importAccountKit(base64AccountKit)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitImportFailure {
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("No Account kit found on the PGP message"))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitImportFailure")
-    }
+    await assert(
+      try accountKitImport.importAccountKit(base64AccountKit),
+      throws: AccountKitImportFailure.self,
+      with: "No Account kit found on the PGP message"
+    )
   }
 
   func test_importAccountKit_extractAccountKit_shouldNotExtractInvalidAccountKit() async throws {
@@ -188,30 +109,11 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
 
     let accountKitImport: AccountKitImport = try testedInstance()
     let base64AccountKit = (invalidAccountKitFormat.data(using: .utf8)?.base64EncodedString())!
-
-    var result: Error?
-    accountKitImport
-      .importAccountKit(base64AccountKit)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitImportFailure {
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("Cannot extract account kit from payload"))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitImportFailure")
-    }
+    await assert(
+      try accountKitImport.importAccountKit(base64AccountKit),
+      throws: AccountKitImportFailure.self,
+      with: "Cannot extract account kit from payload"
+    )
   }
 
   func test_importAccountKit_validateAccountKitSignature_shouldRejectInvalidSignature() async throws {
@@ -228,30 +130,10 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
 
     let accountKitImport: AccountKitImport = try testedInstance()
     let base64AccountKit = (accountKit.data(using: .utf8)?.base64EncodedString())!
-
-    var result: Error?
-    accountKitImport
-      .importAccountKit(base64AccountKit)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitImportInvalidSignature {
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("Failed to validate signature"))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitImportInvalidSignature")
-    }
+    await assert(
+      try accountKitImport.importAccountKit(base64AccountKit),
+      throws: AccountKitImportInvalidSignature.self
+    )
   }
 
   func test_importAccountKit_validateAccountKitSignature_shouldNotValidateDuplicatedAccount() async throws {
@@ -277,30 +159,10 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
 
     let accountKitImport: AccountKitImport = try testedInstance()
     let base64AccountKit = (accountKit.data(using: .utf8)?.base64EncodedString())!
-
-    var result: Error?
-    accountKitImport
-      .importAccountKit(base64AccountKit)
-      .sink(
-        receiveCompletion: { completion in
-          guard case .failure(let error) = completion
-          else { return }
-          result = error
-        },
-        receiveValue: { _ in }
-      )
-      .store(in: cancellables)
-
-    // temporary wait for detached tasks
-    try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-
-    if let error = result as? AccountKitAccountAlreadyExist {
-      XCTAssertTrue(error.context.diagnosticsDescription.contains("The account kit already exist."))
-
-    }
-    else {
-      XCTFail("Error is not of type AccountKitAccountAlreadyExist")
-    }
+    await assert(
+      try accountKitImport.importAccountKit(base64AccountKit),
+      throws: AccountKitAccountAlreadyExist.self
+    )
   }
 
   func test_importAccountKit_validateAccountKitSignature_shouldReturnTheAccountDataTransfer() async throws {
@@ -327,16 +189,7 @@ final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
     let accountKitImport: AccountKitImport = try testedInstance()
     let base64AccountKit = (accountKit.data(using: .utf8)?.base64EncodedString())!
 
-    var result: AccountTransferData?
-    accountKitImport
-      .importAccountKit(base64AccountKit)
-      .sink(
-        receiveCompletion: { _ in },
-        receiveValue: { accountData in
-          result = accountData
-        }
-      )
-      .store(in: cancellables)
+    let result: AccountTransferData? = try accountKitImport.importAccountKit(base64AccountKit)
 
     XCTAssertEqual(result?.userID, accountKitData.userID)
     XCTAssertEqual(result?.domain, accountKitData.domain)
@@ -445,3 +298,29 @@ private let transferedAccountWithProfile: AccountWithProfile = .init(
     avatarImageURL: ""
   )
 )
+
+extension AccountKitImportTests {
+
+  func assert<R, E>(
+    _ operation: @autoclosure @escaping () async throws -> R,
+    throws: E.Type,
+    with expectedMessage: String? = .none,
+    message: String = "",
+    file: StaticString = #file,
+    line: UInt = #line
+  ) async where E: TheError {
+    do {
+      _ = try await operation()
+      XCTFail(message, file: file, line: line)
+    }
+    catch let error as E {
+      if let expectedMessage {
+        XCTAssertTrue(error.context.diagnosticsDescription.contains(expectedMessage), message, file: file, line: line)
+      }
+      // Expected error thrown, test passes
+    }
+    catch {
+      XCTFail("Unexpected error thrown: \(error)", file: file, line: line)
+    }
+  }
+}

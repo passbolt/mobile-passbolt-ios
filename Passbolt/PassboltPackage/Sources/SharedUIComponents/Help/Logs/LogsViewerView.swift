@@ -21,111 +21,163 @@
 // @since         v1.0
 //
 
-import UICommons
+import Display
 
-public final class LogsViewerView: CollectionView<SingleSection, LogsViewerLogItem> {
+public struct LogsViewerView: ControlledView {
 
-  public init() {
-    super
-      .init(
-        layout: .logsList(),
-        cells: [LogsViewerLogCell.self]
-      )
-    let activityIndicator: ActivityIndicator = .init(style: .large)
-    activityIndicator.dynamicColor = .icon
-    emptyStateView = activityIndicator
+  @Environment(\.dismiss) private var dismiss
+
+  public let controller: LogsViewerViewController
+
+  public init(controller: LogsViewerViewController) {
+    self.controller = controller
   }
 
-  public override func setup() {
-    mut(self) {
-      .custom { (subject: LogsViewerView) in
-        subject.dynamicBackgroundColor = .background
+  public var body: some View {
+    withSheet(
+      \.presentShareSheet,
+      sheet: {
+        with(\.sharingDiagnosticsInfo) { diagnosticsInfo in
+          ActivityViewController(
+            activityItems: [diagnosticsInfo]
+          )
+        }
+      },
+      content: {
+        VStack(spacing: 0) {
+          when(\.useCustomNavigationBar) {
+            HStack(spacing: 0) {
+              AsyncButton(
+                action: { self.dismiss() },
+                label: {
+                  Image(named: .close)
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.passboltPrimaryText)
+                    .frame(width: 20, height: 20)
+                }
+              )
+              Spacer()
+              Text(displayable: "help.logs.viewer.title")
+                .font(.inter(ofSize: 16, weight: .semibold))
+                .foregroundStyle(Color.passboltPrimaryText)
+
+              Spacer()
+              AsyncButton(
+                action: self.controller.share,
+                label: {
+                  Image(named: .open)
+                    .resizable()
+                    .renderingMode(.template)
+                    .foregroundStyle(Color.passboltPrimaryText)
+                    .frame(width: 20, height: 20)
+                }
+              )
+            }
+
+            .padding(16)
+          }
+          whenFalse(\.useCustomNavigationBar) {
+            Rectangle()
+              .frame(height: 16)
+              .foregroundStyle(Color.clear)
+              .navigationTitle(displayable: "help.logs.viewer.title")
+              .navigationBarTitleDisplayMode(.inline)
+              .navigationBarBackButtonHidden()
+              .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                  IconButton(
+                    iconName: .close,
+                    action: { self.dismiss() }
+                  )
+                }
+
+                ToolbarItem(placement: .topBarTrailing) {
+                  IconButton(
+                    iconName: .open,
+                    action: self.controller.share
+                  )
+                }
+              }
+          }
+
+          with(\.isInitialLoading) { isInitialLoading in
+            if isInitialLoading {
+              VStack(spacing: 0) {
+                Spacer()
+                ActivityIndicator(style: .large)
+                  .task {
+                    await controller.refreshLogs()
+                  }
+                Spacer()
+              }
+            }
+            else {
+              with(\.diagnosticsInfo) { info in
+                List {
+                  ForEach(info, id: \.self) { line in
+                    Text(line)
+                      .font(.system(size: 10))
+                      .monospaced()
+                      .foregroundStyle(Color.passboltPrimaryText)
+                  }
+                }
+                .listStyle(.plain)
+              }
+            }
+          }
+        }
       }
+    )
+  }
+}
+
+private struct ActivityViewController: UIViewControllerRepresentable {
+  private let activityItems: [Any]
+  private let applicationActivities: [UIActivity]?
+  @Environment(\.presentationMode) var presentationMode
+
+  fileprivate init(
+    activityItems: [Any],
+    applicationActivities: [UIActivity]? = nil
+  ) {
+    self.activityItems = activityItems
+    self.applicationActivities = applicationActivities
+  }
+
+  fileprivate func makeUIViewController(
+    context: Context
+  ) -> UIActivityViewController {
+    let controller = UIActivityViewController(
+      activityItems: activityItems,
+      applicationActivities: applicationActivities
+    )
+    controller.completionWithItemsHandler = { _, _, _, _ in
+      self.presentationMode.wrappedValue.dismiss()
     }
-    mut(PlainView()) {
-      .combined(
-        .backgroundColor(.passboltBackground),
-        .subview(of: self),
-        .topAnchor(.equalTo, self.topAnchor),
-        .leadingAnchor(.equalTo, self.leadingAnchor),
-        .trailingAnchor(.equalTo, self.trailingAnchor),
-        .bottomAnchor(.equalTo, self.safeAreaLayoutGuide.topAnchor)
+    return controller
+  }
+
+  fileprivate func updateUIViewController(
+    _ uiViewController: UIActivityViewController,
+    context: Context
+  ) {
+    // no updates needed
+  }
+}
+
+#if DEBUG
+
+#Preview {
+  PlaceholderView()
+    .sheet(
+      isPresented: .constant(true)
+    ) {
+      createPreview(
+        LogsViewerView.self,
+        with: .init(useCustomNavigationBar: false)
       )
     }
-  }
-
-  public override func setupCell(
-    for item: LogsViewerLogItem,
-    in section: SingleSection,
-    at indexPath: IndexPath
-  ) -> CollectionViewCell? {
-    dequeueOrMakeReusableCell(
-      for: LogsViewerLogCell.self,
-      at: indexPath
-    )
-    .updated(log: item.log)
-  }
 }
 
-public struct LogsViewerLogItem: Hashable {
-
-  private let id: UUID = .init()  // we want them to be always unique
-  public var log: String
-}
-
-private final class LogsViewerLogCell: CollectionViewCell {
-
-  private let label: Label = .init()
-
-  fileprivate override func setup() {
-    mut(label) {
-      .combined(
-        .font(.monospacedSystemFont(ofSize: 10, weight: .regular)),
-        .textColor(dynamic: .primaryText),
-        .numberOfLines(0),
-        .lineBreakMode(.byWordWrapping),
-        .subview(of: contentView),
-        .edges(equalTo: contentView, insets: .init(top: 0, left: -8, bottom: 0, right: -8))
-      )
-    }
-
-    mut(self) {
-      .backgroundColor(.clear)
-    }
-  }
-
-  fileprivate func updated(log: String) -> Self {
-    label.text = log
-    return self
-  }
-
-  fileprivate override func prepareForReuse() {
-    super.prepareForReuse()
-    label.text = ""
-  }
-}
-
-extension UICollectionViewLayout {
-
-  fileprivate static func logsList() -> UICollectionViewCompositionalLayout {
-
-    let item: NSCollectionLayoutItem = .init(
-      layoutSize: .init(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(16)
-      )
-    )
-
-    let group: NSCollectionLayoutGroup = .vertical(
-      layoutSize: .init(
-        widthDimension: .fractionalWidth(1.0),
-        heightDimension: .estimated(16)
-      ),
-      subitems: [item]
-    )
-
-    let section: NSCollectionLayoutSection = .init(group: group)
-
-    return UICollectionViewCompositionalLayout(section: section)
-  }
-}
+#endif

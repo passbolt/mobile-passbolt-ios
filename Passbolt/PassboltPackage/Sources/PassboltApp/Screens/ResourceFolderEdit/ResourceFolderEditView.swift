@@ -41,6 +41,7 @@ internal struct ResourceFolderEditView: ControlledView {
         ),
         contentView: {
           self.contentView(using: state)
+            .toolbar(.hidden, for: .tabBar)
         }
       )
     }

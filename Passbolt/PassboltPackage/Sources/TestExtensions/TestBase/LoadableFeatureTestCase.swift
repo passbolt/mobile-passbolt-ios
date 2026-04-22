@@ -22,7 +22,6 @@
 //
 
 import FeatureScopes
-import UIComponents
 import XCTest
 
 @testable import Features
@@ -134,32 +133,6 @@ where Feature: LoadableFeature {
 
 extension LoadableFeatureTestCase {
 
-  @available(*, deprecated, message: "UIController should be migrated to a proper feature")
-  public final func testController<Controller: UIController>(
-    _ type: Controller.Type = Controller.self,
-    context: Controller.Context
-  ) throws -> Controller {
-    var features: Features = self.features
-    return try Controller.instance(
-      in: context,
-      with: &features,
-      cancellables: cancellables
-    )
-  }
-
-  @available(*, deprecated, message: "UIController should be migrated to a proper feature")
-  public final func testController<Controller: UIController>(
-    _ type: Controller.Type = Controller.self
-  ) throws -> Controller
-  where Controller.Context == Void {
-    var features: Features = self.features
-    return try Controller.instance(
-      in: Void(),
-      with: &features,
-      cancellables: cancellables
-    )
-  }
-
   public final func testedInstance() throws -> Feature {
     if let instance: Feature = self.instance {
       return instance
@@ -189,18 +162,18 @@ extension LoadableFeatureTestCase {
       .set(scope)
   }
 
-  public func usePlaceholder<Feature>(
-    for _: Feature.Type
-  ) where Feature: LoadableFeature {
+  public func usePlaceholder<F>(
+    for _: F.Type
+  ) where F: LoadableFeature {
     self.features
-      .usePlaceholder(for: Feature.self)
+      .usePlaceholder(for: F.self)
   }
 
-  public func usePlaceholder<Feature>(
-    for featureType: Feature.Type
-  ) where Feature: StaticFeature {
+  public func usePlaceholder<F>(
+    for featureType: F.Type
+  ) where F: StaticFeature {
     self.features
-      .usePlaceholder(for: Feature.self)
+      .usePlaceholder(for: F.self)
   }
 
   public final func set<Value>(

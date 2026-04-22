@@ -24,10 +24,6 @@ let package = Package(
       name: "SharedUIComponents",
       targets: ["SharedUIComponents"]
     ),
-    .library(
-      name: "UIComponents",
-      targets: ["UIComponents"]
-    ),
     // MARK: - Entrypoints
     .library(
       name: "PassboltApp",
@@ -193,7 +189,6 @@ let package = Package(
         "AccountSetup",
         "CommonModels",
         "Resources",
-        "UIComponents",
         "Display",
         "Session",
         "SessionData",
@@ -201,31 +196,10 @@ let package = Package(
         "Metadata",
       ]
     ),
-    .testTarget(
-      name: "SharedUIComponentsTests",
-      dependencies: [
-        "SharedUIComponents",
-        "CoreTest",
-        "TestExtensions",
-      ]
-    ),
-    .target(
-      name: "UIComponents",
-      dependencies: [
-        .product(name: "AegithalosCocoa", package: "Aegithalos"),
-        "Commons",
-        "CommonModels",
-        "Features",
-        "FeatureScopes",
-        "UICommons",
-      ]
-    ),
     // MARK: - Entrypoints
     .target(
       name: "PassboltApp",
       dependencies: [
-        // Legacy
-        "UIComponents",
         "SharedUIComponents",
         "NFC",
         "Crypto",
@@ -253,8 +227,6 @@ let package = Package(
     .target(
       name: "PassboltExtension",
       dependencies: [
-        // Legacy
-        "UIComponents",
         "SharedUIComponents",
         "Crypto",
         // Base
@@ -336,12 +308,11 @@ let package = Package(
     .target(
       name: "Display",
       dependencies: [
-        // Legacy
-        "UIComponents",
         // Base
         "Commons",
         "Features",
         "FeatureScopes",
+        "UICommons",
       ]
     ),
     .target(
@@ -447,6 +418,7 @@ let package = Package(
       // It might be updated in future see: https://github.com/sqlcipher/sqlcipher/issues/371
       name: "SQLCipher",
       cSettings: [
+        .unsafeFlags(["-w"]),  // Suppress all warnings coming from SQLCipher code
         .define("SQLITE_HAS_CODEC"),
         .define("SQLITE_TEMP_STORE", to: "3"),
         .define("SQLCIPHER_CRYPTO_CC"),
@@ -527,6 +499,8 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
+        // Modules
+        "Accounts",
       ],
       swiftSettings: [
         .swiftLanguageMode(.v6)
@@ -800,8 +774,6 @@ let package = Package(
     .target(
       name: "TestExtensions",
       dependencies: [
-        // Legacy
-        "UIComponents",
         // Base
         "Commons",
         "CommonModels",

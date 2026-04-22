@@ -42,8 +42,8 @@ internal final class AccountExportAuthorizationController: ViewController {
   private let accountExport: AccountChunkedExport
 
   private let biometry: OSBiometry
-  private let navigation: DisplayNavigation
   private let accountPreferences: AccountPreferences
+  private let navigationToQRCodeExport: NavigationToAccountQRCodeExport
   private let account: Account
 
   private let features: Features
@@ -56,13 +56,11 @@ internal final class AccountExportAuthorizationController: ViewController {
     self.features = features
 
     self.account = try features.sessionAccount()
-
     self.biometry = features.instance()
-    self.navigation = try features.instance()
     self.accountPreferences = try features.instance()
-
     self.accountDetails = try features.instance()
     self.accountExport = try features.instance()
+    self.navigationToQRCodeExport = try features.instance()
 
     let accountWithProfile: AccountWithProfile = try accountDetails.profile()
 
@@ -93,7 +91,7 @@ internal final class AccountExportAuthorizationController: ViewController {
       updateFrom: self.accountDetails.updates,
       update: { [accountDetails] updateView, _ in
         let avatarImage: Data? = try? await accountDetails.avatarImage()
-        await updateView { (state: inout ViewState) in
+        updateView { (state: inout ViewState) in
           state.accountAvatarImage = avatarImage
         }
       }
@@ -127,10 +125,7 @@ extension AccountExportAuthorizationController {
     do {
       let passphrase: Passphrase = try validatedPassphrase.validValue
       try await self.accountExport.authorize(.passphrase(passphrase))
-      try await self.navigation.push(
-        AccountQRCodeExportView.self,
-        controller: self.features.instance()
-      )
+      try await navigationToQRCodeExport.perform()
     }
     catch {
       self.viewState.update { (state: inout ViewState) in
@@ -143,10 +138,7 @@ extension AccountExportAuthorizationController {
   internal final func authorizeWithBiometrics() async {
     do {
       try await accountExport.authorize(.biometrics)
-      try await navigation.push(
-        AccountQRCodeExportView.self,
-        controller: features.instance()
-      )
+      try await navigationToQRCodeExport.perform()
     }
     catch {
       error.consume()

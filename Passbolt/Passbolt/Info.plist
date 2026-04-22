@@ -26,8 +26,6 @@
 	<true/>
 	<key>NFCReaderUsageDescription</key>
 	<string>NFC can be used to communicate with YubiKey token.</string>
-	<key>NSFileProviderDomainUsageDescription</key>
-	<string></string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -68,12 +66,10 @@
 	<array>
 		<string>A000000527200101</string>
 	</array>
-  <key>com.apple.configuration.managed</key>
-  <dict>
-      <key>disableUpdateCheck</key>
-      <false/>
-  </dict>
-  <key>UIDesignRequiresCompatibility</key>
-  <true/>
+	<key>com.apple.configuration.managed</key>
+	<dict>
+		<key>disableUpdateCheck</key>
+		<false/>
+	</dict>
 </dict>
 </plist>

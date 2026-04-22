@@ -68,6 +68,23 @@ extension NavigationResolver {
   @MainActor internal func replaceRoot(
     _ newRoot: NavigationAnchor
   ) async throws {
+    guard
+      let connectedScene: UIWindowScene = UIApplication.shared.connectedScenes
+        .compactMap(
+          {
+            $0 as? UIWindowScene
+          })
+        .first
+    else {
+      return try await legacyReplaceRoot(newRoot)
+    }
+
+    connectedScene.keyWindow?.rootViewController = newRoot
+  }
+
+  @MainActor internal func legacyReplaceRoot(
+    _ newRoot: NavigationAnchor
+  ) async throws {
     guard var rootViewController: UIViewController = rootAnchor()
     else {
       return
@@ -212,39 +229,13 @@ extension NavigationResolver {
       )
   }
 
-  // To be used only with legacy tabs,
-  // ignores anchor indentifiers using types instead.
-  @MainActor internal func legacyTabSwitch<Tab>(
-    to: Tab.Type,
-    file: StaticString,
-    line: UInt
-  ) async throws
-  where Tab: UIViewController {
-    guard let tabs: UITabBarController = self.activeLeafAnchor()?.navigationTabs
+  /// Pop current top-most navigation stack to root view controller.
+  internal func popToRoot(animated: Bool = false) {
+    guard let root: UINavigationController = rootAnchorProvider?.rootAnchor()?.findTopMostNavigationStack
     else {
-      throw
-        InternalInconsistency
-        .error(
-          "Invalid navigation - missing tabs!",
-          file: file,
-          line: line
-        )
-        .asAssertionFailure()
+      return
     }
-
-    guard let idx: Int = tabs.viewControllers?.firstIndex(where: { $0 is Tab })
-    else {
-      throw
-        InternalInconsistency
-        .error(
-          "Invalid navigation - missing tab item!",
-          file: file,
-          line: line
-        )
-        .asAssertionFailure()
-    }
-
-    tabs.selectedIndex = idx
+    root.popToRootViewController(animated: animated)
   }
 }
 
@@ -334,7 +325,7 @@ extension RootAnchorProvider: LoadableFeature {
         // This is temorary solution for autofill extension. Has to be refactored once navigation is moved entirely to SwiftUI.
         let root: UIViewController? = UIApplication.shared.keyWindow?.rootViewController?.children.first
 
-        return root?.findFirstNavigationStack ?? root
+        return root?.findTopMostNavigationStack ?? root
       }
     )
   }
@@ -363,12 +354,19 @@ extension FeaturesRegistry {
 
 extension UIViewController {
 
-  fileprivate var findFirstNavigationStack: UINavigationController? {
+  /// Attempt to find top-most navigation stack in view controller hierarchy.
+  internal var findTopMostNavigationStack: UINavigationController? {
     if let stack: UINavigationController = self.navigationStack {
       return stack
     }
+    if let tabBarController = self.children.first?.children.first?.tabBarController,
+      let navigationController = tabBarController.selectedViewController?.children.first as? UINavigationController
+    {
+      // if we are in tab bar, we need to find navigation stack in selected tab
+      return navigationController
+    }
     for child in self.children {
-      if let stack: UINavigationController = child.findFirstNavigationStack {
+      if let stack: UINavigationController = child.findTopMostNavigationStack {
         return stack
       }
     }

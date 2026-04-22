@@ -40,5 +40,6 @@ extension Task {
 // https://github.com/apple/swift/blob/750545774b4505064af1f144a24c1177e8515250/docs/SIL.rst#ref-to-raw-pointer
 private struct TaskBox {
   // builtin reference (Builtin.RawPointer) uses platform long Int for pointers
+  // swift-format-ignore: NoLeadingUnderscores
   fileprivate let _task: Int
 }

@@ -31,7 +31,6 @@ internal final class AccountQRCodeExportController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  private let navigation: DisplayNavigation
   private let accountExport: AccountChunkedExport
   private let qrCodeGenerator: QRCodeGenerator
 
@@ -40,96 +39,76 @@ internal final class AccountQRCodeExportController: ViewController {
     features: Features
   ) throws {
     try features.ensureScope(AccountTransferScope.self)
-
-    self.navigation = try features.instance()
     self.accountExport = try features.instance()
     self.qrCodeGenerator = features.instance()
 
+    let navigationToAccountExportInfo: NavigationToAccountExportInfo = try features.instance()
+    let navigationToResult: NavigationToGenericResult = try features.instance()
+    let navigationToAccountAuth: NavigationToAccountExportAuthorization = try features.instance()
+
+    func handle(error: TheError) async {
+      await consumingErrors {
+        try await navigationToResult.perform(
+          context: .init(
+            icon: .failureMark,
+            title: "generic.error",
+            message: error.displayableMessage,
+            buttonTitle: "generic.try.again",
+            buttonAction: { [navigationToAccountAuth] in
+              try await navigationToAccountAuth.revert()
+            }
+          )
+        )
+      }
+    }
+
     self.viewState = .init(
       initial: .init(
-        currentQRcode: .init(),
-        exitConfirmationAlertPresented: false
+        currentQRcode: .init()
       ),
       updateFrom: self.accountExport.updates,
-      update: { [navigation, accountExport, qrCodeGenerator] (updateState, _) in
+      update: { [navigationToResult, accountExport, qrCodeGenerator] (updateState, _) in
         switch accountExport.status() {
         case .part(_, let content):
           do {
-            let qrCodePart: Data = try await qrCodeGenerator.generateQRCode(content)
-            await updateState { (viewState: inout ViewState) in
+            let qrCodePart: Data = try qrCodeGenerator.generateQRCode(content)
+            updateState { (viewState: inout ViewState) in
               viewState.currentQRcode = qrCodePart
             }
           }
           catch {
-            try? await navigation
-              .push(
-                OperationResultControlledView.self,
-                controller: OperationResultViewController(
-                  context: OperationResultConfiguration(
-                    for: error.asTheError(),
-                    confirmation: { [navigation] in
-                      await navigation.pop(to: TransferInfoScreenViewController.self)
-                    }
-                  ),
-                  features: features
-                )
-              )
+            await handle(error: error.asTheError())
           }
 
         case .finished:
-          try? await navigation
-            .push(
-              OperationResultControlledView.self,
-              controller: OperationResultViewController(
-                context: OperationResultConfiguration(
-                  image: .successMark,
-                  title: "transfer.account.result.success.title",
-                  actionLabel: "transfer.account.export.exit.success.button",
-                  confirmation: { [navigation] in
-                    await navigation.popToRoot()
-                  }
-                ),
-                features: features
-              )
+          try await navigationToResult.perform(
+            context: .init(
+              icon: .successMark,
+              title: "transfer.account.result.success.title",
+              message: "",
+              buttonTitle: "transfer.account.export.exit.success.button",
+              buttonAction: {
+                try await navigationToAccountExportInfo.revert()
+              }
             )
+          )
 
         case .error(let error):
-          try? await navigation
-            .push(
-              OperationResultControlledView.self,
-              controller: OperationResultViewController(
-                context: OperationResultConfiguration(
-                  for: error.asTheError(),
-                  confirmation: { [navigation] in
-                    await navigation.pop(to: TransferInfoScreenViewController.self)
-                  }
-                ),
-                features: features
-              )
-            )
+          await handle(error: error.asTheError())
 
         case .uninitialized:
-          try? await navigation
-            .push(
-              OperationResultControlledView.self,
-              controller: OperationResultViewController(
-                context: OperationResultConfiguration(
-                  for:
-                    InternalInconsistency
-                    .error(
-                      "Account export used without initialization."
-                    ),
-                  confirmation: { [navigation] in
-                    await navigation.pop(to: TransferInfoScreenViewController.self)
-                  }
-                ),
-                features: features
+          await handle(
+            error:
+              InternalInconsistency
+              .error(
+                "Account export used without initialization."
               )
-            )
+          )
         }
       }
     )
   }
+
 }
 
 extension AccountQRCodeExportController {
@@ -137,19 +116,33 @@ extension AccountQRCodeExportController {
   internal struct ViewState: Equatable {
 
     internal var currentQRcode: Data
-    internal var exitConfirmationAlertPresented: Bool
+    internal var alert: AlertViewModel?
   }
 }
 
 extension AccountQRCodeExportController {
 
-  @MainActor internal func showCancelConfirmation() {
-    self.viewState.update { (state: inout ViewState) in
-      state.exitConfirmationAlertPresented = true
-    }
+  internal func showCancelConfirmation() {
+    self.viewState.update(
+      \.alert,
+      to: .init(
+        title: "transfer.account.exit.confirmation.title",
+        message: "transfer.account.exit.confirmation.message",
+        actions: [
+          .cancel(id: .init(), title: .localized(key: .cancel)),
+          .destructive(
+            id: .init(),
+            title: "transfer.account.export.exit.confirmation.confirm.button.title",
+            perform: { [weak self] in
+              await self?.cancelTransfer()
+            }
+          ),
+        ]
+      )
+    )
   }
 
-  @MainActor internal func cancelTransfer() {
+  internal func cancelTransfer() async {
     self.accountExport.cancel()
   }
 }

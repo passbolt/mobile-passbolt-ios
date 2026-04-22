@@ -152,11 +152,11 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    var messagesSubscription = SnackBarMessageEvent.subscribe()
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
-    try await tested.authorizeWithBiometrics()
+    await tested.authorizeWithBiometrics()
 
     let payload: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
@@ -166,20 +166,20 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
   }
 
   func test_authorizeWithBiometrics_succeeds_whenAuthorizationSucceeds() async throws {
-    #warning(
-      "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
-    )
     patch(
       \AccountChunkedExport.authorize,
       with: always(Void())
+    )
+    patch(
+      \NavigationToAccountQRCodeExport.performAnimated,
+      with: always(self.mockExecuted())
     )
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
     await tested.authorizeWithBiometrics()
 
-    // Temporary fix for pending tasks on queue, will be removed after using proper navigation
-
+    XCTAssertTrue(self.mockWasExecuted)
   }
 
   func test_authorizeWithPassphrase_failsWithMessage_whenPassphraseIsInvalid() async throws {
@@ -188,7 +188,7 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    var messagesSubscription = SnackBarMessageEvent.subscribe()
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
@@ -214,12 +214,12 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
 
-    var messagesSubscription = SnackBarMessageEvent.subscribe()
+    let messagesSubscription = SnackBarMessageEvent.subscribe()
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
 
     tested.setPassphrase("valid_passphrase")
-    try await tested.authorizeWithPassphrase()
+    await tested.authorizeWithPassphrase()
 
     let payload: SnackBarMessageEvent.Payload? = try await messagesSubscription.nextEvent()
     XCTAssertEqual(
@@ -229,12 +229,13 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
   }
 
   func test_authorizeWithPassphrase_succeeds_whenAuthorizationSucceeds() async throws {
-    #warning(
-      "TODO: there should be test that checks if navigation was triggered, but that requires update in app navigation to be verified"
-    )
     patch(
       \AccountChunkedExport.authorize,
       with: always(Void())
+    )
+    patch(
+      \NavigationToAccountQRCodeExport.performAnimated,
+      with: always(self.mockExecuted())
     )
 
     let tested: AccountExportAuthorizationController = try self.testedInstance()
@@ -242,6 +243,6 @@ final class AccountExportAuthorizationControllerTests: FeaturesTestCase {
     tested.setPassphrase("valid_passphrase")
     await tested.authorizeWithBiometrics()
 
-    // Temporary fix for pending tasks on queue, will be removed after using proper navigation
+    XCTAssertTrue(self.mockWasExecuted)
   }
 }

@@ -40,6 +40,7 @@ internal struct ResourcePermissionsDetailsView: ControlledView {
       .foregroundColor(.passboltPrimaryText)
       .navigationTitle(displayable: "resource.permission.list.title")
       .task(self.controller.activate)
+      .useCustomBackButton()
   }
 
   @ViewBuilder @MainActor private var contentView: some View {

@@ -79,11 +79,11 @@ internal final class AccountKeyInspectorViewController: ViewController {
       update: { [accountDetails, calendar] (updateView, _) in
         do {
           let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-          await updateView { (viewState: inout State) in
+          updateView { (viewState: inout State) in
             viewState.name = "\(accountWithProfile.firstName) \(accountWithProfile.lastName)"
           }
           let keyDetails: PGPKeyDetails = try await accountDetails.keyDetails()
-          await updateView { (viewState: inout State) in
+          updateView { (viewState: inout State) in
             viewState.userID = keyDetails.userID
             viewState.fingerprint = formatFingerprint(keyDetails.fingerprint)
             viewState.crationDate = calendar.format(.medium, keyDetails.created)
@@ -93,7 +93,7 @@ internal final class AccountKeyInspectorViewController: ViewController {
             viewState.algorithm = keyDetails.algorithm.rawValue
           }
           let accountAvatarImage: Data? = try await accountDetails.avatarImage()
-          await updateView { (viewState: inout State) in
+          updateView { (viewState: inout State) in
             viewState.avatarImage = accountAvatarImage
           }
         }

@@ -21,135 +21,56 @@
 // @since         v1.0
 //
 
-import UICommons
-import UIComponents
+import Display
 
-public final class LogsViewerViewController: PlainViewController, UIComponent {
+public final class LogsViewerViewController: ViewController {
 
-  public typealias ContentView = LogsViewerView
-  public typealias Controller = LogsViewerController
+  public struct Context: Sendable {
 
-  public private(set) lazy var contentView: ContentView = .init()
+    internal let useCustomNavigationBar: Bool
 
-  public let components: UIComponentFactory
-  private let controller: Controller
+    public init(useCustomNavigationBar: Bool) {
+      self.useCustomNavigationBar = useCustomNavigationBar
+    }
+  }
 
-  public static func instance(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) -> Self {
-    Self(
-      using: controller,
-      with: components,
-      cancellables: cancellables
+  public struct ViewState: Equatable {
+    internal var isInitialLoading: Bool = true
+    internal var diagnosticsInfo: Array<String> = .init()
+    internal var presentShareSheet: Bool = false
+    internal let useCustomNavigationBar: Bool
+    internal var sharingDiagnosticsInfo: String {
+      (
+        [
+          "Passbolt"
+        ]
+        + diagnosticsInfo
+      )
+      .joined(separator: "\n")
+    }
+  }
+
+  public nonisolated let viewState: ViewStateSource<ViewState>
+
+  public init(context: Context, features: Features) throws {
+    self.viewState = .init(
+      initial: .init(
+        useCustomNavigationBar: context.useCustomNavigationBar
+      )
     )
   }
 
-  public init(
-    using controller: Controller,
-    with components: UIComponentFactory,
-    cancellables: Cancellables
-  ) {
-    self.controller = controller
-    self.components = components
-    super
-      .init(
-        cancellables: cancellables
-      )
-  }
-
-  public func setupView() {
-    mut(self.navigationItem) {
-      .combined(
-        .title(.localized(key: "help.logs.viewer.title")),
-        .rightBarButtonItem(
-          Mutation<UIBarButtonItem>
-            .combined(
-              .style(.done),
-              .image(named: .open, from: .uiCommons),
-              .action { [weak self] in
-                self?.controller.presentShareMenu()
-              }
-            )
-            .instantiate()
-        ),
-        .when(
-          navigationController?.viewControllers.count == 1,
-          then:
-            .leftBarButtonItem(
-              Mutation<UIBarButtonItem>
-                .combined(
-                  .style(.done),
-                  .image(named: .close, from: .uiCommons),
-                  .action { [weak self] in
-                    self?.cancellables
-                      .executeOnMainActor { [weak self] in
-                        await self?.dismiss(Self.self)
-                      }
-                  }
-                )
-                .instantiate()
-            )
-        )
-
-      )
-    }
-
-    setupSubscriptions()
-  }
-
-  public func activate() {
-    Task { [weak self] in
-      await self?.controller.refreshLogs()
-    }
-  }
-
-  private func setupSubscriptions() {
-    self.controller
-      .logsPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] logs in
-        let logListItems: Array<LogsViewerLogItem>
-        if let logs: Array<String> = logs {
-          if logs.isEmpty {
-            logListItems = [
-              LogsViewerLogItem(log: "N/A")
-            ]
-          }
-          else {
-            logListItems = logs.map(LogsViewerLogItem.init(log:))
-          }
-        }
-        else {
-          logListItems = []
-        }
-        self?.contentView.update(data: logListItems)
+  internal func refreshLogs() async {
+    await Task {
+      viewState.update { state in
+        state.diagnosticsInfo = Diagnostics.shared.info()
+        state.isInitialLoading = false
       }
-      .store(in: cancellables)
+    }
+    .waitForCompletion()
+  }
 
-    controller
-      .shareMenuPresentationPublisher()
-      .receive(on: RunLoop.main)
-      .sink { [weak self] logs in
-        if let logs: String = logs {
-          self?
-            .present(
-              UIActivityViewController(
-                activityItems: [logs],
-                applicationActivities: nil
-              ),
-              animated: true,
-              completion: nil
-            )
-        }
-        else if self?.presentedViewController != nil {
-          // assuming that it won't present anything besides share menu
-          self?.dismiss(animated: true, completion: nil)
-        }
-        else { /* NOP */
-        }
-      }
-      .store(in: cancellables)
+  internal func share() async {
+    viewState.update(\.presentShareSheet, to: true)
   }
 }

@@ -23,6 +23,7 @@
 
 import AccountSetup
 import Accounts
+import Commons
 import Crypto
 import FeatureScopes
 import NetworkOperations
@@ -37,13 +38,19 @@ import Dispatch
 
 extension AccountImport {
 
+  fileprivate struct State: Sendable {
+
+    fileprivate var transferState: AccountTransferState = .init()
+    fileprivate var avatar: Data? = nil
+    fileprivate var error: Error? = nil
+    fileprivate var isCompleted: Bool = false
+  }
+
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
     try features.ensureScope(AccountTransferScope.self)
 
-    #warning("Legacy implementation, to be split and refined...")
-    let cancellables: Cancellables = .init()
     Diagnostics.logger.info("Beginning new account transfer...")
     #if DEBUG
     let mdmConfiguration: MDMConfiguration = features.instance()
@@ -54,9 +61,8 @@ extension AccountImport {
     let accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
     let accounts: Accounts = try features.instance()
-    let transferState: CurrentValueSubject<AccountTransferState, Error> = .init(.init())
-    var transferCancelationCancellable: AnyCancellable?
-    _ = transferCancelationCancellable  // silence warning
+
+    let state: Variable<State> = .init(initial: .init())
 
     #if DEBUG
     if let mdmTransferedAccount: AccountTransferData = mdmConfiguration.preconfiguredAccounts().first {
@@ -67,98 +73,70 @@ extension AccountImport {
     }
     #endif
 
-    let progressPublisher: AnyPublisher<Progress, Error> =
-      transferState
-      .map { state -> Progress in
-        if state.scanningFinished {
-          return .scanningFinished
-        }
-        else if let configuration: AccountTransferConfiguration = state.configuration {
-          return .scanningProgress(
-            Double(state.nextScanningPage ?? configuration.pagesCount)
-              / Double(configuration.pagesCount)
-          )
-        }
-        else {
-          return .configuration
-        }
+    @Sendable nonisolated func progress() -> Progress {
+      let transferState = state.value.transferState
+      if transferState.scanningFinished {
+        return .scanningFinished
       }
-      .collectErrorLog()
-      .eraseToAnyPublisher()
-
-    let accountDetailsPublisher: AnyPublisher<AccountDetails, Error> =
-      transferState
-      .compactMap { state in
-        guard
-          let config: AccountTransferConfiguration = state.configuration,
-          let profile: AccountTransferAccountProfile = state.profile
-        else { return nil }
-
-        return AccountDetails(
-          domain: config.domain,
-          label: "\(profile.firstName) \(profile.lastName)",
-          username: profile.username
+      else if let configuration = transferState.configuration {
+        return .scanningProgress(
+          Double(transferState.nextScanningPage ?? configuration.pagesCount)
+            / Double(configuration.pagesCount)
         )
       }
-      .eraseToAnyPublisher()
-
-    let mediaPublisher: AnyPublisher<Data, Error> =
-      transferState
-      .compactMap { $0.profile }
-      .asyncMap {
-        try await mediaDownloadNetworkOperation(
-          $0.avatarImageURL
-        )
+      else {
+        return .configuration
       }
-      .eraseToAnyPublisher()
+    }
 
-    // swift-format-ignore: NoLeadingUnderscores
-    nonisolated func processPayload(
+    @Sendable nonisolated func accountDetails() -> AccountDetails? {
+      let transferState = state.value.transferState
+      guard
+        let config = transferState.configuration,
+        let profile = transferState.profile
+      else { return nil }
+      return AccountDetails(
+        domain: config.domain,
+        label: "\(profile.firstName) \(profile.lastName)",
+        username: profile.username
+      )
+    }
+
+    @Sendable nonisolated func avatar() -> Data? {
+      state.value.avatar
+    }
+
+    @Sendable nonisolated func processPayload(
       _ payload: String
-    ) -> AnyPublisher<Never, Error> {
+    ) async throws {
       Diagnostics.logger.info("Processing QR code payload...")
-      switch processQRCodePayload(payload, in: transferState.value) {
-      case .success(var updatedState):
 
-        //If we have a download link it means we are on version 2
+      let currentTransferState = state.value.transferState
+      switch processQRCodePayload(payload, in: currentTransferState) {
+      case .success(var updatedState):
+        // If we have a download link it means we are on version 2
         if let downloadLink = updatedState.downloadLink {
-          return Just(Void())
-            .eraseErrorType()
-            .asyncMap {
-              //Download the account kit
-              let accountKit = try await mediaDownloadNetworkOperation.execute(downloadLink.accountKitURL)
-              //Check if account kit is not missing
-              guard let accountKitString = String(data: accountKit, encoding: .utf8), !accountKit.isEmpty
-              else {
-                throw AccountTransferScanningFailure.error().pushing(.message("Account kit is empty"))
-              }
-              //Reuse account kit feature to check payload
-              accountKitImport
-                .importAccountKit(accountKitString)
-                .sink(
-                  receiveCompletion: { completion in
-                    guard case .failure(let error) = completion
-                    else { return }
-                    // we are completing transfer with error from import kit
-                    transferState.send(
-                      completion: .failure(error)
-                    )
-                  },
-                  receiveValue: { accountTransferData in
-                    //Import account by payload
-                    importAccountByPayload(accountTransferData)
-                  }
-                )
-                .store(in: cancellables)
+          do {
+            let accountKit = try await mediaDownloadNetworkOperation.execute(downloadLink.accountKitURL)
+            guard let accountKitString = String(data: accountKit, encoding: .utf8), !accountKit.isEmpty
+            else {
+              throw AccountTransferScanningFailure.error().pushing(.message("Account kit is empty"))
             }
-            .ignoreOutput()
-            .eraseToAnyPublisher()
+            let accountTransferData = try accountKitImport.importAccountKit(accountKitString)
+            importAccountByPayload(accountTransferData)
+          }
+          catch {
+            state.mutate { $0.error = error }
+            throw error
+          }
+          return
         }
+
         // if we have config we can ask for profile,
         // there is no need to do it every time
         // so doing it once when requesting for the next page first time
         // process payload version 1
-        if let configuration: AccountTransferConfiguration = updatedState.configuration,
+        if let configuration = updatedState.configuration,
           updatedState.profile == nil
         {
           // since we do this once per process (hopefully)
@@ -177,204 +155,185 @@ extension AccountImport {
           guard !accountAlreadyStored
           else {
             Diagnostics.logger.info("...duplicate account detected, aborting!")
-            requestCancelation(
-              with: configuration,
-              lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
-              using: accountTransferUpdateNetworkOperation,
-              causedByError: nil
-            )
-            .handleEvents(receiveCompletion: { completion in
-              // we are completing transfer with duplicate regardless the response
-              transferState.send(
-                completion: .failure(
-                  AccountDuplicate
-                    .error("Duplicate account used for account transfer")
-                    .recording(configuration, for: "configuration")
-                )
+            // Fire, cancelation request no need to wait for the result
+            Task {
+              try? await requestCancelation(
+                with: configuration,
+                lastPage: state.value.transferState.lastScanningPage
+                  ?? state.value.transferState.configurationScanningPage,
+                using: accountTransferUpdateNetworkOperation,
+                causedByError: nil
               )
-            })
-            .ignoreOutput()
-            .sink(receiveCompletion: { _ in })
-            .store(in: cancellables)
-
-            return Fail(
-              error:
-                AccountDuplicate
-                .error("Duplicate account used for account transfer")
-                .recording(configuration, for: "configuration")
-            )
-            .eraseToAnyPublisher()
+            }
+            let error =
+              AccountDuplicate
+              .error("Duplicate account used for account transfer")
+              .recording(configuration, for: "configuration")
+            state.mutate { $0.error = error }
+            throw error
           }
 
           guard !updatedState.scanningFinished
           else {
             Diagnostics.logger.info("...missing profile data, aborting!")
-            transferState
-              .send(
-                completion: .failure(
-                  AccountTransferScanningFailure.error()
-                )
-              )
-            return Empty<Never, Error>()
-              .eraseToAnyPublisher()
+            let error = AccountTransferScanningFailure.error()
+            state.mutate { $0.error = error }
+            throw error
           }
 
           Diagnostics.logger.info("...processing succeeded, continuing transfer...")
-          return requestNextPageWithUserProfile(
-            for: updatedState,
-            using: accountTransferUpdateNetworkOperation
-          )
-          .handleEvents(
-            receiveOutput: { user in
-              updatedState.profile = .init(
-                username: user.username,
-                firstName: user.profile.firstName,
-                lastName: user.profile.lastName,
-                avatarImageURL: user.profile.avatar.urlString
-              )
-            },
-            receiveCompletion: { completion in
-              guard case .finished = completion else { return }
-              transferState.value = updatedState
+          do {
+            let user = try await requestNextPageWithUserProfile(
+              for: updatedState,
+              using: accountTransferUpdateNetworkOperation
+            )
+            updatedState.profile = .init(
+              username: user.username,
+              firstName: user.profile.firstName,
+              lastName: user.profile.lastName,
+              avatarImageURL: user.profile.avatar.urlString
+            )
+            state.mutate { $0.transferState = updatedState }
+
+            // Fetch avatar asynchronously
+            if let profile = updatedState.profile {
+              Task {
+                if let avatarData = try? await mediaDownloadNetworkOperation(profile.avatarImageURL) {
+                  state.mutate { $0.avatar = avatarData }
+                }
+              }
             }
-          )
-          .ignoreOutput()
-          .collectErrorLog()
-          .eraseToAnyPublisher()
+          }
+          catch {
+            error.logged()
+            state.mutate { $0.error = error }
+            throw error
+          }
         }
         else {
           Diagnostics.logger.info("...processing succeeded, continuing transfer...")
-          return requestNextPage(
-            for: updatedState,
-            using: accountTransferUpdateNetworkOperation
-          )
-          .handleEvents(receiveCompletion: { completion in
-            guard case .finished = completion else { return }
-            transferState.value = updatedState
-          })
-          .collectErrorLog()
-          .eraseToAnyPublisher()
+          do {
+            try await requestNextPage(
+              for: updatedState,
+              using: accountTransferUpdateNetworkOperation
+            )
+            state.mutate { $0.transferState = updatedState }
+          }
+          catch {
+            error.logged()
+            state.mutate { $0.error = error }
+            throw error
+          }
         }
-      case .failure(let error)
-      where error is Cancelled:
+
+      case .failure(let error) where error is Cancelled:
         Diagnostics.logger.info("...processing canceled!")
-        return Fail<Never, Error>(error: error)
-          .collectErrorLog()
-          .eraseToAnyPublisher()
+        error.logged()
+        throw error
 
       case .failure(let error)
       where error is AccountTransferScanningIssue || error is AccountTransferScanningContentIssue
         || error is AccountTransferScanningDomainIssue:
         Diagnostics.logger.info("...processing failed, recoverable!")
-        return Fail<Never, Error>(error: error)
-          .collectErrorLog()
-          .eraseToAnyPublisher()
+        error.logged()
+        throw error
 
       case .failure(let error):
         Diagnostics.logger.info("...processing failed, aborting!")
-        if let configuration: AccountTransferConfiguration = transferState.value.configuration {
-          return requestCancelation(
-            with: configuration,
-            lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
-            using: accountTransferUpdateNetworkOperation,
-            causedByError: error
-          )
-          .handleEvents(receiveCompletion: { completion in
-            guard case .failure(let error) = completion
-            else { unreachable("Cannot complete without an error when processing error") }
-            transferState.send(completion: .failure(error))
-          })
-          .ignoreOutput()  // we care only about completion or failure
-          .collectErrorLog()
-          .eraseToAnyPublisher()
+        if let configuration = state.value.transferState.configuration {
+          do {
+            try await requestCancelation(
+              with: configuration,
+              lastPage: state.value.transferState.lastScanningPage
+                ?? state.value.transferState.configurationScanningPage,
+              using: accountTransferUpdateNetworkOperation,
+              causedByError: error
+            )
+          }
+          catch let cancelError {
+            cancelError.logged()
+            state.mutate { $0.error = cancelError }
+            throw cancelError
+          }
         }
-        else {  // we can't cancel if we don't have configuration yet
-          transferState.send(completion: .failure(error))
-          return Fail<Never, Error>(error: error)
-            .collectErrorLog()
-            .eraseToAnyPublisher()
+        else {
+          // we can't cancel if we don't have configuration yet
+          state.mutate { $0.error = error }
+          throw error
         }
       }
     }
 
-    nonisolated func completeTransfer(_ passphrase: Passphrase) -> AnyPublisher<Never, Error> {
+    @Sendable nonisolated func completeTransfer(_ passphrase: Passphrase) async throws {
       Diagnostics.logger.info("Completing account transfer...")
       guard
-        let configuration = transferState.value.configuration,
-        let account = transferState.value.account,
-        let profile = transferState.value.profile
+        let configuration = state.value.transferState.configuration,
+        let account = state.value.transferState.account,
+        let profile = state.value.transferState.profile
       else {
         Diagnostics.logger.info("...missing required data!")
-        return Fail<Never, Error>(
-          error: AccountTransferScanningFailure.error()
-        )
-        .eraseToAnyPublisher()
+        let error = AccountTransferScanningFailure.error()
+        state.mutate { $0.error = error }
+        throw error
       }
-      return
-        cancellables.executeAsyncWithPublisher {
-          do {
-            // verify passphrase
-            switch pgp.verifyPassphrase(account.armoredKey, passphrase) {
-            case .success:
-              break  // continue process
 
-            case .failure(let error):
-              Diagnostics.logger.info("...invalid passphrase!")
-              throw
-                error
-                .asTheError()
-                .pushing(.message("Invalid passphrase used for account transfer"))
-            }
-            let addedAccount: Account =
-              try accounts
-              .addAccount(
-                .init(
-                  userID: account.userID,
-                  domain: configuration.domain,
-                  username: profile.username,
-                  firstName: profile.firstName,
-                  lastName: profile.lastName,
-                  avatarImageURL: profile.avatarImageURL,
-                  fingerprint: account.fingerprint,
-                  armoredKey: account.armoredKey
-                )
-              )
+      // verify passphrase
+      switch pgp.verifyPassphrase(account.armoredKey, passphrase) {
+      case .success:
+        break  // continue process
 
-            // create new session for transferred account
-            _ =
-              try await session
-              .authorize(
-                .adHoc(addedAccount, passphrase, account.armoredKey)
-              )
+      case .failure(let error):
+        Diagnostics.logger.info("...invalid passphrase!")
+        let theError =
+          error
+          .asTheError()
+          .pushing(.message("Invalid passphrase used for account transfer"))
+        throw theError
+      }
 
-            Diagnostics.logger.info("...account transfer succeeded!")
-            transferState.send(completion: .finished)
-          }
-          catch let error as AccountDuplicate {
-            Diagnostics.logger.info("...account transfer failed!")
-            transferState.send(completion: .failure(error))
-          }
-          catch is SessionMFAAuthorizationRequired {
-            Diagnostics.logger.info("...account transfer finished, requesting MFA...")
-            transferState.send(completion: .finished)
-          }
-          catch {
-            Diagnostics.logger.info("...account transfer failed!")
-            throw error
-          }
-        }
-        .ignoreOutput()
-        .eraseToAnyPublisher()
+      do {
+        let addedAccount: Account =
+          try accounts
+          .addAccount(
+            .init(
+              userID: account.userID,
+              domain: configuration.domain,
+              username: profile.username,
+              firstName: profile.firstName,
+              lastName: profile.lastName,
+              avatarImageURL: profile.avatarImageURL,
+              fingerprint: account.fingerprint,
+              armoredKey: account.armoredKey
+            )
+          )
+
+        // create new session for transferred account
+        _ =
+          try await session
+          .authorize(
+            .adHoc(addedAccount, passphrase, account.armoredKey)
+          )
+
+        Diagnostics.logger.info("...account transfer succeeded!")
+        state.mutate { $0.isCompleted = true }
+      }
+      catch let error as AccountDuplicate {
+        Diagnostics.logger.info("...account transfer failed!")
+        state.mutate { $0.error = error }
+        throw error
+      }
+      catch let mfaError as SessionMFAAuthorizationRequired {
+        Diagnostics.logger.info("...account transfer finished, requesting MFA...")
+        state.mutate { $0.isCompleted = true }
+        throw mfaError
+      }
+      catch {
+        Diagnostics.logger.info("...account transfer failed!")
+        throw error
+      }
     }
 
-    /// Checks if an account already exists within a given collection of accounts.
-    ///
-    /// This function determines if an account with the same user ID and domain already exists in the collection.
-    ///  - Parameters:
-    ///   - accountTransferData: The account transfer data to check for existence.
-    ///   - accounts: The collection of accounts to search within.
-    ///  - Returns: A boolean value indicating whether the account exists.
-    nonisolated func checkIfAccountExist(_ accountTransferData: AccountTransferData) -> Bool {
+    @Sendable nonisolated func checkIfAccountExist(_ accountTransferData: AccountTransferData) -> Bool {
       accounts
         .storedAccounts()
         .contains(
@@ -385,20 +344,15 @@ extension AccountImport {
         )
     }
 
-    /// Imports an account by its transfer data if it's not already stored.
-    ///
-    /// This function initiates an account transfer process..
-    ///
-    /// - Parameter accountTransferData: The account transfer data used to import the account.
-    nonisolated func importAccountByPayload(_ accountTransferData: AccountTransferData) {
+    @Sendable nonisolated func importAccountByPayload(_ accountTransferData: AccountTransferData) {
       // Use guard to check if the account already exists and exit early if it does
       guard !checkIfAccountExist(accountTransferData) else {
         Diagnostics.debug("Skipping account transfer bypass - duplicate account")
         return
       }
 
-      transferState.send(
-        .init(
+      state.mutate { mutableState in
+        mutableState.transferState = .init(
           configuration: AccountTransferConfiguration(
             transferID: "N/A",
             pagesCount: 0,
@@ -420,37 +374,35 @@ extension AccountImport {
           ),
           scanningParts: []
         )
-      )
+      }
     }
 
-    nonisolated func cancelTransfer() {
-      if let configuration: AccountTransferConfiguration = transferState.value.configuration,
-        !transferState.value.scanningFinished
+    @Sendable nonisolated func cancelTransfer() {
+      if let configuration = state.value.transferState.configuration,
+        !state.value.transferState.scanningFinished
       {
-        transferCancelationCancellable = requestCancelation(
-          with: configuration,
-          lastPage: transferState.value.lastScanningPage ?? transferState.value.configurationScanningPage,
-          using: accountTransferUpdateNetworkOperation
-        )
-        .collectErrorLog()
-        // we don't care about response, user exits process anyway
-        .sinkDrop()
+        // Fire, cancellation no need to wait for the result
+        Task {
+          try? await requestCancelation(
+            with: configuration,
+            lastPage: state.value.transferState.lastScanningPage
+              ?? state.value.transferState.configurationScanningPage,
+            using: accountTransferUpdateNetworkOperation
+          )
+        }
       }
       else { /* we can't cancel if we don't have configuration yet */
       }
-      transferState.send(
-        completion: .failure(
-          Cancelled.error()
-        )
-      )
+      state.mutate { $0.error = Cancelled.error() }
     }
 
     return .init(
-      progressPublisher: { progressPublisher },
-      accountDetailsPublisher: { accountDetailsPublisher },
+      updates: state.map { _ in () }.asAnyUpdatable(),
+      progress: progress,
+      accountDetails: accountDetails,
+      avatar: avatar,
       processPayload: processPayload(_:),
       completeTransfer: completeTransfer(_:),
-      avatarPublisher: { mediaPublisher },
       checkIfAccountExist: checkIfAccountExist,
       importAccountByPayload: importAccountByPayload(_:),
       cancelTransfer: cancelTransfer
@@ -515,7 +467,7 @@ private func updated(
   var mutableState = state  // make state mutable in scope
   mutableState.scanningParts.append(part)
 
-  //We support two kind of version regarding QR code version 1 and version 2
+  // We support two kind of version regarding QR code version 1 and version 2
   if part.version == "1" {
     return handleVersion1(state: &mutableState, part: part)
   }
@@ -528,12 +480,6 @@ private func updated(
   )
 }
 
-/// Handles the version 1 account transfer process by processing the given scanning part and updating the state accordingly.
-///
-/// - Parameters:
-///   - state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
-///   - part: The scanning part to process.
-/// - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
 private func handleVersion1(
   state: inout AccountTransferState,
   part: AccountTransferScanningPart
@@ -575,17 +521,11 @@ private func handleVersion1(
   }
 }
 
-/// Handles the version 2 account transfer process by processing the given scanning part and updating the state accordingly.
-///
-/// - Parameters:
-///   - state: The current account transfer state. This will be updated with any new information extracted from the scanning part.
-///   - part: The scanning part to process.
-/// - Returns: A `Result` object indicating whether the processing was successful or not. If successful, the updated state will be returned. If not, an error will be returned.
 private func handleAccountKitQRCode(
   state: inout AccountTransferState,
   part: AccountTransferScanningPart
 ) -> Result<AccountTransferState, Error> {
-  //Scan is finished download payload from gist
+  // Scan is finished download payload from gist
   guard let payload = String(data: part.payload, encoding: .utf8) else {
     return .failure(
       AccountTransferScanningFailure.error()
@@ -607,73 +547,56 @@ private func handleAccountKitQRCode(
 private func requestNextPage(
   for state: AccountTransferState,
   using accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation
-) -> AnyPublisher<Never, Error> {
-  guard let configuration: AccountTransferConfiguration = state.configuration
+) async throws {
+  guard let configuration = state.configuration
   else {
-    return Fail<Never, Error>(
-      error: AccountTransferScanningFailure.error()
-        .pushing(.message("Missing transfer configuration"))
-    )
-    .eraseToAnyPublisher()
+    throw AccountTransferScanningFailure.error()
+      .pushing(.message("Missing transfer configuration"))
   }
-  return Just(Void())
-    .eraseErrorType()
-    .asyncMap {
-      try await accountTransferUpdateNetworkOperation(
-        .init(
-          domain: configuration.domain,
-          authenticationToken: configuration.authenticationToken,
-          transferID: configuration.transferID,
-          currentPage: state.nextScanningPage
-            ?? state.lastScanningPage
-            ?? state.configurationScanningPage,
-          status: state.scanningFinished ? .complete : .inProgress,
-          requestUserProfile: false
-        )
-      )
-    }
-    .ignoreOutput()
-    .eraseToAnyPublisher()
+  _ = try await accountTransferUpdateNetworkOperation(
+    .init(
+      domain: configuration.domain,
+      authenticationToken: configuration.authenticationToken,
+      transferID: configuration.transferID,
+      currentPage: state.nextScanningPage
+        ?? state.lastScanningPage
+        ?? state.configurationScanningPage,
+      status: state.scanningFinished ? .complete : .inProgress,
+      requestUserProfile: false
+    )
+  )
 }
 
 private func requestNextPageWithUserProfile(
   for state: AccountTransferState,
   using accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation
-) -> AnyPublisher<AccountTransferUpdateNetworkOperationResult.User, Error> {
-  guard let configuration: AccountTransferConfiguration = state.configuration
+) async throws -> AccountTransferUpdateNetworkOperationResult.User {
+  guard let configuration = state.configuration
   else {
-    return Fail<AccountTransferUpdateNetworkOperationResult.User, Error>(
-      error: AccountTransferScanningFailure.error()
-        .pushing(.message("Missing transfer configuration"))
-    )
-    .eraseToAnyPublisher()
+    throw AccountTransferScanningFailure.error()
+      .pushing(.message("Missing transfer configuration"))
   }
-  return Just(Void())
-    .eraseErrorType()
-    .asyncMap { () async throws -> AccountTransferUpdateNetworkOperationResult.User in
-      let user: AccountTransferUpdateNetworkOperationResult.User? = try await accountTransferUpdateNetworkOperation(
-        .init(
-          domain: configuration.domain,
-          authenticationToken: configuration.authenticationToken,
-          transferID: configuration.transferID,
-          currentPage: state.nextScanningPage
-            ?? state.lastScanningPage
-            ?? state.configurationScanningPage,
-          status: state.scanningFinished ? .complete : .inProgress,
-          requestUserProfile: true
-        )
-      )
-      .user
+  let user: AccountTransferUpdateNetworkOperationResult.User? = try await accountTransferUpdateNetworkOperation(
+    .init(
+      domain: configuration.domain,
+      authenticationToken: configuration.authenticationToken,
+      transferID: configuration.transferID,
+      currentPage: state.nextScanningPage
+        ?? state.lastScanningPage
+        ?? state.configurationScanningPage,
+      status: state.scanningFinished ? .complete : .inProgress,
+      requestUserProfile: true
+    )
+  )
+  .user
 
-      if let user = user {
-        return user
-      }
-      else {
-        throw AccountTransferScanningFailure.error()
-          .pushing(.message("Missing account profile"))
-      }
-    }
-    .eraseToAnyPublisher()
+  if let user = user {
+    return user
+  }
+  else {
+    throw AccountTransferScanningFailure.error()
+      .pushing(.message("Missing account profile"))
+  }
 }
 
 private func requestCancelation(
@@ -681,37 +604,20 @@ private func requestCancelation(
   lastPage: Int,
   using accountTransferUpdateNetworkOperation: AccountTransferUpdateNetworkOperation,
   causedByError error: Error? = nil
-) -> AnyPublisher<Never, Error> {
-  let responsePublisher: AnyPublisher<Void, Error> =
-    Just(Void())
-    .eraseErrorType()
-    .asyncMap {
-      try await accountTransferUpdateNetworkOperation(
-        .init(
-          domain: configuration.domain,
-          authenticationToken: configuration.authenticationToken,
-          transferID: configuration.transferID,
-          currentPage: lastPage,
-          status: error == nil ? .cancel : .error,
-          requestUserProfile: false
-        )
-      )
-    }
-    .mapToVoid()
-    .eraseToAnyPublisher()
+) async throws {
+  _ = try await accountTransferUpdateNetworkOperation(
+    .init(
+      domain: configuration.domain,
+      authenticationToken: configuration.authenticationToken,
+      transferID: configuration.transferID,
+      currentPage: lastPage,
+      status: error == nil ? .cancel : .error,
+      requestUserProfile: false
+    )
+  )
 
-  if let error: Error = error {
-    return
-      responsePublisher
-      .flatMap { _ in Fail<Void, Error>(error: error) }
-      .ignoreOutput()
-      .eraseToAnyPublisher()
-  }
-  else {
-    return
-      responsePublisher
-      .ignoreOutput()
-      .eraseToAnyPublisher()
+  if let error = error {
+    throw error
   }
 }
 

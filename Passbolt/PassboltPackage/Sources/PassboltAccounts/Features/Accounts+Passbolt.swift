@@ -36,22 +36,23 @@ extension Accounts {
     let uuidGenerator: UUIDGenerator = features.instance()
 
     let session: Session = try features.instance()
-    let dataStore: AccountsDataStore = try features.instance()
+    let accountsListStorage: AccountsListStorage = try features.instance()
+    let accountProfileStorage: AccountProfileStorage = try features.instance()
 
     let updatesSource: Updates = .init()
 
     @Sendable nonisolated func verifyAccountsDataIntegrity() throws {
-      try dataStore.verifyDataIntegrity()
+      try accountsListStorage.verifyDataIntegrity()
     }
 
     @Sendable nonisolated func storedAccounts() -> Array<AccountWithProfile> {
-      dataStore
+      accountsListStorage
         .loadAccounts()
         .compactMap { (account: Account) -> AccountWithProfile? in
           do {
             return AccountWithProfile(
               account: account,
-              profile: try dataStore.loadAccountProfile(account.localID)
+              profile: try accountProfileStorage.loadAccountProfile(account.localID)
             )
           }
           catch {
@@ -64,13 +65,13 @@ extension Accounts {
     }
 
     @Sendable nonisolated func lastUsedAccount() -> AccountWithProfile? {
-      dataStore
+      accountsListStorage
         .loadLastUsedAccount()
         .flatMap { (account: Account) -> AccountWithProfile? in
           do {
             return AccountWithProfile(
               account: account,
-              profile: try dataStore.loadAccountProfile(account.localID)
+              profile: try accountProfileStorage.loadAccountProfile(account.localID)
             )
           }
           catch {
@@ -86,7 +87,7 @@ extension Accounts {
       _ transferedAccount: AccountTransferData
     ) throws -> Account {
       let storedAccount: Account? =
-        dataStore
+        accountsListStorage
         .loadAccounts()
         .first(
           where: { stored in
@@ -117,7 +118,7 @@ extension Accounts {
         )
 
         do {
-          try dataStore
+          try accountsListStorage
             .storeAccount(account, accountProfile, transferedAccount.armoredKey)
           updatesSource.update()
         }
@@ -134,13 +135,10 @@ extension Accounts {
 
     @Sendable nonisolated func remove(
       account: Account
-    ) throws {
+    ) async throws {
       Diagnostics.logger.info("Removing local account data...")
-      Task {
-        #warning("TODO: manage spawning tasks")
-        await session.close(account)
-      }
-      dataStore.deleteAccount(account.localID)
+      await session.close(account)
+      accountsListStorage.deleteAccount(account.localID)
       updatesSource.update()
       Diagnostics.logger.info("...removing local account data succeeded!")
     }

@@ -57,7 +57,7 @@
   )
 }
 
-@Sendable public func future<Value>(
+@Sendable public func futureValue<Value>(
   _ fulfill: (@escaping @Sendable (Value) -> Void) -> Void
 ) async throws -> Value {
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)

@@ -64,5 +64,7 @@ internal struct OTPConfigurationScanningView: ControlledView {
     .navigationTitle(
       displayable: "otp.code.scanning.title"
     )
+    .useCustomBackButton()
+    .tabbarHidden()
   }
 }

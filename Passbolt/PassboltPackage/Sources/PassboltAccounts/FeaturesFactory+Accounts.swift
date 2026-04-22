@@ -30,7 +30,12 @@ extension FeaturesRegistry {
     self.usePassboltAccountDetails()
     self.usePassboltAccountPreferences()
     self.usePassboltAccounts()
-    self.usePassboltAccountsDataStore()
+    self.usePassboltAccountsListStorage()
+    self.usePassboltAccountProfileStorage()
+    self.usePassboltAccountPrivateKeyStorage()
+    self.usePassboltAccountPassphraseStorage()
+    self.usePassboltAccountMFATokenStorage()
+    self.usePassboltServerFingerprintStorage()
     self.usePassboltAccountInitialSetup()
     self.usePassboltMetadataDataStore()
   }

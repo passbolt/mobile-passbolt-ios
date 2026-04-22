@@ -22,11 +22,11 @@
 //
 
 import CommonModels
-
 import struct Foundation.Data
 
-internal struct UserGroupMembersListRowItem {
+internal struct UserGroupMembersListRowItem: Identifiable {
 
+  internal var id: User.ID { self.userDetails.id }
   internal var userDetails: UserDetailsDSV
   internal var avatarImageData: () async -> Data?
 

@@ -81,7 +81,8 @@ internal final class ResourcesListViewController: ViewController {
             try await navigationToResourceContextualMenu.perform(
               context: .init()
             )
-          }
+          },
+          backAction: .none
         )
       ),
       features: features

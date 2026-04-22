@@ -21,50 +21,51 @@
 // @since         v1.0
 //
 
+import Display
 import SharedUIComponents
-import UIComponents
 
 @MainActor
 internal final class Window {
 
   private enum ScreenCache {
 
-    case cached(AnyUIComponent, for: Account)
+    case cached(UIViewController, for: Account)
   }
 
   private static let transitionDuration: TimeInterval = 0.3
 
   private let window: UIWindow
-  private let components: UIComponentFactory
-  private let cancellables: Cancellables
-  private let maskView: SplashScreenView = .init()
+  private let features: Features
+  private var screenStateDispositionTask: Task<Void, Error>?
+
+  private lazy var maskView: UIView = {
+    let hostedController: UIHostingController<SplashView> = .init(rootView: .init())
+    return hostedController.view
+  }()
   private var screenStateAccount: Account?
   private var screenStateCache: ScreenCache?
 
   internal init(
     in scene: UIWindowScene,
     using lazyController: @escaping () -> WindowController,
-    within components: UIComponentFactory,
-    rootViewController: UIViewController,
-    cancellables: Cancellables
+    with features: Features,
+    rootViewController: UIViewController
   ) {
     self.window = UIWindow(windowScene: scene)
-    self.components = components
-    self.cancellables = cancellables
+    self.features = features
+
     self.window.rootViewController = rootViewController
     self.screenStateAccount = .none
     self.screenStateCache = .none
     setupSnackBarMessages(within: self.window)
-
-    cancellables.executeAsync { @MainActor [self] in
+    self.screenStateDispositionTask = .init { @MainActor [self] in
       let controller: WindowController = lazyController()
-      try self.replaceRoot(
-        with: self.components
-          .instance(
-            of: SplashScreenViewController.self,
-            in: controller.initialAccount()
-          )
+      let navigationToSplashScreen: NavigationToSplashScreen = try self.features
+        .instance()
+      try await navigationToSplashScreen.perform(
+        context: controller.initialAccount()
       )
+
       for try await disposition in controller.screenStateDispositionSequence() {
         switch disposition {
         // Use last state for same session after authorization.
@@ -76,17 +77,15 @@ internal final class Window {
             self.replaceRoot(with: cached)
 
           case .cached, .none:
-            // fallback to initial screen state if there is none cached
-            guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
-            else { return }
             self.screenStateCache = .none
-            try self.replaceRoot(
-              with: self.components
-                .instance(
-                  of: SplashScreenViewController.self,
-                  in: account
-                )
-            )
+            if self.isMFAPromptDisplayed {
+              let navigationToMFA: NavigationToMFA = try self.features
+                .instance()
+              try await navigationToMFA.revert()
+            }
+            let navigationToSplashScreen: NavigationToSplashScreen =
+              try self.features.instance()
+            try await navigationToSplashScreen.perform(context: account)
           }
 
         // Go to initial screen state (through Splash)
@@ -95,22 +94,15 @@ internal final class Window {
         // - home (for authorized)
         // - account selection (for unauthorized)
         case .useInitialScreenState:
-          guard !self.isSplashScreenDisplayed || self.isErrorDisplayed
-          else { return }
 
           self.screenStateCache = .none
-          try self.replaceRoot(
-            with: self.components
-              .instance(
-                of: SplashScreenViewController.self,
-                in: .none
-              )
-          )
+          let navigationToSplashScreen: NavigationToSplashScreen =
+            try self.features.instance()
+          try await navigationToSplashScreen.perform(context: .none)
 
         // Prompt user with authorization screen if it is not already displayed.
-        case .requestPassphrase(let account, let message):
+        case .requestPassphrase(let account, _):
           guard
-            !self.isSplashScreenDisplayed,
             !self.isAuthorizationDisplayed
           else { return }
 
@@ -120,9 +112,15 @@ internal final class Window {
                 self.screenStateCache == nil,
                 "Cannot replace screen state cache, it has to be empty"
               )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = .cached(rootComponent, for: account)
+
+              guard
+                let currentRootController: UIViewController = self.window
+                  .rootViewController
+              else { return }
+              self.screenStateCache = .cached(
+                currentRootController,
+                for: account
+              )
             }
             else {
               /* NOP - reuse previous cache if any if previous screen was mfa prompt */
@@ -133,92 +131,54 @@ internal final class Window {
             self.screenStateAccount = account
           }
 
-          try self.replaceRoot(
-            with: self.components
-              .instance(
-                of: AuthorizationNavigationViewController.self,
-                in: (account: account, message: message)
-              )
+          let navigationToAccountSelection: NavigationToAccountSelection =
+            try self.features.instance()
+          try await navigationToAccountSelection.perform(
+            context: .init(isSignIn: true)
+          )
+
+          let navigationToAuthorization: NavigationToAuthorization =
+            try self.features.instance()
+          try await navigationToAuthorization.perform(
+            animated: false,
+            context: account
           )
 
         // Prompt user with mfa screen if it is not already displayed.
         case .requestMFA(let account, let providers):
           guard
-            !self.isSplashScreenDisplayed,
             !self.isMFAPromptDisplayed
           else { return }
 
-          if let authorizationNavigation = self.window.rootViewController
-            as? AuthorizationNavigationViewController
-          {
-            if providers.isEmpty {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                  )
-              )
-            }
-            else {
-              await authorizationNavigation
-                .push(
-                  MFARootViewController.self,
-                  in: providers
-                )
-            }
-          }
-          else if let welcomeNavigation = self.window.rootViewController
-            as? WelcomeNavigationViewController
-          {
-            if providers.isEmpty {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                  )
-              )
-            }
-            else {
-              await welcomeNavigation
-                .push(
-                  MFARootViewController.self,
-                  in: providers
-                )
-            }
-          }
-          else {
+          if !self.isAuthorizationDisplayed {
             if self.screenStateAccount == account {
               assert(
                 self.screenStateCache == nil,
                 "Cannot replace screen state cache, it has to be empty"
               )
-              guard let rootComponent: AnyUIComponent = self.window.rootViewController as? AnyUIComponent
-              else { unreachable("Window root has to be an instance of UIComponent") }
-              self.screenStateCache = .cached(rootComponent, for: account)
+              guard
+                let currentRootController: UIViewController = self.window
+                  .rootViewController
+              else { return }
+              self.screenStateCache = .cached(
+                currentRootController,
+                for: account
+              )
             }
             else {
               self.screenStateCache = .none
               self.screenStateAccount = account
             }
-
-            if providers.isEmpty {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<UnsupportedMFAViewController>.self
-                  )
-              )
-            }
-            else {
-              try self.replaceRoot(
-                with: self.components
-                  .instance(
-                    of: PlainNavigationViewController<MFARootViewController>.self,
-                    in: providers
-                  )
-              )
-            }
           }
+          if providers.isEmpty {
+            let navigationToResult: NavigationToUnsupportedMFA =
+              try self.features.instance()
+            try await navigationToResult.perform()
+            return
+          }
+
+          let navigationToMFA: NavigationToMFA = try self.features.instance()
+          try await navigationToMFA.perform(context: providers)
         }
       }
     }
@@ -246,51 +206,27 @@ extension Window {
 
 extension Window {
 
-  private var isSplashScreenDisplayed: Bool {
-    window.rootViewController is SplashScreenViewController
-  }
-
-  private var isErrorDisplayed: Bool {
-    window.rootViewController?.presentedViewController is ErrorViewController
-  }
-
-  private var isAccountTransferDisplayed: Bool {
-    guard let navigation = window.rootViewController as? UINavigationController
-    else { return false }
-    return navigation.viewControllers.contains { (vc: UIViewController) -> Bool in
-      vc is TransferSignInViewController
-        || vc is TransferInfoScreenViewController
-    }
-  }
-
   private var isAuthorizationDisplayed: Bool {
     guard let navigation = window.rootViewController as? UINavigationController
     else { return false }
 
-    return navigation.viewControllers
-      .contains { (vc: UIViewController) -> Bool in
-        vc is TransferSignInViewController
-          || vc is AuthorizationViewController
-      }
-      && !navigation.viewControllers
-        .contains { (vc: UIViewController) -> Bool in
-          vc is MFARootViewController
-        }
+    if navigation.contains(AuthorizationView.self) || navigation.contains(TransferSignInView.self) {
+      return isMFAPromptDisplayed
+    }
+    return false
   }
 
   private var isMFAPromptDisplayed: Bool {
-    window.rootViewController is PlainNavigationViewController<MFARootViewController>
-      || (window.rootViewController as? AuthorizationNavigationViewController)?.viewControllers
-        .contains(where: {
-          $0 is MFARootViewController
-        }) ?? false
+    guard let navigation = window.rootViewController as? UINavigationController
+    else { return false }
+    return navigation.contains(MFAView.self)
   }
 }
 
 extension Window {
 
   private func replaceRoot(
-    with component: AnyUIComponent,
+    with component: UIViewController,
     animated: Bool = true,
     completion: (() -> Void)? = nil
   ) {
@@ -308,5 +244,12 @@ extension Window {
         currentView?.alpha = 1
       }
     )
+  }
+}
+
+extension UINavigationController {
+
+  fileprivate func contains<V>(_ view: V.Type) -> Bool where V: ControlledView {
+    viewControllers.contains { $0 is UIHostingController<V> }
   }
 }

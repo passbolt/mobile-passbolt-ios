@@ -22,7 +22,6 @@
 //
 
 import Features
-import UIComponents
 
 // Same instance should not be reused between multiple
 // views - it should uniquely identify a view on display.
@@ -38,20 +37,9 @@ import UIComponents
     features: Features
   ) throws
 
-  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
-  nonisolated var viewNodeID: ViewNodeID { get }
-
   #if DEBUG
   static func previewDependencies(_ features: inout PreviewFeaturesContainer)
   #endif
-}
-
-extension ViewController {
-
-  @available(*, deprecated, message: "Do not use viewNodeID to identify views. Legacy use only!")
-  public nonisolated var viewNodeID: ViewNodeID {
-    .init(rawValue: ObjectIdentifier(self))
-  }
 }
 
 extension ViewController /* Hashable */ {
@@ -239,7 +227,6 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -256,11 +243,9 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -283,15 +268,12 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -316,19 +298,15 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
-        .id(controller.viewNodeID)
 
     case _:
       defaultView()
@@ -363,23 +341,18 @@ public enum Controlled {
     switch controller {
     case let controller as ControlledViewA.Controller:
       ControlledViewA(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewB.Controller:
       ControlledViewB(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewC.Controller:
       ControlledViewC(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewD.Controller:
       ControlledViewD(controller: controller)
-        .id(controller.viewNodeID)
 
     case let controller as ControlledViewE.Controller:
       ControlledViewE(controller: controller)
-        .id(controller.viewNodeID)
 
     case _:
       defaultView()

@@ -49,11 +49,11 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
 
   func test_storedAccounts_returnsAccountsFromAccountsDataStore() async throws {
     patch(
-      \AccountsDataStore.loadAccounts,
+      \AccountsListStorage.loadAccounts,
       with: always([.mock_ada])
     )
     patch(
-      \AccountsDataStore.loadAccountProfile,
+      \AccountProfileStorage.loadAccountProfile,
       with: {
         if $0 == .mock_ada {
           return .mock_ada
@@ -77,13 +77,13 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   func test_verifyAccountsDataIntegrity_verifiesAccountsDataStore() async throws {
     let result: UnsafeSendable<Void> = .init()
     patch(
-      \AccountsDataStore.verifyDataIntegrity,
+      \AccountsListStorage.verifyDataIntegrity,
       with: {
         result.value = Void()
       }
     )
     patch(
-      \AccountsDataStore.loadAccounts,
+      \AccountsListStorage.loadAccounts,
       with: always([.mock_ada])
     )
 
@@ -108,13 +108,13 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
     )
     let result: UnsafeSendable<(account: Account, details: AccountProfile, armoredKey: ArmoredPGPPrivateKey)> = .init()
     patch(
-      \AccountsDataStore.storeAccount,
+      \AccountsListStorage.storeAccount,
       with: { account, details, key in
         result.value = (account, details, key)
       }
     )
     patch(
-      \AccountsDataStore.loadAccounts,
+      \AccountsListStorage.loadAccounts,
       with: always([])
     )
     patch(
@@ -158,7 +158,7 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
       with: always(Void())
     )
     patch(
-      \AccountsDataStore.loadAccounts,
+      \AccountsListStorage.loadAccounts,
       with: always([.mock_ada])
     )
     patch(
@@ -199,13 +199,13 @@ final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
   func test_removeAccount_removesDataFromAccountsDataStore() async throws {
     let result: UnsafeSendable<Account.LocalID> = .init()
     patch(
-      \AccountsDataStore.deleteAccount,
+      \AccountsListStorage.deleteAccount,
       with: {
         result.value = $0
       }
     )
     patch(
-      \AccountsDataStore.loadAccounts,
+      \AccountsListStorage.loadAccounts,
       with: always([.mock_ada])
     )
 

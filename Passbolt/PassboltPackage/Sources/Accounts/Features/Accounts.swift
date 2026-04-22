@@ -43,7 +43,7 @@ public struct Accounts: Sendable {
   public var addAccount: @Sendable (AccountTransferData) throws -> Account
   /// Delete locally stored data for given account.
   /// Closes the session for that account if needed.
-  public var removeAccount: @Sendable (Account) throws -> Void
+  public var removeAccount: @Sendable (Account) async throws -> Void
 
   public init(
     updates: AnyUpdatable<Void>,
@@ -51,7 +51,7 @@ public struct Accounts: Sendable {
     storedAccounts: @escaping @Sendable () -> Array<AccountWithProfile>,
     lastUsedAccount: @escaping @Sendable () -> AccountWithProfile?,
     addAccount: @escaping @Sendable (AccountTransferData) throws -> Account,
-    removeAccount: @escaping @Sendable (Account) throws -> Void
+    removeAccount: @escaping @Sendable (Account) async throws -> Void
   ) {
     self.updates = updates
     self.verifyDataIntegrity = verifyDataIntegrity

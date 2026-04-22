@@ -33,7 +33,7 @@ import Commons
 /// 3 second period) the latest will cover the other.
 public enum SnackBarMessageEvent: EventDescription {
 
-  public enum Payload: Equatable {
+  public enum Payload: Equatable, Sendable {
     case show(SnackBarMessage)  // show message
     case clear  // dismiss currently displayed message
   }
@@ -52,19 +52,6 @@ extension SnackBarMessageEvent {
   ) {
     guard let message else { return }
     self.send(.show(message))
-  }
-}
-
-/// Execute provided operation with automatically
-/// consumed errors.
-@_transparent public func consumingErrors(
-  @_implicitSelfCapture _ operation: () throws -> Void
-) {
-  do {
-    try operation()
-  }
-  catch {
-    error.consume()
   }
 }
 

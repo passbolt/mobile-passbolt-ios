@@ -167,19 +167,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         """,
         arguments: input
       )
-    let selectResourceURIsStatement: SQLiteStatement =
-      .statement(
-        """
-        SELECT
-          resourceURI.resource_id,
-          resourceURI.uri
-        FROM
-          resourceURI
-        WHERE
-          resourceURI.resource_id == ?;
-        """,
-        arguments: input
-      )
+
     let path: OrderedSet<ResourceFolderPathItem> = try OrderedSet(
       connection.fetch(
         using: selectResourcePathStatement
@@ -267,23 +255,6 @@ extension ResourceDetailsFetchDatabaseOperation {
           slug: slug,
           shared: shared
         )
-      }
-    )
-
-    let uris: [String] = try connection.fetch(
-      using: selectResourceURIsStatement,
-      mapping: { dataRow in
-        guard
-          let _: Resource.ID = dataRow.resource_id.flatMap(Resource.ID.init(rawValue:)),
-          let uri: String = dataRow.uri
-        else {
-          throw
-            DatabaseDataInvalid
-            .error(for: ResourceURIDTO.self)
-            .recording(dataRow, for: "dataRow")
-        }
-
-        return uri
       }
     )
 

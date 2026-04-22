@@ -121,25 +121,26 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
   }
 }
 
-//#if DEBUG
-//
-//internal struct ResourceListItemView_Previews: PreviewProvider {
-//
-//  internal static var previews: some View {
-//    ResourceListItemView(
-//      name: "Resource",
-//      username: "username",
-//      isExpired: true,
-//      icon: .init(
-//        type: .none,
-//        value: .none,
-//        backgroundColor: .none,
-//      ),
-//      contentAction: {
-//        // action
-//      },
-//      rightAccessory: EmptyView.init
-//    )
-//  }
-//}
-//#endif
+#if DEBUG
+
+internal struct ResourceListItemView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    ResourceListItemView(
+      name: "Resource",
+      username: "username",
+      isExpired: true,
+      icon: .init(
+        type: .none,
+        value: .none,
+        backgroundColor: .none
+      ),
+      resourceTypeSlug: .v5Default,
+      contentAction: {
+        // action
+      },
+      rightAccessory: EmptyView.init
+    )
+  }
+}
+#endif

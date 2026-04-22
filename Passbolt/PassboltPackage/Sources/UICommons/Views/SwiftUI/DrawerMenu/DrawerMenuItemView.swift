@@ -33,7 +33,7 @@ where TitleView: View, LeftIconView: View, RightIconView: View {
   private let isSelected: Bool
 
   public init(
-    @_inheritActorContext action: @escaping @MainActor () async throws -> Void,
+    action: @escaping @MainActor () async throws -> Void,
     @ViewBuilder title: @escaping () -> TitleView,
     @ViewBuilder leftIcon: @escaping () -> LeftIconView,
     @ViewBuilder rightIcon: @escaping () -> RightIconView,

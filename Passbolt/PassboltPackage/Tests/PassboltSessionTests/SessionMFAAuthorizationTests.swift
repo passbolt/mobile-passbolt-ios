@@ -36,7 +36,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
 
   override func prepare() throws {
     use(SessionState.placeholder)
-    use(AccountsDataStore.placeholder)
+    use(AccountMFATokenStorage.placeholder)
     use(TOTPAuthorizationNetworkOperation.placeholder)
     use(YubiKeyAuthorizationNetworkOperation.placeholder)
     use(YubiKey.placeholder)
@@ -106,7 +106,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(Void())
     )
     patch(
-      \AccountsDataStore.storeAccountMFAToken,
+      \AccountMFATokenStorage.storeAccountMFAToken,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
@@ -134,7 +134,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(Void())
     )
     patch(
-      \AccountsDataStore.storeAccountMFAToken,
+      \AccountMFATokenStorage.storeAccountMFAToken,
       with: always(Void())
     )
     withTestedInstanceNotThrows { (testedInstance: SessionMFAAuthorization) in
@@ -160,7 +160,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(self.executed())
     )
     patch(
-      \AccountsDataStore.storeAccountMFAToken,
+      \AccountMFATokenStorage.storeAccountMFAToken,
       with: always(Void())
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
@@ -275,7 +275,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(Void())
     )
     patch(
-      \AccountsDataStore.storeAccountMFAToken,
+      \AccountMFATokenStorage.storeAccountMFAToken,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
@@ -311,7 +311,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(Void())
     )
     patch(
-      \AccountsDataStore.storeAccountMFAToken,
+      \AccountMFATokenStorage.storeAccountMFAToken,
       with: alwaysThrow(MockIssue.error())
     )
     withTestedInstanceThrows(
@@ -347,7 +347,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       with: always(self.executed())
     )
     patch(
-      \AccountsDataStore.storeAccountMFAToken,
+      \AccountMFATokenStorage.storeAccountMFAToken,
       with: always(Void())
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in

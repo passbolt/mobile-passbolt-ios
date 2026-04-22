@@ -33,7 +33,7 @@ extension ResourceFolderUsersIDFetchDatabaseOperation {
     _ input: ResourceFolder.ID,
     connection: SQLiteConnection
   ) throws -> Array<User.ID> {
-    var statement: SQLiteStatement =
+    let statement: SQLiteStatement =
       .statement(
         """
         SELECT DISTINCT

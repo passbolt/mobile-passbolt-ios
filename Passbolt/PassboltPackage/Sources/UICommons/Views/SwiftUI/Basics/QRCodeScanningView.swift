@@ -128,7 +128,7 @@ extension QRCodeScanningViewController: AVCaptureMetadataOutputObjectsDelegate {
   }
 }
 
-internal final class CodeReaderView: PlainView {
+internal final class CodeReaderView: UIView {
 
   private let cameraPreview: AVCaptureVideoPreviewLayer?
 
@@ -136,7 +136,8 @@ internal final class CodeReaderView: PlainView {
     session captureSession: AVCaptureSession?
   ) {
     self.cameraPreview = captureSession.map(AVCaptureVideoPreviewLayer.init(session:))
-    super.init()
+    super.init(frame: .zero)
+    setup()
   }
 
   @available(*, unavailable)
@@ -144,7 +145,12 @@ internal final class CodeReaderView: PlainView {
     unreachable(#function)
   }
 
-  override internal func setup() {
+  @available(*, unavailable)
+  public required init?(coder: NSCoder) {
+    unreachable(#function)
+  }
+
+  private func setup() {
     if let cameraPreview: AVCaptureVideoPreviewLayer = self.cameraPreview {
       cameraPreview.videoGravity = .resizeAspectFill
       self.layer.addSublayer(cameraPreview)

@@ -42,6 +42,7 @@ internal struct MainSettingsView: ControlledView {
         self.content
       }
     )
+    .environment(\.hideLeadingItem, true)
   }
 
   @ViewBuilder @MainActor private var content: some View {

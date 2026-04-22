@@ -38,10 +38,12 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
   private let navigationToSelf: NavigationToResourcePermissionsDetails
+  private let navigationToUserPermissionDetails: NavigationToUserPermissionDetails
+  private let navigationToGroupPermissionDetails: NavigationToUserGroupPermissionDetails
+  private let navigationToPermissionsEdit: NavigationToResourceShare
 
   private let resourceController: ResourceController
   private let users: Users
-  private let legacyNavigation: DisplayNavigation
 
   private let resourceID: Resource.ID
 
@@ -53,10 +55,12 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
     self.resourceID = try features.context(of: ResourceScope.self)
 
     self.navigationToSelf = try features.instance()
+    self.navigationToUserPermissionDetails = try features.instance()
+    self.navigationToGroupPermissionDetails = try features.instance()
+    self.navigationToPermissionsEdit = try features.instance()
 
     self.resourceController = try features.instance()
     self.users = try features.instance()
-    self.legacyNavigation = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -74,12 +78,13 @@ extension ResourcePermissionsDetailsViewController {
       errorDiagnostics: "Resource permissions details updates broken!",
       fallback: {
         try? await self.navigationToSelf.revert()
+      },
+      {
+        for try await resource in self.resourceController.state {
+          try await self.update(resource.value)
+        }
       }
-    ) {
-      for try await resource in self.resourceController.state {
-        try await self.update(resource.value)
-      }
-    }
+    )
   }
 
   internal func update(
@@ -122,26 +127,24 @@ extension ResourcePermissionsDetailsViewController {
   internal func showUserPermissionDetails(
     _ details: UserPermissionDetailsDSV
   ) async {
-    await self.legacyNavigation.push(
-      legacy: UserPermissionDetailsView.self,
-      context: details
-    )
+    await consumingErrors {
+      try await navigationToUserPermissionDetails.perform(context: details)
+    }
   }
 
   internal func showUserGroupPermissionDetails(
     _ details: UserGroupPermissionDetailsDSV
   ) async {
-    await legacyNavigation.push(
-      legacy: UserGroupPermissionDetailsView.self,
-      context: details
-    )
+    await consumingErrors {
+      try await navigationToGroupPermissionDetails.perform(context: details)
+    }
   }
 
   internal func editPermissions() async {
-    await self.legacyNavigation.replace(
-      UIHostingController<ResourcePermissionsDetailsView>.self,
-      pushing: ResourcePermissionEditListView.self,
-      in: self.resourceID
-    )
+    await consumingErrors {
+      try await navigationToPermissionsEdit.perform(
+        context: self.resourceID
+      )
+    }
   }
 }

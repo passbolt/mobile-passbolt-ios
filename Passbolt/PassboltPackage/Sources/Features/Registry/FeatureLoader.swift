@@ -69,22 +69,4 @@ extension FeatureLoader {
       load: loadFeature(_:)
     )
   }
-
-  @available(*, deprecated)
-  public static func constant<Feature>(
-    _ instance: Feature
-  ) -> Self
-  where Feature: LoadableFeature {
-    @MainActor func loadFeature(
-      _: Features
-    ) throws -> AnyFeature {
-      instance
-    }
-
-    return Self(
-      identifier: Feature.identifier,
-      cache: false,
-      load: loadFeature(_:)
-    )
-  }
 }

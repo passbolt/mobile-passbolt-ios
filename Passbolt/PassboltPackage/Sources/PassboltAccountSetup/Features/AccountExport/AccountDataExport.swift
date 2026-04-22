@@ -61,7 +61,7 @@ extension AccountDataExport {
 
     let session: Session = try features.instance()
     let accountDetails: AccountDetails = try features.instance()
-    let accountsData: AccountsDataStore = try features.instance()
+    let accountPrivateKeyStorage: AccountPrivateKeyStorage = try features.instance()
 
     @Sendable nonisolated func exportAccountData(
       authorizationMethod: AccountAuthorizationMethod
@@ -75,7 +75,7 @@ extension AccountDataExport {
       }
 
       let accountWithProfile: AccountWithProfile = try accountDetails.profile()
-      let accountPrivateKey: ArmoredPGPPrivateKey = try accountsData.loadAccountPrivateKey(account.localID)
+      let accountPrivateKey: ArmoredPGPPrivateKey = try accountPrivateKeyStorage.loadAccountPrivateKey(account.localID)
 
       return .init(
         userID: accountWithProfile.userID,

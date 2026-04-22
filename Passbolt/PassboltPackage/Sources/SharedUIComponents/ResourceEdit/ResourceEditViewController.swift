@@ -225,6 +225,8 @@ public final class ResourceEditViewController: ViewController {
 
   @MainActor internal func sendForm() async throws {
     do {
+      let editedFields: Set<ResourceType.FieldPath> = self.localState.value.editedFields
+      try await self.resourceEditForm.updateExpiryDateIfNeeded(editedFields)
       try await self.resourceEditForm.validateForm()
       let resource: Resource = try await self.resourceEditForm.sendForm()
       if let customOnSuccessNavigation {
@@ -319,7 +321,7 @@ public final class ResourceEditViewController: ViewController {
 
   @MainActor internal func addPassword() async {
     await consumingErrors {
-      let editingContext = try features.context(of: ResourceEditScope.self)
+      let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
 
       guard
         let newResourceSlug: ResourceSpecification.Slug = editingContext.editedResource.type.slugByAttachingPassword(),
@@ -897,6 +899,12 @@ extension ResourceSpecification.Slug {
     case .v5StandaloneNote:
       return [
         \.secret.description
+      ]
+    case .password:
+      return [
+        \.meta.uris.0,
+        \.meta.username,
+        \.secret,
       ]
     default:
       return [

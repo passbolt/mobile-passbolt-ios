@@ -46,12 +46,7 @@ internal struct FoldersExplorerView: ControlledView {
         self.searchView(with: state)
       },
       titleLeadingItem: EmptyView.init,
-      titleTrailingItem: {
-        AsyncButton(
-          action: self.controller.presentResourceFolderMenu,
-          label: { Image(named: .more) }
-        )
-      },
+      titleTrailingItem: { IconButton(iconName: .more, action: self.controller.presentResourceFolderMenu) },
       contentView: {
         if state.searchText.isEmpty {
           self.contentView(with: state)
@@ -61,6 +56,8 @@ internal struct FoldersExplorerView: ControlledView {
         }
       }
     )
+    .environment(\.hideTrailingItem, state.folderID == .none)
+    .environment(\.hideLeadingItem, state.folderID == .none)
   }
 
   @MainActor @ViewBuilder private func searchView(

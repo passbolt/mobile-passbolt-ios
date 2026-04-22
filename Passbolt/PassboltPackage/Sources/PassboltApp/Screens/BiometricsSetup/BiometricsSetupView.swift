@@ -21,125 +21,113 @@
 // @since         v1.0
 //
 
-import CommonModels
-import UICommons
+import Display
 
-import struct OSFeatures.OSBiometry
+internal struct BiometricsSetupView: ControlledView {
 
-internal final class BiometricsSetupView: ScrolledStackView {
+  internal let controller: BiometricsSetupViewController
 
-  internal var setupTapPublisher: AnyPublisher<Void, Never>
-  internal var skipTapPublisher: AnyPublisher<Void, Never>
-
-  private let imageView: ImageView = .init()
-  private let titleLabel: Label = .init()
-  private let setupButton: TextButton = .init()
-
-  internal required init() {
-    let skipButton: TextButton = .init()
-
-    self.setupTapPublisher = setupButton.tapPublisher
-    self.skipTapPublisher = skipButton.tapPublisher
-    super.init()
-
-    let imageContainer: PlainView = .init()
-    mut(imageContainer) {
-      .backgroundColor(dynamic: .background)
-    }
-
-    mut(imageView) {
-      .combined(
-        .subview(of: imageContainer),
-        .contentMode(.scaleAspectFit),
-        .topAnchor(.equalTo, imageContainer.topAnchor),
-        .bottomAnchor(.equalTo, imageContainer.bottomAnchor),
-        .centerXAnchor(.equalTo, imageContainer.centerXAnchor),
-        .widthAnchor(.lessThanOrEqualTo, imageContainer.widthAnchor, multiplier: 0.8),
-        .accessibilityIdentifier("welcome.accounts.imageview")
-      )
-    }
-
-    mut(titleLabel) {
-      .combined(
-        .titleStyle(),
-        .accessibilityIdentifier("biometrics.setup.title.label")
-      )
-    }
-    let descriptionLabel: Label = .init()
-    mut(descriptionLabel) {
-      .combined(
-        .font(.inter(ofSize: 14)),
-        .lineBreakMode(.byWordWrapping),
-        .textAlignment(.center),
-        .numberOfLines(0),
-        .textColor(dynamic: .secondaryText),
-        .text(displayable: .localized(key: "biometrics.setup.description")),
-        .accessibilityIdentifier("biometrics.setup.description.label")
-      )
-    }
-
-    mut(setupButton) {
-      .combined(
-        .primaryStyle(),
-        .accessibilityIdentifier("biometrics.setup.setup.button")
-      )
-    }
-
-    mut(skipButton) {
-      .combined(
-        .linkStyle(),
-        .text(displayable: .localized(key: "biometrics.setup.later.button")),
-        .accessibilityIdentifier("biometrics.setup.later.button")
-      )
-    }
-
-    mut(self) {
-      .combined(
-        .backgroundColor(dynamic: .background),
-        .axis(.vertical),
-        .isLayoutMarginsRelativeArrangement(true),
-        .contentInset(.init(top: 8, left: 16, bottom: 8, right: 16)),
-        .append(imageContainer),
-        .appendSpace(of: 56),
-        .append(titleLabel),
-        .appendSpace(of: 16),
-        .append(descriptionLabel),
-        .appendFiller(minSize: 8),
-        .append(setupButton),
-        .append(skipButton)
-      )
-    }
+  internal init(controller: BiometricsSetupViewController) {
+    self.controller = controller
   }
 
-  internal func update(for bimetryState: OSBiometryAvailability) {
-    switch bimetryState {
-    case .unavailable:
-      unreachable("Cannot setup biometrics for devices which does not support it")
-
-    case .unconfigured:
-      unreachable("Cannot setup biometrics if it is not configured")
-
-    case .touchID:
-      mut(imageView) {
-        .image(named: .touchIDSetup, from: .uiCommons)
-      }
-      mut(titleLabel) {
-        .text(displayable: .localized(key: "biometrics.setup.title.finger"))
-      }
-      mut(setupButton) {
-        .text(displayable: .localized(key: "biometrics.setup.setup.button.finger"))
-      }
-
-    case .faceID:
-      mut(imageView) {
-        .image(named: .faceIDSetup, from: .uiCommons)
-      }
-      mut(titleLabel) {
-        .text(displayable: .localized(key: "biometrics.setup.title.face"))
-      }
-      mut(setupButton) {
-        .text(displayable: .localized(key: "biometrics.setup.setup.button.face"))
+  internal var body: some View {
+    NavigationStack {
+      WithViewState(self.controller.viewState) { state in
+        InfoView(
+          icon: state.icon,
+          title: state.title,
+          message: state.message,
+          primaryButtonTitle: state.primaryButtonTitle,
+          primaryButtonAction: self.controller.primaryButtonTapped,
+          secondaryButtonTitle: "biometrics.info.later.button",
+          secondaryButtonAction: self.controller.skipSetup
+        )
       }
     }
+  }
+}
+
+#if DEBUG
+
+#Preview {
+  PlaceholderView()
+    .sheet(isPresented: .constant(true)) {
+      createPreview(
+        BiometricsSetupView.self,
+        with: ()
+      )
+    }
+}
+#endif
+
+private struct InfoView: View {
+
+  private let icon: ImageNameConstant
+  private let title: DisplayableString
+  private let message: DisplayableString?
+  private let primaryButtonTitle: DisplayableString
+  private let primaryButtonAction: () async -> Void
+  private let secondaryButtonTitle: DisplayableString?
+  private let secondaryButtonAction: (() async -> Void)?
+
+  fileprivate init(
+    icon: ImageNameConstant,
+    title: DisplayableString,
+    message: DisplayableString?,
+    primaryButtonTitle: DisplayableString,
+    primaryButtonAction: @escaping () async -> Void,
+    secondaryButtonTitle: DisplayableString?,
+    secondaryButtonAction: (() async -> Void)?
+  ) {
+    self.icon = icon
+    self.title = title
+    self.message = message
+    self.primaryButtonTitle = primaryButtonTitle
+    self.primaryButtonAction = primaryButtonAction
+    self.secondaryButtonTitle = secondaryButtonTitle
+    self.secondaryButtonAction = secondaryButtonAction
+  }
+
+  fileprivate var body: some View {
+    VStack(spacing: 0) {
+      GeometryReader { reader in
+        VStack(spacing: 0) {
+          Image(named: icon)
+            .resizable()
+            .scaledToFit()
+            .frame(maxWidth: reader.size.width * 0.6)
+            .frame(maxWidth: .infinity)
+
+          Text(displayable: title)
+            .titleStyle()
+            .padding(.top, 32)
+
+          if let message {
+            Text(displayable: message)
+              .infoStyle()
+              .padding(.top, 16)
+          }
+
+          Spacer()
+        }
+      }
+      VStack(spacing: 8) {
+        PrimaryButton(
+          title: primaryButtonTitle,
+          action: primaryButtonAction
+        )
+        if let secondaryButtonTitle, let secondaryButtonAction {
+          SecondaryButton(
+            title: secondaryButtonTitle,
+            action: secondaryButtonAction
+          )
+        }
+      }
+    }
+    .padding(.top, 64)
+    .padding(.horizontal, 16)
+    .padding(.bottom, 16)
+    .navigationBarBackButtonHidden()
   }
 }

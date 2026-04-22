@@ -30,19 +30,9 @@ extension Publisher where Output == Never {
   ) -> AnyCancellable {
     self.sink(
       receiveCompletion: receiveCompletion,
-      receiveValue: { _ in unreachable("Cannot emit Never") }
-    )
-  }
-}
-
-extension Publisher where Output == Never, Failure == Never {
-
-  public func sink(
-    receiveCompletion: @escaping () -> Void
-  ) -> AnyCancellable {
-    self.sink(
-      receiveCompletion: { _ in receiveCompletion() },
-      receiveValue: { _ in unreachable("Cannot emit Never") }
+      receiveValue: { _ in
+        /** no-op: cannot emit Never */
+      }
     )
   }
 }

@@ -23,6 +23,7 @@
 
 import FeatureScopes
 import TestExtensions
+@testable import Display
 
 @testable import PassboltApp
 
@@ -43,7 +44,7 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
 
   func test_navigateToAccountExport_performsNavigation() async {
     patch(
-      \NavigationToAccountExport.mockPerform,
+      \NavigationToAccountExportInfo.mockPerform,
       with: always(self.mockExecuted())
     )
     await withInstance(
@@ -57,7 +58,7 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
 
   func test_navigateToManageAccounts_performsNavigation() async {
     patch(
-      \NavigationToManageAccounts.mockPerform,
+      \NavigationToManageAccounts.performAnimated,
       with: always(self.mockExecuted())
     )
     await withInstance(
@@ -65,7 +66,6 @@ final class AccountsSettingsControllerTests: FeaturesTestCase {
       mockExecuted: 1
     ) { feature in
       await feature.navigateToManageAccounts()
-
     }
   }
 }

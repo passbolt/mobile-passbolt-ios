@@ -79,7 +79,8 @@ extension MetadataKeysService {
 
     @Sendable func verifiedMetadataKey(
       encryptedMessage: String,
-      publicKey: MetadataKeyDTO
+      publicKey: MetadataKeyDTO,
+      privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
     ) async throws -> VerifiedMetadataPrivateKey? {
       guard
         let modifyingUserId: User.ID = publicKey.modifiedBy,
@@ -102,16 +103,21 @@ extension MetadataKeysService {
           from: data
         )
 
-      return .init(signature: result.signature, data: privateKeyData, raw: result.content)
+      return .init(signature: result.signature, data: privateKeyData, raw: result.content, privateKeyId: privateKeyId)
     }
 
     @Sendable func decodeAndVerify(
       encryptedMessage: String,
-      publicKey: MetadataKeyDTO
+      publicKey: MetadataKeyDTO,
+      privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
     ) async throws -> VerifiedMetadataPrivateKey {
       let armoredMessage: ArmoredPGPMessage = .init(rawValue: encryptedMessage)
       do {
-        if let verifiedKey = try await verifiedMetadataKey(encryptedMessage: encryptedMessage, publicKey: publicKey) {
+        if let verifiedKey: VerifiedMetadataPrivateKey = try await verifiedMetadataKey(
+          encryptedMessage: encryptedMessage,
+          publicKey: publicKey,
+          privateKeyId: privateKeyId
+        ) {
           return verifiedKey
         }
       }
@@ -127,7 +133,7 @@ extension MetadataKeysService {
           from: data
         )
 
-      return .init(signature: .none, data: privateKeyData, raw: decryptedMessage)
+      return .init(signature: .none, data: privateKeyData, raw: decryptedMessage, privateKeyId: privateKeyId)
     }
 
     @Sendable func decode(encryptedMessage: String) async throws -> MetadataDecryptedPrivateKey {
@@ -179,9 +185,8 @@ extension MetadataKeysService {
       var cachedKeys: KeysCache = .init()
       for key in newKeys {
         let privateKeys: Array<VerifiedMetadataPrivateKey> = try await key.privateKeys
-          .map { $0.encryptedData }
           .asyncMap {
-            try await decodeAndVerify(encryptedMessage: $0, publicKey: key)
+            try await decodeAndVerify(encryptedMessage: $0.encryptedData, publicKey: key, privateKeyId: $0.id)
           }
         do {
           let cached: CachedKeys = try await createCachedKey(publicKey: key, privateKeys: privateKeys)
@@ -359,11 +364,11 @@ extension MetadataKeysService {
       }
 
       Diagnostics.logger.debug("Server and pinned key mismatch - fingerprint and/or modification date.")
-      if metadataKey.privateKeys.first(where: { $0.signature != nil }) != nil {
 
+      if await hasSignedPrivateKey(in: metadataKey.privateKeys) {
         if metadataKey.modifiedAt > pinnedKey.modified {
           Diagnostics.logger.debug(
-            "Server metadata key is signed by user and is newer than stored, saving it to local storage."
+            "Server metadata key has valid signature from current user and is newer, saving."
           )
           let pinnedKey: MetadataPinnedKey = .init(
             fingerprint: metadataKey.fingerprint,
@@ -374,12 +379,52 @@ extension MetadataKeysService {
         }
 
         Diagnostics.logger.debug(
-          "Server metadata key is signed by user and is older than stored."
+          "Server metadata key has valid signature from current user but is older than stored."
         )
         return try await invalidResultBuilder()
       }
 
+      // No valid signature from current user found - key was not trusted by this user
+      Diagnostics.logger.warning("No valid signature from current user found.")
       return try await invalidResultBuilder()
+    }
+
+    @Sendable func hasSignedPrivateKey(
+      in privateKeys: Array<VerifiedMetadataPrivateKey>
+    ) async -> Bool {
+      do {
+        guard
+          let userPublicKeyDSV: UserPublicKeyDSV =
+            try await fetchUserPublicKey.execute([context.account.userID]).first
+        else {
+          return false
+        }
+
+        let currentUserFingerprint: String = try pgp.extractFingerprint(
+          userPublicKeyDSV.publicKey
+        ).get().rawValue.uppercased()
+
+        for privateKey in privateKeys {
+          guard let signature: PGP.Signature = privateKey.signature else {
+            continue
+          }
+
+          if signature.fingerprint.rawValue.uppercased() == currentUserFingerprint {
+            Diagnostics.logger.debug("Found valid signature from current user.")
+            return true
+          }
+          else {
+            Diagnostics.logger.warning(
+              "Signature fingerprint does not match current user's public key."
+            )
+          }
+        }
+      }
+      catch {
+        Diagnostics.logger.warning("Failed to verify signature: \(error)")
+      }
+
+      return false
     }
 
     @Sendable func signMetadataKey(message: String) async throws -> ArmoredPGPMessage? {
@@ -402,22 +447,23 @@ extension MetadataKeysService {
         )
         try metadataKeyDataStore.storePinnedMetadataKey(pinnedKey.json, context.account.localID)
       }
-      if metadataKey.privateKeys.first(where: { $0.signature != nil }) == nil {
-        Diagnostics.logger.debug("Server metadata key is not signed by user - signing.")
+
+      if await hasSignedPrivateKey(in: metadataKey.privateKeys) == false {
+        Diagnostics.logger.debug("Server metadata key is not signed by current user - signing.")
         if let privateKey: VerifiedMetadataPrivateKey = metadataKey.privateKeys.first,
           let signedMessage: ArmoredPGPMessage = try await signMetadataKey(message: privateKey.raw)
         {
           _ = try await updateMetadataPrivatekeyOperation.execute(
             .init(
-              privateKeyId: metadataKey.id,
+              privateKeyId: privateKey.privateKeyId,
               data: signedMessage.rawValue
             )
           )
           try storeInLocalStorage()
         }
       }
-      if metadataKey.privateKeys.first(where: { $0.signature != nil }) != nil {
-        Diagnostics.logger.debug("Server metadata key is signed by user, saving it to local storage.")
+      else {
+        Diagnostics.logger.debug("Server metadata key is signed by current user, saving.")
         try storeInLocalStorage()
       }
       // reinitialize to reload keys from server
@@ -843,14 +889,21 @@ extension MetadataKeysService {
 
 private struct VerifiedMetadataPrivateKey: Sendable {
 
-  let signature: PGP.Signature?
-  let data: MetadataDecryptedPrivateKey
-  let raw: String
+  fileprivate let signature: PGP.Signature?
+  fileprivate let data: MetadataDecryptedPrivateKey
+  fileprivate let raw: String
+  fileprivate let privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
 
-  init(signature: PGP.Signature?, data: MetadataDecryptedPrivateKey, raw: String) {
+  fileprivate init(
+    signature: PGP.Signature?,
+    data: MetadataDecryptedPrivateKey,
+    raw: String,
+    privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
+  ) {
     self.signature = signature
     self.data = data
     self.raw = raw
+    self.privateKeyId = privateKeyId
   }
 }
 

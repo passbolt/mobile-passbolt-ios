@@ -35,7 +35,7 @@ extension SessionCryptography {
   ) throws -> Self {
     try features.ensureScope(SessionScope.self)
 
-    let accountsDataStore: AccountsDataStore = try features.instance()
+    let accountPrivateKeyStorage: AccountPrivateKeyStorage = try features.instance()
     let session: Session = try features.instance()
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
     let pgp: PGP = features.instance()
@@ -48,7 +48,7 @@ extension SessionCryptography {
 
       let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
 
-      let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
+      let privateKey: ArmoredPGPPrivateKey = try accountPrivateKeyStorage.loadAccountPrivateKey(account.localID)
 
       if let publicKey: ArmoredPGPPublicKey = publicKey {
         return
@@ -80,7 +80,7 @@ extension SessionCryptography {
 
       let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
 
-      let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
+      let privateKey: ArmoredPGPPrivateKey = try accountPrivateKeyStorage.loadAccountPrivateKey(account.localID)
 
       return
         try pgp.encryptAndSign(
@@ -96,7 +96,7 @@ extension SessionCryptography {
     @SessionActor func sessionDecryptor() async throws -> ConfiguredDecryptor {
       let account: Account = try await session.currentAccount()
       let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
-      let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
+      let privateKey: ArmoredPGPPrivateKey = try accountPrivateKeyStorage.loadAccountPrivateKey(account.localID)
 
       return try pgp.configuredDecryptor(privateKey, passphrase)
     }
@@ -107,7 +107,7 @@ extension SessionCryptography {
     ) async throws -> PGP.VerifiedMessage {
       let account: Account = try await session.currentAccount()
       let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
-      let privateKey: ArmoredPGPPrivateKey = try accountsDataStore.loadAccountPrivateKey(account.localID)
+      let privateKey: ArmoredPGPPrivateKey = try accountPrivateKeyStorage.loadAccountPrivateKey(account.localID)
 
       return
         try pgp.decryptAndVerify(

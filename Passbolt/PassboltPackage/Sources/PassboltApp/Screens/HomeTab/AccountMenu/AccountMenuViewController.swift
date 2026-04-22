@@ -67,6 +67,7 @@ internal final class AccountMenuViewController: ViewController {
         var otherAccounts: [AccountData] = .init()
         for storedAccount in accounts.storedAccounts()
         where storedAccount.account != currentAccount {  // skip current account
+          let avatarURL: URLString = storedAccount.avatarImageURL
           otherAccounts.append(
             .init(
               account: storedAccount.account,
@@ -74,7 +75,7 @@ internal final class AccountMenuViewController: ViewController {
               email: storedAccount.username,
               loadAvatarData: {
                 try await mediaDownloadNetworkOperation.execute(
-                  storedAccount.avatarImageURL
+                  avatarURL
                 )
               }
             )
@@ -137,7 +138,9 @@ internal final class AccountMenuViewController: ViewController {
   internal func presentManageAccounts() async {
     do {
       try await navigationToSelf.revert()
-      try await navigationToManageAccounts.perform()
+      try await navigationToManageAccounts.perform(
+        context: .init(isSignIn: false)
+      )
     }
     catch {
       error.logged(
