@@ -21,47 +21,16 @@
 // @since         v1.0
 //
 
-import TestExtensions
+import CommonModels
 
-@testable import PassboltAccountSetup
+import struct Foundation.Date
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountArmoredKeyExportTests: FeaturesTestCase {
+// MARK: - Shared test data and resource scenario setup
 
-  override func commonPrepare() async throws {
-    try await super.commonPrepare()
-    set(
-      AccountScope.self,
-      context: .mock_ada
-    )
-    set(
-      AccountTransferScope.self
-    )
-    register(
-      { $0.usePassboltAccountArmoredKeyExport() },
-      for: AccountArmoredKeyExport.self
-    )
-  }
+extension DatabaseOperationsTestCase {
 
-  func test_authorizePrivateKeyExport_fails_whenExportingAccountDataFails() async {
-    patch(
-      \AccountDataExport.exportAccountData,
-      with: alwaysThrow(MockIssue.error())
-    )
+  internal var testResourceID: Resource.ID { .mock_1 }
+  internal var testSecondResourceID: Resource.ID { .mock_2 }
+  internal var testResourceType: ResourceType { .mock_default }
 
-    await withInstance(throws: MockIssue.self) { (feature: AccountArmoredKeyExport) in
-      try await feature.authorizePrivateKeyExport(.biometrics)
-    }
-  }
-
-  func test_authorizePrivateKeyExport_succeeds_whenExportingAccountDataSucceeds() async {
-    patch(
-      \AccountDataExport.exportAccountData,
-      with: always(.mock_ada)
-    )
-
-    await withInstance(returns: AccountTransferData.mock_ada.armoredKey) { (feature: AccountArmoredKeyExport) in
-      try await feature.authorizePrivateKeyExport(.biometrics)
-    }
-  }
 }

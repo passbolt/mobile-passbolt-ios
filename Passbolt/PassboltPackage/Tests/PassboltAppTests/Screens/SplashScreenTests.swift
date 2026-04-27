@@ -37,8 +37,8 @@ final class NewSplashScreenViewTests: FeaturesTestCase {
 
   var updates: Updates!
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     updates = .init()
     patch(
       \UpdateCheck.checkRequired,

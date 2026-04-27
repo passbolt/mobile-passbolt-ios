@@ -28,8 +28,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourcesOTPControllerTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     register(
       { $0.usePassboltResourcesOTPController() },
       for: ResourcesOTPController.self

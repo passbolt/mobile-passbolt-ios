@@ -264,14 +264,32 @@ extension ResourceFoldersListFetchDatabaseOperation {
       statement.appendArgument(input.folderID)
     }
 
-    if !input.text.isEmpty {
-      statement
-        .append(
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.text) {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
           """
-          AND name LIKE '%' || ? || '%'
-          """
+          id IN (
+            SELECT folderID FROM folderSearchIndex WHERE folderSearchIndex MATCH ?
+            UNION
+            SELECT folderID FROM folderSearchIndexSubstring WHERE folderSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
         )
-      statement.appendArgument(input.text)
+        statement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          id IN (
+            SELECT folderID FROM folderSearchIndex WHERE folderSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
     }
     else {
       /* NOP */

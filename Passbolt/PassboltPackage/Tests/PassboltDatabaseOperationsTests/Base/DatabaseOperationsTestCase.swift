@@ -61,6 +61,14 @@ internal class DatabaseOperationsTestCase: FeaturesTestCase {
       { $0.usePassboltResourceFoldersStoreDatabaseOperation() },
       for: ResourceFoldersStoreDatabaseOperation.self
     )
+    register(
+      { $0.usePassboltResourceTypesStoreDatabaseOperation() },
+      for: ResourceTypesStoreDatabaseOperation.self
+    )
+    register(
+      { $0.usePassboltResourcesStoreDatabaseOperation() },
+      for: ResourcesStoreDatabaseOperation.self
+    )
 
     registerOperations()
 
@@ -78,9 +86,9 @@ internal class DatabaseOperationsTestCase: FeaturesTestCase {
     )
   }
 
-  override open func commonPrepare() {
-    super.commonPrepare()
-    try! setupDatabase()
+  override open func commonPrepare() async throws {
+    try await super.commonPrepare()
+    try setupDatabase()
   }
 
   // MARK: - Store helpers
@@ -98,5 +106,15 @@ internal class DatabaseOperationsTestCase: FeaturesTestCase {
   final internal func storeFolders(_ folders: Array<ResourceFolderDTO>) async throws {
     let operation: ResourceFoldersStoreDatabaseOperation = try testedInstance()
     try await operation(folders)
+  }
+
+  final internal func storeResourceTypes(_ types: Array<ResourceType>) async throws {
+    let operation: ResourceTypesStoreDatabaseOperation = try testedInstance()
+    try await operation(types)
+  }
+
+  final internal func storeResources(_ resources: Array<ResourceDTO>) async throws {
+    let operation: ResourcesStoreDatabaseOperation = try testedInstance()
+    try await operation(resources)
   }
 }

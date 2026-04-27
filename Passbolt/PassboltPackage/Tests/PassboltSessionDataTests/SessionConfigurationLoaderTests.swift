@@ -29,8 +29,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase
 final class SessionConfigurationLoaderTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     patch(
       \Session.updates,
       with: Variable(initial: Void()).asAnyUpdatable()

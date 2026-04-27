@@ -29,8 +29,9 @@ import TestExtensions
 
 // swift-format-ignore: AlwaysUseLowerCamelCase
 final class SessionDataRefreshTests: FeaturesTestCase {
-  override func commonPrepare() {
-    super.commonPrepare()
+
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     register(
       { $0.usePassboltSessionData() },
       for: SessionData.self

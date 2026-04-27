@@ -34,8 +34,8 @@ import XCTest
 
 internal class TagExplorerViewControllerTests: FeaturesTestCase {
 
-  internal override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(

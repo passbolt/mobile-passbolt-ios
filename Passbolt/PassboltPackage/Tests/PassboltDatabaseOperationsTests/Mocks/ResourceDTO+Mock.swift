@@ -21,47 +21,35 @@
 // @since         v1.0
 //
 
-import TestExtensions
+import CommonModels
 
-@testable import PassboltAccountSetup
+// swift-format-ignore: NeverUseForceTry
+extension ResourceDTO {
 
-// swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountArmoredKeyExportTests: FeaturesTestCase {
+  internal static func create(
+    id: Resource.ID = .init(),
+    resourceTypeId: ResourceType.ID,
+    name: String,
+    _ builder: (inout Self) -> Void = { _ in }
+  ) -> Self {
 
-  override func commonPrepare() async throws {
-    try await super.commonPrepare()
-    set(
-      AccountScope.self,
-      context: .mock_ada
+    var resource: Self = .init(
+      id: id,
+      typeID: resourceTypeId,
+      parentFolderID: .none,
+      favoriteID: .none,
+      name: name,
+      permission: .owner,
+      permissions: .init(),
+      uri: .none,
+      username: .none,
+      description: .none,
+      tags: .init(),
+      modified: .now,
+      expired: .none
     )
-    set(
-      AccountTransferScope.self
-    )
-    register(
-      { $0.usePassboltAccountArmoredKeyExport() },
-      for: AccountArmoredKeyExport.self
-    )
-  }
-
-  func test_authorizePrivateKeyExport_fails_whenExportingAccountDataFails() async {
-    patch(
-      \AccountDataExport.exportAccountData,
-      with: alwaysThrow(MockIssue.error())
-    )
-
-    await withInstance(throws: MockIssue.self) { (feature: AccountArmoredKeyExport) in
-      try await feature.authorizePrivateKeyExport(.biometrics)
-    }
-  }
-
-  func test_authorizePrivateKeyExport_succeeds_whenExportingAccountDataSucceeds() async {
-    patch(
-      \AccountDataExport.exportAccountData,
-      with: always(.mock_ada)
-    )
-
-    await withInstance(returns: AccountTransferData.mock_ada.armoredKey) { (feature: AccountArmoredKeyExport) in
-      try await feature.authorizePrivateKeyExport(.biometrics)
-    }
+    builder(&resource)
+    resource.metadata = try! .init(resource: resource)
+    return resource
   }
 }

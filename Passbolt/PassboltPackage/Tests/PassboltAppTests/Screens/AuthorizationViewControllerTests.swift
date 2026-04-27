@@ -32,8 +32,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class AuthorizationViewControllerTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     set(
       AccountScope.self,
       context: .mock_ada

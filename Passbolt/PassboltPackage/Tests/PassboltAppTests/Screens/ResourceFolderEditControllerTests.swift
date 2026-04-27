@@ -33,8 +33,8 @@ import Users
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 final class ResourceFolderEditControllerTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(

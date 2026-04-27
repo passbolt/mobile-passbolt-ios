@@ -31,8 +31,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class TransferSignInViewControllerTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     patch(
       \AccountImport.updates,
       with: TestUpdatable<Void>().asAnyUpdatable()

@@ -32,8 +32,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase
 final class ResourceUpdaterTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     register(
       { $0.usePassboltResourceUpdater() },
       for: ResourceUpdater.self

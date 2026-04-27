@@ -33,7 +33,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class BiometricsSetupScreenTests: FeaturesTestCase {
 
-  override func commonPrepare() {
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     patch(
       \AccountInitialSetup.completeSetup,
       with: always(())

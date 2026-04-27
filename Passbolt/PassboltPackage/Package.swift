@@ -472,6 +472,7 @@ let package = Package(
         .define("SQLITE_MAX_LIMIT_LIKE_PATTERN_LENGTH", to: "50"),
         .define("SQLITE_MAX_LIMIT_VARIABLE_NUMBER", to: "10"),
         .define("SQLITE_MAX_LIMIT_TRIGGER_DEPTH", to: "10"),
+        .define("SQLITE_ENABLE_FTS5"),
       ],
       swiftSettings: [
         .define("SQLITE_HAS_CODEC")

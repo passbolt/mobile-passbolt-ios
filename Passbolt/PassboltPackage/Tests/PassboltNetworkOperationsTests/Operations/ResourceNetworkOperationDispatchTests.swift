@@ -29,8 +29,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     register(
       { $0.usePassboltResourceNetworkOperationDispatch() },
       for: ResourceNetworkOperationDispatch.self

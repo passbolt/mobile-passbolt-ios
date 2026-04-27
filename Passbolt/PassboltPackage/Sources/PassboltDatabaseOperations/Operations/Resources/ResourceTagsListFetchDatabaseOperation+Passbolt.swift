@@ -52,15 +52,32 @@ extension ResourceTagsListFetchDatabaseOperation {
         1 -- equivalent of true, used to simplify dynamic query building
       """
 
-    if !input.text.isEmpty {
-      statement
-        .append(
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.text) {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
           """
-          AND
-            slug LIKE '%' || ? || '%'
-          """
+          id IN (
+            SELECT tagID FROM tagSearchIndex WHERE tagSearchIndex MATCH ?
+            UNION
+            SELECT tagID FROM tagSearchIndexSubstring WHERE tagSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
         )
-      statement.appendArgument(input.text)
+        statement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          id IN (
+            SELECT tagID FROM tagSearchIndex WHERE tagSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
     }
     else {
       /* NOP */

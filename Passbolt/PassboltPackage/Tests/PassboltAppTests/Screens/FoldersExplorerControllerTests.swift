@@ -34,8 +34,8 @@ import XCTest
 
 internal final class FoldersExplorerControllerTests: FeaturesTestCase {
 
-  override internal func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(

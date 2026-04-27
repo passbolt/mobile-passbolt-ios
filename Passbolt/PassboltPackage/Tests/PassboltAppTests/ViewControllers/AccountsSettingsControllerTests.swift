@@ -30,8 +30,8 @@ import TestExtensions
 // swift-format-ignore: AlwaysUseLowerCamelCase
 final class AccountsSettingsControllerTests: FeaturesTestCase {
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     set(
       SessionScope.self,
       context: .init(

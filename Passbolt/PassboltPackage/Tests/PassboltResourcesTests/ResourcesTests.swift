@@ -34,8 +34,8 @@ final class ResourcesControllerTests: FeaturesTestCase {
 
   let updatesSequence: Variable<Timestamp> = .init(initial: 0)
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     register(
       { $0.usePassboltResources() },
       for: ResourcesController.self

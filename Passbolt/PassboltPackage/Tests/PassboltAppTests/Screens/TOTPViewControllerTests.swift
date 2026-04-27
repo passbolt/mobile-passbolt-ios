@@ -33,8 +33,8 @@ final class TOTPViewControllerTests: FeaturesTestCase {
 
   var loadingCallbackValue: Bool = false
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     loadingCallbackValue = false
     patch(
       \Session.currentAccount,

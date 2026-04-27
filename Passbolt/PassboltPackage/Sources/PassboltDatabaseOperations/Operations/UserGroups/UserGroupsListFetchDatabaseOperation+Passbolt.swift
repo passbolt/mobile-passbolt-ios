@@ -46,15 +46,32 @@ extension UserGroupsListFetchDatabaseOperation {
         """
       )
 
-    if !input.text.isEmpty {
-      groupSelectStatement
-        .append(
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.text) {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
           """
-          AND
-            userGroups.name LIKE '%' || ? || '%'
-          """
+          userGroups.id IN (
+            SELECT userGroupID FROM userGroupSearchIndex WHERE userGroupSearchIndex MATCH ?
+            UNION
+            SELECT userGroupID FROM userGroupSearchIndexSubstring WHERE userGroupSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
         )
-      groupSelectStatement.appendArgument(input.text)
+        groupSelectStatement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          userGroups.id IN (
+            SELECT userGroupID FROM userGroupSearchIndex WHERE userGroupSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        groupSelectStatement.append(.and(ftsFilter))
+      }
     }
     else { /* NOP */
     }

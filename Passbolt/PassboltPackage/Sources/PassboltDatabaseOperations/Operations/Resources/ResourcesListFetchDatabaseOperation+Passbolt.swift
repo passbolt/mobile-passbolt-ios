@@ -175,90 +175,125 @@ extension ResourcesListFetchDatabaseOperation {
       statement.appendArgument(uriDelimiter)
     }
 
-    if !input.text.isEmpty {
-      let nameFilter: SQLiteStatement = .statement("resourceMetadata.name LIKE '%' || ? || '%'", arguments: input.text)
-      let uriStatement: SQLiteStatement = .statement(
-        """
-          SELECT
-            1
-          FROM
-            resourceURI
-          WHERE
-            resourceURI.resource_id == resources.id
-          AND
-            resourceURI.uri LIKE '%' || ? || '%'
-        """,
-        arguments: input.text
-      )
-      let tagsStatement: SQLiteStatement = .statement(
-        """
-          SELECT
-            1
-          FROM
-            resourcesTags
-          INNER JOIN
-            resourceTags
-          ON
-            resourcesTags.resourceTagID == resourceTags.id
-          WHERE
-            resourcesTags.resourceID == resources.id
-          AND
-            resourceTags.slug LIKE '%' || ? || '%'
-          LIMIT 1
-        """,
-        arguments: input.text
-      )
-      let usernameFilter: SQLiteStatement = .statement(
-        "resourceMetadata.username LIKE '%' || ? || '%'",
-        arguments: input.text
-      )
-      let customFieldKeyStatement: SQLiteStatement = .statement(
-        """
-          SELECT 
-            1
-          FROM
-            resourceCustomFields
-          WHERE
-            resourceCustomFields.resourceID == resources.id
-          AND
-            resourceCustomFields.key LIKE '%' || ? || '%'
-        """,
-        arguments: input.text
-      )
-
-      let filters: Array<SQLiteStatement> = [
-        nameFilter,
-        uriStatement,
-        usernameFilter,
-        tagsStatement,
-        customFieldKeyStatement,
-      ]
-      let filterStatement: SQLiteStatement = .or(filters)
-      statement.append(.and(filterStatement))
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.text) {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+            UNION
+            SELECT resourceID FROM resourceSearchIndexSubstring WHERE resourceSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
     }
     else {
       /* NOP */
     }
 
-    if !input.name.isEmpty {
-      statement.append("AND resourceMetadata.name LIKE '%' || ? || '%' ")
-      statement.appendArgument(input.name)
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.name, columnFilter: "name") {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+            UNION
+            SELECT resourceID FROM resourceSearchIndexSubstring WHERE resourceSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
     }
     else {
       /* NOP */
     }
 
-    if !input.url.isEmpty {
-      statement.append("AND resourceURI.uri LIKE '%' || ? || '%' ")
-      statement.appendArgument(input.url)
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.url, columnFilter: "uris") {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+            UNION
+            SELECT resourceID FROM resourceSearchIndexSubstring WHERE resourceSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
     }
     else {
       /* NOP */
     }
 
-    if !input.username.isEmpty {
-      statement.append("AND resources.username LIKE '%' || ? || '%' ")
-      statement.appendArgument(input.username)
+    if let ftsParams: FTSQueryParameters = prepareFTSQueries(text: input.username, columnFilter: "username") {
+      if ftsParams.useTrigramIndex {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+            UNION
+            SELECT resourceID FROM resourceSearchIndexSubstring WHERE resourceSearchIndexSubstring MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery,
+          ftsParams.trigramQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
+      else {
+        let ftsFilter: SQLiteStatement = .statement(
+          """
+          resources.id IN (
+            SELECT resourceID FROM resourceSearchIndex WHERE resourceSearchIndex MATCH ?
+          )
+          """,
+          arguments: ftsParams.unicodeQuery
+        )
+        statement.append(.and(ftsFilter))
+      }
     }
     else {
       /* NOP */

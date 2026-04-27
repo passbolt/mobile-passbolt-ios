@@ -31,7 +31,7 @@ open class FeaturesTestCase: TestCase {
 
   private let testFeatures: TestFeaturesContainer = .init()
 
-  open func commonPrepare() {
+  open func commonPrepare() async throws {
     // to override
   }
 
@@ -48,7 +48,7 @@ open class FeaturesTestCase: TestCase {
     // by default async one is selected by the compiler
     (super.setUp as () -> Void)()
     try await super.setUp()
-    self.commonPrepare()
+    try await self.commonPrepare()
   }
 
   public final override func tearDown() {

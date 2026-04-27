@@ -33,8 +33,8 @@ final class ResourceEditFormTests: FeaturesTestCase {
   lazy var editedResourceType: ResourceType = self.editedResource.type
   private static let referenceTimestamp: Timestamp = 1_768_390_000
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     register(
       { $0.usePassboltResourceEditForm() },
       for: ResourceEditForm.self
