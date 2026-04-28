@@ -382,6 +382,20 @@ internal struct ResourceDetailsView: ControlledView {
             )
             .accessibilityIdentifier("text.encrypted.\(fieldModel.name.string())")
 
+        case .longEncrypted:
+          Text(
+            verbatim:
+              "Never gonna give you up. Never gonna let you down. Never gonna run around and desert you. "
+              + "Never gonna make you cry. Never gonna say goodbye. Never gonna tell a lie and hurt you."
+          )
+          .text(
+            .leading,
+            lines: .none,
+            font: .obfuscation(ofSize: 14),
+            color: .passboltSecondaryText
+          )
+          .accessibilityIdentifier("text.encrypted.\(fieldModel.name.string())")
+
         case .password(let value):
           // password has specific font to be displayed
           ColoredPasswordView(password: value, defaultColor: .passboltSecondaryText)

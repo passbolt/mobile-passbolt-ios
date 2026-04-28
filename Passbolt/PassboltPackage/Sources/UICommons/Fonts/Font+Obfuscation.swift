@@ -21,13 +21,14 @@
 // @since         v1.0
 //
 
-import UIKit
+import SwiftUI
 
-extension UIFont {
+extension Font {
 
-  public static func registerFontsIfNeeded() {
-    _ = UIFont.registerInter
-    _ = UIFont.registerInconsolata
-    _ = UIFont.registerObfuscation
+  public static func obfuscation(
+    ofSize fontSize: CGFloat
+  ) -> Self {
+    UIFont.registerFontsIfNeeded()
+    return Font.custom("Obfuscation Regular", size: fontSize)
   }
 }

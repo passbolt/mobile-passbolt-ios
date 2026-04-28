@@ -359,6 +359,7 @@ let package = Package(
         .process("Fonts/Inter Thin.otf"),
         .process("Fonts/Inter Italic.otf"),
         .process("Fonts/Inter Light Italic.otf"),
+        .process("Fonts/Obfuscation Regular.otf"),
       ]
     ),
     .target(

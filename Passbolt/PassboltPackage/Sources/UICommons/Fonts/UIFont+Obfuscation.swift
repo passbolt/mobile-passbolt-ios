@@ -25,9 +25,17 @@ import UIKit
 
 extension UIFont {
 
-  public static func registerFontsIfNeeded() {
-    _ = UIFont.registerInter
-    _ = UIFont.registerInconsolata
-    _ = UIFont.registerObfuscation
-  }
+  internal static let registerObfuscation: Void = {
+    func registerFont(fileName: String) {
+      guard
+        let pathForResourceString = Bundle.module.path(forResource: fileName, ofType: "otf"),
+        let fontData = NSData(contentsOfFile: pathForResourceString),
+        let dataProvider = CGDataProvider(data: fontData),
+        let fontRef = CGFont(dataProvider)
+      else { return }
+
+      CTFontManagerRegisterGraphicsFont(fontRef, nil)
+    }
+    registerFont(fileName: "Obfuscation Regular")
+  }()
 }

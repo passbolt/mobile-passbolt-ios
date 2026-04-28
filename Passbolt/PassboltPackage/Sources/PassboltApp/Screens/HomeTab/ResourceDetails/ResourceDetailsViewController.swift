@@ -559,12 +559,16 @@ internal struct ResourceDetailsFieldViewModel {
       case (.totp(let lHash, _), .totp(let rHash, _)):
         return lHash == rHash
 
+      case (.longEncrypted, .longEncrypted):
+        return true
+
       case _:
         return false
       }
     }
 
     case encrypted
+    case longEncrypted
     case placeholder(String)
     case plain(String)
     case password(String)
@@ -646,7 +650,12 @@ internal struct ResourceDetailsFieldViewModel {
         self.accessoryAction = .hide
       }
       else {
-        self.value = .encrypted
+        if case .longText = field.semantics {
+          self.value = .longEncrypted
+        }
+        else {
+          self.value = .encrypted
+        }
         self.mainAction = .copy
         self.accessoryAction = .reveal
       }
