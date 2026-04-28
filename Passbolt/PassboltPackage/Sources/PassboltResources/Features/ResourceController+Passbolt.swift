@@ -37,6 +37,7 @@ extension ResourceController {
     features: Features
   ) throws -> Self {
     let resourceID: Resource.ID = try features.context(of: ResourceScope.self)
+    let currentAccount: Account = try features.sessionAccount()
 
     let sessionData: SessionData = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
@@ -59,7 +60,7 @@ extension ResourceController {
 
     @Sendable nonisolated func fetchMeta() async throws -> Resource {
       let resource: Resource = try await resourceDataFetchDatabaseOperation(
-        resourceID
+        (resourceID: resourceID, userID: currentAccount.userID)
       )
       try resource.validate()
       return resource

@@ -42,7 +42,9 @@ extension ResourceSharePreparation {
       resourceID: Resource.ID
     ) async throws {
 
-      var resource: Resource = try await resourceDetailsFetch.execute(resourceID)
+      var resource: Resource = try await resourceDetailsFetch.execute(
+        (resourceID: resourceID, userID: context.account.userID)
+      )
 
       guard
         resource.type.isV4ResourceType == false,

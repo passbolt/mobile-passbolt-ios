@@ -33,9 +33,11 @@ import class Foundation.JSONDecoder
 extension ResourceDetailsFetchDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: Resource.ID,
+    _ input: (resourceID: Resource.ID, userID: User.ID),
     connection: SQLiteConnection
   ) throws -> Resource {
+    let resourceID: Resource.ID = input.resourceID
+    let userID: User.ID = input.userID
     let selectResourceWithTypeStatement: SQLiteStatement =
       .statement(
         """
@@ -67,7 +69,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         LIMIT
           1;
         """,
-        arguments: input
+        arguments: resourceID
       )
 
     let selectResourcePathStatement: SQLiteStatement =
@@ -77,7 +79,6 @@ extension ResourceDetailsFetchDatabaseOperation {
           path(
             id,
             name,
-            shared,
             parentID
           )
         AS
@@ -85,7 +86,6 @@ extension ResourceDetailsFetchDatabaseOperation {
           SELECT
             resourceFolders.id AS id,
             resourceFolders.name AS name,
-            resourceFolders.shared AS shared,
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders
@@ -101,7 +101,6 @@ extension ResourceDetailsFetchDatabaseOperation {
           SELECT
             resourceFolders.id AS id,
             resourceFolders.name AS name,
-            resourceFolders.shared AS shared,
             resourceFolders.parentFolderID AS parentID
           FROM
             resourceFolders,
@@ -112,11 +111,26 @@ extension ResourceDetailsFetchDatabaseOperation {
         SELECT
           path.id,
           path.name AS name,
-          path.shared AS shared
+          (
+            EXISTS (
+              SELECT 1 FROM usersResourceFolders
+              WHERE usersResourceFolders.resourceFolderID = path.id
+                AND usersResourceFolders.userID != ?
+            )
+            OR EXISTS (
+              SELECT 1 FROM userGroupsResourceFolders
+              INNER JOIN usersGroups
+                ON usersGroups.userGroupID = userGroupsResourceFolders.userGroupID
+              WHERE userGroupsResourceFolders.resourceFolderID = path.id
+              GROUP BY userGroupsResourceFolders.userGroupID
+              HAVING COUNT(usersGroups.userID) > 1
+            )
+          ) AS shared
         FROM
           path;
         """,
-        arguments: input
+        arguments: resourceID,
+        userID
       )
 
     let selectResourcesUsersPermissionsStatement: SQLiteStatement =
@@ -131,7 +145,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         WHERE
           usersResources.resourceID == ?;
         """,
-        arguments: input
+        arguments: resourceID
       )
 
     let selectResourcesUserGroupsPermissionsStatement: SQLiteStatement =
@@ -146,7 +160,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         WHERE
           userGroupsResources.resourceID == ?;
         """,
-        arguments: input
+        arguments: resourceID
       )
 
     let selectResourceTagsStatement: SQLiteStatement =
@@ -165,7 +179,7 @@ extension ResourceDetailsFetchDatabaseOperation {
         WHERE
           resourcesTags.resourceID == ?;
         """,
-        arguments: input
+        arguments: resourceID
       )
 
     let path: OrderedSet<ResourceFolderPathItem> = try OrderedSet(
