@@ -49,12 +49,17 @@ extension ResourceCreatePreparation {
         guard areV5ResourceTypesEnabled else { return nil }
         return allResourceTypes.first { $0.specification.slug == .v5StandaloneNote }
       }()
+      let pincodeType: ResourceType? = {
+        guard areV5ResourceTypesEnabled else { return nil }
+        return allResourceTypes.first { $0.specification.slug == .v5PinCode }
+      }()
 
       return .init(
         availableTypes: [
           passwordType,
           totpType,
           standaloneNoteType,
+          pincodeType,
         ]
         .compactMap { $0 }
       )

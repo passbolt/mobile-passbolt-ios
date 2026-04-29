@@ -70,6 +70,11 @@ public enum ResourceFieldSemantics {
   case totp(name: DisplayableString)
   case hidden
   case undefined(name: DisplayableString)
+  case pinCode(
+    name: DisplayableString,
+    viewingPlaceholder: DisplayableString,
+    editingPlaceholder: DisplayableString
+  )
 }
 
 extension ResourceFieldSemantics: Sendable {}

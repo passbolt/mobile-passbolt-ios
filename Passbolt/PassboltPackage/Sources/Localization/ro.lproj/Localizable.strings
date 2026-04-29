@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Introduceți numele de utilizator";
 "resource.edit.field.password.placeholder" = "Introduceți parola";
 "resource.edit.field.description.placeholder" = "Introduceți descrierea";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Modificările tale nu vor fi salvate.";
 "resource.edit.exit.confirmation.button.edit.title" = "Editați";
 "resource.edit.exit.confirmation.button.revert.title" = "Reveniți";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Additional URIs";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "Parolă";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
@@ -566,6 +574,7 @@ Contactați administratorul pentru mai multe informații.";
 "error.resource.field.range.greater" = "%@ trebuie să fie mai mare decât %d!";
 "error.resource.field.content.invalid" = "%@ are conținut nevalid!";
 "error.resource.field.selection.invalid" = "%@ trebuie să fie una dintre opțiunile valide!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Câmpurile necunoscute nu sunt acceptate!";
 "error.validation.password.length.invalid" = "Setări de lungime a parolei invalide!";
 "error.validation.password.mask.empty" = "Masca de expirare a parolei nu poate fi goală!";

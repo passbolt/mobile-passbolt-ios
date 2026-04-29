@@ -298,6 +298,8 @@ extension ResourceType {
       return .passwordWithTOTP
     case .v5DefaultWithTOTP, .v5StandaloneTOTP:
       return .v5DefaultWithTOTP
+    case .v5PinCode:
+      return .v5PinCode  // pin code supports note directly
     case _:
       return .none
     }
@@ -316,6 +318,8 @@ extension ResourceType {
       return .passwordWithTOTP
     case .v5DefaultWithTOTP:
       return .v5DefaultWithTOTP
+    case .v5PinCode:
+      return .v5PinCode  // pin code supports note directly
     case _:
       return .none
     }

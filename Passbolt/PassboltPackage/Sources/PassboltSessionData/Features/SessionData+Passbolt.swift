@@ -120,41 +120,6 @@ extension SessionData {
       }
     }
 
-    @Sendable nonisolated func process(resource: ResourceDTO) async -> ResourceDTO? {
-      do {
-        if let armored = resource.metadataArmoredMessage,
-          let keyId = resource.metadataKeyId,
-          let keyType = resource.metadataKeyType
-        {
-          guard configuration.metadata.enabled else { return ResourceDTO?.none }
-          var resource = resource
-          let decryptionType: MetadataKeysService.EncryptionType = keyType == .shared ? .sharedKey(keyId) : .userKey
-          if let decryptedMetadataData: Data = try await metadataKeysService.decrypt(
-            armored,
-            .resource(resource.id),
-            decryptionType
-          ) {
-            let metadata: ResourceMetadataDTO = try .init(resourceId: resource.id, data: decryptedMetadataData)
-            try metadata.validate(with: resource)
-            resource.metadata = metadata
-          }
-
-          return resource
-        }
-        else {
-          var resource = resource
-          let metadata: ResourceMetadataDTO = try .init(resource: resource)
-          try metadata.validate(with: resource)
-          resource.metadata = metadata
-          return resource
-        }
-      }
-      catch {
-        InternalInconsistency.error("Cannot decode metadata").logged()
-      }
-      return nil
-    }
-
     @Sendable nonisolated func refreshResources() async throws {
       Diagnostics.logger.info("Refreshing resources data...")
       do {

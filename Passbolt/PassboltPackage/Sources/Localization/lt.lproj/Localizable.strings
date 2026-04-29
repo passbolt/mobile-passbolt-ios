@@ -170,6 +170,7 @@
 "resource.edit.field.password.placeholder" = "Įvesti slaptažodį
 ";
 "resource.edit.field.description.placeholder" = "Įveskite aprašymą
+"resource.edit.field.pin_code.label" = "Code";
 ";
 "resource.edit.exit.confirmation.message" = "Jūsų pakeitimai nebus išsaugoti.";
 "resource.edit.exit.confirmation.button.edit.title" = "Redaguoti";
@@ -185,6 +186,10 @@
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
 
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
+
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
 "resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
@@ -199,6 +204,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Additional URIs";
@@ -219,6 +226,7 @@
 "resource.create.menu.password" = "Slaptažodis";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
@@ -609,6 +617,7 @@
 "error.resource.field.range.greater" = "%@ turi būti daugiau nei %d!";
 "error.resource.field.content.invalid" = "%@ turi netinkamą turinį!";
 "error.resource.field.selection.invalid" = "%@ turi būti viena iš galimų parinkčių!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Nenumatyti laukai nėra laukiami!";
 "error.validation.password.length.invalid" = "Neteisingi slaptažodžio ilgio nustatymai!";
 "error.validation.password.mask.empty" = "Slaptažodžio galiojimo šablonas negali būti tuščias!";

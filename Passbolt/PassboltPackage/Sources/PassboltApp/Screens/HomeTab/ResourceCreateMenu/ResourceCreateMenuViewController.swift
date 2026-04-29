@@ -168,6 +168,8 @@ extension ResourceSpecification.Slug {
       return Image(named: .notes)
     case _ where isStandaloneTOTPType:
       return Image(named: .otp)
+    case .v5PinCode:
+      return Image(named: .numpad)
     default:
       return Image(named: .key)
     }
@@ -179,6 +181,8 @@ extension ResourceSpecification.Slug {
       return "resource.create.menu.note"
     case _ where isStandaloneTOTPType:
       return "resource.create.menu.totp"
+    case .v5PinCode:
+      return "resource.create.menu.pin.code"
     default:
       return "resource.create.menu.password"
     }

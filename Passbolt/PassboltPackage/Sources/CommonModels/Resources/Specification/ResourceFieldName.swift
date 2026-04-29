@@ -44,6 +44,8 @@ extension ResourceFieldName {
       return "resource.edit.field.totp.label"
     case .secretKey:
       return "otp.edit.form.field.secret.title"
+    case .pinCode:
+      return "resource.edit.field.pin_code.label"
     default:
       return .raw(self.rawValue)
     }
@@ -105,5 +107,6 @@ extension ResourceFieldName {
   public static let secret: ResourceFieldName = "secret"
   public static let appearance: ResourceFieldName = "appearance"
   public static let customFields: ResourceFieldName = "custom_fields"
+  public static let pinCode: ResourceFieldName = "pin_code"
 
 }

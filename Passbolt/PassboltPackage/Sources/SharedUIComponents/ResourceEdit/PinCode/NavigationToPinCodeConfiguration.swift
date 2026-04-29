@@ -20,18 +20,30 @@
 // @link          https://www.passbolt.com Passbolt (tm)
 // @since         v1.0
 //
+//
+import Display
+import FeatureScopes
 
-import Features
+internal enum NavigationToPinCodeConfigurationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = PinCodeConfigurationViewController.Context
+}
+
+internal typealias NavigationToPinCodeConfiguration = NavigationTo<NavigationToPinCodeConfigurationDestination>
+
+extension NavigationToPinCodeConfiguration {
+
+  fileprivate static var live: FeatureLoader {
+    pushTransition(to: PinCodeConfigurationView.self)
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
+  internal mutating func useLiveNavigationToPinCodeConfiguration() {
+    self.use(
+      NavigationToPinCodeConfiguration.live,
+      in: ResourceEditScope.self
+    )
   }
 }

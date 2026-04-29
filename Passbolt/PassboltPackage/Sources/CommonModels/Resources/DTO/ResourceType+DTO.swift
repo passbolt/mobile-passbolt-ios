@@ -58,6 +58,8 @@ extension ResourceTypeDTO: Decodable {
       specification = .v5CustomFields()
     case .v5StandaloneNote:
       specification = .v5StandaloneNote
+    case .v5PinCode:
+      specification = .v5PinCode
     case _:
       specification = .placeholder
     }

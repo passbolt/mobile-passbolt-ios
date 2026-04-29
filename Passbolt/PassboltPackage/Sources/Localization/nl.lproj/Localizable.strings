@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Voer een gebruikersnaam in";
 "resource.edit.field.password.placeholder" = "Voer een wachtwoord in";
 "resource.edit.field.description.placeholder" = "Voer een omschrijving in";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Je wijzigingen worden niet opgeslagen.";
 "resource.edit.exit.confirmation.button.edit.title" = "Bewerken";
 "resource.edit.exit.confirmation.button.revert.title" = "Ongedaan maken";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Additional URIs";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "Wachtwoord";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
@@ -566,6 +574,7 @@ Neem contact op met je beheerder voor meer informatie.";
 "error.resource.field.range.greater" = "%@ moet groter zijn dan %d!";
 "error.resource.field.content.invalid" = "%@ heeft ongeldige inhoud!";
 "error.resource.field.selection.invalid" = "%@ moet een van de geldige opties zijn!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Onbekende velden worden niet verwacht!";
 "error.validation.password.length.invalid" = "Ongeldige instellingen voor wachtwoordlengte!";
 "error.validation.password.mask.empty" = "Het masker voor wachtwoordverval kan niet leeg zijn!";

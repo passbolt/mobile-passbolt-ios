@@ -31,6 +31,7 @@ extension FeaturesRegistry {
     self.usePwnedPasswordCheckNetworkOperation()
     self.usePwnedPasswordChecker()
     self.usePasswordService()
+    self.usePinCodeService()
     self.useHomePresentation()
   }
 }

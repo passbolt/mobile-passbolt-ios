@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Digite o login do usuário";
 "resource.edit.field.password.placeholder" = "Digite a senha";
 "resource.edit.field.description.placeholder" = "Digite a descrição";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "As suas modificações não serão salvas.";
 "resource.edit.exit.confirmation.button.edit.title" = "Editar";
 "resource.edit.exit.confirmation.button.revert.title" = "Reverter";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Anotação";
 "resource.edit.section.metadata.title" = "Metadado";
 "resource.edit.totp.remove.button.title" = "Remover TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "URIs adicionais";
 "resource.edit.section.metadata.appearance" = "Aparência";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "URIs adicionais";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "senha";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Não é possível criar um recurso com a configuração atual.";
 "resource.edit.invalid.configuration" = "Não é possível editar um recurso com a configuração atual.";
@@ -565,6 +573,7 @@ Entre em contato com seu administrador para obter mais informações.";
 "error.resource.field.range.greater" = "%@ deve ser maior que %d!";
 "error.resource.field.content.invalid" = "O campo %@ possui conteúdo inválido!";
 "error.resource.field.selection.invalid" = "%@ deve ser uma das opções válidas!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Não são esperados campos desconhecidos!";
 "error.validation.password.length.invalid" = "Configurações de comprimento de senha inválidas!";
 "error.validation.password.mask.empty" = "Máscara de expiração de senha não pode ficar vazia!";

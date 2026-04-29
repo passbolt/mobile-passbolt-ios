@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Enter username";
 "resource.edit.field.password.placeholder" = "Enter password";
 "resource.edit.field.description.placeholder" = "Enter description";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Your modifications won’t be saved.";
 "resource.edit.exit.confirmation.button.edit.title" = "Edit";
 "resource.edit.exit.confirmation.button.revert.title" = "Revert";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.create.advanced.button" = "View advanced settings";
 "resource.create.additional.secrets.title" = "Additional secrets";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 
 "resource.edit.uris.title" = "Additional URIs";
 "resource.edit.uris.main.uri.title" = "Main URI";
@@ -195,6 +202,7 @@
 "resource.create.menu.password" = "Password";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
@@ -567,6 +575,7 @@ Contact your administrator for more information.";
 "error.resource.field.range.greater" = "%@ has to be greater than %d!";
 "error.resource.field.content.invalid" = "%@ has invalid content!";
 "error.resource.field.selection.invalid" = "%@ has to be one of the valid options!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Unknown fields are not expected!";
 "error.validation.password.length.invalid" = "Invalid password length settings!";
 "error.validation.password.mask.empty" = "Password expiry mask cannot be empty!";

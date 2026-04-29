@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Vnesite uporabniško ime";
 "resource.edit.field.password.placeholder" = "Vnesite geslo";
 "resource.edit.field.description.placeholder" = "Vnesite opis";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Vaše spremembe ne bodo shranjene.";
 "resource.edit.exit.confirmation.button.edit.title" = "Uredi";
 "resource.edit.exit.confirmation.button.revert.title" = "Vrni";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Opomba";
 "resource.edit.section.metadata.title" = "Metapodatki";
 "resource.edit.totp.remove.button.title" = "Odstrani TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Dodatni URI";
 "resource.edit.section.metadata.appearance" = "Videz";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Dodatni URI";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "Geslo";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Ni mogoče ustvariti vira s trenutno konfiguracijo.";
 "resource.edit.invalid.configuration" = "Ni mogoče urediti vira s trenutno konfiguracijo.";
@@ -564,6 +572,7 @@
 "error.resource.field.range.greater" = "%@ mora biti več kot %d!";
 "error.resource.field.content.invalid" = "%@ ima neveljavno vsebino!";
 "error.resource.field.selection.invalid" = "%@ mora biti ena izmed veljavnih možnosti!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Neznana polja niso dovoljena!";
 "error.validation.password.length.invalid" = "Neveljavna nastavitev dolžine gesla!";
 "error.validation.password.mask.empty" = "Maska za potek gesla ne sme biti prazna!";

@@ -23,12 +23,14 @@
 
 /// Keepass icon set mapping for custom resource icons
 public enum KeepassIcons: IconProvider {
+
   private static let namespace: String = "KeepassIconSet"
   private static let passwordIconName: String = "key"
   private static let totpIconName: String = "totp"
   private static let passwordAndTotpIconName: String = "password_with_totp"
   private static let customFieldsIconName: String = "custom_fields"
   private static let notesIconName: String = "notes"
+  private static let pinIconName: String = "Numpad"
 
   /// Get all available keepass icon identifiers
   public static var availableIdentifiers: [String] {
@@ -51,6 +53,8 @@ public enum KeepassIcons: IconProvider {
       iconName = Self.customFieldsIconName
     case .v5StandaloneNote:
       iconName = Self.notesIconName
+    case .v5PinCode:
+      iconName = Self.pinIconName
     default:
       iconName = Self.passwordIconName
     }

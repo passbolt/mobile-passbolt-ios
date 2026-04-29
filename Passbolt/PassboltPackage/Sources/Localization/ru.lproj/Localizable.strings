@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Введите имя пользователя";
 "resource.edit.field.password.placeholder" = "Введите пароль";
 "resource.edit.field.description.placeholder" = "Введите описание";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Ваши изменения не будут сохранены.";
 "resource.edit.exit.confirmation.button.edit.title" = "Изменить";
 "resource.edit.exit.confirmation.button.revert.title" = "Вернуться";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Метадата";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Additional URIs";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "Пароль";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
@@ -567,6 +575,7 @@ NFC.";
 "error.resource.field.range.greater" = "%@ должно быть больше чем %d!";
 "error.resource.field.content.invalid" = "%@ имеет недопустимое содержимое!";
 "error.resource.field.selection.invalid" = "%@ должно быть одним из допустимых вариантов!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Неизвестные поля не принимаются!";
 "error.validation.password.length.invalid" = "Некорректные настройки длины пароля!";
 "error.validation.password.mask.empty" = "Маска истечения срока действия пароля не может быть пустой!";

@@ -258,7 +258,7 @@ extension Resource {
 
     // try to auto convert if able
     switch specification.content {
-    case .string, .stringEnum, .structure:
+    case .string, .stringEnum, .structure, .pincode:
       self[keyPath: specification.path] = value
       return specification.validator.validate(value)
 
@@ -559,7 +559,7 @@ extension Resource {
         // selection values does not define default
         self[keyPath: field.path] = .null
 
-      case .password:
+      case .password, .pinCode:
         if field.required {
           self[keyPath: field.path] = .string("")
         }

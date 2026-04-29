@@ -88,6 +88,7 @@ extension ImageNameConstant {
   public static var fileSave: Self { "FileSave" }
   public static var importFile: Self { "Import" }
   public static var settingsPassphrase: Self { "SettingsPassphrase" }
+  public static var numpad: Self { "numpad" }
 
   // Dynamic images - rendered according to interface (Light/Dark)
   public static var accountsSkeleton: Self { "AccountsSkeleton" }

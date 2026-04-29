@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "사용자이름 입력";
 "resource.edit.field.password.placeholder" = "비밀번호 입력";
 "resource.edit.field.description.placeholder" = "설명 입력";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "수정내용이 저장되지 않았습니다.";
 "resource.edit.exit.confirmation.button.edit.title" = "수정";
 "resource.edit.exit.confirmation.button.revert.title" = "되돌아가기";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "노트";
 "resource.edit.section.metadata.title" = "메타데이터";
 "resource.edit.totp.remove.button.title" = "TOTP 삭제";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "사용자 정의 필드";
 "resource.edit.customFields.error.invalid" = "잘못된 값";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "추가 URI";
 "resource.edit.section.metadata.appearance" = "모양새";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "사용자 정의 필드";
 
 "resource.edit.uris.title" = "추가 URI";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "비밀번호";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "현재 구성으로는 리소스를 생성할 수 없습니다.";
 "resource.edit.invalid.configuration" = "현재 구성으로는 리소스를 수정할 수 없습니다.";
@@ -566,6 +574,7 @@ NFC가 있어야 작동합니다.";
 "error.resource.field.range.greater" = "%@ (은)는 %d보다 커야 합니다!";
 "error.resource.field.content.invalid" = "%@ 에 잘못된 내용이 있습니다!";
 "error.resource.field.selection.invalid" = "%@ (은)는 유효한 옵션 중 하나여야 합니다!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "알 수 없는 필드는 필요하지 않습니다!";
 "error.validation.password.length.invalid" = "비밀번호 길이 설정이 잘못되었습니다!";
 "error.validation.password.mask.empty" = "비밀번호 만료 마스킹은 비워둘 수 없습니다!";

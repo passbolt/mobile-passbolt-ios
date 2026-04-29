@@ -345,6 +345,11 @@ extension ResourceDetailsViewController {
     hideFieldTitles: true
   )
 
+  var pinCodeSection: ResourceDetailsSectionViewModel = .init(
+    title: "resource.edit.section.pin_code.title",
+    fields: .init()
+  )
+
   var fieldModelsByName: OrderedDictionary<ResourceFieldName, ResourceDetailsFieldViewModel> = resource
     .fields
     .compactMap {
@@ -418,6 +423,9 @@ extension ResourceDetailsViewController {
     else if fieldName == .note {
       notesSection.fields.append(fieldModel)
     }
+    else if fieldName == .pinCode {
+      pinCodeSection.fields.append(fieldModel)
+    }
     else if fieldName != .allURIs {  // allURIs is not displayed as a field
       metadataSection.fields.append(fieldModel)
     }
@@ -468,7 +476,7 @@ extension ResourceDetailsViewController {
   }
 
   // remove empty sections
-  return [resourceSection, totpSection, customFieldsSection, notesSection, metadataSection]
+  return [resourceSection, pinCodeSection, totpSection, customFieldsSection, notesSection, metadataSection]
     .filter {
       $0.fields.isEmpty == false || $0.virtualFields.isEmpty == false
     }
@@ -636,7 +644,9 @@ internal struct ResourceDetailsFieldViewModel {
       .longText(let name, let placeholder, _),
       .selection(let name, values: _, let placeholder, _),
       .intValue(let name, let placeholder, _),
-      .floatValue(let name, let placeholder, _):
+      .floatValue(let name, let placeholder, _),
+      .pinCode(let name, let placeholder, _):
+
       self.name = name
       let revealed: Bool = revealedFields.contains(field.path)
       if revealed {

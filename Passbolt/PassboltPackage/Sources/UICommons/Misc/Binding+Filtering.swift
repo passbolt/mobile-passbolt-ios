@@ -21,17 +21,22 @@
 // @since         v1.0
 //
 
-import Features
+import SwiftUI
 
-extension FeaturesRegistry {
+extension Binding {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
+  /// Returns a binding that applies `transform` to every value written through it.
+  /// Useful for input filtering on text fields: typed/pasted characters are
+  /// transformed before SwiftUI propagates the value, avoiding a flicker that
+  /// `.onChange`-based filtering would introduce.
+  public func filtering(
+    _ transform: @Sendable @escaping (Value) -> Value
+  ) -> Binding<Value> where Value: Sendable {
+    .init(
+      get: { self.wrappedValue },
+      set: { (newValue: Value) in
+        self.wrappedValue = transform(newValue)
+      }
+    )
   }
 }

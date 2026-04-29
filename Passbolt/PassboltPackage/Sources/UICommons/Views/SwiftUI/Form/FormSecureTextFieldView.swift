@@ -31,6 +31,7 @@ where Accessory: View {
   private let prompt: DisplayableString?
   private let mandatory: Bool
   @Binding private var state: Validated<String>
+  private let filter: (@Sendable (String) -> String)?
   private let accessory: () -> Accessory
   @FocusState private var focused: Bool
   @State private var editing: Bool = false
@@ -40,12 +41,14 @@ where Accessory: View {
     title: DisplayableString = .raw(""),
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
-    state: Binding<Validated<String>>
+    state: Binding<Validated<String>>,
+    filter: (@Sendable (String) -> String)? = nil
   ) where Accessory == EmptyView {
     self.title = title
     self.prompt = prompt
     self.mandatory = mandatory
     self._state = state
+    self.filter = filter
     self.accessory = EmptyView.init
   }
 
@@ -54,12 +57,14 @@ where Accessory: View {
     prompt: DisplayableString? = nil,
     mandatory: Bool = false,
     state: Binding<Validated<String>>,
+    filter: (@Sendable (String) -> String)? = nil,
     @ViewBuilder accessory: @escaping () -> Accessory
   ) {
     self.title = title
     self.prompt = prompt
     self.mandatory = mandatory
     self._state = state
+    self.filter = filter
     self.accessory = accessory
   }
 
@@ -184,14 +189,7 @@ where Accessory: View {
     if self.masked {
       SwiftUI.SecureField(
         title.string(),
-        text: .init(
-          get: {
-            self.state.value
-          },
-          set: { (newValue: String) in
-            self.state.value = newValue
-          }
-        ),
+        text: self.textBinding,
         prompt: self.prompt
           .map {
             Text(displayable: $0)
@@ -211,14 +209,7 @@ where Accessory: View {
     else {
       SwiftUI.TextField(
         title.string(),
-        text: .init(
-          get: {
-            self.state.value
-          },
-          set: { (newValue: String) in
-            self.state.value = newValue
-          }
-        ),
+        text: self.textBinding,
         prompt: self.prompt
           .map {
             Text(displayable: $0)
@@ -234,6 +225,21 @@ where Accessory: View {
       .autocorrectionDisabled()
       .autocapitalization(.none)
       .frame(height: 20)
+    }
+  }
+
+  @MainActor private var textBinding: Binding<String> {
+    let raw: Binding<String> = Binding<String>(
+      get: { self.state.value },
+      set: { (newValue: String) in
+        self.state.value = newValue
+      }
+    )
+    if let filter: @Sendable (String) -> String = self.filter {
+      return raw.filtering(filter)
+    }
+    else {
+      return raw
     }
   }
 }

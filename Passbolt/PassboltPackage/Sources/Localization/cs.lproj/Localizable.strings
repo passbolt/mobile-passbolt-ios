@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Zadejte uživatelské jméno";
 "resource.edit.field.password.placeholder" = "Zadejte heslo";
 "resource.edit.field.description.placeholder" = "Zadejte popis";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Vaše úpravy nebudou uloženy.";
 "resource.edit.exit.confirmation.button.edit.title" = "Upravit";
 "resource.edit.exit.confirmation.button.revert.title" = "Vrátit";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Poznámka";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Nahradit TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Další URI";
 "resource.edit.section.metadata.appearance" = "Vzhled";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Další URI";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "Heslo";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Nelze vytvořit zdroj s aktuální konfigurací.";
 "resource.edit.invalid.configuration" = "Nelze upravit zdroj s aktuální konfigurací.";
@@ -565,6 +573,7 @@
 "error.resource.field.range.greater" = "%@ musí být větší než %d!";
 "error.resource.field.content.invalid" = "%@ má neplatný obsah!";
 "error.resource.field.selection.invalid" = "%@ musí být jedna z platných možností!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Neznámá pole nejsou očekávána!";
 "error.validation.password.length.invalid" = "Neplatné nastavení délky hesla!";
 "error.validation.password.mask.empty" = "Maska expirace hesla nemůže být prázdná!";

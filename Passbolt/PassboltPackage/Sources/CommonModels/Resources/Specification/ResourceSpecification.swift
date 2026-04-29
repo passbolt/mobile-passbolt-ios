@@ -55,6 +55,8 @@ public struct ResourceSpecification {
       return .v5CustomFields()
     case .v5StandaloneNote:
       return .v5StandaloneNote
+    case .v5PinCode:
+      return .v5PinCode
     case _:
       return .placeholder
     }
@@ -80,6 +82,7 @@ extension ResourceSpecification.Slug {
   public static let v5Password: Self = "v5-password-string"
   public static let v5CustomFields: Self = "v5-custom-fields"
   public static let v5StandaloneNote: Self = "v5-note"
+  public static let v5PinCode: Self = "v5-pin-code"
 
   /// Checks if the resource type is v4 or v5
   public var isSupported: Bool {
@@ -94,7 +97,7 @@ extension ResourceSpecification.Slug {
 
   /// V5 resource types
   public static var v5Types: [Self] {
-    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default, .v5CustomFields, .v5StandaloneNote]
+    [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default, .v5CustomFields, .v5StandaloneNote, .v5PinCode]
   }
 
   public var isV5Type: Bool {
@@ -126,6 +129,7 @@ extension ResourceSpecification.Slug {
     [
       .v5CustomFields,
       .v5StandaloneNote,
+      .v5PinCode,
     ]
     .contains(self) == false
   }
@@ -245,6 +249,27 @@ extension ResourceSpecification {
       ],
       secretFields: [
         .secretNoteField(isV5: true)
+      ]
+    )
+  }
+
+  public static var v5PinCode: Self {
+    .init(
+      slug: .v5PinCode,
+      metaFields: [
+        .metaName,
+        .metaDescription,
+        .metaAppearance,
+      ],
+      secretFields: [
+        .init(
+          path: \.secret.pin_code,
+          name: "pin_code",
+          content: .pincode(minLength: 4, maxLength: 12),
+          required: true,
+          encrypted: true
+        ),
+        .secretNoteField(isV5: true),
       ]
     )
   }

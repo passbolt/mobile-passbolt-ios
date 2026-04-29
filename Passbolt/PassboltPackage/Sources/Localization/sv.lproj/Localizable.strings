@@ -145,6 +145,7 @@
 "resource.edit.field.username.placeholder" = "Ange användarnamn";
 "resource.edit.field.password.placeholder" = "Ange lösenord";
 "resource.edit.field.description.placeholder" = "Ange beskrivning";
+"resource.edit.field.pin_code.label" = "Code";
 "resource.edit.exit.confirmation.message" = "Dina ändringar kommer inte att sparas.";
 "resource.edit.exit.confirmation.button.edit.title" = "Redigera";
 "resource.edit.exit.confirmation.button.revert.title" = "Återställ";
@@ -158,6 +159,10 @@
 "resource.edit.section.note.title" = "Note";
 "resource.edit.section.metadata.title" = "Metadata";
 "resource.edit.totp.remove.button.title" = "Remove TOTP";
+
+"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
+"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -173,6 +178,8 @@
 
 "resource.edit.section.metadata.additional.uris" = "Additional URIs";
 "resource.edit.section.metadata.appearance" = "Appearance";
+
+"resource.edit.section.pin_code.title" = "Pin code";
 "resource.edit.section.customFields.title" = "Custom Fields";
 
 "resource.edit.uris.title" = "Additional URIs";
@@ -193,6 +200,7 @@
 "resource.create.menu.password" = "Lösenord";
 "resource.create.menu.totp" = "TOTP";
 "resource.create.menu.note" = "Note";
+"resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
 "resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
@@ -564,6 +572,7 @@
 "error.resource.field.range.greater" = "%@ måste vara större än %d!";
 "error.resource.field.content.invalid" = "%@ har ogiltigt innehåll!";
 "error.resource.field.selection.invalid" = "%@ måste vara ett av de giltiga alternativen!";
+"error.resource.field.digits.only" = "%@ can only contain digits!";
 "error.resource.field.unknown" = "Okända fält förväntas inte!";
 "error.validation.password.length.invalid" = "Ogiltiga inställningar för lösenordslängd!";
 "error.validation.password.mask.empty" = "Mallen för lösenordets utgång får inte vara tom!";

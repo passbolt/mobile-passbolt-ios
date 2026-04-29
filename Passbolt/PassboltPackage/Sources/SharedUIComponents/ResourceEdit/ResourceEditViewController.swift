@@ -100,12 +100,14 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToURIEdit: NavigationToResourceURIEdit
   private let navigationToIconEdit: NavigationToResourceIconEdit
   private let navigationToCustomFieldsEdit: NavigationToResourceCustomFieldsEdit
+  private let navigationToPinSettings: NavigationToPinCodeConfiguration
 
   internal var canNavigateToOTPScanning: Bool {
     self.navigationToOTPScanning.canPerform()
   }
 
   private let secretGenerator: PasswordService
+  private let pinCodeGenerator: PinCodeService
 
   private let success: @Sendable (Resource) async -> Void
   private let customOnSuccessNavigation: (() async throws -> Void)?
@@ -129,6 +131,7 @@ public final class ResourceEditViewController: ViewController {
 
     let secretGenerator: PasswordService = try features.instance()
     self.secretGenerator = secretGenerator
+    self.pinCodeGenerator = try features.instance()
 
     self.navigationToSelf = try features.instance()
     self.navigationToOTPEdit = try features.instance()
@@ -139,6 +142,7 @@ public final class ResourceEditViewController: ViewController {
     self.navigationToURIEdit = try features.instance()
     self.navigationToIconEdit = try features.instance()
     self.navigationToCustomFieldsEdit = try features.instance()
+    self.navigationToPinSettings = try features.instance()
 
     self.resourceEditForm = try features.instance()
 
@@ -225,6 +229,22 @@ public final class ResourceEditViewController: ViewController {
     }
     catch {
       SnackBarMessageEvent.send(.error("resource.edit.unable.to.generate.secret"))
+    }
+  }
+
+  @MainActor internal func generatePinCode(
+    for field: ResourceType.FieldPath
+  ) async {
+    let generated: String = await self.pinCodeGenerator.generate()
+    self.resourceEditForm.update(field, to: generated)
+    self.localState.mutate { (state: inout LocalState) in
+      state.editedFields.insert(field)
+    }
+  }
+
+  internal func navigateToPinCodeAdvancedSettings() async {
+    await consumingErrors {
+      try await navigationToPinSettings.perform()
     }
   }
 
@@ -565,7 +585,7 @@ public final class ResourceEditViewController: ViewController {
   else if isStandaloneTOTP {
     additionalOptions.append(.addPassword)
   }
-  else {
+  else if resourceTypeSlug != .v5PinCode {
     additionalOptions.append(.addTOTP)
   }
 
@@ -722,6 +742,7 @@ internal struct ResourceEditFieldViewModel {
       [Validated<String>]
     )
     case totpSecret(Validated<String>)
+    case pinCode(Validated<String>)
   }
 
   internal var path: ResourceType.FieldPath
@@ -806,6 +827,20 @@ internal struct ResourceEditFieldViewModel {
         entropy: await countEntropy(validated.value)
       )
 
+    case .pinCode(let name, _, let placeholder):
+      self.name = name
+      self.encryptedMark = .none  // we are not showing those for pin code
+      self.placeholder = placeholder
+
+      let validated: Validated<String> =
+        edited
+        ? resource
+          .validated(field.path)
+          .map { $0.stringValue ?? "" }
+        : .valid(resource[keyPath: field.path].stringValue ?? "")
+
+      self.value = .pinCode(validated)
+
     case .selection(let name, let values, _, let placeholder):
       self.name = name
       self.encryptedMark = .none  // we are not showing those currently
@@ -856,6 +891,8 @@ internal struct ResourceEditFieldViewModel {
         return values.first ?? .valid("")
       case .totpSecret(let value):
         return value
+      case .pinCode(let value):
+        return value
       }
     }
     set {
@@ -874,6 +911,8 @@ internal struct ResourceEditFieldViewModel {
         self.value = .list(values)
       case .totpSecret:
         self.value = .totpSecret(newValue)
+      case .pinCode:
+        self.value = .pinCode(newValue)
       }
     }
   }
@@ -894,7 +933,7 @@ extension ResourceSpecification.Slug {
       return true
     case .v5Password where isNewResource == false:
       return true
-    case .v5Default, .v5DefaultWithTOTP, .v5StandaloneTOTP, .v5CustomFields:
+    case .v5Default, .v5DefaultWithTOTP, .v5StandaloneTOTP, .v5CustomFields, .v5PinCode:
       return true
     default:
       return false
@@ -903,7 +942,7 @@ extension ResourceSpecification.Slug {
 
   fileprivate var canEditNote: Bool {
     switch self {
-    case .passwordWithDescription, .passwordWithTOTP, .v5Default, .v5DefaultWithTOTP, .v5CustomFields:
+    case .passwordWithDescription, .passwordWithTOTP, .v5Default, .v5DefaultWithTOTP, .v5CustomFields, .v5PinCode:
       return true
     default:
       return false
@@ -934,6 +973,8 @@ extension ResourceSpecification.Slug {
       return "resource.edit.section.resource.title"
     case _ where isStandaloneTOTPType:
       return "resource.edit.section.totp.title"
+    case .v5PinCode:
+      return "resource.edit.section.pin_code.title"
     default:
       return "resource.edit.section.password.title"
     }
@@ -964,6 +1005,10 @@ extension ResourceSpecification.Slug {
         \.meta.uris.0,
         \.meta.username,
         \.secret,
+      ]
+    case .v5PinCode:
+      return [
+        \.secret.pin_code
       ]
     default:
       return [

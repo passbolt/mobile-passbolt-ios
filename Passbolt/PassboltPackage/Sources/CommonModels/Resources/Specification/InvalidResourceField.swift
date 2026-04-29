@@ -262,6 +262,27 @@ extension InvalidResourceField {
     )
   }
 
+  public static func digitsOnly(
+    specification: ResourceFieldSpecification,
+    path: Resource.FieldPath,
+    value: JSON,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    .error(
+      "digitsOnly",
+      specification: specification,
+      path: path,
+      value: value,
+      displayable: .localized(
+        key: "error.resource.field.digits.only",
+        arguments: [
+          specification.name.displayable.string()
+        ]
+      )
+    )
+  }
+
   public static func notListed(
     specification: ResourceFieldSpecification,
     path: Resource.FieldPath,

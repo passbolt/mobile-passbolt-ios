@@ -21,17 +21,34 @@
 // @since         v1.0
 //
 
-import Features
+import Display
 
-extension FeaturesRegistry {
+internal final class PinCodeConfigurationViewController: ViewController {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
+  internal struct ViewState: Equatable {
+    internal var pinCodeLength: Int = 4
+  }
+
+  nonisolated let viewState: ViewStateSource<ViewState>
+
+  private let pinCodeService: PinCodeService
+  private let navigationToSelf: NavigationToPinCodeConfiguration
+
+  internal init(context: (), features: Features) throws {
+    self.pinCodeService = try features.instance()
+    self.navigationToSelf = try features.instance()
+    self.viewState = .init(
+      initial: .init()
+    )
+  }
+
+  internal func saveConfiguration() async {
+    await consumingErrors {
+      let length: Int = await self.viewState.current.pinCodeLength
+      var currentConfiguration: PinCodeService.Configuration = await pinCodeService.currentConfiguration()
+      currentConfiguration.pinCodeLength = length
+      await pinCodeService.updateConfiguration(currentConfiguration)
+      try await navigationToSelf.revert()
+    }
   }
 }

@@ -50,6 +50,7 @@ public struct ResourceEditView: ControlledView {
         ? "resource.edit.title"
         : "resource.edit.create.title"
     )
+    .navigationBarTitleDisplayMode(.inline)
     .backgroundColor(.passboltBackground)
     .foregroundColor(.passboltPrimaryText)
     .accessibilityIdentifier("screen.resource.edit")
@@ -410,6 +411,59 @@ public struct ResourceEditView: ControlledView {
         )
 
         EntropyView(entropy: entropy)
+      }
+      .padding(bottom: 8)
+
+    case .pinCode(let state):
+      VStack(spacing: 4) {
+        FormSecureTextFieldView(
+          title: fieldModel.name,
+          prompt: fieldModel.placeholder,
+          mandatory: fieldModel.requiredMark,
+          state: self.validatedOptionalBinding(
+            to: \.validatedString,
+            in: \.mainForm.fields[fieldModel.path],
+            default: state,
+            updating: { (newValue: String) in
+              withAnimation {
+                self.controller.set(newValue, for: fieldModel.path)
+              }
+            }
+          ),
+          filter: { $0.filter { ("0" ... "9").contains($0) } },
+          accessory: {
+            AsyncButton(
+              action: {
+                await self.controller.generatePinCode(for: fieldModel.path)
+              },
+              label: {
+                Image(named: .dice)
+                  .tint(.passboltPrimaryText)
+                  .padding(12)
+                  .backgroundColor(.passboltDivider)
+                  .cornerRadius(4)
+              }
+            )
+          }
+        )
+        .keyboardType(.numberPad)
+        AsyncButton(
+          action: self.controller.navigateToPinCodeAdvancedSettings,
+          label: {
+            HStack(spacing: 16) {
+              Image(named: .cog)
+                .renderingMode(.template)
+              Text(displayable: "resource.edit.pin.code.advanced.title")
+                .text(font: .inter(ofSize: 14, weight: .semibold))
+              Spacer()
+              Image(named: .chevronRight)
+                .renderingMode(.template)
+            }
+            .foregroundStyle(Color.passboltPrimaryText)
+            .frame(height: 56)
+            .padding(.vertical, 8)
+          }
+        )
       }
       .padding(bottom: 8)
 

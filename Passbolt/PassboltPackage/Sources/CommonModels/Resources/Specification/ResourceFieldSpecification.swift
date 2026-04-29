@@ -49,6 +49,7 @@ public struct ResourceFieldSpecification {
     )
     case list(maxCount: Int? = .none)
     case structure(Array<ResourceFieldSpecification>)
+    case pincode(minLength: Int, maxLength: Int)
   }
 
   public let path: ResourceType.FieldPath
@@ -135,6 +136,12 @@ public struct ResourceFieldSpecification {
         return .hidden
       case .structure:
         return .undefined(name: name.displayable)
+      case .pincode(minLength: _, maxLength: _):
+        return .pinCode(
+          name: name.displayable,
+          viewingPlaceholder: name.displayableViewingPlaceholder,
+          editingPlaceholder: name.displayableEditingPlaceholder
+        )
       }
     }()
   }
@@ -385,6 +392,46 @@ extension ResourceFieldSpecification {
             value: json
           )
       }  // else NOP
+    case .pincode(let minLength, let maxLength):
+      guard let stringValue: String = json.stringValue
+      else {
+        throw
+          InvalidResourceField
+          .type(
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }
+      guard stringValue.allSatisfy({ ("0" ... "9").contains($0) }) else {
+        throw
+          InvalidResourceField
+          .digitsOnly(
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }
+      guard stringValue.count >= minLength else {
+        throw
+          InvalidResourceField
+          .minimumLength(
+            of: minLength,
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }
+      guard stringValue.count <= maxLength else {
+        throw
+          InvalidResourceField
+          .maximumLength(
+            of: maxLength,
+            specification: self,
+            path: self.path,
+            value: json
+          )
+      }
     }
   }
 }

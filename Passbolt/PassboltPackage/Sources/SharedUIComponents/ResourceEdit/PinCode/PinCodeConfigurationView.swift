@@ -21,17 +21,41 @@
 // @since         v1.0
 //
 
-import Features
+import Display
 
-extension FeaturesRegistry {
+internal struct PinCodeConfigurationView: ControlledView {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
+  internal let controller: PinCodeConfigurationViewController
+
+  internal init(controller: PinCodeConfigurationViewController) {
+    self.controller = controller
+  }
+
+  internal var body: some View {
+    VStack {
+      self.withBinding(\.pinCodeLength) { pinCodeLength in
+        Slider(
+          "resource.edit.pin.code.length.title",
+          value: pinCodeLength,
+          min: 4,
+          max: 12
+        )
+        .padding(16)
+      }
+      .backgroundColor(.passboltBackgroundGray)
+      .clipShape(RoundedRectangle(cornerRadius: 8))
+      Spacer()
+    }
+    .overlay(alignment: .bottom) {
+      PrimaryButton(
+        title: "resource.edit.pin.code.save.button.title",
+        action: self.controller.saveConfiguration
+      )
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 24)
+    .navigationTitle(displayable: "resource.edit.pin.code.advanced.title")
+    .useCustomBackButton()
+    .navigationBarTitleDisplayMode(.inline)
   }
 }

@@ -21,17 +21,9 @@
 // @since         v1.0
 //
 
-import Features
+extension Int {
 
-extension FeaturesRegistry {
-
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
+  public func clamped(to range: ClosedRange<Int>) -> Int {
+    Swift.min(Swift.max(self, range.lowerBound), range.upperBound)
   }
 }
