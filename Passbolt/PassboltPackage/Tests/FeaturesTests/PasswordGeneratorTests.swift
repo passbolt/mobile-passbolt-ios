@@ -27,7 +27,7 @@ import TestExtensions
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class PasswordGeneratorTests: LoadableFeatureTestCase<PasswordGenerator> {
+final class PasswordGeneratorTests: LoadableFeatureTestCase<PasswordGenerator>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry

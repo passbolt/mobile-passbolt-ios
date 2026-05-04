@@ -71,7 +71,7 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
     let tested: ResourcesOTPController = try self.testedInstance()
-    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
+    let test: @Sendable (Resource.ID) async throws -> OTPValue = tested.revealOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
         try? await test(.mock_1)
@@ -94,7 +94,7 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
-    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
+    let test: @Sendable (Resource.ID) async throws -> OTPValue = tested.revealOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
         try? await test(.mock_1)
@@ -117,7 +117,7 @@ final class ResourcesOTPControllerTests: FeaturesTestCase {
     )
 
     let tested: ResourcesOTPController = try self.testedInstance()
-    let test: (Resource.ID) async throws -> OTPValue = tested.revealOTP
+    let test: @Sendable (Resource.ID) async throws -> OTPValue = tested.revealOTP
     await withSerialTaskExecutor {
       let task: Task<OTPValue?, Never> = .detached {
         try? await test(.mock_1)

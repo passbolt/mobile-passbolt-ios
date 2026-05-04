@@ -26,7 +26,8 @@ import TestExtensions
 @testable import PassboltSession
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNetworkAuthorization> {
+final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNetworkAuthorization>, @unchecked Sendable
+{
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry

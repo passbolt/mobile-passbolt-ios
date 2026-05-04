@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct ResourcePermissionEditListView: ControlledView {
+internal struct ResourcePermissionEditListView: @MainActor ControlledView {
 
   internal let controller: ResourcePermissionEditListController
 

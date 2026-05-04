@@ -31,11 +31,11 @@ internal final class ResourceFolderContentDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
 
-  internal var createFolder: (() async throws -> Void)?
-  internal var createResource: (() async throws -> Void)?
-  internal var selectFolder: (ResourceFolder.ID) async throws -> Void
-  internal var selectResource: (Resource.ID) async throws -> Void
-  internal var openResourceMenu: ((Resource.ID) async throws -> Void)?
+  internal var createFolder: (@Sendable () async throws -> Void)?
+  internal var createResource: (@Sendable () async throws -> Void)?
+  internal var selectFolder: @Sendable (ResourceFolder.ID) async throws -> Void
+  internal var selectResource: @Sendable (Resource.ID) async throws -> Void
+  internal var openResourceMenu: (@Sendable (Resource.ID) async throws -> Void)?
 
   private let sessionData: SessionData
   private let resourceFolders: ResourceFolders
@@ -147,22 +147,22 @@ extension ResourceFolderContentDisplayController {
     internal var folderName: DisplayableString
     internal var filter: AnyUpdatable<ResourceFoldersFilter>
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
-    internal var createFolder: (() async throws -> Void)?
-    internal var createResource: (() async throws -> Void)?
-    internal var selectFolder: (ResourceFolder.ID) async throws -> Void
-    internal var selectResource: (Resource.ID) async throws -> Void
-    internal var openResourceMenu: ((Resource.ID) async throws -> Void)?
+    internal var createFolder: (@Sendable () async throws -> Void)?
+    internal var createResource: (@Sendable () async throws -> Void)?
+    internal var selectFolder: @Sendable (ResourceFolder.ID) async throws -> Void
+    internal var selectResource: @Sendable (Resource.ID) async throws -> Void
+    internal var openResourceMenu: (@Sendable (Resource.ID) async throws -> Void)?
     internal var pageSize: Int
 
     internal init(
       folderName: DisplayableString,
       filter: AnyUpdatable<ResourceFoldersFilter>,
       suggestionFilter: @escaping (ResourceListItemDSV) -> Bool,
-      createFolder: (() async throws -> Void)? = .none,
-      createResource: (() async throws -> Void)? = .none,
-      selectFolder: @escaping (ResourceFolder.ID) async throws -> Void,
-      selectResource: @escaping (Resource.ID) async throws -> Void,
-      openResourceMenu: ((Resource.ID) async throws -> Void)? = .none,
+      createFolder: (@Sendable () async throws -> Void)? = .none,
+      createResource: (@Sendable () async throws -> Void)? = .none,
+      selectFolder: @Sendable @escaping (ResourceFolder.ID) async throws -> Void,
+      selectResource: @Sendable @escaping (Resource.ID) async throws -> Void,
+      openResourceMenu: (@Sendable (Resource.ID) async throws -> Void)? = .none,
       pageSize: Int = 50
     ) {
       self.folderName = folderName

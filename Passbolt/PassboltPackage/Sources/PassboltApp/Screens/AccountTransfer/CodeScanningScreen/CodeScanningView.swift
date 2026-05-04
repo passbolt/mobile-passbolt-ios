@@ -151,9 +151,12 @@ private struct CodeScannerView: UIViewRepresentable {
     }
   }
 
+  @MainActor
   fileprivate class Coordinator: NSObject {
 
-    private let captureMetadataQueue: DispatchQueue = .init(label: "com.passbolt.reader.metadata")
+    nonisolated private let captureMetadataQueue: DispatchQueue = .init(label: "com.passbolt.reader.metadata")
+    // Accessed from `captureMetadataQueue` (delegate callback) and main actor (completion), so must be lock-protected.
+    nonisolated private let isProcessing: CriticalState<Bool> = .init(false)
 
     private lazy var metadataOutput: AVCaptureMetadataOutput = {
       let output: AVCaptureMetadataOutput = .init()
@@ -175,8 +178,6 @@ private struct CodeScannerView: UIViewRepresentable {
       metadataOutput.metadataObjectTypes = [.qr]
       return session
     }()
-
-    private var processingTask: Task<Void, Never>?
 
     private let processPayload: (String) async throws -> Void
     private let alertHandler: (AlertViewModel) -> Void
@@ -222,14 +223,13 @@ private struct CodeScannerView: UIViewRepresentable {
 
 extension CodeScannerView.Coordinator: AVCaptureMetadataOutputObjectsDelegate {
 
-  internal func metadataOutput(
+  nonisolated internal func metadataOutput(
     _ output: AVCaptureMetadataOutput,
     didOutput metadataObjects: Array<AVMetadataObject>,
     from connection: AVCaptureConnection
   ) {
     dispatchPrecondition(condition: .onQueue(captureMetadataQueue))
     guard
-      processingTask == nil,  // prevent multiple processing at the same time
       let metadata: AVMetadataMachineReadableCodeObject = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
       let payload: String = metadata.stringValue
     else { return }
@@ -237,9 +237,16 @@ extension CodeScannerView.Coordinator: AVCaptureMetadataOutputObjectsDelegate {
     // due to public api limitations, CIQRCodeDescriptor contains raw data but with
     // error correction bytes applied which can't be easily removed (Reed-Solomon encoding)
 
+    let claimed: Bool = isProcessing.access { (flag: inout Bool) -> Bool in
+      guard !flag else { return false }
+      flag = true
+      return true
+    }
+    guard claimed else { return }  // prevent multiple processing at the same time
+
     SnackBarMessageEvent.send("code.scanning.processing.in.progress")
 
-    processingTask = Task { @MainActor [weak self] in
+    Task { @MainActor [weak self] in
       guard let self else { return }
       do {
         try await self.processPayload(payload)
@@ -264,7 +271,7 @@ extension CodeScannerView.Coordinator: AVCaptureMetadataOutputObjectsDelegate {
       // It will blink rapidly otherwise if camera is still pointing into invalid QRCode.
       try? await Task.sleep(for: .seconds(1.5))
 
-      self.processingTask = nil
+      self.isProcessing.access { (flag: inout Bool) in flag = false }
     }
   }
 }

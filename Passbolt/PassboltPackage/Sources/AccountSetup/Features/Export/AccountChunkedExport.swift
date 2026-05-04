@@ -56,7 +56,7 @@ public struct AccountChunkedExport: Sendable {
 
 extension AccountChunkedExport {
 
-  public enum Status: Equatable {
+  public enum Status: Equatable, Sendable {
 
     case uninitialized
     case part(Int, content: Data)

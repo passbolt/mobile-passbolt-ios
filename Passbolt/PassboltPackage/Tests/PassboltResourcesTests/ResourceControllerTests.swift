@@ -88,13 +88,13 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_state_isBroken_whenInitialResourceIsNotValid() async throws {
-    var resource: Resource = .mock_1
+    let resource: CriticalState<Resource> = .init(.mock_1)
     // ensure invalid resource, it should have some meta or secret rquired
-    resource.meta = nil
-    resource.secret = nil
+    resource.set(\.meta, nil)
+    resource.set(\.secret, nil)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -215,11 +215,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_fetchSecretIfNeeded_failsWhenFetchingSecretFromNetworkFails() async throws {
-    var resource: Resource = .mock_1
-    resource.secret = nil  // ensure no initial secret
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.secret, nil)  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
@@ -236,11 +236,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_fetchSecretIfNeeded_failsWhenDecryptingSecretFails() async throws {
-    var resource: Resource = .mock_1
-    resource.secret = nil  // ensure no initial secret
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.secret, nil)  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
@@ -261,11 +261,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_fetchSecretIfNeeded_failsWhenSecretValidationFails() async throws {
-    var resource: Resource = .mock_1
-    resource.secret = nil  // ensure no initial secret
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.secret, nil)  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
@@ -286,11 +286,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_fetchSecretIfNeeded_fetchesSecretFromNetworkInitially() async throws {
-    var resource: Resource = .mock_1
-    resource.secret = nil  // ensure no initial secret
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.secret, nil)  // ensure no initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
@@ -311,11 +311,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_fetchSecretIfNeeded_doesNotFetchSecretFromNetworkWhenAvailable() async throws {
-    var resource: Resource = .mock_1
-    resource.secret = ["password": "initial"]  // ensure any initial secret
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.secret, ["password": "initial"])  // ensure any initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
 
     let feature: ResourceController = try self.testedInstance()
@@ -328,11 +328,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_fetchSecretIfNeeded_fetchesSecretFromNetworkWhenAvailableButForced() async throws {
-    var resource: Resource = .mock_1
-    resource.secret = ["password": "initial"]  // ensure any initial secret
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.secret, ["password": "initial"])  // ensure any initial secret
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSecretFetchNetworkOperation.execute,
@@ -357,11 +357,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenAddingFavorite() async throws {
-    var resource: Resource = .mock_1
-    resource.favoriteID = .none
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.favoriteID, .none)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceFavoriteAddNetworkOperation.execute,
@@ -378,11 +378,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_toggleFavorite_throws_whenNetworkRequestThrows_whenRemovingFavorite() async throws {
-    var resource: Resource = .mock_1
-    resource.favoriteID = .mock_1
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.favoriteID, .mock_1)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceFavoriteDeleteNetworkOperation.execute,
@@ -399,11 +399,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_toggleFavorite_addsFavorite_whenAddingFavoriteSucceeds() async throws {
-    var resource: Resource = .mock_1
-    resource.favoriteID = .none
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.favoriteID, .none)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
@@ -427,11 +427,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_toggleFavorite_removesFavorite_whenDeletingFavoriteSucceeds() async throws {
-    var resource: Resource = .mock_1
-    resource.favoriteID = .mock_1
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.favoriteID, .mock_1)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceSetFavoriteDatabaseOperation.execute,
@@ -455,11 +455,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_delete_fails_whenDeleteFails() async throws {
-    var resource: Resource = .mock_1
-    resource.favoriteID = .mock_1
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.favoriteID, .mock_1)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceDeleteNetworkOperation.execute,
@@ -480,11 +480,11 @@ final class ResourceControllerTests: FeaturesTestCase {
   }
 
   func test_delete_succeeds_whenDeleteSucceeds() async throws {
-    var resource: Resource = .mock_1
-    resource.favoriteID = .mock_1
+    let resource: CriticalState<Resource> = .init(.mock_1)
+    resource.set(\.favoriteID, .mock_1)
     patch(
       \ResourceDetailsFetchDatabaseOperation.execute,
-      with: always(resource)
+      with: always(resource.get())
     )
     patch(
       \ResourceDeleteNetworkOperation.execute,

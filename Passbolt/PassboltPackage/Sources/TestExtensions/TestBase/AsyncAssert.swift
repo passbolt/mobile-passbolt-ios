@@ -35,12 +35,12 @@ extension XCTestCase {
   ///   - line: The line number to use in the failure message.
   /// - Throws: Rethrows any error thrown by the operation closure.
   public func verifyIf<Value>(
-    _ operation: @autoclosure () async throws -> Value,
+    _ operation: @Sendable @autoclosure () async throws -> Value,
     eventuallyEquals expectedValue: Value,
     timeout: TimeInterval = 1.0,
     timeResoultion: UInt64 = 100,
     description: @autoclosure () -> String = "",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
   ) async throws where Value: Equatable {
     let startTime: Date = .now

@@ -169,16 +169,16 @@ final class AsyncSemaphoreTests: XCTestCase {
 
   func test_singlePermitSemaphore_ensuresMutualExclusion() async {
     let semaphore = AsyncSemaphore(maxConcurrentOperations: 1)
-    var sharedResource = 0
+    let sharedResource: CriticalState<Int> = .init(0)
     let iterations = 100
 
     let tasks = (0 ..< iterations)
       .map { _ in
         Task {
           await semaphore.wait()
-          let current = sharedResource
+          let current = sharedResource.get()
           try? await Task.sleep(nanoseconds: 1 * NSEC_PER_MSEC)
-          sharedResource = current + 1
+          sharedResource.access { $0 = current + 1 }
           await semaphore.signal()
         }
       }
@@ -187,7 +187,7 @@ final class AsyncSemaphoreTests: XCTestCase {
       await task.value
     }
 
-    XCTAssertEqual(sharedResource, iterations)
+    XCTAssertEqual(sharedResource.get(), iterations)
   }
 
   func test_zeroPermitSemaphore_blocksAllOperations() async {

@@ -30,12 +30,16 @@ import SessionData
 import SharedUIComponents
 import Users
 
-internal final class HomeViewController: @MainActor ViewController {
+internal final class HomeViewController: ViewController {
 
-  internal let viewState: ViewStateSource<ViewState>
+  internal struct ViewState: Equatable, Sendable {
+
+    internal var currentPresentation: HomePresentationMode = .plainResourcesList
+  }
+
+  internal nonisolated let viewState: ViewStateSource<ViewState>
   internal let setActiveNavigationState: @MainActor (NavigationState) -> Void
 
-  private let homePresentation: HomePresentation
   private let features: Features
 
   internal init(
@@ -56,30 +60,21 @@ internal final class HomeViewController: @MainActor ViewController {
     let navigationStateRegistry: NavigationStateRegistry = try features.instance()
     self.setActiveNavigationState = navigationStateRegistry.setActive
     let resetNavigation: NavigationToRoot = try features.instance()
-    self.homePresentation = try features.instance()
+    let homePresentation: HomePresentation = try features.instance()
     var lastMode: HomePresentationMode? = .none
     self.viewState = .init(
-      initial: .init(
-        contentController: Self.contentRoot(
-          for: .plainResourcesList,
-          using: features
-        )
-      ),
-      updateFrom: self.homePresentation.currentPresentationModeUpdatable(),
-      update: { [features] (updateState, homePresentation) in
-        guard lastMode != (try homePresentation.value)
+      initial: .init(),
+      updateFrom: homePresentation.currentPresentationModeUpdatable(),
+      update: { update, presentation in
+        guard lastMode != (try presentation.value)
         else {
-          lastMode = try homePresentation.value
+          lastMode = try presentation.value
           return
         }
-
+        let newPresentation: HomePresentationMode = try presentation.value
         await resetNavigation.performCatching()
-        let contentController = Self.contentRoot(
-          for: try homePresentation.value,
-          using: features
-        )
-        updateState { (state: inout ViewState) in
-          state.contentController = contentController
+        update { (state: inout ViewState) in
+          state.currentPresentation = newPresentation
         }
       }
     )
@@ -89,86 +84,42 @@ internal final class HomeViewController: @MainActor ViewController {
 extension HomeViewController {
 
   internal typealias Context = SessionScope.Context
-
-  internal struct ViewState: Equatable {
-
-    internal var contentController: any ViewController
-
-    public static func == (
-      _ lhs: ViewState,
-      _ rhs: ViewState
-    ) -> Bool {
-      lhs.contentController.equal(to: rhs.contentController)
-    }
-
-    internal func hash(
-      into hasher: inout Hasher
-    ) {
-      hasher.combine(self.contentController)
-    }
-  }
 }
 
 extension HomeViewController {
 
-  @MainActor private static func contentRoot(
-    for mode: HomePresentationMode,
-    using features: Features
-  ) -> any ViewController {
+  internal func prepareResourcesList(
+    for mode: HomePresentationMode
+  ) -> ResourcesListViewController {
     do {
-
-      switch mode {
-      case .plainResourcesList, .modifiedResourcesList, .favoriteResourcesList,
-        .sharedResourcesList, .ownedResourcesList, .expiredResourcesList:
-        return
-          try features
-          .instance(
-            of: ResourcesListViewController.self,
-            context: .init(
-              title: mode.title,
-              titleIconName: mode.iconName,
-              baseFilter: mode.baseFilter,
-              appModeContext: .createExtensionContext(using: features, allowBack: false)
-            )
-          )
-
-      case .tagsExplorer:
-        return
-          try features
-          .instance(
-            of: ResourceTagsListViewController.self,
-            context: .init(
-              title: mode.title,
-              titleIconName: mode.iconName
-            )
-          )
-
-      case .resourceUserGroupsExplorer:
-        return
-          try features
-          .instance(
-            of: ResourceUserGroupsListViewController.self,
-            context: .init(
-              title: mode.title,
-              titleIconName: mode.iconName
-            )
-          )
-
-      case .foldersExplorer:
-        return
-          try features
-          .instance(
-            of: ResourceFolderContentViewController.self,
-            context: .init(
-              folderDetails: .none
-            )
-          )
-      }
+      return try features.instance(
+        context: .init(
+          title: mode.title,
+          titleIconName: mode.iconName,
+          baseFilter: mode.baseFilter,
+          appModeContext: .createExtensionContext(using: features, allowBack: false)
+        )
+      )
     }
     catch {
       error
         .asTheError()
-        .asFatalError(message: "Failed to update home screen.")
+        .asFatalError(message: "Failed to create ResourcesListViewController.")
+    }
+  }
+
+  internal func prepareController<Controller>(
+    _ type: Controller.Type = Controller.self,
+    context: Controller.Context
+  ) -> Controller where Controller: ViewController {
+    do {
+      return try features.instance(context: context)
+    }
+    catch {
+      error
+        .asTheError()
+        .recording(String(describing: type), for: "Controller")
+        .asFatalError(message: "Failed to create home controller.")
     }
   }
 

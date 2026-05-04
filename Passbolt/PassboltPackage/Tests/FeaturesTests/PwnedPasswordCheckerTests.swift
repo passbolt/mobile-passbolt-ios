@@ -27,7 +27,7 @@ import TestExtensions
 @testable import Shared
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class PwnedPasswordCheckerTests: LoadableFeatureTestCase<PwnedPasswordChecker> {
+final class PwnedPasswordCheckerTests: LoadableFeatureTestCase<PwnedPasswordChecker>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry

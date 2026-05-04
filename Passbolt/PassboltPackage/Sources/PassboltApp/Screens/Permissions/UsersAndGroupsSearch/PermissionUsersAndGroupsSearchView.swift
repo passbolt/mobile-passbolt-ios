@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct PermissionUsersAndGroupsSearchView: ControlledView {
+internal struct PermissionUsersAndGroupsSearchView: @MainActor ControlledView {
 
   internal let controller: PermissionUsersAndGroupsSearchViewController
 

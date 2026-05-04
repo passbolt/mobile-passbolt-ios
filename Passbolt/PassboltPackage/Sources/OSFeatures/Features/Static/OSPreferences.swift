@@ -33,7 +33,7 @@ public struct OSPreferences: Sendable {
   public typealias Key = Tagged<String, Self>
 
   public var load: @Sendable (Key) -> Any?
-  public var save: @Sendable (Any, Key) -> Void
+  public var save: @Sendable (Sendable, Key) -> Void
   public var delete: @Sendable (Key) -> Void
 }
 

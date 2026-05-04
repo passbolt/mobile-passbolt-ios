@@ -29,7 +29,7 @@ import XCTest
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating> {
+final class ApplicationRatingTests: LoadableFeatureTestCase<ApplicationRating>, @unchecked Sendable {
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {

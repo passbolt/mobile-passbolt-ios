@@ -25,15 +25,15 @@ import CommonModels
 
 import struct Foundation.Data
 
-internal struct UserGroupMembersListRowItem: Identifiable {
+internal struct UserGroupMembersListRowItem: Identifiable, Sendable {
 
   internal var id: User.ID { self.userDetails.id }
   internal var userDetails: UserDetailsDSV
-  internal var avatarImageData: () async -> Data?
+  internal var avatarImageData: @Sendable () async -> Data?
 
   internal init(
     userDetails: UserDetailsDSV,
-    avatarImageData: @escaping () async -> Data?
+    avatarImageData: @Sendable @escaping () async -> Data?
   ) {
     self.userDetails = userDetails
     self.avatarImageData = avatarImageData

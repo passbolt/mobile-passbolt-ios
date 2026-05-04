@@ -148,20 +148,20 @@ extension FeaturesTestCase {
 
   public func usePlaceholder<Feature>(
     for _: Feature.Type
-  ) where Feature: LoadableFeature {
+  ) where Feature: LoadableFeature, Feature: Sendable {
     self.testFeatures.usePlaceholder(for: Feature.self)
   }
 
   public func usePlaceholder<Feature>(
     for featureType: Feature.Type
-  ) where Feature: StaticFeature {
+  ) where Feature: StaticFeature, Feature: Sendable {
     self.testFeatures
       .usePlaceholder(for: Feature.self)
   }
 
   public final func use<MockFeature>(
     _ instance: MockFeature
-  ) where MockFeature: LoadableFeature {
+  ) where MockFeature: LoadableFeature, MockFeature: Sendable {
     self.testFeatures
       .patch(
         \MockFeature.self,
@@ -171,7 +171,7 @@ extension FeaturesTestCase {
 
   public final func use<MockFeature>(
     _ instance: MockFeature
-  ) where MockFeature: StaticFeature {
+  ) where MockFeature: StaticFeature, MockFeature: Sendable {
     self.testFeatures
       .patch(
         \MockFeature.self,
@@ -182,7 +182,7 @@ extension FeaturesTestCase {
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
-  ) where MockFeature: LoadableFeature {
+  ) where MockFeature: LoadableFeature, MockFeature: Sendable {
     self.testFeatures
       .patch(
         keyPath,
@@ -193,7 +193,7 @@ extension FeaturesTestCase {
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
-  ) where MockFeature: StaticFeature {
+  ) where MockFeature: StaticFeature, MockFeature: Sendable {
     self.testFeatures
       .patch(
         keyPath,
@@ -206,9 +206,9 @@ extension FeaturesTestCase {
 
   public func withInstance<Feature>(
     of _: Feature.Type = Feature.self,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Feature) async throws -> Void
+    test: @escaping @MainActor (Feature) async throws -> Void
   ) async
   where Feature: LoadableFeature {
     do {
@@ -225,9 +225,9 @@ extension FeaturesTestCase {
 
   public func withInstance<Controller>(
     of _: Controller.Type = Controller.self,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Void
+    test: @escaping @MainActor (Controller) async throws -> Void
   ) async
   where Controller: ViewController, Controller.Context == Void {
     do {
@@ -245,9 +245,9 @@ extension FeaturesTestCase {
   public func withInstance<Controller>(
     of _: Controller.Type = Controller.self,
     context: Controller.Context,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Void
+    test: @escaping @MainActor (Controller) async throws -> Void
   ) async
   where Controller: ViewController {
     do {
@@ -277,7 +277,7 @@ extension FeaturesTestCase {
     )
   }
 
-  @Sendable nonisolated public func mockExecuted() {
+  nonisolated public func mockExecuted() {
     let count: UInt = self.loadOrDefine(
       \.executedCount,
       defaultValue: 0
@@ -286,7 +286,7 @@ extension FeaturesTestCase {
     self.setOrDefine(\.executedArgument, value: Void())
   }
 
-  @Sendable nonisolated public func mockExecuted<Argument>(
+  nonisolated public func mockExecuted<Argument>(
     with argument: Argument
   ) {
     let count: UInt = self.loadOrDefine(
@@ -300,9 +300,9 @@ extension FeaturesTestCase {
   public func withInstance<Feature>(
     of _: Feature.Type = Feature.self,
     mockExecuted: UInt,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Feature) async throws -> Void
+    test: @escaping @MainActor (Feature) async throws -> Void
   ) async
   where Feature: LoadableFeature {
     do {
@@ -330,9 +330,9 @@ extension FeaturesTestCase {
   public func withInstance<Feature, Argument>(
     of _: Feature.Type = Feature.self,
     mockExecutedWith: Argument,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Feature) async throws -> Void
+    test: @escaping @MainActor (Feature) async throws -> Void
   ) async
   where Feature: LoadableFeature, Argument: Equatable {
     do {
@@ -360,9 +360,9 @@ extension FeaturesTestCase {
   public func withInstance<Feature, Value>(
     of _: Feature.Type = Feature.self,
     returns: Value,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Feature) async throws -> Value
+    test: @escaping @MainActor (Feature) async throws -> Value
   ) async
   where Feature: LoadableFeature, Value: Equatable {
     do {
@@ -387,9 +387,9 @@ extension FeaturesTestCase {
   public func withInstance<Feature, Value, Failure>(
     of _: Feature.Type = Feature.self,
     throws: Failure.Type,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Feature) async throws -> Value
+    test: @escaping @MainActor (Feature) async throws -> Value
   ) async
   where Feature: LoadableFeature, Failure: Error {
     do {
@@ -415,9 +415,9 @@ extension FeaturesTestCase {
   public func withInstance<Controller>(
     of _: Controller.Type = Controller.self,
     mockExecuted: UInt,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Void
+    test: @escaping @MainActor (Controller) async throws -> Void
   ) async
   where Controller: ViewController, Controller.Context == Void {
     do {
@@ -446,9 +446,9 @@ extension FeaturesTestCase {
     of _: Controller.Type = Controller.self,
     context: Controller.Context,
     mockExecuted: UInt,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Void
+    test: @escaping @MainActor (Controller) async throws -> Void
   ) async
   where Controller: ViewController {
     do {
@@ -476,9 +476,9 @@ extension FeaturesTestCase {
   public func withInstance<Controller, Argument>(
     of _: Controller.Type = Controller.self,
     mockExecutedWith: Argument,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Void
+    test: @escaping @MainActor (Controller) async throws -> Void
   ) async
   where Controller: ViewController, Controller.Context == Void, Argument: Equatable {
     do {
@@ -507,9 +507,9 @@ extension FeaturesTestCase {
     of _: Controller.Type = Controller.self,
     context: Controller.Context,
     mockExecutedWith: Argument,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Void
+    test: @escaping @MainActor (Controller) async throws -> Void
   ) async
   where Controller: ViewController, Argument: Equatable {
     do {
@@ -537,9 +537,9 @@ extension FeaturesTestCase {
   public func withInstance<Controller, Value>(
     of _: Controller.Type = Controller.self,
     returns: Value,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Value
+    test: @escaping @MainActor (Controller) async throws -> Value
   ) async
   where Controller: ViewController, Controller.Context == Void, Value: Equatable {
     do {
@@ -565,9 +565,9 @@ extension FeaturesTestCase {
     of _: Controller.Type = Controller.self,
     context: Controller.Context,
     returns: Value,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Value
+    test: @escaping @MainActor (Controller) async throws -> Value
   ) async
   where Controller: ViewController, Value: Equatable {
     do {
@@ -592,9 +592,9 @@ extension FeaturesTestCase {
   public func withInstance<Controller, Value, Failure>(
     of _: Controller.Type = Controller.self,
     throws: Failure.Type,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Value
+    test: @escaping @MainActor (Controller) async throws -> Value
   ) async
   where Controller: ViewController, Controller.Context == Void, Failure: Error {
     do {
@@ -621,9 +621,9 @@ extension FeaturesTestCase {
     of _: Controller.Type = Controller.self,
     context: Controller.Context,
     throws: Failure.Type,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
-    test: @escaping @Sendable (Controller) async throws -> Value
+    test: @escaping @MainActor (Controller) async throws -> Value
   ) async
   where Controller: ViewController, Failure: Error {
     do {

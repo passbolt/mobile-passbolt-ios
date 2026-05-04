@@ -49,23 +49,141 @@ internal struct HomeView: ControlledView {
   @ViewBuilder private func bodyView(
     with state: ViewState
   ) -> some View {
-    Controlled
-      .by(
-        state.contentController,
-        view: ResourcesListView.self,
-        or: ResourceFolderContentView.self,
-        or: ResourceTagsListView.self,
-        or: ResourceUserGroupsListView.self,
-        orDefault: LoaderView.instance
-      )
-      .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          IconButton(
-            iconName: .close,
-            action: { self.controller.closeExtension() }
+    Group {
+      if #unavailable(iOS 17) {
+        HomeContentHost(presentation: state.currentPresentation, controller: controller)
+      }
+      else {
+        switch state.currentPresentation {
+        case .plainResourcesList, .favoriteResourcesList, .modifiedResourcesList,
+          .sharedResourcesList, .ownedResourcesList, .expiredResourcesList:
+          ResourcesListView(
+            controller: controller.prepareResourcesList(for: state.currentPresentation)
           )
-          .tint(Color.passboltPrimaryText)
+
+        case .foldersExplorer:
+          ResourceFolderContentView(
+            controller: controller.prepareController(context: .init(folderDetails: .none))
+          )
+
+        case .tagsExplorer:
+          ResourceTagsListView(
+            controller: controller.prepareController(
+              context: .init(
+                title: state.currentPresentation.title,
+                titleIconName: state.currentPresentation.iconName
+              )
+            )
+          )
+
+        case .resourceUserGroupsExplorer:
+          ResourceUserGroupsListView(
+            controller: controller.prepareController(
+              context: .init(
+                title: state.currentPresentation.title,
+                titleIconName: state.currentPresentation.iconName
+              )
+            )
+          )
         }
       }
+    }
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        IconButton(
+          iconName: .close,
+          action: { self.controller.closeExtension() }
+        )
+        .tint(Color.passboltPrimaryText)
+      }
+    }
+  }
+}
+
+private struct HomeContentHost: UIViewControllerRepresentable {
+
+  let presentation: HomePresentationMode
+  let controller: HomeViewController
+
+  func makeUIViewController(context: Context) -> HomeContainerController {
+    let container: HomeContainerController = HomeContainerController()
+    container.updateContent(presentation: presentation, controller: controller)
+    return container
+  }
+
+  func updateUIViewController(_ container: HomeContainerController, context: Context) {
+    container.updateContent(presentation: presentation, controller: controller)
+  }
+}
+
+private final class HomeContainerController: UIViewController {
+
+  private var currentPresentation: HomePresentationMode?
+
+  func updateContent(
+    presentation: HomePresentationMode,
+    controller: HomeViewController
+  ) {
+    guard presentation != currentPresentation else { return }
+    currentPresentation = presentation
+
+    for child in children {
+      child.willMove(toParent: nil)
+      child.view.removeFromSuperview()
+      child.removeFromParent()
+    }
+
+    let contentView: AnyView
+    switch presentation {
+    case .plainResourcesList, .favoriteResourcesList, .modifiedResourcesList,
+      .sharedResourcesList, .ownedResourcesList, .expiredResourcesList:
+      contentView = AnyView(
+        ResourcesListView(controller: controller.prepareResourcesList(for: presentation))
+      )
+
+    case .foldersExplorer:
+      contentView = AnyView(
+        ResourceFolderContentView(
+          controller: controller.prepareController(context: .init(folderDetails: .none))
+        )
+      )
+
+    case .tagsExplorer:
+      contentView = AnyView(
+        ResourceTagsListView(
+          controller: controller.prepareController(
+            context: .init(
+              title: presentation.title,
+              titleIconName: presentation.iconName
+            )
+          )
+        )
+      )
+
+    case .resourceUserGroupsExplorer:
+      contentView = AnyView(
+        ResourceUserGroupsListView(
+          controller: controller.prepareController(
+            context: .init(
+              title: presentation.title,
+              titleIconName: presentation.iconName
+            )
+          )
+        )
+      )
+    }
+
+    let hostingController: UIHostingController<AnyView> = UIHostingController(rootView: contentView)
+    hostingController.view.backgroundColor = .clear
+    addChild(hostingController)
+    hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+    view.addSubview(hostingController.view)
+    NSLayoutConstraint.activate([
+      hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
+      hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+    ])
+    hostingController.didMove(toParent: self)
   }
 }

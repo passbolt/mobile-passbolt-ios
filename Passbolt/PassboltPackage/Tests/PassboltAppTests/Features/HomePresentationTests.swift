@@ -32,7 +32,7 @@ import XCTest
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
+final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 
@@ -377,7 +377,7 @@ final class HomePresentationTests: LoadableFeatureTestCase<HomePresentation> {
 
 extension StoredVariable {
 
-  static func stored(variable: Variable<Value>, store: @escaping (Value) -> Void) -> Self {
+  static func stored(variable: Variable<Value>, store: @escaping @Sendable (Value) -> Void) -> Self {
     .init(
       fetch: { variable.value },
       store: { newValue in

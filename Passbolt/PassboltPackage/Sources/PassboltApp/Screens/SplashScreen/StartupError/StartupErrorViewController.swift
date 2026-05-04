@@ -26,7 +26,7 @@ import Session
 
 internal final class StartupErrorViewController: @MainActor ViewController {
 
-  internal typealias Context = () async throws -> Void
+  internal typealias Context = @Sendable () async throws -> Void
 
   internal struct ViewState: Equatable {
 

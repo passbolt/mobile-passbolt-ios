@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct ResourceCreateMenuView: ControlledView {
+internal struct ResourceCreateMenuView: @MainActor ControlledView {
 
   internal let controller: ResourceCreateMenuViewController
 
@@ -62,6 +62,7 @@ internal struct ResourceCreateMenuView: ControlledView {
 extension ResourceCreateMenuItem {
 
   @ViewBuilder
+  @MainActor
   fileprivate func view(
     using controller: ResourceCreateMenuViewController
   ) -> some View {

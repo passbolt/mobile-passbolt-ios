@@ -32,15 +32,15 @@ import XCTest
   public nonisolated final subscript<Value>(
     dynamicMember keyPath: ReferenceWritableKeyPath<DynamicVariables, Value>
   ) -> Value {
-    @Sendable _read {
+    _read {
       yield self.dynamicVariables[keyPath: keyPath]
     }
-    @Sendable _modify {
+    _modify {
       yield &self.dynamicVariables[keyPath: keyPath]
     }
   }
 
-  @Sendable public nonisolated final func define<Value>(
+  public nonisolated final func define<Value>(
     _ keyPath: KeyPath<DynamicVariables.Names, String>,
     of _: Value.Type = Value.self,
     initial: Value
@@ -53,7 +53,7 @@ import XCTest
       )
   }
 
-  @Sendable public nonisolated final func isDefined<Value>(
+  public nonisolated final func isDefined<Value>(
     _ keyPath: KeyPath<DynamicVariables.Names, String>,
     of _: Value.Type = Value.self
   ) -> Bool {
@@ -64,7 +64,7 @@ import XCTest
       )
   }
 
-  @Sendable public nonisolated final func loadOrDefine<Value>(
+  public nonisolated final func loadOrDefine<Value>(
     _ keyPath: KeyPath<DynamicVariables.Names, String>,
     of _: Value.Type = Value.self,
     defaultValue: Value
@@ -77,7 +77,7 @@ import XCTest
       )
   }
 
-  @Sendable public nonisolated final func loadIfDefined<Value>(
+  public nonisolated final func loadIfDefined<Value>(
     _ keyPath: KeyPath<DynamicVariables.Names, String>,
     of _: Value.Type = Value.self
   ) -> Value? {
@@ -88,7 +88,7 @@ import XCTest
       )
   }
 
-  @Sendable public nonisolated final func setOrDefine<Value>(
+  public nonisolated final func setOrDefine<Value>(
     _ keyPath: KeyPath<DynamicVariables.Names, String>,
     of _: Value.Type = Value.self,
     value: Value
@@ -101,7 +101,7 @@ import XCTest
       )
   }
 
-  @Sendable public nonisolated final func withLock<Returned>(
+  public nonisolated final func withLock<Returned>(
     _ execute: () throws -> Returned
   ) rethrows -> Returned {
     self.lock.lock()
@@ -306,7 +306,7 @@ extension TestCase {
     )
   }
 
-  @_transparent @Sendable public nonisolated final func verify(
+  @_transparent public nonisolated final func verify(
     @_implicitSelfCapture _ expression: @Sendable @autoclosure () throws -> Bool?,
     _ message: @autoclosure () -> String = "",
     _ file: StaticString = #filePath,
@@ -358,7 +358,7 @@ extension TestCase {
 
 extension TestCase {
 
-  @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
+  @_transparent public nonisolated final func verifyIf<Expected>(
     _ expression: @autoclosure () throws -> Expected?,
     isEqual expected: Expected,
     _ message: @autoclosure () -> String = "Values are not equal!",
@@ -413,7 +413,7 @@ extension TestCase {
     }
   }
 
-  @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
+  @_transparent public nonisolated final func verifyIf<Expected>(
     _ expression: @autoclosure () throws -> Expected?,
     isNotEqual expected: Expected,
     _ message: @autoclosure () -> String = "Values are equal!",
@@ -471,7 +471,7 @@ extension TestCase {
 
 extension TestCase {
 
-  @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
+  @_transparent public nonisolated final func verifyIf<Expected>(
     _ expression: @autoclosure () throws -> Expected,
     isGreaterThan expected: Expected,
     _ message: @autoclosure () -> String = "Value is less than or equal!",
@@ -526,7 +526,7 @@ extension TestCase {
     }
   }
 
-  @_transparent @Sendable public nonisolated final func verifyIf<Expected>(
+  @_transparent public nonisolated final func verifyIf<Expected>(
     _ expression: @autoclosure () throws -> Expected,
     isLessThan expected: Expected,
     _ message: @autoclosure () -> String = "Value is greater than or equal!",
@@ -584,7 +584,7 @@ extension TestCase {
 
 extension TestCase {
 
-  @_transparent @Sendable public nonisolated final func verifyIf<Expected, Returned>(
+  @_transparent public nonisolated final func verifyIf<Expected, Returned>(
     _ expression: @autoclosure () throws -> Returned,
     throws expected: Expected.Type,
     _ message: @autoclosure () -> String = "Error not thrown!",
@@ -644,7 +644,7 @@ extension TestCase {
 
 extension TestCase {
 
-  @_transparent @Sendable public nonisolated final func verifyIfNotThrows<Returned>(
+  @_transparent public nonisolated final func verifyIfNotThrows<Returned>(
     _ expression: @autoclosure () throws -> Returned,
     _ message: @autoclosure () -> String = "Error thrown!",
     _ file: StaticString = #filePath,
@@ -686,7 +686,7 @@ extension TestCase {
 
 extension TestCase {
 
-  @_transparent @Sendable public nonisolated final func verifyIfIsNone<Expected>(
+  @_transparent public nonisolated final func verifyIfIsNone<Expected>(
     _ expression: @autoclosure () throws -> Expected?,
     _ message: @autoclosure () -> String = "Value is not none!",
     _ file: StaticString = #filePath,
@@ -739,7 +739,7 @@ extension TestCase {
 
 extension TestCase {
 
-  @_transparent @Sendable public nonisolated final func verifyIfIsNotNone<Expected>(
+  @_transparent public nonisolated final func verifyIfIsNotNone<Expected>(
     _ expression: @autoclosure () throws -> Expected?,
     _ message: @autoclosure () -> String = "Value is none!",
     _ file: StaticString = #filePath,

@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct ResourceFolderPermissionListView: ControlledView {
+internal struct ResourceFolderPermissionListView: @MainActor ControlledView {
 
   internal let controller: ResourceFolderPermissionListViewController
 

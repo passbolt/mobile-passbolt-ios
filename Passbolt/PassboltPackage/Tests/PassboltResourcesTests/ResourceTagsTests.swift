@@ -31,7 +31,7 @@ import TestExtensions
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
+final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 

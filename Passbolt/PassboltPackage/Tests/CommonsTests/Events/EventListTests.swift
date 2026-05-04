@@ -35,7 +35,7 @@ final class EventListTests: TestCase {
       nonisolated static let eventList: EventList<TestEvent> = .init()
     }
 
-    withSerialTaskExecutor {
+    await withSerialTaskExecutor {
       TestEvent.send(0)
       Task.detached {
         await Task.yield()

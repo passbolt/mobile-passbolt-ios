@@ -96,7 +96,7 @@ final class AccountDetailsViewControllerTests: FeaturesTestCase {
       of: AccountDetailsViewController.self,
       returns: Validated<String>.valid("valid label")
     ) { feature in
-      await feature.setCurrentAccountLabel("valid label")
+      feature.setCurrentAccountLabel("valid label")
       return await feature.viewState.current.currentAccountLabel
     }
   }
@@ -118,7 +118,7 @@ final class AccountDetailsViewControllerTests: FeaturesTestCase {
       returns: Validated<String>
         .invalid(invalidLabelToSet, error: InvalidForm.error(displayable: "form.field.error.max.length"))
     ) { feature in
-      await feature.setCurrentAccountLabel(invalidLabelToSet)
+      feature.setCurrentAccountLabel(invalidLabelToSet)
       return await feature.viewState.current.currentAccountLabel
     }
   }
@@ -150,7 +150,7 @@ final class AccountDetailsViewControllerTests: FeaturesTestCase {
       of: AccountDetailsViewController.self,
       throws: InvalidForm.self
     ) { feature in
-      await feature.setCurrentAccountLabel(invalidLabelToSet)
+      feature.setCurrentAccountLabel(invalidLabelToSet)
       try await feature.saveChanges()
     }
   }
@@ -231,7 +231,7 @@ final class AccountDetailsViewControllerTests: FeaturesTestCase {
       of: AccountDetailsViewController.self,
       returns: Optional(accountLabelToSet)
     ) { feature in
-      await feature.setCurrentAccountLabel(accountLabelToSet)
+      feature.setCurrentAccountLabel(accountLabelToSet)
       try await feature.saveChanges()
       return result.value
     }

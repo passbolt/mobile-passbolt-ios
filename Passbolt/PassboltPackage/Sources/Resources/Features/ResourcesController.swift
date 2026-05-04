@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourcesController {
+public struct ResourcesController: Sendable {
 
   public var lastUpdate: AnyUpdatable<Timestamp>
   public var filteredResourcesList: @Sendable (ResourcesFilter) async throws -> Array<ResourceListItemDSV>

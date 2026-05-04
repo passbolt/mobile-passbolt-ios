@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceFolderEditForm {
+public struct ResourceFolderEditForm: Sendable {
 
   public var state: AnyUpdatable<ResourceFolder>
   public var setFolderName: @Sendable (String) -> Validated<String>

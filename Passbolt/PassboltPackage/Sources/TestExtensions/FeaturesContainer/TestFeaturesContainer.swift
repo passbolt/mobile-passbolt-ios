@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-@preconcurrency import FeatureScopes
+import FeatureScopes
 
 @testable import Features
 
@@ -128,7 +128,7 @@ extension TestFeaturesContainer: FeaturesContainer {
     file: StaticString,
     line: UInt
   ) throws -> Feature
-  where Feature: LoadableFeature {
+  where Feature: LoadableFeature, Feature: Sendable {
     try self.withLock {
       if let feature: Feature = self.mocks[Feature.identifier]
         as? Feature
@@ -167,7 +167,7 @@ extension TestFeaturesContainer {
 
   public func usePlaceholder<Feature>(
     for _: Feature.Type
-  ) where Feature: LoadableFeature {
+  ) where Feature: LoadableFeature, Feature: Sendable {
     self.withLock {
       precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       self.mocks[Feature.identifier] = Feature.placeholder
@@ -176,7 +176,7 @@ extension TestFeaturesContainer {
 
   public func usePlaceholder<Feature>(
     for featureType: Feature.Type
-  ) where Feature: StaticFeature {
+  ) where Feature: StaticFeature, Feature: Sendable {
     self.withLock {
       precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       self.mocks[Feature.identifier] = Feature.placeholder
@@ -186,7 +186,7 @@ extension TestFeaturesContainer {
   public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     with updated: Property
-  ) where Feature: LoadableFeature {
+  ) where Feature: LoadableFeature, Feature: Sendable {
     self.withLock {
       precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       var feature: Feature
@@ -206,7 +206,7 @@ extension TestFeaturesContainer {
   public func patch<Feature, Property>(
     _ keyPath: WritableKeyPath<Feature, Property>,
     with updated: Property
-  ) where Feature: StaticFeature {
+  ) where Feature: StaticFeature, Feature: Sendable {
     self.withLock {
       precondition(!(self.mocks[Feature.identifier] is FeatureLoader))
       var feature: Feature

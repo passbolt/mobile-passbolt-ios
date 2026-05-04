@@ -184,7 +184,7 @@ extension OTPResourcesListViewController {
     }
   }
 
-  internal var createOTPAction: (() async -> Void)? {
+  internal var createOTPAction: (@Sendable () async -> Void)? {
     self.createAvailable ? self.createOTP : .none
   }
 

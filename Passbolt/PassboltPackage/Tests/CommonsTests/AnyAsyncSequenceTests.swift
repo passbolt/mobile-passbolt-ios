@@ -71,13 +71,13 @@ final class AnyAsyncSequenceTests: XCTestCase {
   }
 
   func test_iteration_returnsSequencePartialContent_withNonemptyPublisherWithError() async {
-    let subject: PassthroughSubject<Int, Error> = .init()
+    let subject: UncheckedSendableBox<PassthroughSubject<Int, Error>> = .init(.init())
 
-    let sequence: AnyAsyncSequence<Int> = .init(subject)
+    let sequence: AnyAsyncSequence<Int> = .init(subject.value)
 
     Task.detached {
       try await Task.sleep(nanoseconds: 300 * NSEC_PER_MSEC)
-      subject.send(completion: .failure(CancellationError()))
+      subject.value.send(completion: .failure(CancellationError()))
     }
 
     var result: Array<Int> = .init()

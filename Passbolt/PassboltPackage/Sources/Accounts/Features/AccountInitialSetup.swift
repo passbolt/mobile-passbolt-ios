@@ -25,7 +25,7 @@ import Features
 
 // MARK: Interface
 
-public struct AccountInitialSetup {
+public struct AccountInitialSetup: Sendable {
 
   public var unfinishedSetupElements: @Sendable () async -> Set<SetupElement>
   public var completeSetup: @Sendable (SetupElement) -> Void

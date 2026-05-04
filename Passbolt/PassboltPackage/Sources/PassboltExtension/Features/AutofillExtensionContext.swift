@@ -27,7 +27,7 @@ import Features
 
 import struct Foundation.URL
 
-public struct AutofillExtensionContext {
+public struct AutofillExtensionContext: Sendable {
 
   public var completeWithCredential: @MainActor (Credential) -> Void
   public var completeWithError: @MainActor (TheError) -> Void

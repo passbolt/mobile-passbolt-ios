@@ -26,7 +26,7 @@ import FeatureScopes
 import Session
 import SessionData
 
-public struct HomePresentation {
+public struct HomePresentation: Sendable {
 
   public var currentPresentationModeUpdatable: @MainActor () -> AnyUpdatable<HomePresentationMode>
   public var setPresentationMode: @MainActor (HomePresentationMode) -> Void

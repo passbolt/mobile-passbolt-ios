@@ -27,7 +27,7 @@ import SharedUIComponents
 
 internal enum NavigationToAuthorizationDestination: NavigationDestination {
 
-  internal static var isUnique: Bool = true
+  internal static let isUnique: Bool = true
   internal typealias TransitionContext = AuthorizationViewController.Context
 }
 

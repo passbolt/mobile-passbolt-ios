@@ -28,7 +28,7 @@ import FeatureScopes
 import Metadata
 import NetworkOperations
 import Resources
-@preconcurrency import Session
+import Session
 import Users
 
 import struct Foundation.Data

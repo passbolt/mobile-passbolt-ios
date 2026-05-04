@@ -25,8 +25,9 @@ import Commons
 import XCTest
 
 @dynamicMemberLookup
-open class AsyncTestCase: XCTestCase {
-  public static var defaultTimeout: TimeInterval = 1.0
+open class AsyncTestCase: XCTestCase, @unchecked Sendable {
+
+  public static let defaultTimeout: TimeInterval = 1.0
 
   private var currentTestTask: Task<Void, Error>? {
     didSet {
@@ -71,9 +72,9 @@ open class AsyncTestCase: XCTestCase {
     try await super.tearDown()
   }
 
-  public func asyncTest(
+  @MainActor public func asyncTest(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Void
   ) {
@@ -82,7 +83,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         try await test()
       }
@@ -101,10 +102,10 @@ open class AsyncTestCase: XCTestCase {
     self.currentTestTask = .none
   }
 
-  public func asyncTestExecuted<Value>(
+  @MainActor public func asyncTestExecuted<Value>(
     count: UInt = 1,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (@escaping @Sendable () -> Void) async throws -> Value
   ) {
@@ -120,7 +121,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         _ = try await test(executed)
       }
@@ -146,19 +147,19 @@ open class AsyncTestCase: XCTestCase {
     self.currentTestTask = .none
   }
 
-  public func asyncTestReturnsEqual<Value>(
+  @MainActor public func asyncTestReturnsEqual<Value>(
     _ expectedResult: Value,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value?
-  ) where Value: Equatable {
+  ) where Value: Equatable, Value: Sendable {
     guard self.currentTestTask == .none
     else { fatalError("Cannot use concurrently") }
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         let result: Value? = try await test()
         XCTAssertEqual(
@@ -183,9 +184,9 @@ open class AsyncTestCase: XCTestCase {
     self.currentTestTask = .none
   }
 
-  public func asyncTestReturnsSome(
+  @MainActor public func asyncTestReturnsSome(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Any?
   ) {
@@ -194,7 +195,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         let result: Any? = try await test()
         XCTAssertNotNil(
@@ -218,9 +219,9 @@ open class AsyncTestCase: XCTestCase {
     self.currentTestTask = .none
   }
 
-  public func asyncTestReturnsNone(
+  @MainActor public func asyncTestReturnsNone(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Any?
   ) {
@@ -229,7 +230,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         let result: Any? = try await test()
         XCTAssertNil(
@@ -253,9 +254,9 @@ open class AsyncTestCase: XCTestCase {
     self.currentTestTask = .none
   }
 
-  public func asyncTestNotThrows<Value>(
+  @MainActor public func asyncTestNotThrows<Value>(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value
   ) {
@@ -264,7 +265,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         _ = try await test()
       }
@@ -283,10 +284,10 @@ open class AsyncTestCase: XCTestCase {
     self.currentTestTask = .none
   }
 
-  public func asyncTestThrows<Value, Failure>(
+  @MainActor public func asyncTestThrows<Value, Failure>(
     _ failureType: Failure.Type,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable () async throws -> Value
   ) where Failure: Error {
@@ -295,7 +296,7 @@ open class AsyncTestCase: XCTestCase {
 
     let expectation: XCTestExpectation = expectation(description: "Async test completes")
 
-    self.currentTestTask = Task {
+    self.currentTestTask = Task.detached {
       do {
         let result: Value = try await test()
         XCTFail(

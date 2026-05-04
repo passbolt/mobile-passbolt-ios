@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-@preconcurrency import CommonModels
+import CommonModels
 import UIKit
 
 public struct ApplicationLifecycle: Sendable {

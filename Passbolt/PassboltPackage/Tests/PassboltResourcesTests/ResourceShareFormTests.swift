@@ -35,7 +35,7 @@ import XCTest
 @testable import Resources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm> {
+final class ResourceShareFormTests: LoadableFeatureTestCase<ResourceShareForm>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { ResourceShareScope.self }
 

@@ -68,11 +68,11 @@ internal final class HelpMenuViewController: ViewController {
     }
   }
 
-  internal struct Action: Equatable, Hashable {
+  internal struct Action: Equatable, Hashable, Sendable {
 
     internal let title: DisplayableString
     internal let icon: ImageNameConstant
-    internal let action: () async throws -> Void
+    internal let action: @Sendable () async throws -> Void
 
     internal static func == (
       lhs: HelpMenuViewController.Action,

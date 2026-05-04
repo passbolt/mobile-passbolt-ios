@@ -515,11 +515,7 @@ final class StoredVariableTests: TestCase {
     let expectation: XCTestExpectation = expectation(description: "Receive 3 updates")
     expectation.expectedFulfillmentCount = 3
 
-    var receivedValues: Array<Int> = .init() {
-      didSet {
-        expectation.fulfill()
-      }
-    }
+    let receivedValues: CriticalState<Array<Int>> = .init(.init())
 
     Task.detached {
       var iterator = storedVariable.makeAsyncIterator()
@@ -527,7 +523,8 @@ final class StoredVariableTests: TestCase {
         if let update = await iterator.next(),
           let value = try? update.value
         {
-          receivedValues.append(value)
+          receivedValues.access { $0.append(value) }
+          expectation.fulfill()
         }
       }
     }
@@ -541,7 +538,7 @@ final class StoredVariableTests: TestCase {
 
     await fulfillment(of: [expectation], timeout: 1.0)
     await verifyIf(
-      receivedValues,
+      receivedValues.get(),
       isEqual: [0, 1, 2]
     )
   }

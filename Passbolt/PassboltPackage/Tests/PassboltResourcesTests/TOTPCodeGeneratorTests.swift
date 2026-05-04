@@ -30,7 +30,7 @@ import XCTest
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator> {
+final class TOTPCodeGeneratorTests: LoadableFeatureTestCase<TOTPCodeGenerator>, @unchecked Sendable {
 
   let secret: String = "AABBCCDD"
 

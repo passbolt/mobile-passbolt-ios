@@ -27,7 +27,7 @@ import TestExtensions
 @testable import PassboltAccountSetup
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExport> {
+final class AccountChunkedExportTests: LoadableFeatureTestCase<AccountChunkedExport>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type {
     AccountTransferScope.self

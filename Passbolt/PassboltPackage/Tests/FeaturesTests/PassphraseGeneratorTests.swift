@@ -29,7 +29,7 @@ import func Darwin.log
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class PassphraseGeneratorTests: LoadableFeatureTestCase<PassphraseGenerator> {
+final class PassphraseGeneratorTests: LoadableFeatureTestCase<PassphraseGenerator>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry

@@ -71,7 +71,7 @@ final class ResourceFolderEditControllerTests: FeaturesTestCase {
     )
 
     await withInstance(mockExecuted: 1) { (tested: ResourceFolderEditController) in
-      await tested.setFolderName("folder name")
+      tested.setFolderName("folder name")
     }
   }
 

@@ -29,7 +29,7 @@ import XCTest
 
 @testable import PassboltAccountSetup
 
-final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport> {
+final class AccountKitImportTests: LoadableFeatureTestCase<AccountKitImport>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { AccountTransferScope.self }
 
@@ -306,7 +306,7 @@ extension AccountKitImportTests {
     throws: E.Type,
     with expectedMessage: String? = .none,
     message: String = "",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) async where E: TheError {
     do {

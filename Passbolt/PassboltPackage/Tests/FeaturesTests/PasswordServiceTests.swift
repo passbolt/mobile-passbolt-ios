@@ -30,7 +30,7 @@ import TestExtensions
 @testable import SharedUIComponents
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
+final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type {
     SessionScope.self

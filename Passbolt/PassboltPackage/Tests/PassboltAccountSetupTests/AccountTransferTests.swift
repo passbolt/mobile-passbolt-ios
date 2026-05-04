@@ -29,7 +29,7 @@ import XCTest
 @testable import NetworkOperations
 @testable import PassboltAccountSetup
 
-final class AccountTransferTests: LoadableFeatureTestCase<AccountImport> {
+final class AccountTransferTests: LoadableFeatureTestCase<AccountImport>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { AccountTransferScope.self }
 

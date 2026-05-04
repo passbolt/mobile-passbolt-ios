@@ -29,7 +29,7 @@ import XCTest
 @testable import Accounts
 @testable import PassboltApp
 
-final class WindowTests: LoadableFeatureTestCase<WindowController> {
+final class WindowTests: LoadableFeatureTestCase<WindowController>, @unchecked Sendable {
 
   override class var testedImplementation: FeatureLoader? {
     .disposable(

@@ -347,8 +347,8 @@ final class ResourceUpdaterTests: FeaturesTestCase {
   func test_resourceUpdate_ignoresResourcesWithoutName() async throws {
     // Temporary test to ensure name is required - for transition period to v5 resource types
     let supportedType = ResourceType.mock_default
-    var resource = mockResource(withType: supportedType)
-    resource.name = nil
+    let resource: CriticalState<ResourceDTO> = .init(mockResource(withType: supportedType))
+    resource.set(\.name, nil)
     let secondResource = mockResource(withType: supportedType)
 
     patch(
@@ -364,7 +364,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     let expectation: XCTestExpectation = .init(description: "Save should be triggered.")
     patch(
       \ResourcesFetchNetworkOperation.execute,
-      with: always([resource, secondResource].asPaginatedResponse)
+      with: always([resource.get(), secondResource].asPaginatedResponse)
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,

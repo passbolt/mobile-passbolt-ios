@@ -26,12 +26,12 @@ import Features
 
 import func Foundation.NSLocalizedString
 
-public struct YubiKey {
+public struct YubiKey: Sendable {
 
-  public var read: () -> AnyPublisher<String, Error>
+  public var read: @Sendable () -> AnyPublisher<String, Error>
 
   public init(
-    read: @escaping () -> AnyPublisher<String, Error>
+    read: @escaping @Sendable () -> AnyPublisher<String, Error>
   ) {
     self.read = read
   }
@@ -41,12 +41,14 @@ extension YubiKey {
 
   public static func unavailable() -> Self {
     Self(
-      read: Fail(
-        error:
-          FeatureUnavailable
-          .error(feature: "YubiKey")
-      )
-      .eraseToAnyPublisher
+      read: {
+        Fail(
+          error:
+            FeatureUnavailable
+            .error(feature: "YubiKey")
+        )
+        .eraseToAnyPublisher()
+      }
     )
   }
 }
@@ -63,6 +65,7 @@ extension YubiKey: StaticFeature {
 extension YubiKey {
 
   fileprivate static var live: Self {
+    @Sendable
     func read() -> AnyPublisher<String, Error> {
 
       let otpPublisher: PassthroughSubject<String, Error> = .init()

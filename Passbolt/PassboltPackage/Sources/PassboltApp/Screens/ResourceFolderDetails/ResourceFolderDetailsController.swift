@@ -28,7 +28,7 @@ import Resources
 import SessionData
 import Users
 
-internal final class ResourceFolderDetailsController: ViewController {
+internal final class ResourceFolderDetailsController: @MainActor ViewController {
 
   internal var viewState: ViewStateSource<ViewState>
 

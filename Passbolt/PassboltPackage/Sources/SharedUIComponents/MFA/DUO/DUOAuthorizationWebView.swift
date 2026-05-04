@@ -30,8 +30,8 @@ import WebKit
 internal struct DUOAuthorizationWebView: UIViewRepresentable {
 
   private let request: DUOWebAuthorizationRequest
-  private let receiveTokens: @MainActor (String, String, String) -> Void
-  private let handleFailure: @MainActor (Error) -> Void
+  private let receiveTokens: @Sendable @MainActor (String, String, String) -> Void
+  private let handleFailure: @Sendable @MainActor (Error) -> Void
 
   internal init(
     request: DUOWebAuthorizationRequest,
@@ -73,16 +73,17 @@ internal struct DUOWebAuthorizationRequest: Equatable, Identifiable {
   internal var token: String
 }
 
+@MainActor
 private final class DUOWebView: WKWebView, WKNavigationDelegate, UIScrollViewDelegate {
 
   private var request: DUOWebAuthorizationRequest
   private let receiveTokens: @MainActor (String, String, String) -> Void
   private let handleFailure: @MainActor (Error) -> Void
 
-  @MainActor fileprivate init(
+  fileprivate init(
     request: DUOWebAuthorizationRequest,
-    receiveTokens: @MainActor @escaping (String, String, String) -> Void,
-    handleFailure: @MainActor @escaping (Error) -> Void
+    receiveTokens: @escaping @MainActor (String, String, String) -> Void,
+    handleFailure: @escaping @MainActor (Error) -> Void
   ) {
     self.request = request
     self.receiveTokens = receiveTokens

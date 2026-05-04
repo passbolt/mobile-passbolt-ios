@@ -43,6 +43,7 @@ internal final class UserGroupMembersListViewController: @MainActor ViewControll
     self.navigationToMemberDetails = try features.instance()
     let users: Users = try features.instance()
 
+    @Sendable
     func userAvatarImageFetch(
       _ userID: User.ID
     ) async -> Data? {

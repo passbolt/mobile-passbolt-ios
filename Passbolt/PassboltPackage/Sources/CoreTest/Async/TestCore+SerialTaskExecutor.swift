@@ -21,44 +21,68 @@
 // @since         v1.0
 //
 
-import Foundation
-
 // based on https://github.com/pointfreeco/swift-concurrency-extras/blob/main/Sources/ConcurrencyExtras/MainSerialExecutor.swift
-
-@MainActor public func withSerialTaskExecutor<Returned>(
-  @_implicitSelfCapture operation: @MainActor @Sendable () async throws -> Returned
+@MainActor
+public func withSerialTaskExecutor<Returned>(
+  @_implicitSelfCapture operation: @MainActor () async throws -> Returned
 ) async rethrows -> Returned {
-  swift_task_enqueueGlobal_hook = mainSerialExecutor
-  defer { swift_task_enqueueGlobal_hook = .none }
+  let didUseMainSerialExecutor = uncheckedUseMainSerialExecutor
+  defer { uncheckedUseMainSerialExecutor = didUseMainSerialExecutor }
+  uncheckedUseMainSerialExecutor = true
   return try await operation()
 }
 
-public nonisolated func withSerialTaskExecutor<Returned>(
-  @_implicitSelfCapture operation: () throws -> Returned
-) rethrows -> Returned {
-  swift_task_enqueueGlobal_hook = mainSerialExecutor
-  defer { swift_task_enqueueGlobal_hook = .none }
-  return try operation()
+/// Overrides Swift's global executor with the main serial executor in an unchecked fashion.
+///
+/// > Warning: When set to `true`, all tasks will be enqueued on the main serial executor till set
+/// > back to `false`. Consider using ``withMainSerialExecutor(operation:)-7fqt1``, instead, which
+/// > scopes this work to the duration of a given operation.
+public var uncheckedUseMainSerialExecutor: Bool {
+  get { swift_task_enqueueGlobal_hook != nil }
+  set {
+    swift_task_enqueueGlobal_hook =
+      newValue
+      ? { job, _ in MainActor.shared.enqueue(job) }
+      : nil
+  }
 }
 
-private typealias TaskEnqueueHook = @convention(thin) (UnownedJob, @convention(thin) (UnownedJob) -> Void) -> Void
+private typealias Original = @convention(thin) (UnownedJob) -> Void
+private typealias Hook = @convention(thin) (UnownedJob, Original) -> Void
 
 // swift-format-ignore: AlwaysUseLowerCamelCase
-private var swift_task_enqueueGlobal_hook: TaskEnqueueHook? {
-  get { swift_task_enqueueGlobal_hook_ptr.pointee }
-  set { swift_task_enqueueGlobal_hook_ptr.pointee = newValue }
+private var swift_task_enqueueGlobal_hook: Hook? {
+  get { _swift_task_enqueueGlobal_hook.wrappedValue.pointee }
+  set { _swift_task_enqueueGlobal_hook.wrappedValue.pointee = newValue }
 }
-// swift-format-ignore: AlwaysUseLowerCamelCase
-private let swift_task_enqueueGlobal_hook_ptr: UnsafeMutablePointer<TaskEnqueueHook?> =
-  dlsym(
-    dlopen(nil, 0),
-    "swift_task_enqueueGlobal_hook"
-  )
-  .assumingMemoryBound(to: TaskEnqueueHook?.self)
 
-private func mainSerialExecutor(
-  job: UnownedJob,
-  _: @convention(thin) (UnownedJob) -> Void
-) {
-  MainActor.shared.enqueue(job)
+// swift-format-ignore: AlwaysUseLowerCamelCase, NoLeadingUnderscores
+private let _swift_task_enqueueGlobal_hook = UncheckedSendable(
+  dlsym(dlopen(nil, 0), "swift_task_enqueueGlobal_hook").assumingMemoryBound(to: Hook?.self)
+)
+
+private struct UncheckedSendable<Value>: @unchecked Sendable {
+  /// The unchecked value.
+  fileprivate var value: Value
+
+  /// Initializes unchecked sendability around a value.
+  ///
+  /// - Parameter value: A value to make sendable in an unchecked way.
+  fileprivate init(_ value: Value) {
+    self.value = value
+  }
+
+  fileprivate init(wrappedValue: Value) {
+    self.value = wrappedValue
+  }
+
+  fileprivate var wrappedValue: Value {
+    _read { yield self.value }
+    _modify { yield &self.value }
+  }
+
+  fileprivate var projectedValue: Self {
+    get { self }
+    set { self = newValue }
+  }
 }

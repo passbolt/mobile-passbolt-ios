@@ -66,13 +66,13 @@ final class GenericResultViewControllerTests: FeaturesTestCase {
   }
 
   func test_handleButtonTap_executesAction() async throws {
-    var actionExecuted: Bool = false
+    let actionExecuted: CriticalState<Bool> = .init(false)
     let context = GenericResultViewController.Context(
       icon: .successMark,
       title: "test.title",
       buttonTitle: "test.button",
       buttonAction: {
-        actionExecuted = true
+        actionExecuted.set(true)
       }
     )
 
@@ -82,7 +82,7 @@ final class GenericResultViewControllerTests: FeaturesTestCase {
 
     try await tested.handleButtonTap()
 
-    XCTAssertTrue(actionExecuted)
+    XCTAssertTrue(actionExecuted.get())
   }
 
   func test_handleButtonTap_throwsError_whenActionFails() async throws {

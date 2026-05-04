@@ -57,7 +57,7 @@ internal final class ResourceFolderEditController: ViewController, Sendable {
         do {
           let resourceFolder: ResourceFolder = try formState.value
           let resourceFolderPermissions: Array<OverlappingAvatarStackView.Item> = try await resourceFolder.permissions
-            .asyncMap { (permission: ResourceFolderPermission) in
+            .asyncMap { @Sendable(permission: ResourceFolderPermission) in
               switch permission {
               case .user(let id, _, _):
                 return await .user(

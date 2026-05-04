@@ -119,7 +119,7 @@ internal struct AccountSelectionView: ControlledView {
                     AccountSelectionRow(
                       account: account,
                       onRemoveTap: isRemovalMode
-                        ? {
+                        ? { @Sendable in
                           await self.controller.removeAccount(account.account)
                         }
                         : .none
@@ -203,9 +203,9 @@ extension AccountSelectionViewController.Mode {
 private struct AccountSelectionRow: View {
   @State private var currentImage: Image
   private let account: AccountSelectionCellItem
-  private let onRemoveTap: @MainActor () async -> Void
+  private let onRemoveTap: @MainActor @Sendable () async -> Void
 
-  init(account: AccountSelectionCellItem, onRemoveTap: (@MainActor () async -> Void)?) {
+  init(account: AccountSelectionCellItem, onRemoveTap: (@MainActor @Sendable () async -> Void)?) {
     self.account = account
     self.onRemoveTap = onRemoveTap ?? {}
     self._currentImage = State(initialValue: Image(named: .person))

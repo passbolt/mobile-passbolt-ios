@@ -146,7 +146,7 @@ private struct OTPResourcesList: View {
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
   private let loadMoreAction: @Sendable () async -> Void
-  private let createAction: (() async -> Void)?
+  private let createAction: (@Sendable () async -> Void)?
   private let resourceTapAction: (Resource.ID) async -> Void
   private let resourceMenuAction: ((Resource.ID) async -> Void)?
 
@@ -157,7 +157,7 @@ private struct OTPResourcesList: View {
     contentResetToken: Int,
     refreshAction: @Sendable @escaping () async -> Void,
     loadMoreAction: @Sendable @escaping () async -> Void,
-    createAction: (() async -> Void)?,
+    createAction: (@Sendable () async -> Void)?,
     resourceTapAction: @escaping (Resource.ID) async -> Void,
     resourceMenuAction: ((Resource.ID) async -> Void)?
   ) {
@@ -210,7 +210,7 @@ private struct OTPResourcesList: View {
   private func viewForRow(_ row: OTPResourcesListData) -> some View {
     switch row {
     case .addResource:
-      if let createAction: () async -> Void = self.createAction {
+      if let createAction: @Sendable () async -> Void = self.createAction {
         ResourceListAddView(action: createAction)
           .frame(height: row.estimatedHeight)
           .accessibilityIdentifier("totp.create.button")

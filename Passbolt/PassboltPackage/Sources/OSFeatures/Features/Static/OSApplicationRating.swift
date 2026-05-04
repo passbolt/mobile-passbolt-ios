@@ -28,7 +28,7 @@ import UIKit
 
 // MARK: - Interface
 
-public struct OSApplicationRating {
+public struct OSApplicationRating: Sendable {
 
   public var requestApplicationRating: @MainActor () -> Void
 }

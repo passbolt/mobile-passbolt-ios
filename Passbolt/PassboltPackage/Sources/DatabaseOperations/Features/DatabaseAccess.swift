@@ -28,17 +28,17 @@ import Features
 // MARK: - Interface
 
 /// Database connection opening, creation and deletion.
-public struct DatabaseAccess {
+public struct DatabaseAccess: Sendable {
   /// Open database connection (create if needed)
   /// for given account using provided key.
   /// Performs all required migrations if needed.
-  public var openConnection: (Account.LocalID, DatabaseKey) throws -> SQLiteConnection
+  public var openConnection: @Sendable (Account.LocalID, DatabaseKey) throws -> SQLiteConnection
   /// Delete database for given account.
-  public var delete: (Account.LocalID) throws -> Void
+  public var delete: @Sendable (Account.LocalID) throws -> Void
 
   public init(
-    openConnection: @escaping (Account.LocalID, DatabaseKey) throws -> SQLiteConnection,
-    delete: @escaping (Account.LocalID) throws -> Void
+    openConnection: @escaping @Sendable (Account.LocalID, DatabaseKey) throws -> SQLiteConnection,
+    delete: @escaping @Sendable (Account.LocalID) throws -> Void
   ) {
     self.openConnection = openConnection
     self.delete = delete

@@ -32,20 +32,20 @@ internal final class GenericResultViewController: ViewController {
     internal let buttonTitle: DisplayableString
   }
 
-  internal struct Context {
+  internal struct Context: Sendable {
 
     internal let icon: ImageNameConstant
     internal let title: DisplayableString
     internal let message: DisplayableString?
     internal let buttonTitle: DisplayableString
-    internal let buttonAction: () async throws -> Void
+    internal let buttonAction: @Sendable () async throws -> Void
 
     internal init(
       icon: ImageNameConstant,
       title: DisplayableString,
       message: DisplayableString? = .none,
       buttonTitle: DisplayableString,
-      buttonAction: @escaping () async throws -> Void
+      buttonAction: @Sendable @escaping () async throws -> Void
     ) {
       self.icon = icon
       self.title = title

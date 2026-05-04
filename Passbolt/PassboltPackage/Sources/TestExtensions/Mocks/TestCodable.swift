@@ -24,7 +24,7 @@
 import struct Foundation.Data
 import class Foundation.JSONEncoder
 
-public struct TestCodable: Codable, Equatable {
+public struct TestCodable: Codable, Equatable, Sendable {
 
   public static let sample: Self = Self(
     string: "answer",

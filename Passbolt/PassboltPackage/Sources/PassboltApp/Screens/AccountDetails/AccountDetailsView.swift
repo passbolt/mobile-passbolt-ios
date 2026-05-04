@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct AccountDetailsView: ControlledView {
+internal struct AccountDetailsView: @MainActor ControlledView {
   internal var controller: AccountDetailsViewController
 
   internal init(

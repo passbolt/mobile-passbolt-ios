@@ -391,7 +391,7 @@ public func XCTAssertValue<Value>(
   equal expectedValue: Value,
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ expression: () async throws -> Value
+  _ expression: @Sendable () async throws -> Value
 ) async where Value: Equatable {
   let value: Value?
   do {
@@ -418,7 +418,7 @@ public func XCTAssertError<ExpectedError, Value>(
   verification: (ExpectedError) -> Bool = { _ in true },
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ expression: () async throws -> Value
+  _ expression: @Sendable () async throws -> Value
 ) async where ExpectedError: Error {
   do {
     let value: Value = try await expression()
@@ -451,7 +451,7 @@ public func XCTAssertError<ExpectedError, Value>(
 public func XCTAssertNoError<Value>(
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ expression: () async throws -> Value
+  _ expression: @Sendable () async throws -> Value
 ) async {
   do {
     let _: Value = try await expression()

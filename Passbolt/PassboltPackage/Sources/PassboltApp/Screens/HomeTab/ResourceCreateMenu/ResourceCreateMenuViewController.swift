@@ -41,7 +41,7 @@ internal struct ResourceCreateMenuItem: Equatable, Identifiable {
   internal var id: ResourceSpecification.Slug { slug }
 }
 
-internal final class ResourceCreateMenuViewController: ViewController {
+internal final class ResourceCreateMenuViewController: @MainActor ViewController {
 
   internal struct Context: Sendable {
     internal let resourceCreatingContext: ResourceCreatingContext

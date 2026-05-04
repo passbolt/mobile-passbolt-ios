@@ -29,7 +29,7 @@ import TestExtensions
 @testable import PassboltUsers
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
+final class UserGroupsTests: LoadableFeatureTestCase<UserGroups>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 
@@ -126,24 +126,26 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
       \Session.currentAccount,
       with: always(.mock_ada)
     )
-    var expectedResult: Array<ResourceUserGroupListItemDSV> = []
+    let expectedResult: CriticalState<Array<ResourceUserGroupListItemDSV>> = .init(.init())
     let filtersSequence: Variable<String> = .init(initial: "filter")
 
-    let nextResult: () -> Array<ResourceUserGroupListItemDSV> = {
+    let nextResult: @Sendable () -> Array<ResourceUserGroupListItemDSV> = {
       defer {
-        if expectedResult.isEmpty {
-          expectedResult.append(
-            .init(
-              id: .mock_1,
-              name: "name",
-              contentCount: 0
+        if expectedResult.get(\.isEmpty) {
+          expectedResult.access {
+            $0.append(
+              .init(
+                id: .mock_1,
+                name: "name",
+                contentCount: 0
+              )
             )
-          )
+          }
         }
         else { /* NOP */
         }
       }
-      return expectedResult
+      return expectedResult.get()
     }
     patch(
       \ResourceUserGroupsListFetchDatabaseOperation.execute,
@@ -163,7 +165,7 @@ final class UserGroupsTests: LoadableFeatureTestCase<UserGroups> {
 
     XCTAssertEqual(
       result,
-      expectedResult
+      expectedResult.get()
     )
   }
 

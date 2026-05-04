@@ -30,7 +30,7 @@ import TestExtensions
 @testable import PassboltUsers
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages> {
+final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 

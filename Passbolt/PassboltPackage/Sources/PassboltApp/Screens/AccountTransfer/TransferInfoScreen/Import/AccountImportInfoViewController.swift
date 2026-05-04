@@ -67,7 +67,9 @@ internal final class AccountImportInfoViewController: ViewController {
 
 extension AlertViewModel {
 
-  fileprivate static func noCameraPermissionsAlert(_ goToSettings: @escaping () async throws -> Void) -> Self {
+  fileprivate static func noCameraPermissionsAlert(
+    _ goToSettings: @Sendable @escaping () async throws -> Void
+  ) -> Self {
     .init(
       title: "transfer.account.camera.access.alert.title",
       message: "transfer.account.camera.access.alert.text",

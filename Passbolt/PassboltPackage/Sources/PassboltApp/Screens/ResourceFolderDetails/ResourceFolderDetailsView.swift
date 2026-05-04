@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct ResourceFolderDetailsView: ControlledView {
+internal struct ResourceFolderDetailsView: @MainActor ControlledView {
 
   internal let controller: ResourceFolderDetailsController
 

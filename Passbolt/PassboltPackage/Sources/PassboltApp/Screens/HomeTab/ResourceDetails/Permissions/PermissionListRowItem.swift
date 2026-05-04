@@ -25,11 +25,11 @@ import CommonModels
 
 import struct Foundation.Data
 
-internal enum PermissionListRowItem {
+internal enum PermissionListRowItem: Sendable {
 
   case user(
     details: UserPermissionDetailsDSV,
-    imageData: () async -> Data?
+    imageData: @Sendable () async -> Data?
   )
   case userGroup(
     details: UserGroupPermissionDetailsDSV

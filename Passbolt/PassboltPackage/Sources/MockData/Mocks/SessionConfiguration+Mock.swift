@@ -59,8 +59,8 @@ extension SessionConfiguration {
     }
   }
 
-  public func with(_ builder: (inout Self) -> Void) -> Self {
-    var copy = self
+  public func with(_ builder: @Sendable (inout Self) -> Void) -> Self {
+    var copy: Self = self
     builder(&copy)
     return copy
   }

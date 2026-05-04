@@ -71,7 +71,7 @@ private struct InfoView: View {
   private let title: DisplayableString
   private let message: DisplayableString?
   private let primaryButtonTitle: DisplayableString
-  private let primaryButtonAction: () async -> Void
+  private let primaryButtonAction: @Sendable () async -> Void
   private let secondaryButtonTitle: DisplayableString?
   private let secondaryButtonAction: (@Sendable () async -> Void)?
 
@@ -80,9 +80,9 @@ private struct InfoView: View {
     title: DisplayableString,
     message: DisplayableString?,
     primaryButtonTitle: DisplayableString,
-    primaryButtonAction: @escaping () async -> Void,
+    primaryButtonAction: @Sendable @escaping () async -> Void,
     secondaryButtonTitle: DisplayableString?,
-    secondaryButtonAction: (() async -> Void)?
+    secondaryButtonAction: (@Sendable () async -> Void)?
   ) {
     self.icon = icon
     self.title = title

@@ -23,7 +23,7 @@
 
 import Display
 
-internal struct StartupErrorView: ControlledView {
+internal struct StartupErrorView: @MainActor ControlledView {
 
   internal let controller: StartupErrorViewController
 

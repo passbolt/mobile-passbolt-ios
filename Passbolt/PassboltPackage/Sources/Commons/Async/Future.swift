@@ -22,12 +22,15 @@
 //
 
 @Sendable public func future<Value>(
-  _ fulfill: @Sendable (@escaping @Sendable (Result<Value, Error>) -> Void) -> Void
+  isolation: isolated (any Actor)? = #isolation,
+  _ fulfill: (@escaping @Sendable (Result<Value, Error>) -> Void) -> Void
 ) async throws -> Value {
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(
     operation: {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
+      try await withCheckedThrowingContinuation(
+        isolation: isolation
+      ) { (continuation: CheckedContinuation<Value, Error>) in
         let cancelled: Bool = state.access { (state: inout CheckedContinuation<Value, Error>?) -> Bool in
           if Task.isCancelled {
             continuation
@@ -54,17 +57,21 @@
       state
         .exchange(\.self, with: .none)?
         .resume(throwing: Cancelled.error())
-    }
+    },
+    isolation: isolation
   )
 }
 
 @Sendable public func futureValue<Value>(
-  _ fulfill: @Sendable (@escaping @Sendable (Value) -> Void) -> Void
+  isolation: isolated (any Actor)? = #isolation,
+  _ fulfill: (@escaping @Sendable (Value) -> Void) -> Void
 ) async throws -> Value {
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(
     operation: {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
+      try await withCheckedThrowingContinuation(
+        isolation: isolation
+      ) { (continuation: CheckedContinuation<Value, Error>) in
         let cancelled: Bool = state.access { (state: inout CheckedContinuation<Value, Error>?) -> Bool in
           if Task.isCancelled {
             continuation
@@ -91,6 +98,7 @@
       state
         .exchange(\.self, with: .none)?
         .resume(throwing: Cancelled.error())
-    }
+    },
+    isolation: isolation
   )
 }

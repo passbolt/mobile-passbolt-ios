@@ -35,7 +35,7 @@ public enum DateFormat {
 
 // MARK: - Interface
 
-public struct OSCalendar {
+public struct OSCalendar: Sendable {
 
   public var format: @Sendable (DateFormat, Date) -> String
 }

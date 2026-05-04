@@ -32,7 +32,7 @@ import class Foundation.JSONEncoder
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension EncryptedSessionKeyBundle {
 
-  public static var mock_1: Self = .init(
+  public static let mock_1: Self = .init(
     id: .init(uuidString: "5c3b6c3f-9c2d-4b2b-8c3e-7f1b8b9b2b0e")!,
     userId: .mock_ada,
     data: .init(rawValue: composeSessionKeyData()),
@@ -44,7 +44,7 @@ extension EncryptedSessionKeyBundle {
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverForceUnwrap
 extension EncryptedSessionKeysCache {
 
-  public static var mock_1: Self = .init(
+  public static let mock_1: Self = .init(
     id: .init(uuidString: "5c3b6c3f-9c2d-4b2b-8c3e-7f1b8b9b2b0e")!,
     modifiedAt: .now,
     data: .init(rawValue: composeSessionKeyData())

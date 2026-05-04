@@ -27,12 +27,12 @@ import XCTest
 @testable import Features
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
+final class SharedStoredPropertyTests: LoadableFeatureTestCase<TestSharedStoredProperty>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
   ) {
-    registry.usePassboltStoredProperty(TestStoredPropertyDescription.self, in: RootFeaturesScope.self)
+    registry.usePassboltStoredProperty(TestSharedStoredPropertyDescription.self, in: RootFeaturesScope.self)
   }
 
   func test_get_fetchesPropertyWithExpectedValue() async throws {
@@ -44,7 +44,7 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
       }
     )
 
-    let instance: TestStoredProperty = try self.testedInstance()
+    let instance: TestSharedStoredProperty = try self.testedInstance()
 
     XCTAssertEqual(
       instance.value,
@@ -63,7 +63,7 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
       }
     )
 
-    let instance: TestStoredProperty = try self.testedInstance()
+    let instance: TestSharedStoredProperty = try self.testedInstance()
 
     _ = instance.value
 
@@ -87,7 +87,7 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
       }
     )
 
-    var instance: TestStoredProperty = try self.testedInstance()
+    var instance: TestSharedStoredProperty = try self.testedInstance()
 
     instance.value = expectedResult
 
@@ -111,7 +111,7 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
       }
     )
 
-    var instance: TestStoredProperty = try self.testedInstance()
+    var instance: TestSharedStoredProperty = try self.testedInstance()
 
     instance.value = 0
 
@@ -120,10 +120,17 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
       expectedResult
     )
   }
+}
+
+final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty>, @unchecked Sendable {
+
+  override class func testedImplementationRegister(
+    _ registry: inout FeaturesRegistry
+  ) {
+    registry.usePassboltStoredProperty(TestStoredPropertyDescription.self, in: RootFeaturesScope.self)
+  }
 
   func test_set_storesPropertyWithExpectedAccountKey() async throws {
-    TestStoredPropertyDescription.shared = false
-    defer { TestStoredPropertyDescription.shared = true }
     let expectedResult: OSStoredPropertyKey = "test-\(Account.mock_ada.localID.rawValue)"
     let result: CriticalState<OSStoredPropertyKey?> = .init(.none)
     set(
@@ -155,13 +162,24 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
   }
 }
 
-typealias TestStoredProperty = StoredProperty<TestStoredPropertyDescription>
+typealias TestSharedStoredProperty = StoredProperty<TestSharedStoredPropertyDescription>
 
-enum TestStoredPropertyDescription: @MainActor StoredPropertyDescription {
+enum TestSharedStoredPropertyDescription: StoredPropertyDescription {
 
   typealias Value = Int
 
-  @MainActor static var shared: Bool = true
+  static let shared: Bool = true
+
+  static var key: OSStoredPropertyKey { "test" }
+}
+
+typealias TestStoredProperty = StoredProperty<TestStoredPropertyDescription>
+
+enum TestStoredPropertyDescription: StoredPropertyDescription {
+
+  typealias Value = Int
+
+  static let shared: Bool = false
 
   static var key: OSStoredPropertyKey { "test" }
 }

@@ -28,7 +28,7 @@ import OSFeatures
 import Resources
 import Users
 
-internal final class ResourceFolderPermissionListViewController: ViewController {
+internal final class ResourceFolderPermissionListViewController: @MainActor ViewController {
 
   internal var viewState: ViewStateSource<ViewState>
 

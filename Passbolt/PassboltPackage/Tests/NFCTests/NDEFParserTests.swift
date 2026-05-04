@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import CoreNFC
+@preconcurrency import CoreNFC
 import TestExtensions
 import XCTest
 
@@ -30,7 +30,7 @@ import XCTest
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 final class NDEFParserTests: XCTestCase {
 
-  func test_parsePayloadContainingURI_succeeds() {
+  @MainActor func test_parsePayloadContainingURI_succeeds() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [validPayloadContaingURI])
@@ -41,7 +41,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertSuccessEqual(result, "cccccccccccggvetntitdeguhrledeeeeeeivbfeehe")
   }
 
-  func test_parsePayloadContainingTextEmbeddedInURI_succeeds() {
+  @MainActor func test_parsePayloadContainingTextEmbeddedInURI_succeeds() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [validPayloadContaingTextEmbeddedInURI])
@@ -52,7 +52,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertSuccessEqual(result, "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe")
   }
 
-  func test_parsePayloadContainingText_succeeds() {
+  @MainActor func test_parsePayloadContainingText_succeeds() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [validPayloadContainingText])
@@ -63,7 +63,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertSuccessEqual(result, "cccccccccccccvetntitdeguhrledeeeeeeivbfeehe")
   }
 
-  func test_parsePayloadContainingUnsupportedFormat_fails() {
+  @MainActor func test_parsePayloadContainingUnsupportedFormat_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingURIWithUnsupportedFormat])
@@ -74,7 +74,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertFailure(result)
   }
 
-  func test_parsePayloadContainingUnsupportedType_fails() {
+  @MainActor func test_parsePayloadContainingUnsupportedType_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingURIWithInvalidType])
@@ -85,7 +85,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertFailure(result)
   }
 
-  func test_parsePayloadContainingURI_withIllegalCharactersInOTP_fails() {
+  @MainActor func test_parsePayloadContainingURI_withIllegalCharactersInOTP_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingURIwithIllegalCharactersInOTP])
@@ -96,7 +96,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertFailure(result)
   }
 
-  func test_parsePayloadContainingURI_withOTPLessThanMinLength_fails() {
+  @MainActor func test_parsePayloadContainingURI_withOTPLessThanMinLength_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingUriWithOTPLessThanMinLength])
@@ -107,7 +107,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertFailure(result)
   }
 
-  func test_parsePayloadContainingURI_withOTPExceedingMaxLength_fails() {
+  @MainActor func test_parsePayloadContainingURI_withOTPExceedingMaxLength_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [invalidPayloadContainingUriWithOTPExceedingMaxLength])
@@ -118,7 +118,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertFailure(result)
   }
 
-  func test_parsePayloadContainingURI_withEmptyOTP_fails() {
+  @MainActor func test_parsePayloadContainingURI_withEmptyOTP_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [emptyURIPayload])
@@ -129,7 +129,7 @@ final class NDEFParserTests: XCTestCase {
     XCTAssertFailure(result)
   }
 
-  func test_parsePayloadContainingText_withEmptyOTP_fails() {
+  @MainActor func test_parsePayloadContainingText_withEmptyOTP_fails() {
     let parser: NDEFParser = .yubiKeyOTPParser()
     let messages: Array<NFCNDEFMessage> = [
       .init(records: [emptyTextPayload])
@@ -161,70 +161,70 @@ private let uriWithOTPExceedingMaxLength: Data =
     using: .utf8
   )!
 
-private let validPayloadContaingURI: NFCNDEFPayload = .init(
+@MainActor private let validPayloadContaingURI: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x55]),
   identifier: .init(),
   payload: .init(uriWithOTP)
 )
 
-private let validPayloadContaingTextEmbeddedInURI: NFCNDEFPayload = .init(
+@MainActor private let validPayloadContaingTextEmbeddedInURI: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x54]),
   identifier: .init(),
   payload: .init(otpTextEmbeddedInURI)
 )
 
-private let validPayloadContainingText: NFCNDEFPayload = .init(
+@MainActor private let validPayloadContainingText: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x54]),
   identifier: .init(),
   payload: .init(otpText)
 )
 
-private let invalidPayloadContainingURIWithUnsupportedFormat: NFCNDEFPayload = .init(
+@MainActor private let invalidPayloadContainingURIWithUnsupportedFormat: NFCNDEFPayload = .init(
   format: .unknown,
   type: .init([0x55]),
   identifier: .init(),
   payload: .init(uriWithOTP)
 )
 
-private let invalidPayloadContainingURIWithInvalidType: NFCNDEFPayload = .init(
+@MainActor private let invalidPayloadContainingURIWithInvalidType: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0xFF]),
   identifier: .init(),
   payload: .init(uriWithOTP)
 )
 
-private let invalidPayloadContainingURIwithIllegalCharactersInOTP: NFCNDEFPayload = .init(
+@MainActor private let invalidPayloadContainingURIwithIllegalCharactersInOTP: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x55]),
   identifier: .init(),
   payload: .init(uriWithIllegalCharactersInOTP)
 )
 
-private let invalidPayloadContainingUriWithOTPLessThanMinLength: NFCNDEFPayload = .init(
+@MainActor private let invalidPayloadContainingUriWithOTPLessThanMinLength: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x55]),
   identifier: .init(),
   payload: .init(uriWithOTPLessThanMinLength)
 )
 
-private let invalidPayloadContainingUriWithOTPExceedingMaxLength: NFCNDEFPayload = .init(
+@MainActor private let invalidPayloadContainingUriWithOTPExceedingMaxLength: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x55]),
   identifier: .init(),
   payload: .init(uriWithOTPExceedingMaxLength)
 )
 
-private let emptyURIPayload: NFCNDEFPayload = .init(
+@MainActor private let emptyURIPayload: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x55]),
   identifier: .init(),
   payload: .init()
 )
 
-private let emptyTextPayload: NFCNDEFPayload = .init(
+@MainActor private let emptyTextPayload: NFCNDEFPayload = .init(
   format: .nfcWellKnown,
   type: .init([0x54]),
   identifier: .init(),

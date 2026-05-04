@@ -53,6 +53,7 @@ public struct AccountKitDTO: Codable {
 }
 
 extension AccountKitDTO {
+
   private enum CodingKeys: String, CodingKey {
     case privateKeyArmored = "user_private_armored_key"
     case publicKeyArmored = "user_public_armored_key"
@@ -63,3 +64,5 @@ extension AccountKitDTO {
     case username
   }
 }
+
+extension AccountKitDTO: Sendable {}

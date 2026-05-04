@@ -27,7 +27,7 @@ import TestExtensions
 @testable import PassboltAccounts
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class AccountsStoreTests: LoadableFeatureTestCase<Accounts> {
+final class AccountsStoreTests: LoadableFeatureTestCase<Accounts>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry

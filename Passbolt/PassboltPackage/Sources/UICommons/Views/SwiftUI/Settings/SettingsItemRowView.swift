@@ -28,12 +28,12 @@ where Accessory: View {
 
   private let iconName: ImageNameConstant
   private let title: DisplayableString
-  private let accessory: @Sendable () -> Accessory
+  private let accessory: @MainActor @Sendable () -> Accessory
 
   public init(
     icon: ImageNameConstant,
     title: DisplayableString,
-    @ViewBuilder accessory: @Sendable @escaping () -> Accessory
+    @ViewBuilder accessory: @MainActor @Sendable @escaping () -> Accessory
   ) {
     self.iconName = icon
     self.title = title

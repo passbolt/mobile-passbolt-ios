@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct UserGroupPermissionDetailsView: ControlledView {
+internal struct UserGroupPermissionDetailsView: @MainActor ControlledView {
 
   internal let controller: UserGroupPermissionDetailsViewController
 

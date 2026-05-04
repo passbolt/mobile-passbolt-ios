@@ -72,10 +72,10 @@ extension ResourceTagsDetailsViewController {
   @Sendable internal func activate() async {
     await consumingErrors(
       errorDiagnostics: "Resource tags details updates broken!",
-      fallback: {
+      fallback: { @Sendable in
         try? await self.navigationToSelf.revert()
       },
-      {
+      { @MainActor @Sendable in
         for try await resource in self.resourceController.state {
           try self.update(resource.value)
         }

@@ -26,13 +26,13 @@ import CommonModels
 // swift-format-ignore: AlwaysUseLowerCamelCase
 extension ResourceFolderPathItem {
 
-  public static var mock_1: Self = .init(
+  public static let mock_1: Self = .init(
     id: .mock_1,
     name: "mock_1",
     shared: false
   )
 
-  public static var mock_2: Self = .init(
+  public static let mock_2: Self = .init(
     id: .mock_2,
     name: "mock_2",
     shared: true

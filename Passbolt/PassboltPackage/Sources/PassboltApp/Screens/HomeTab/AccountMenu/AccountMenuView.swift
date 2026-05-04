@@ -108,7 +108,7 @@ internal struct AccountMenuView: ControlledView {
   private func button(
     title: DisplayableString,
     iconName: ImageNameConstant,
-    action: @escaping () async -> Void
+    action: @Sendable @escaping () async -> Void
   ) -> some View {
     AsyncButton(
       action: action,

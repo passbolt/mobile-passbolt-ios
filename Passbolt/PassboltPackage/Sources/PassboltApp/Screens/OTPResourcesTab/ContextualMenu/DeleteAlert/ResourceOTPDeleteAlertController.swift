@@ -48,7 +48,7 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
 
     let resourceController: ResourceController = try features.instance()
 
-    func deleteOTP() async {
+    @Sendable func deleteOTP() async {
       do {
         let resource: Resource = try await resourceController.state.value
         if ResourceSpecification.Slug.standaloneTOTPTypes.contains(resource.type.specification.slug) {
@@ -56,7 +56,7 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
           try await resourceController.delete()
         }
         else if let detachedOTPSlug: ResourceSpecification.Slug = resource.detachedOTPSlug {
-          let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+          let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
           let editingContext = try await resourceEditPreparation.prepareExisting(context.resourceID)
 
           guard
@@ -69,12 +69,12 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
               .error(message: "Attempting to detach OTP from a resource which has none or unavailable detached type!")
           }
           let features: Features =
-            try features.branchIfNeeded(
+            try await features.branchIfNeeded(
               scope: ResourceEditScope.self,
               context: editingContext
             )
 
-          let resourceEditForm: ResourceEditForm = try features.instance()
+          let resourceEditForm: ResourceEditForm = try await features.instance()
           try resourceEditForm.updateType(detachedType)
           try await resourceEditForm.send()
         }

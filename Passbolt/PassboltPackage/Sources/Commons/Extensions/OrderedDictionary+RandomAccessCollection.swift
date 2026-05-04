@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-@preconcurrency import OrderedCollections
+import OrderedCollections
 
 public struct IdentifiedArray<Element: Identifiable> where Element.ID: Sendable {
 

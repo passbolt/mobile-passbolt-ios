@@ -31,7 +31,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
 
   var editedResource: Resource = .mock_1
   lazy var editedResourceType: ResourceType = self.editedResource.type
-  private static let referenceTimestamp: Timestamp = 1_768_390_000
+  private nonisolated static let referenceTimestamp: Timestamp = 1_768_390_000
 
   override func commonPrepare() async throws {
     try await super.commonPrepare()
@@ -960,7 +960,6 @@ final class ResourceEditFormTests: FeaturesTestCase {
 
   func test_updatingPasswordExpiry_forExistingResource_withoutAutomaticUpdateEnabled_doesNotSetExpiry() async throws {
     var editedResource: Resource = self.editedResource
-    editedResource.id = .none  // simulate new resource
     editedResource.expired = Self.referenceTimestamp
     set(
       ResourceEditScope.self,

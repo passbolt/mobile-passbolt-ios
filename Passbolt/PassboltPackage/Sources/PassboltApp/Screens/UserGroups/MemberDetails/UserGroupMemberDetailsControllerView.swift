@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct UserGroupMemberDetailsView: ControlledView {
+internal struct UserGroupMemberDetailsView: @MainActor ControlledView {
 
   internal let controller: UserGroupMemberDetailsViewController
 

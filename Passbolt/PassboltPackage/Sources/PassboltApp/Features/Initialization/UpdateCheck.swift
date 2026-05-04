@@ -26,7 +26,7 @@ import NetworkOperations
 
 import class Foundation.Bundle
 
-public struct UpdateCheck {
+public struct UpdateCheck: Sendable {
 
   public var checkRequired: @MainActor () async -> Bool
   public var updateAvailable: @MainActor () async throws -> Bool

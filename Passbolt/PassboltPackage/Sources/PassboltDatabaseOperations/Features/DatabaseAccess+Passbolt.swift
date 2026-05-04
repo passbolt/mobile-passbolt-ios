@@ -36,6 +36,7 @@ extension DatabaseAccess {
 
     let osFiles: OSFiles = features.instance()
 
+    @Sendable
     nonisolated func databaseLocation(
       for accountID: Account.LocalID
     ) throws -> URL {
@@ -57,6 +58,7 @@ extension DatabaseAccess {
       }
     }
 
+    @Sendable
     nonisolated func newConnection(
       _ location: URL,
       key: DatabaseKey
@@ -74,6 +76,7 @@ extension DatabaseAccess {
         )
     }
 
+    @Sendable
     nonisolated func openConnection(
       _ accountID: Account.LocalID,
       key: DatabaseKey
@@ -105,6 +108,7 @@ extension DatabaseAccess {
       return databaseConnection
     }
 
+    @Sendable
     nonisolated func delete(
       _ accountID: Account.LocalID
     ) throws {

@@ -34,7 +34,7 @@ internal final class ResourcePermissionEditListController: @MainActor ViewContro
 
   internal typealias Context = Resource.ID
 
-  internal struct ViewState: Equatable {
+  internal struct ViewState: Equatable, Sendable {
 
     internal var permissionListItems: Array<PermissionListRowItem>
     internal var loading: Bool = false

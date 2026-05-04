@@ -124,7 +124,7 @@ internal final class ResourceDetailsViewController: ViewController {
         do {
           let (resource, localState): (Resource, LocalState) = try update.value
           let resourcePermissions: Array<OverlappingAvatarStackView.Item> = try await resource.permissions.asyncMap {
-            (permission: ResourcePermission) in
+            @Sendable(permission: ResourcePermission) in
             switch permission {
             case .user(let id, _, _):
               return await .user(

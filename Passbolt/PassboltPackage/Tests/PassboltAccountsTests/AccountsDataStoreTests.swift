@@ -26,7 +26,7 @@ import TestExtensions
 @testable import PassboltAccounts
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
-final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorage> {
+final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorage>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
@@ -34,7 +34,7 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
     registry.usePassboltAccountsListStorage()
   }
 
-  private nonisolated let mockPreferencesStore: WrappedDictionary<OSPreferences.Key, Any> = .init()
+  private nonisolated let mockPreferencesStore: WrappedDictionary<OSPreferences.Key, Sendable> = .init()
   private nonisolated let mockKeychainStore: WrappedArray<(data: Data, query: OSKeychainQuery)> = .init([])
 
   override func prepare() throws {
@@ -473,7 +473,7 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
   }
 
   func test_verifyDataIntegrity_removesAccountsData_whenAccountIDIsNotInList() async throws {
-    mockPreferencesStore["accountsList"] = []
+    mockPreferencesStore["accountsList"] = Array<String>()
     mockKeychainStore.set([
       (
         data: validAccountKeychainData,
@@ -581,7 +581,7 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
         result.set(url)
       }
     )
-    mockPreferencesStore["accountsList"] = []
+    mockPreferencesStore["accountsList"] = Array<String>()
     mockKeychainStore.set([
       (
         data: validAccountKeychainData,
@@ -636,7 +636,7 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
 }
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
-final class ServerFingerprintStorageTests: LoadableFeatureTestCase<ServerFingerprintStorage> {
+final class ServerFingerprintStorageTests: LoadableFeatureTestCase<ServerFingerprintStorage>, @unchecked Sendable {
 
   override class func testedImplementationRegister(
     _ registry: inout FeaturesRegistry
@@ -756,53 +756,55 @@ private let validServerFingerprint: Data = try! JSONEncoder.default.encode(["v":
 // swift-format-ignore: NeverUseForceTry
 private let validPrivateKeyKeychainData: Data = try! JSONEncoder.default.encode(["v": validPrivateKey])
 
-private final class WrappedArray<V> {
+private final class WrappedArray<V>: Sendable where V: Sendable {
 
-  private var value: Array<V>
+  private let value: CriticalState<Array<V>>
 
   fileprivate init(_ value: Array<V>) {
-    self.value = value
+    self.value = .init(value)
   }
 
   fileprivate func filter(_ isIncluded: (V) throws -> Bool) rethrows -> Array<V> {
-    try value.filter(isIncluded)
+    try value.get().filter(isIncluded)
   }
 
   fileprivate func map<T>(_ transform: (V) throws -> T) rethrows -> Array<T> {
-    try value.map(transform)
+    try value.get().map(transform)
   }
 
   fileprivate func set(_ values: Array<V>) {
-    self.value = values
+    self.value.access { $0 = values }
   }
 
   fileprivate func removeAll(where shouldBeRemoved: (V) throws -> Bool = { _ in true }) rethrows {
-    try value.removeAll(where: shouldBeRemoved)
+    try value.access { try $0.removeAll(where: shouldBeRemoved) }
   }
 
   fileprivate func append(_ newElement: V) {
-    value.append(newElement)
+    value.access { $0.append(newElement) }
   }
 }
 
-private final class WrappedDictionary<K, V> where K: Hashable {
+private final class WrappedDictionary<K, V>: Sendable where K: Hashable, K: Sendable, V: Sendable {
 
-  private var value: Dictionary<K, V>
+  private let value: CriticalState<Dictionary<K, V>>
 
   fileprivate init() {
-    self.value = .init()
+    self.value = .init(.init())
   }
 
   fileprivate subscript(key: K) -> V? {
     get {
-      value[key]
+      value.get()[key]
     }
     set {
-      value[key] = newValue
+      value.access {
+        $0[key] = newValue
+      }
     }
   }
 
   fileprivate func removeAll() {
-    value = .init()
+    value.access { $0 = .init() }
   }
 }

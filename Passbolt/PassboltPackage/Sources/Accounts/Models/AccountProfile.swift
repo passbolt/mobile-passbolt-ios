@@ -55,3 +55,4 @@ public struct AccountProfile {
 
 extension AccountProfile: Equatable {}
 extension AccountProfile: Codable {}
+extension AccountProfile: Sendable {}

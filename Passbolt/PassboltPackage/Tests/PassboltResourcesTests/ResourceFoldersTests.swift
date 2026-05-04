@@ -29,7 +29,7 @@ import TestExtensions
 @testable import PassboltResources
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
-final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders> {
+final class ResourceFoldersTests: LoadableFeatureTestCase<ResourceFolders>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 

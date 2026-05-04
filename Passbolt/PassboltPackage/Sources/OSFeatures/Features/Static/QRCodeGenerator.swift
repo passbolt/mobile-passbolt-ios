@@ -28,7 +28,7 @@ import class UIKit.UIImage
 
 // MARK: - Interface
 
-public struct QRCodeGenerator {
+public struct QRCodeGenerator: Sendable {
 
   public var generateQRCode: @MainActor (Data) throws -> Data
 }

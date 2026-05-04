@@ -26,7 +26,7 @@ import XCTest
 
 @testable import PassboltMetadata
 
-final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysService> {
+final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysService>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type {
     SessionScope.self
@@ -1565,7 +1565,7 @@ extension MetadataKeysServiceTests {
   fileprivate func assertValid(
     _ expression: @autoclosure () async throws -> KeyValidationResult,
     _ message: @autoclosure () -> String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) async {
     do {
@@ -1585,7 +1585,7 @@ extension MetadataKeysServiceTests {
     _ expression: @autoclosure () async throws -> KeyValidationResult,
     expectedFailure: KeyValidationResult.FailureReason,
     _ message: @autoclosure () -> String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) async {
     do {

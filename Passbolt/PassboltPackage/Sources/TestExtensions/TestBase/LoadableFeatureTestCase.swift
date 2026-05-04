@@ -28,8 +28,8 @@ import XCTest
 
 /// Base class for preparing unit tests of features.
 @MainActor
-open class LoadableFeatureTestCase<Feature>: AsyncTestCase
-where Feature: LoadableFeature {
+open class LoadableFeatureTestCase<Feature>: AsyncTestCase, @unchecked Sendable
+where Feature: LoadableFeature, Feature: Sendable {
 
   open class var testedImplementationScope: any FeaturesScope.Type {
     RootFeaturesScope.self
@@ -161,14 +161,14 @@ extension LoadableFeatureTestCase {
 
   public func usePlaceholder<F>(
     for _: F.Type
-  ) where F: LoadableFeature {
+  ) where F: LoadableFeature, F: Sendable {
     self.features
       .usePlaceholder(for: F.self)
   }
 
   public func usePlaceholder<F>(
     for featureType: F.Type
-  ) where F: StaticFeature {
+  ) where F: StaticFeature, F: Sendable {
     self.features
       .usePlaceholder(for: F.self)
   }
@@ -211,28 +211,28 @@ extension LoadableFeatureTestCase {
     }
   }
 
-  @Sendable public nonisolated func executed<Value>(
+  public nonisolated func executed<Value>(
     returning value: Value
   ) -> Value {
     self.executed()
     return value
   }
 
-  @Sendable public nonisolated func executed<Value>(
+  public nonisolated func executed<Value>(
     throwing error: Error
   ) throws -> Value {
     self.executed()
     throw error
   }
 
-  @Sendable public nonisolated func executed<Value>(
+  public nonisolated func executed<Value>(
     with result: Result<Value, Error>
   ) throws -> Value {
     self.executed()
     return try result.get()
   }
 
-  @Sendable public nonisolated func executed<Value>(
+  public nonisolated func executed<Value>(
     using value: Value
   ) {
     self.executed()
@@ -245,7 +245,7 @@ extension LoadableFeatureTestCase {
 
   public final func use<MockFeature>(
     _ instance: MockFeature
-  ) where MockFeature: LoadableFeature {
+  ) where MockFeature: LoadableFeature, MockFeature: Sendable {
     guard case .none = self.instance
     else { fatalError("Cannot modify features after creating tested feature instance") }
     self.features
@@ -257,7 +257,7 @@ extension LoadableFeatureTestCase {
 
   public final func use<MockFeature>(
     _ instance: MockFeature
-  ) where MockFeature: StaticFeature {
+  ) where MockFeature: StaticFeature, MockFeature: Sendable {
     guard case .none = self.instance
     else { fatalError("Cannot modify features after creating tested feature instance") }
     self.features
@@ -270,7 +270,7 @@ extension LoadableFeatureTestCase {
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
-  ) where MockFeature: LoadableFeature {
+  ) where MockFeature: LoadableFeature, MockFeature: Sendable {
     guard case .none = self.instance
     else { fatalError("Cannot patch feature after creating tested feature instance") }
     self.features
@@ -283,7 +283,7 @@ extension LoadableFeatureTestCase {
   public func patch<MockFeature, Value>(
     _ keyPath: WritableKeyPath<MockFeature, Value>,
     with value: Value
-  ) where MockFeature: StaticFeature {
+  ) where MockFeature: StaticFeature, MockFeature: Sendable {
     guard case .none = self.instance
     else { fatalError("Cannot patch feature after creating tested feature instance") }
     self.features
@@ -302,24 +302,27 @@ extension LoadableFeatureTestCase {
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Void
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
     self.asyncTest(
       timeout: timeout,
       file: file,
       line: line
     ) {
-      try await test(
-        self.testedInstance()
-      )
+      try await test(instance)
     }
   }
 
   public func withTestedInstanceExecuted<Value, Parameter>(
     using expectedParameter: Parameter,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
-  ) where Parameter: Equatable {
+  ) where Parameter: Equatable, Parameter: Sendable {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
+    let variables: DynamicVariables = self.variables
     self.asyncTestExecuted(
       count: 1,
       timeout: timeout,
@@ -327,14 +330,12 @@ extension LoadableFeatureTestCase {
       line: line
     ) { (executed: @escaping @Sendable () -> Void) in
       assert(
-        !self.variables.contains(\.executed, of: (@Sendable () -> Void).self),
+        !variables.contains(\.executed, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently"
       )
-      self.executed = executed
-      _ = try await test(
-        self.testedInstance()
-      )
-      let parameter: Parameter = await self.variable(\.executedUsing)
+      variables.set(\.executed, of: (@Sendable () -> Void).self, to: executed)
+      _ = try await test(instance)
+      let parameter: Parameter = variables.get(\.executedUsing, of: Parameter.self)
       XCTAssertEqual(
         parameter,
         expectedParameter,
@@ -342,18 +343,21 @@ extension LoadableFeatureTestCase {
         file: file,
         line: line
       )
-      self.variables.clear(\.executed)
-      self.variables.clear(\.executedUsing)
+      variables.clear(\.executed)
+      variables.clear(\.executedUsing)
     }
   }
 
   public func withTestedInstanceExecuted<Value>(
     count: UInt = 1,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
+    let variables: DynamicVariables = self.variables
     self.asyncTestExecuted(
       count: count,
       timeout: timeout,
@@ -361,23 +365,24 @@ extension LoadableFeatureTestCase {
       line: line
     ) { (executed: @escaping @Sendable () -> Void) in
       assert(
-        !self.variables.contains(\.executed, of: (@Sendable () -> Void).self),
+        !variables.contains(\.executed, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently"
       )
-      self.executed = executed
-      _ = try await test(
-        self.testedInstance()
-      )
-      self.variables.clear(\.executed)
+      variables.set(\.executed, of: (@Sendable () -> Void).self, to: executed)
+      _ = try await test(instance)
+      variables.clear(\.executed)
     }
   }
 
   public func withTestedInstanceNotExecuted<Value>(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
+    let variables: DynamicVariables = self.variables
     self.asyncTestExecuted(
       count: 0,
       timeout: timeout,
@@ -385,43 +390,44 @@ extension LoadableFeatureTestCase {
       line: line
     ) { (executed: @escaping @Sendable () -> Void) in
       assert(
-        !self.variables.contains(\.executed, of: (@Sendable () -> Void).self),
+        !variables.contains(\.executed, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently"
       )
-      self.executed = executed
-      _ = try await test(
-        self.testedInstance()
-      )
-      self.variables.clear(\.executed)
+      variables.set(\.executed, of: (@Sendable () -> Void).self, to: executed)
+      _ = try await test(instance)
+      variables.clear(\.executed)
     }
   }
 
   public func withTestedInstanceReturnsEqual<Value>(
     _ expectedResult: Value,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value?
-  ) where Value: Equatable {
+  ) where Value: Equatable, Value: Sendable {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
     self.asyncTestReturnsEqual(
       expectedResult,
       timeout: timeout,
       file: file,
       line: line
     ) {
-      try await test(
-        self.testedInstance()
-      )
+      try await test(instance)
     }
   }
 
   public func withTestedInstanceResultEqual<Value>(
     _ expectedResult: Value,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any
-  ) where Value: Equatable {
+  ) where Value: Equatable, Value: Sendable {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
+    let variables: DynamicVariables = self.variables
     self.asyncTestReturnsEqual(
       expectedResult,
       timeout: timeout,
@@ -429,130 +435,147 @@ extension LoadableFeatureTestCase {
       line: line
     ) {
       assert(
-        !self.variables.contains(\.result, of: (@Sendable () -> Void).self),
+        !variables.contains(\.result, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently or set result before test"
       )
-      _ = try await test(
-        self.testedInstance()
-      )
-      defer { self.variables.clear(\.result) }
-      return self.result
+      _ = try await test(instance)
+      defer { variables.clear(\.result) }
+      return variables.get(\.result, of: Value?.self)
     }
   }
 
   public func withTestedInstanceResultNone(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
+    let variables: DynamicVariables = self.variables
     self.asyncTestReturnsNone(
       timeout: timeout,
       file: file,
       line: line
     ) {
       assert(
-        !self.variables.contains(\.result, of: (@Sendable () -> Void).self),
+        !variables.contains(\.result, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently or set result before test"
       )
-      _ = try await test(
-        self.testedInstance()
-      )
-      defer { self.variables.clear(\.result) }
-      return self.result
+      _ = try await test(instance)
+      defer { variables.clear(\.result) }
+      return variables.get(\.result, of: Any?.self)
     }
   }
 
   public func withTestedInstanceResultSome(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
+    let variables: DynamicVariables = self.variables
     self.asyncTestReturnsSome(
       timeout: timeout,
       file: file,
       line: line
     ) {
       assert(
-        !self.variables.contains(\.result, of: (@Sendable () -> Void).self),
+        !variables.contains(\.result, of: (@Sendable () -> Void).self),
         "Cannot execute concurrently or set result before test"
       )
-      _ = try await test(
-        self.testedInstance()
-      )
-      defer { self.variables.clear(\.result) }
-      return self.result
+      _ = try await test(instance)
+      defer { variables.clear(\.result) }
+      return variables.get(\.result, of: Any?.self)
     }
   }
 
   public func withTestedInstanceReturnsSome(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any?
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
     self.asyncTestReturnsSome(
       timeout: timeout,
       file: file,
       line: line
     ) {
-      try await test(
-        self.testedInstance()
-      )
+      try await test(instance)
     }
   }
 
   public func withTestedInstanceReturnsNone(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Any?
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
     self.asyncTestReturnsNone(
       timeout: timeout,
       file: file,
       line: line
     ) {
-      try await test(
-        self.testedInstance()
-      )
+      try await test(instance)
     }
   }
 
   public func withTestedInstanceNotThrows<Value>(
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
   ) {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
     self.asyncTestNotThrows(
       timeout: timeout,
       file: file,
       line: line
     ) {
-      try await test(
-        self.testedInstance()
-      )
+      try await test(instance)
     }
   }
 
   public func withTestedInstanceThrows<Value, Failure>(
     _ failureType: Failure.Type,
     timeout: TimeInterval = defaultTimeout,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     test: @escaping @Sendable (Feature) async throws -> Value
   ) where Failure: Error {
+    guard let instance: Feature = self.resolvedInstance(file: file, line: line)
+    else { return }
     self.asyncTestThrows(
       failureType,
       timeout: timeout,
       file: file,
       line: line
     ) {
-      try await test(
-        self.testedInstance()
+      try await test(instance)
+    }
+  }
+
+  private func resolvedInstance(
+    file: StaticString,
+    line: UInt
+  ) -> Feature? {
+    do {
+      return try self.testedInstance()
+    }
+    catch {
+      XCTFail(
+        "Unexpected error thrown: \(error)",
+        file: file,
+        line: line
       )
+      return .none
     }
   }
 }

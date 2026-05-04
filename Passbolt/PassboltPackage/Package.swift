@@ -156,9 +156,6 @@ let package = Package(
       ],
       resources: [
         .process("Resources/eff_large_wordlist.txt")
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(
@@ -176,9 +173,6 @@ let package = Package(
         "CommonModels",
         "Features",
         "FeatureScopes",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(
@@ -203,9 +197,6 @@ let package = Package(
         "Accounts",
         "Session",
         "SessionData",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -221,9 +212,6 @@ let package = Package(
         "SessionData",
         "FeatureScopes",
         "Metadata",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     // MARK: - Entrypoints
@@ -297,9 +285,6 @@ let package = Package(
           name: "AsyncAlgorithms",
           package: "swift-async-algorithms"
         ),
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -307,17 +292,11 @@ let package = Package(
       dependencies: [
         // Base
         "Commons"
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
       name: "Localization",
-      dependencies: [],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
-      ]
+      dependencies: []
     ),
     .target(
       name: "Features",
@@ -325,9 +304,6 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -339,9 +315,6 @@ let package = Package(
         "Features",
         "Resources",
         "DatabaseOperations",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -352,9 +325,6 @@ let package = Package(
         "Features",
         "FeatureScopes",
         "UICommons",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -389,9 +359,6 @@ let package = Package(
         .process("Fonts/Inter Thin.otf"),
         .process("Fonts/Inter Italic.otf"),
         .process("Fonts/Inter Light Italic.otf"),
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -402,9 +369,6 @@ let package = Package(
         "CommonModels",
         // Vendor
         "SQLCipher",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -413,9 +377,6 @@ let package = Package(
         "CommonModels",
         "Commons",
         "Features",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -427,9 +388,6 @@ let package = Package(
         "NetworkOperations",
         "Metadata",
         "Users",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(
@@ -501,9 +459,6 @@ let package = Package(
           name: "Aegithalos",
           package: "Aegithalos"
         ),
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     // MARK: - Modules
@@ -514,9 +469,6 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -533,9 +485,6 @@ let package = Package(
         "Accounts",
         "Session",
         "NetworkOperations",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -547,9 +496,6 @@ let package = Package(
         "Features",
         // Modules
         "Accounts",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -569,9 +515,6 @@ let package = Package(
         "NetworkOperations",
         "DatabaseOperations",
         "Session",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -591,9 +534,6 @@ let package = Package(
           name: "Aegithalos",
           package: "Aegithalos"
         ),
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -615,9 +555,6 @@ let package = Package(
         "SessionData",
         "DatabaseOperations",
         "NetworkOperations",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -635,9 +572,6 @@ let package = Package(
           name: "Aegithalos",
           package: "Aegithalos"
         ),
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -654,9 +588,6 @@ let package = Package(
         "Session",
         "NetworkOperations",
         "Metadata",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -669,9 +600,6 @@ let package = Package(
         "Database",
         // Modules
         "Accounts",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -688,9 +616,6 @@ let package = Package(
         "Accounts",
         "Session",
         "DatabaseOperations",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -700,9 +625,6 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -723,9 +645,6 @@ let package = Package(
         "Resources",
         "SessionData",
         "Metadata",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -735,9 +654,6 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -755,9 +671,6 @@ let package = Package(
         "DatabaseOperations",
         "NetworkOperations",
         "Users",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -767,9 +680,6 @@ let package = Package(
         "Commons",
         "CommonModels",
         "Features",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -789,9 +699,6 @@ let package = Package(
         "Users",
         "Resources",
         "Metadata",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     // MARK: - Tests
@@ -882,9 +789,6 @@ let package = Package(
         "SharedUIComponents",
         "CoreTest",
         "TestExtensions",
-      ],
-      swiftSettings: [
-        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(
@@ -961,5 +865,5 @@ let package = Package(
       ]
     ),
   ],
-  swiftLanguageModes: [.v5]
+  swiftLanguageModes: [.v6]
 )

@@ -76,10 +76,10 @@ extension ResourcePermissionsDetailsViewController {
   @Sendable internal func activate() async {
     await consumingErrors(
       errorDiagnostics: "Resource permissions details updates broken!",
-      fallback: {
+      fallback: { @Sendable in
         try? await self.navigationToSelf.revert()
       },
-      {
+      { @Sendable in
         for try await resource in self.resourceController.state {
           try await self.update(resource.value)
         }

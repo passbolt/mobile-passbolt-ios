@@ -27,9 +27,9 @@ import class Foundation.Bundle
 
 // MARK: - Interface
 
-public struct ApplicationMeta {
+public struct ApplicationMeta: Sendable {
 
-  public var applicationVersion: () -> String
+  public var applicationVersion: @Sendable () -> String
 }
 
 extension ApplicationMeta: StaticFeature {
@@ -49,6 +49,7 @@ extension ApplicationMeta {
 
   fileprivate static var live: Self {
 
+    @Sendable
     func applicationVersion() -> String {
       Bundle.main
         .infoDictionary?["CFBundleShortVersionString"]

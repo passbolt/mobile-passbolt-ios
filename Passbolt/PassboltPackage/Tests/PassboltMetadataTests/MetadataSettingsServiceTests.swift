@@ -26,7 +26,7 @@ import XCTest
 
 @testable import PassboltMetadata
 
-final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettingsService> {
+final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettingsService>, @unchecked Sendable {
   override class var testedImplementationScope: any FeaturesScope.Type { SessionScope.self }
 
   override class func testedImplementationRegister(
