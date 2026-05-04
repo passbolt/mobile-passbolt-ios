@@ -46,7 +46,7 @@ internal struct ResourceDetailsView: ControlledView {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
           IconButton(
             iconName: .more,
-            action: self.controller.showMenu
+            action: { await self.controller.showMenu() }
           )
           .accessibility(identifier: "resource.details.more.button")
         }
@@ -229,7 +229,7 @@ internal struct ResourceDetailsView: ControlledView {
   private func createAction(
     for action: ResourceDetailsFieldViewModel.Action,
     path: ResourceType.FieldPath
-  ) -> () async throws -> Void {
+  ) -> @Sendable () async throws -> Void {
     switch action {
     case .copy:
       return { () async throws -> Void in
@@ -242,7 +242,7 @@ internal struct ResourceDetailsView: ControlledView {
       }
 
     case .hide:
-      return { () async throws -> Void in
+      return { @MainActor () async throws -> Void in
         self.controller.coverFieldValue(path: path)
       }
     }
@@ -289,7 +289,7 @@ internal struct ResourceDetailsView: ControlledView {
     switch virtualField {
     case .location(let location):
       CommonListRow(
-        contentAction: self.controller.showLocationDetails,
+        contentAction: { await self.controller.showLocationDetails() },
         content: {
           ResourceFieldView(
             name: "resource.detail.section.location",
@@ -298,12 +298,12 @@ internal struct ResourceDetailsView: ControlledView {
             }
           )
         },
-        accessory: DisclosureIndicatorImage.init
+        accessory: { DisclosureIndicatorImage() }
       )
 
     case .tags(let tags):
       CommonListRow(
-        contentAction: self.controller.showTagsDetails,
+        contentAction: { await self.controller.showTagsDetails() },
         content: {
           ResourceFieldView(
             name: "resource.detail.section.tags",
@@ -312,7 +312,7 @@ internal struct ResourceDetailsView: ControlledView {
             }
           )
         },
-        accessory: DisclosureIndicatorImage.init
+        accessory: { DisclosureIndicatorImage() }
       )
     case .expiration(let isExpired, let expiryFormat):
       CommonListRow(

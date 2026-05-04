@@ -257,12 +257,12 @@ extension TagsExplorerViewController {
   func presentResourceMenu(_ resourceID: Resource.ID) async {
     await consumingErrors {
       let features: Features =
-        try features
+        try await features
         .branchIfNeeded(
           scope: ResourceScope.self,
           context: resourceID
         )
-      let navigationToResourceMenu: NavigationToResourceContextualMenu = try features.instance()
+      let navigationToResourceMenu: NavigationToResourceContextualMenu = try await features.instance()
       try await navigationToResourceMenu.perform(context: .init())
     }
   }

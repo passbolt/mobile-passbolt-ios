@@ -28,18 +28,19 @@ import Metadata
 import Resources
 
 public final class MetadataPinnedKeyValidationDialogViewController: ViewController {
+
   public typealias FailureReason = MetadataKeysService.KeyValidationResult.FailureReason
 
-  public struct Context {
+  public struct Context: Sendable {
 
     internal let reason: FailureReason
-    internal let onTrustedKey: () async throws -> Void
-    internal let onCancel: (() async -> Void)?
+    internal let onTrustedKey: @Sendable () async throws -> Void
+    internal let onCancel: (@Sendable () async -> Void)?
 
     public init(
       reason: FailureReason,
-      onTrustedKey: @escaping () async throws -> Void,
-      onCancel: (() async -> Void)? = .none
+      onTrustedKey: @Sendable @escaping () async throws -> Void,
+      onCancel: (@Sendable () async -> Void)? = .none
     ) {
       self.reason = reason
       self.onTrustedKey = onTrustedKey
@@ -47,7 +48,8 @@ public final class MetadataPinnedKeyValidationDialogViewController: ViewControll
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
+
     internal let reason: FailureReason
 
     internal var isChanged: Bool {
@@ -142,7 +144,7 @@ public final class MetadataPinnedKeyValidationDialogViewController: ViewControll
   }
 
   private func revertNavigation() async {
-    await consumingErrors {
+    await consumingErrors { @MainActor in
       let navigationToSelf: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
       await navigationToSelf.revertCatching()
     }

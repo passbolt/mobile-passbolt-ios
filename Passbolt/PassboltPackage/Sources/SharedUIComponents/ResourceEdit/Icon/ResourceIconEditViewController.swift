@@ -27,7 +27,7 @@ import Resources
 @MainActor
 public final class ResourceIconEditViewController: ViewController {
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     internal var selectedColorHex: Color.Hex?
     internal var defaultColorSelected: Bool { selectedColorHex == nil }
 

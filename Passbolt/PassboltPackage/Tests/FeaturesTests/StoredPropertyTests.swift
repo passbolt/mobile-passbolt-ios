@@ -157,11 +157,11 @@ final class StoredPropertyTests: LoadableFeatureTestCase<TestStoredProperty> {
 
 typealias TestStoredProperty = StoredProperty<TestStoredPropertyDescription>
 
-enum TestStoredPropertyDescription: StoredPropertyDescription {
+enum TestStoredPropertyDescription: @MainActor StoredPropertyDescription {
 
   typealias Value = Int
 
-  static var shared: Bool = true
+  @MainActor static var shared: Bool = true
 
   static var key: OSStoredPropertyKey { "test" }
 }

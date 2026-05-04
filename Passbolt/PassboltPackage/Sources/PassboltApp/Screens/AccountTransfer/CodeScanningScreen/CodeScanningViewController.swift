@@ -139,7 +139,7 @@ internal final class CodeScanningViewController: ViewController {
     }
   }
 
-  internal func showHelp() async {
+  @Sendable internal func showHelp() async {
     await consumingErrors {
       try await navigationToHelp.perform(
         context: [

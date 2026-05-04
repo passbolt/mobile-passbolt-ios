@@ -24,7 +24,7 @@
 import CommonModels
 import Features
 
-public struct ResourceEditPreparation {
+public struct ResourceEditPreparation: Sendable {
 
   public var prepareNew:
     @Sendable (

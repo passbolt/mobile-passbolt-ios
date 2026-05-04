@@ -101,12 +101,12 @@ internal final class MainTabsViewController: ViewController {
       guard let destination = await self.initialModal() else { return }
       switch destination {
       case .biometrics:
-        let navigationToBiometricsSetup: NavigationToBiometricsSetup? = try self.features.instance()
+        let navigationToBiometricsSetup: NavigationToBiometricsSetup? = try await self.features.instance()
         await navigationToBiometricsSetup?
           .performCatching()
 
       case .autofillSetup:
-        let navigationToExtensionSetupSheet: NavigationToExtensionSetupSheet = try self.features.instance()
+        let navigationToExtensionSetupSheet: NavigationToExtensionSetupSheet = try await self.features.instance()
         await navigationToExtensionSetupSheet
           .performCatching(
             context: .init(

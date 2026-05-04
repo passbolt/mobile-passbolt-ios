@@ -109,7 +109,7 @@ extension AccountExportAuthorizationController {
     self.viewState.update(\.passphrase, to: passphraseValidator(passphrase))
   }
 
-  internal final func authorizeWithPassphrase() async {
+  @Sendable internal final func authorizeWithPassphrase() async {
     let validatedPassphrase: Validated<Passphrase> = await self.passphraseValidator(self.viewState.current.passphrase)
     do {
       let passphrase: Passphrase = try validatedPassphrase.validValue
@@ -124,7 +124,7 @@ extension AccountExportAuthorizationController {
     }
   }
 
-  internal final func authorizeWithBiometrics() async {
+  @Sendable internal final func authorizeWithBiometrics() async {
     do {
       try await accountExport.authorize(.biometrics)
       try await navigationToQRCodeExport.perform()

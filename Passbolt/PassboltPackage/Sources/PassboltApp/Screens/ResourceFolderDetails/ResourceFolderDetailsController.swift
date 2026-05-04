@@ -93,7 +93,7 @@ internal final class ResourceFolderDetailsController: ViewController {
                 )
               }
             }
-          updateView { viewState in
+          await updateView { viewState in
             viewState.folderName = resourceFolder.name
             viewState.folderLocation = resourceFolder.path.map(\.name)
             viewState.folderPermissionItems = folderPermissionsItems
@@ -119,7 +119,7 @@ extension ResourceFolderDetailsController {
 
 extension ResourceFolderDetailsController {
 
-  internal final func openLocationDetails() async throws {
+  @Sendable internal final func openLocationDetails() async throws {
     try await navigationToFolderLocationDetails.perform(context: context)
   }
 

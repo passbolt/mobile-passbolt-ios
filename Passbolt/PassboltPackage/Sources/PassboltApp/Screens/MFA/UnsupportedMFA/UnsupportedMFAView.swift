@@ -61,7 +61,7 @@ internal struct UnsupportedMFAView: ControlledView {
       ToolbarItem(placement: .topBarTrailing) {
         IconButton(
           iconName: .close,
-          action: self.controller.close
+          action: { await self.controller.close() }
         )
       }
     }

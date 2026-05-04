@@ -103,7 +103,7 @@ extension ResourcesListDisplayController {
     internal var suggestionFilter: (ResourceListItemDSV) -> Bool
     internal var createResource: (() async throws -> Void)?
     internal var selectResource: (Resource.ID) async throws -> Void
-    internal var resourceMenuAction: ((Resource.ID) async throws -> Void)?
+    internal var resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
     internal var pageSize: Int
 
     public init(
@@ -112,7 +112,7 @@ extension ResourcesListDisplayController {
       suggestionFilter: @escaping (ResourceListItemDSV) -> Bool,
       createResource: (() async throws -> Void)? = nil,
       selectResource: @escaping (Resource.ID) async throws -> Void,
-      resourceMenuAction: ((Resource.ID) async throws -> Void)?,
+      resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?,
       pageSize: Int = 50
     ) {
       self.baseFilter = baseFilter
@@ -125,7 +125,7 @@ extension ResourcesListDisplayController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var suggested: Array<ResourceListItemDSV>?
     internal var resources: Array<ResourceListItemDSV>
@@ -194,7 +194,7 @@ extension ResourcesListDisplayController {
     try await self.context.selectResource(id)
   }
 
-  internal var showResourceMenu: ((Resource.ID) async throws -> Void)? {
+  internal var showResourceMenuCallback: (@Sendable (Resource.ID) async throws -> Void)? {
     self.context.resourceMenuAction
   }
 }

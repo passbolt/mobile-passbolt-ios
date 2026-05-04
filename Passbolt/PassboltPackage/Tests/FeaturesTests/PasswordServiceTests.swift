@@ -97,11 +97,11 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
   // MARK: - Generation tests
 
   func test_generate_fetchesPoliciesAndGenerates() async throws {
-    var receivedConfiguration: SecretGenerator.Configuration?
+    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
     self.patch(
       \SecretGenerator.generate,
       with: { configuration in
-        receivedConfiguration = configuration
+        receivedConfiguration.set(configuration)
         return "generated-from-policies"
       }
     )
@@ -110,8 +110,8 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
     let result: String = try await generator.generate()
 
     XCTAssertEqual(result, "generated-from-policies")
-    XCTAssertNotNil(receivedConfiguration)
-    XCTAssertEqual(receivedConfiguration?.passwordGeneratorSettings.length, 20)
+    XCTAssertNotNil(receivedConfiguration.get())
+    XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 20)
   }
 
   func test_generate_whenFetchFails_usesDefaultConfiguration() async throws {
@@ -122,11 +122,11 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
       }
     )
 
-    var receivedConfiguration: SecretGenerator.Configuration?
+    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
     self.patch(
       \SecretGenerator.generate,
       with: { configuration in
-        receivedConfiguration = configuration
+        receivedConfiguration.set(configuration)
         return "generated-from-default"
       }
     )
@@ -135,10 +135,13 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
     let result: String = try await generator.generate()
 
     XCTAssertEqual(result, "generated-from-default")
-    XCTAssertNotNil(receivedConfiguration)
-    XCTAssertEqual(receivedConfiguration?.defaultGenerator, SecretGenerator.Configuration.default.defaultGenerator)
+    XCTAssertNotNil(receivedConfiguration.get())
     XCTAssertEqual(
-      receivedConfiguration?.passwordGeneratorSettings.length,
+      receivedConfiguration.get()?.defaultGenerator,
+      SecretGenerator.Configuration.default.defaultGenerator
+    )
+    XCTAssertEqual(
+      receivedConfiguration.get()?.passwordGeneratorSettings.length,
       SecretGenerator.Configuration.default.passwordGeneratorSettings.length
     )
   }
@@ -164,11 +167,11 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
       }
     )
 
-    var receivedConfiguration: SecretGenerator.Configuration?
+    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
     self.patch(
       \SecretGenerator.entropy,
       with: { _, configuration in
-        receivedConfiguration = configuration
+        receivedConfiguration.set(configuration)
         return .init(rawValue: 80)
       }
     )
@@ -177,9 +180,9 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
     let result: Entropy = await generator.entropy("test-secret")
 
     XCTAssertEqual(result.rawValue, 80)
-    XCTAssertNotNil(receivedConfiguration)
+    XCTAssertNotNil(receivedConfiguration.get())
     XCTAssertEqual(
-      receivedConfiguration?.passwordGeneratorSettings.length,
+      receivedConfiguration.get()?.passwordGeneratorSettings.length,
       SecretGenerator.Configuration.default.passwordGeneratorSettings.length
     )
   }
@@ -294,11 +297,11 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
       with: { _, _ in .init(rawValue: 100) }
     )
 
-    var checkerCalled: Bool = false
+    let checkerCalled: CriticalState<Bool> = .init(false)
     self.patch(
       \PwnedPasswordChecker.check,
       with: { _ in
-        checkerCalled = true
+        checkerCalled.set(true)
         return true
       }
     )
@@ -307,7 +310,7 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
     let result: PasswordService.SecretValidationResult = try await service.validate("strong-password")
 
     XCTAssertEqual(result, .valid)
-    XCTAssertFalse(checkerCalled)
+    XCTAssertFalse(checkerCalled.get())
   }
 
   func test_validate_throwsExternalCheckFailure_whenCheckerThrows() async throws {
@@ -362,23 +365,6 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService> {
     }
     catch {
       XCTFail("Unexpected error type: \(error)")
-    }
-  }
-}
-
-// MARK: - Test Helpers
-
-extension PasswordService.SecretValidationResult: @retroactive Equatable {
-
-  public static func == (
-    lhs: PasswordService.SecretValidationResult,
-    rhs: PasswordService.SecretValidationResult
-  ) -> Bool {
-    switch (lhs, rhs) {
-    case (.valid, .valid), (.weak, .weak), (.pwned, .pwned):
-      return true
-    default:
-      return false
     }
   }
 }

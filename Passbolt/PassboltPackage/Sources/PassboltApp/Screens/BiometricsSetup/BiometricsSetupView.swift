@@ -73,7 +73,7 @@ private struct InfoView: View {
   private let primaryButtonTitle: DisplayableString
   private let primaryButtonAction: () async -> Void
   private let secondaryButtonTitle: DisplayableString?
-  private let secondaryButtonAction: (() async -> Void)?
+  private let secondaryButtonAction: (@Sendable () async -> Void)?
 
   fileprivate init(
     icon: ImageNameConstant,
@@ -124,7 +124,7 @@ private struct InfoView: View {
         if let secondaryButtonTitle, let secondaryButtonAction {
           SecondaryButton(
             title: secondaryButtonTitle,
-            action: secondaryButtonAction
+            action: { await secondaryButtonAction() }
           )
         }
       }

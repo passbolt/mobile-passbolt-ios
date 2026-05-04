@@ -28,14 +28,14 @@ public struct ResourceDetailsTagListItemView: View {
 
   private let name: String
   private let shared: Bool
-  private let action: (() -> Void)?
-  private let menuAction: (() -> Void)?
+  private let action: (@Sendable () -> Void)?
+  private let menuAction: (@Sendable () -> Void)?
 
   public init(
     name: String,
     shared: Bool,
-    action: (() -> Void)?,
-    menuAction: (() -> Void)?
+    action: (@Sendable () -> Void)?,
+    menuAction: (@Sendable () -> Void)?
   ) {
     self.name = name
     self.shared = shared

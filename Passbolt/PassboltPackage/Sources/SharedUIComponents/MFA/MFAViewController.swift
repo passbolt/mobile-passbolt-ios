@@ -27,7 +27,7 @@ import Session
 public final class MFAViewController: ViewController {
   public typealias Context = Array<SessionMFAProvider>
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     public var currentProvider: SessionMFAProvider
     public var isLoading: Bool = false
   }
@@ -121,7 +121,7 @@ public final class MFAViewController: ViewController {
 
   @Sendable internal func close() async {
     await consumingErrors {
-      let session: Session = try features.instance()
+      let session: Session = try await features.instance()
       await session.close(.none)
     }
   }

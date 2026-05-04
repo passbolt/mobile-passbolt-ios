@@ -48,11 +48,11 @@ final class PwnedPasswordCheckerTests: LoadableFeatureTestCase<PwnedPasswordChec
   // prefix = "5BAA6", suffix = "1E4C9B93F3F0682250B6CF8331B7EE68FD8"
 
   func test_check_returnsFalse_whenSuffixFoundInResponse() async throws {
-    var receivedPrefix: String?
+    let receivedPrefix: CriticalState<String?> = .init(nil)
     self.patch(
       \PwnedPasswordCheckNetworkOperation.execute,
       with: { prefix in
-        receivedPrefix = prefix
+        receivedPrefix.set(prefix)
         return "0018A45C4D1DEF81644B54AB7F969B88D65:1\r\n"
           + "1E4C9B93F3F0682250B6CF8331B7EE68FD8:3861493\r\n"
           + "00A8DAE4228F95A116BCA6B2C3834E03F30:2\r\n"
@@ -63,7 +63,7 @@ final class PwnedPasswordCheckerTests: LoadableFeatureTestCase<PwnedPasswordChec
     let result: Bool = try await checker.check("password")
 
     XCTAssertFalse(result)
-    XCTAssertEqual(receivedPrefix, "5BAA6")
+    XCTAssertEqual(receivedPrefix.get(), "5BAA6")
   }
 
   func test_check_returnsTrue_whenSuffixNotInResponse() async throws {

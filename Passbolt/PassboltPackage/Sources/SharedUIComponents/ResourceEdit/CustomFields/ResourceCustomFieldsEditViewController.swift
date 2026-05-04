@@ -27,7 +27,7 @@ import Resources
 @MainActor
 public final class ResourceCustomFieldsEditViewController: ViewController {
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var customFields: Array<CustomFieldModel> = .init()
   }

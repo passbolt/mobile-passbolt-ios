@@ -68,7 +68,7 @@ public struct ResourceTagsListView: View {
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
   private let loadMoreAction: @Sendable () async -> Void
-  private let createAction: (() async throws -> Void)?
+  private let createAction: (@Sendable () async throws -> Void)?
   private let tagTapAction: (ResourceTag.ID) async throws -> Void
 
   public init(
@@ -78,7 +78,7 @@ public struct ResourceTagsListView: View {
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
     loadMoreAction: @escaping @Sendable () async -> Void,
-    createAction: (() async throws -> Void)?,
+    createAction: (@Sendable () async throws -> Void)?,
     tagTapAction: @escaping (ResourceTag.ID) async throws -> Void
   ) {
     self.tags = tags

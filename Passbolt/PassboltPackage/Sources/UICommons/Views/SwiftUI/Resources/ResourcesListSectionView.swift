@@ -28,14 +28,14 @@ public struct ResourcesListSectionView: View {
 
   private let title: DisplayableString?
   @Binding private var resources: Array<ResourceListItemDSV>
-  private let tapAction: (Resource.ID) async throws -> Void
-  private let menuAction: ((Resource.ID) async throws -> Void)?
+  private let tapAction: @Sendable (Resource.ID) async throws -> Void
+  private let menuAction: (@Sendable (Resource.ID) async throws -> Void)?
 
   public init(
     title: DisplayableString? = .none,
     resources: Binding<Array<ResourceListItemDSV>>,
-    tapAction: @escaping (Resource.ID) async throws -> Void,
-    menuAction: ((Resource.ID) async throws -> Void)? = .none
+    tapAction: @escaping @Sendable (Resource.ID) async throws -> Void,
+    menuAction: (@Sendable (Resource.ID) async throws -> Void)? = .none
   ) {
     self.title = title
     self._resources = resources
@@ -71,36 +71,43 @@ public struct ResourcesListSectionView: View {
           self.resources,
           id: \ResourceListItemDSV.id
         ) { resource in
-          ResourceListItemView(
-            name: resource.name,
-            username: resource.username,
-            isExpired: resource.isExpired,
-            icon: resource.icon,
-            resourceTypeSlug: resource.typeInfo.typeSlug,
-            contentAction: {
-              try await self.tapAction(resource.id)
-            },
-            rightAction: self.menuAction.map { action in
-              { try await action(resource.id) }
-            },
-            rightAccessory: {
-              if case .none = self.menuAction {
-                EmptyView()
-              }
-              else {
-                Image(named: .more)
-                  .resizable()
-                  .aspectRatio(1, contentMode: .fit)
-                  .foregroundColor(Color.passboltIcon)
-                  .frame(width: 44)
-                  .padding(8)
-              }
-            }
-          )
+          listItem(for: resource)
         }
       }
       .listSectionSeparator(.hidden)
       .backgroundColor(.passboltBackground)
     }  // else there is no section
+  }
+
+  private func listItem(for resource: ResourceListItemDSV) -> some View {
+    ResourceListItemView(
+      name: resource.name,
+      username: resource.username,
+      isExpired: resource.isExpired,
+      icon: resource.icon,
+      resourceTypeSlug: resource.typeInfo.typeSlug,
+      contentAction: {
+        try await self.tapAction(resource.id)
+      },
+      rightAction:
+        self.menuAction.map { action in
+          { @Sendable in
+            try await action(resource.id)
+          }
+        },
+      rightAccessory: {
+        if case .none = self.menuAction {
+          EmptyView()
+        }
+        else {
+          Image(named: .more)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .foregroundColor(Color.passboltIcon)
+            .frame(width: 44)
+            .padding(8)
+        }
+      }
+    )
   }
 }

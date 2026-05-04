@@ -23,7 +23,7 @@
 
 import CommonModels
 
-public struct UserGroupListRowViewModel {
+public struct UserGroupListRowViewModel: Sendable {
 
   public let id: UserGroup.ID
   public var name: DisplayableString

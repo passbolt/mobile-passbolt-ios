@@ -131,7 +131,7 @@ internal final class ResourcePermissionEditListController: @MainActor ViewContro
           await self?.saveChanges()
         },
         onCancel: { [weak self] in
-          await consumingErrors {
+          await consumingErrors { [weak self] in
             try await self?.navigationToMetadataPinnedKeyValidation.revert()
           }
         }

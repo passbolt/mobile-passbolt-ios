@@ -27,17 +27,17 @@ import Resources
 @MainActor
 public final class ResourceTextEditViewController: ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
     public let textPath: Resource.FieldPath
     public let title: DisplayableString
     public let fieldName: DisplayableString
     public let description: DisplayableString
     public let action: Action?
 
-    public struct Action {
+    public struct Action: Sendable {
       public let title: DisplayableString
       public let icon: ImageNameConstant
-      public let action: () async throws -> Void
+      public let action: @Sendable () async throws -> Void
     }
   }
   private struct LocalState: Equatable {
@@ -45,7 +45,7 @@ public final class ResourceTextEditViewController: ViewController {
     fileprivate var editedFields: Set<Resource.FieldPath>
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     internal var text: Validated<String>
     internal var title: DisplayableString
     internal var fieldName: DisplayableString

@@ -80,7 +80,7 @@ public final class ResourcesListViewController: ViewController {
 
 extension ResourcesListViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
 
     internal let title: DisplayableString
     internal let titleIconName: ImageNameConstant
@@ -103,25 +103,25 @@ extension ResourcesListViewController {
     }
   }
 
-  public struct Callbacks {
-    internal let suggestionFilter: ((ResourceListItemDSV) -> Bool)?
-    internal let onClose: (() -> Void)?
-    internal let onPresentationMenuTap: () async throws -> Void
-    internal let onAvatarTap: () async throws -> Void
-    internal let createResource: () async throws -> Void
-    internal let selectResource: (Resource.ID) async throws -> Void
-    internal let contextualMenuAction: ((Resource.ID) async throws -> Void)?
-    internal let backAction: (() async throws -> Void)?
+  public struct Callbacks: Sendable {
+    internal let suggestionFilter: (@Sendable (ResourceListItemDSV) -> Bool)?
+    internal let onClose: (@Sendable () async -> Void)?
+    internal let onPresentationMenuTap: @Sendable () async throws -> Void
+    internal let onAvatarTap: @Sendable () async throws -> Void
+    internal let createResource: @Sendable () async throws -> Void
+    internal let selectResource: @Sendable (Resource.ID) async throws -> Void
+    internal let contextualMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
+    internal let backAction: (@Sendable () async throws -> Void)?
 
     public init(
-      suggestionFilter: ((ResourceListItemDSV) -> Bool)? = nil,
-      onClose: (() -> Void)? = nil,
-      onPresentationMenuTap: @escaping () async throws -> Void,
-      onAvatarTap: @escaping () async throws -> Void,
-      createResource: @escaping () async throws -> Void,
-      selectResource: @escaping (Resource.ID) async throws -> Void,
-      contextualMenuAction: ((Resource.ID) async throws -> Void)? = .none,
-      backAction: (() async throws -> Void)?
+      suggestionFilter: (@Sendable (ResourceListItemDSV) -> Bool)? = nil,
+      onClose: (@Sendable () async -> Void)? = nil,
+      onPresentationMenuTap: @Sendable @escaping () async throws -> Void,
+      onAvatarTap: @Sendable @escaping () async throws -> Void,
+      createResource: @Sendable @escaping () async throws -> Void,
+      selectResource: @Sendable @escaping (Resource.ID) async throws -> Void,
+      contextualMenuAction: (@Sendable (Resource.ID) async throws -> Void)? = .none,
+      backAction: (@Sendable () async throws -> Void)?
     ) {
       self.suggestionFilter = suggestionFilter
       self.onClose = onClose
@@ -134,7 +134,7 @@ extension ResourcesListViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var title: DisplayableString
     internal var titleIconName: ImageNameConstant
@@ -145,7 +145,7 @@ extension ResourcesListViewController {
 
 extension ResourcesListViewController {
 
-  internal final func closeExtension() {
-    self.context.callbacks.onClose?()
+  internal final func closeExtension() async {
+    await self.context.callbacks.onClose?()
   }
 }

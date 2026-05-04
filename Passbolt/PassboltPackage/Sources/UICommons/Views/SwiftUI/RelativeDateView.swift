@@ -24,7 +24,7 @@
 import Commons
 import SwiftUI
 
-public struct ResourceRelativeDateViewModel {
+public struct ResourceRelativeDateViewModel: Sendable {
   let relativeDate: String
   let intervalNumber: String
   let pastDatePrefix: DisplayableString?

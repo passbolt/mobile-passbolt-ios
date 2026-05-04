@@ -79,7 +79,7 @@ extension SnackBarMessageEvent {
 /// Execute provided operation with automatically
 /// consumed errors.
 @_disfavoredOverload @_transparent public func consumingErrors(
-  @_implicitSelfCapture _ operation: () async throws -> Void
+  @_implicitSelfCapture _ operation: @Sendable () async throws -> Void
 ) async {
   do {
     try await operation()
@@ -93,7 +93,7 @@ extension SnackBarMessageEvent {
 /// consumed errors and additional error diagnostics.
 @_disfavoredOverload @_transparent public func consumingErrors(
   errorDiagnostics: StaticString,
-  @_implicitSelfCapture _ operation: () async throws -> Void,
+  @_implicitSelfCapture _ operation: @Sendable () async throws -> Void,
   file: StaticString = #fileID,
   line: UInt = #line
 ) async {

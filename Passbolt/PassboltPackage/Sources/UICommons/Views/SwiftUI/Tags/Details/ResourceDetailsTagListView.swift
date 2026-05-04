@@ -28,15 +28,15 @@ public struct ResourceDetailsTagListView: View {
 
   private let tags: OrderedSet<ResourceTag>
   private let contentEmpty: Bool
-  private let createAction: (() -> Void)?
-  private let tagTapAction: ((ResourceTag.ID) -> Void)?
-  private let tagMenuAction: ((ResourceTag.ID) -> Void)?
+  private let createAction: (@Sendable () -> Void)?
+  private let tagTapAction: (@Sendable (ResourceTag.ID) -> Void)?
+  private let tagMenuAction: (@Sendable (ResourceTag.ID) -> Void)?
 
   public init(
     tags: OrderedSet<ResourceTag>,
-    createAction: (() -> Void)?,
-    tagTapAction: ((ResourceTag.ID) -> Void)?,
-    tagMenuAction: ((ResourceTag.ID) -> Void)?
+    createAction: (@Sendable () -> Void)?,
+    tagTapAction: (@Sendable (ResourceTag.ID) -> Void)?,
+    tagMenuAction: (@Sendable (ResourceTag.ID) -> Void)?
   ) {
     self.tags = tags
     self.contentEmpty = tags.isEmpty
@@ -47,7 +47,7 @@ public struct ResourceDetailsTagListView: View {
 
   public var body: some View {
     List {
-      if let createAction: () -> Void = self.createAction {
+      if let createAction: @Sendable () -> Void = self.createAction {
         ResourceListAddView(action: createAction)
       }  // else no create row
 

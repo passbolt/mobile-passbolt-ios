@@ -221,6 +221,9 @@ let package = Package(
         "SessionData",
         "FeatureScopes",
         "Metadata",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     // MARK: - Entrypoints
@@ -386,6 +389,9 @@ let package = Package(
         .process("Fonts/Inter Thin.otf"),
         .process("Fonts/Inter Italic.otf"),
         .process("Fonts/Inter Light Italic.otf"),
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -876,6 +882,9 @@ let package = Package(
         "SharedUIComponents",
         "CoreTest",
         "TestExtensions",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .testTarget(

@@ -45,7 +45,7 @@ public struct ResourcesListDisplayView: ControlledView {
         loadMoreAction: self.controller.loadMore,
         createAction: self.controller.createResource,
         resourceTapAction: self.controller.selectResource,
-        resourceMenuAction: self.controller.showResourceMenu
+        resourceMenuAction: self.controller.showResourceMenuCallback
       )
       .accessibilityIdentifier("resource.list.collection.view")
     }

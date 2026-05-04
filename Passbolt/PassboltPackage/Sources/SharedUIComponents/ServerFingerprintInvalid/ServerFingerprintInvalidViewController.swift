@@ -42,7 +42,7 @@ public final class ServerFingerprintInvalidViewController: ViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     let fingerprint: Fingerprint?
     var newKeyAccepted: Bool = false
   }

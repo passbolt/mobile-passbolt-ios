@@ -94,7 +94,7 @@ internal struct AccountSelectionView: ControlledView {
           if mode == .signIn {
             IconButton(
               iconName: .close,
-              action: self.controller.closeExtension
+              action: { self.controller.closeExtension() }
             )
           }
         }

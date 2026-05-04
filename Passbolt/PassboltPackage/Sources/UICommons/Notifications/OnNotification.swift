@@ -26,11 +26,11 @@ import SwiftUI
 private struct OnNotificationModifier: ViewModifier {
 
   private let notificationName: Notification.Name
-  private let handler: (Notification) async -> Void
+  private let handler: @Sendable (Notification) async -> Void
 
   fileprivate init(
     notificationName: Notification.Name,
-    handler: @escaping (Notification) async -> Void
+    handler: @escaping @Sendable (Notification) async -> Void
   ) {
     self.notificationName = notificationName
     self.handler = handler
@@ -53,7 +53,7 @@ extension View {
   ///  - handler: An asynchronous closure that is called when a notification with the specified name is posted. The closure receives the notification as its parameter.
   public func onNotification(
     named notificationName: Notification.Name,
-    perform handler: @escaping (Notification) async -> Void
+    perform handler: @escaping @Sendable (Notification) async -> Void
   ) -> some View {
     self.modifier(
       OnNotificationModifier(
@@ -69,7 +69,7 @@ extension View {
   ///  - handler: An asynchronous closure that is called when a notification with the specified name is posted. The closure does not receive any parameters.
   public func onNotification(
     named notificationName: Notification.Name,
-    perform handler: @escaping () async -> Void
+    perform handler: @escaping @Sendable () async -> Void
   ) -> some View {
     self.modifier(
       OnNotificationModifier(

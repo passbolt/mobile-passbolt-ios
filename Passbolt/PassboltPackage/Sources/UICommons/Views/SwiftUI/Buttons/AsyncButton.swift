@@ -28,14 +28,14 @@ where RegularView: View, LoadingView: View {
 
   @State private var runningTask: Task<Void, Never>?
   private let role: ButtonRole?
-  private let action: () async throws -> Void
+  private let action: @Sendable () async throws -> Void
   private let regularLabel: () -> RegularView
   private let loadingLabel: () -> LoadingView
   private let externalLoadingIndicator: Bool?
 
   public init(
     role: ButtonRole? = .none,
-    action: @MainActor @escaping () async throws -> Void,
+    action: @MainActor @Sendable @escaping () async throws -> Void,
     externalLoadingIndicator: Bool? = .none,
     @ViewBuilder regularLabel: @escaping () -> RegularView,
     @ViewBuilder loadingLabel: @escaping () -> LoadingView
@@ -49,7 +49,7 @@ where RegularView: View, LoadingView: View {
 
   public init(
     role: ButtonRole? = .none,
-    action: @MainActor @escaping () async throws -> Void,
+    action: @Sendable @MainActor @escaping () async throws -> Void,
     @ViewBuilder label: @escaping () -> RegularView
   ) where LoadingView == EmptyView {
     self.role = role
@@ -63,8 +63,8 @@ where RegularView: View, LoadingView: View {
     Button(
       role: self.role,
       action: {
-        if case .none = self.runningTask {
-          self.runningTask = .detached { @MainActor [action] () async -> Void in
+        if self.runningTask == nil {
+          self.runningTask = Task { @MainActor [action] in
             await consumingErrors {
               try await action()
             }

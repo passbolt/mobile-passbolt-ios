@@ -62,7 +62,7 @@ internal struct HomeView: ControlledView {
         ToolbarItem(placement: .navigationBarTrailing) {
           IconButton(
             iconName: .close,
-            action: self.controller.closeExtension
+            action: { self.controller.closeExtension() }
           )
           .tint(Color.passboltPrimaryText)
         }

@@ -25,7 +25,7 @@ import SwiftUI
 
 private struct HideTrailingItem: EnvironmentKey {
 
-  static let defaultValue: Bool = false
+  nonisolated static let defaultValue: Bool = false
 }
 
 extension EnvironmentValues {
@@ -38,7 +38,7 @@ extension EnvironmentValues {
 
 private struct HideLeadingItem: EnvironmentKey {
 
-  static let defaultValue: Bool = false
+  nonisolated static let defaultValue: Bool = false
 }
 
 extension EnvironmentValues {

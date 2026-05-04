@@ -122,9 +122,9 @@ public struct OverlappingAvatarStackView: View {
 
 extension OverlappingAvatarStackView {
 
-  public enum Item {
+  public enum Item: @unchecked Sendable {
 
-    case user(User.ID, avatarImage: () async -> Data?, isSuspended: Bool)
+    case user(User.ID, avatarImage: @Sendable () async -> Data?, isSuspended: Bool)
     case userGroup(UserGroup.ID)
   }
 }

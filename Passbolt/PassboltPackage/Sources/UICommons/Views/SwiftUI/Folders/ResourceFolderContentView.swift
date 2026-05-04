@@ -100,11 +100,10 @@ public struct ResourceFolderContentView: View {
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
   private let loadMoreAction: @Sendable () async -> Void
-  private let createAction: (() async throws -> Void)?
-  private let folderTapAction: (ResourceFolder.ID) async throws -> Void
-  private let resourceTapAction: (Resource.ID) async throws -> Void
-  private let resourceMenuAction: ((Resource.ID) async throws -> Void)?
-
+  private let createAction: (@Sendable () async throws -> Void)?
+  private let folderTapAction: @Sendable (ResourceFolder.ID) async throws -> Void
+  private let resourceTapAction: @Sendable (Resource.ID) async throws -> Void
+  private let resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
   public init(
     folderName: DisplayableString,
     isSearchResult: Bool,
@@ -118,10 +117,10 @@ public struct ResourceFolderContentView: View {
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
     loadMoreAction: @escaping @Sendable () async -> Void,
-    createAction: (() async throws -> Void)?,
-    folderTapAction: @escaping (ResourceFolder.ID) async throws -> Void,
-    resourceTapAction: @escaping (Resource.ID) async throws -> Void,
-    resourceMenuAction: ((Resource.ID) async throws -> Void)?
+    createAction: (@Sendable () async throws -> Void)?,
+    folderTapAction: @Sendable @escaping (ResourceFolder.ID) async throws -> Void,
+    resourceTapAction: @Sendable @escaping (Resource.ID) async throws -> Void,
+    resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
   ) {
     self.folderName = folderName
     self.isSearchResult = isSearchResult
@@ -155,9 +154,10 @@ public struct ResourceFolderContentView: View {
   }
 
   public var body: some View {
+
     if self.contentEmpty {
       ScrollView {
-        if let createAction: () async throws -> Void = self.createAction {
+        if let createAction: @Sendable () async throws -> Void = self.createAction {
           ResourceListAddView(action: createAction)
         }
         EmptyListView()
@@ -296,7 +296,7 @@ public struct ResourceFolderContentView: View {
   private func viewForRow(_ row: FolderContentRowData) -> some View {
     switch row {
     case .addResource:
-      if let createAction: () async throws -> Void = self.createAction {
+      if let createAction: @Sendable () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
           .frame(height: row.estimatedHeight)
       }
@@ -340,7 +340,7 @@ public struct ResourceFolderContentView: View {
         contentAction: {
           try await self.resourceTapAction(resource.id)
         },
-        rightAction: self.resourceMenuAction.map { action in
+        rightAction: self.resourceMenuAction.flatMap { action in
           { try await action(resource.id) }
         },
         rightAccessory: {

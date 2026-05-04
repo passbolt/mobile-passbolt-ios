@@ -64,7 +64,7 @@ internal struct AccountExportAuthorizationView: ControlledView {
       mainAction: self.controller.authorizeWithPassphrase,
       biometricsAvailability: state.biometricsAvailability,
       biometricsAction: self.controller.authorizeWithBiometrics,
-      supportActionView: EmptyView.init
+      supportActionView: { EmptyView() }
     )
     .task {  // auto use biometrics when able
       switch state.biometricsAvailability {

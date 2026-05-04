@@ -33,16 +33,16 @@ import struct OrderedCollections.OrderedDictionary
 
 public final class ResourceEditViewController: ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
 
     public var editingContext: ResourceEditingContext
     public var success: @Sendable (Resource) async -> Void
-    public var customOnSuccessNavigation: (() async throws -> Void)?
+    public var customOnSuccessNavigation: (@Sendable () async throws -> Void)?
 
     public init(
       editingContext: ResourceEditingContext,
       success: @escaping @Sendable (Resource) async -> Void = { _ in },
-      customOnSuccessNavigation: (() async throws -> Void)? = nil
+      customOnSuccessNavigation: (@Sendable () async throws -> Void)? = nil
     ) {
       self.editingContext = editingContext
       self.success = success
@@ -50,7 +50,7 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     // Name field - can be edited outside of the form sections
     internal var nameField: ResourceEditFieldViewModel?
     // All form fields except name field
@@ -179,7 +179,7 @@ public final class ResourceEditViewController: ViewController {
         else {
           return
         }
-        let countEntropy: (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
+        let countEntropy: @Sendable (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
           await secretGenerator.entropy(input)
         }
         let nameField: ResourceEditFieldViewModel? = await .init(
@@ -514,7 +514,8 @@ public final class ResourceEditViewController: ViewController {
 
   private func navigateToMetadataPinnedKeyValidation(reason: MetadataPinnedKeyValidationError.Reason) async {
     await consumingErrors {
-      let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try self.features.instance()
+      let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try await self.features
+        .instance()
       await navigationToInvalidMetadataKey.performCatching(
         context: .init(
           reason: reason,
@@ -528,7 +529,7 @@ public final class ResourceEditViewController: ViewController {
 @MainActor internal func prepareMainFormViewModel(
   for resource: Resource,
   edited: Set<ResourceType.FieldPath>,
-  countEntropy: (String) async -> Entropy
+  countEntropy: @Sendable (String) async -> Entropy
 ) async -> MainFormViewModel {
   let resourceTypeSlug: ResourceSpecification.Slug = resource.type.specification.slug
   guard resourceTypeSlug != .placeholder

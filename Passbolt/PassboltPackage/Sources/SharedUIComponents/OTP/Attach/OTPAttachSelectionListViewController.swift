@@ -172,10 +172,10 @@ extension OTPAttachSelectionListViewController {
       }
 
       if selected.typeInfo.type.contains(\.firstTOTP) {
-        self.viewState.update(\.confirmationAlert, to: .replace)
+        await self.viewState.update(\.confirmationAlert, to: .replace)
       }
       else {
-        self.viewState.update(\.confirmationAlert, to: .attach)
+        await self.viewState.update(\.confirmationAlert, to: .attach)
       }
     }
   }
@@ -201,12 +201,12 @@ extension OTPAttachSelectionListViewController {
           .error(message: "Attempting to attach OTP to a resource which has none or unavailable attached type!")
       }
 
-      let features: Features = try self.features.branch(
+      let features: Features = try await self.features.branch(
         scope: ResourceEditScope.self,
         context: editingContext
       )
 
-      let resourceEditForm: ResourceEditForm = try features.instance()
+      let resourceEditForm: ResourceEditForm = try await features.instance()
 
       if attachedOTPType != selected.typeInfo.type {
         try resourceEditForm.updateType(attachedOTPType)

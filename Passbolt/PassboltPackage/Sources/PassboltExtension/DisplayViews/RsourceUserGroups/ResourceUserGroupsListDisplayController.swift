@@ -77,7 +77,7 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
             )
           )
 
-          updateView { viewState in
+          await updateView { viewState in
             viewState.userGroups = filteredUserGroups
             viewState.hasMoreData = filteredUserGroups.count >= pageSize
             viewState.isLoadingMore = false

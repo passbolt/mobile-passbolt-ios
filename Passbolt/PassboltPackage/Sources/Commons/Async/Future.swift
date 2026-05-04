@@ -22,7 +22,7 @@
 //
 
 @Sendable public func future<Value>(
-  _ fulfill: (@escaping @Sendable (Result<Value, Error>) -> Void) -> Void
+  _ fulfill: @Sendable (@escaping @Sendable (Result<Value, Error>) -> Void) -> Void
 ) async throws -> Value {
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(
@@ -59,7 +59,7 @@
 }
 
 @Sendable public func futureValue<Value>(
-  _ fulfill: (@escaping @Sendable (Value) -> Void) -> Void
+  _ fulfill: @Sendable (@escaping @Sendable (Value) -> Void) -> Void
 ) async throws -> Value {
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(

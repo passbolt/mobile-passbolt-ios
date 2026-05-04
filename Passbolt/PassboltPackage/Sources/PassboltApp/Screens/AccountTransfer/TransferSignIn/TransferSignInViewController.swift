@@ -143,7 +143,7 @@ internal final class TransferSignInViewController: ViewController {
     }
   }
 
-  internal func presentHelpMenu() async {
+  @Sendable internal func presentHelpMenu() async {
     await consumingErrors {
       try await self.navigationToHelpMenu.perform(context: .init())
     }

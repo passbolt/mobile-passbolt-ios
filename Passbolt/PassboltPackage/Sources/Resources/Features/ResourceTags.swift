@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceTags {
+public struct ResourceTags: Sendable {
 
   public var filteredTagsList: @Sendable (ResourceTagsFilter) async throws -> Array<ResourceTagListItemDSV>
   public var details: @Sendable (ResourceTag.ID) async throws -> ResourceTag

@@ -46,16 +46,6 @@ internal final class UserGroupPermissionDetailsViewController: @MainActor ViewCo
 
     let users: Users = try features.instance()
 
-    func userAvatarImageFetch(_ userID: User.ID) async -> Data? {
-      do {
-        return try await users.userAvatarImage(userID)
-      }
-      catch {
-        error.logged()
-        return nil
-      }
-    }
-
     self.viewState = .init(
       initial: .init(
         permissionDetails: context,
@@ -64,7 +54,7 @@ internal final class UserGroupPermissionDetailsViewController: @MainActor ViewCo
           .map { user in
             .user(
               user.id,
-              avatarImage: { await userAvatarImageFetch(user.id) },
+              avatarImage: users.loadAvatar(for: user.id),
               isSuspended: user.isSuspended
             )
           }

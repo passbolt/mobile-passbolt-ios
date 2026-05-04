@@ -319,7 +319,7 @@ extension ResourceContextualMenuViewController {
     await consumingErrors {
       do {
         let resource: Resource = try await self.resourceController.state.value
-        let metadataKeysService: MetadataKeysService = try self.features.instance()
+        let metadataKeysService: MetadataKeysService = try await self.features.instance()
         try await metadataKeysService.ensureCanEncrypt(resource: resource, forSharing: true)
         try await self.navigationToSelf.revert()
         try await self.navigationToShare.perform(context: self.resourceID)
@@ -332,7 +332,7 @@ extension ResourceContextualMenuViewController {
 
   private func editPassword() async {
     await consumingErrors { [resourceID] in
-      let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+      let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
       try await self.navigationToSelf.revert()
       try await self.navigationToResourceEdit.perform(

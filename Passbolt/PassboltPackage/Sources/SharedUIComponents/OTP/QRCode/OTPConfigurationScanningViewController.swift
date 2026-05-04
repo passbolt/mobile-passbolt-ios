@@ -28,7 +28,7 @@ import Resources
 
 public final class OTPConfigurationScanningViewController: ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
 
     internal var totpPath: ResourceType.FieldPath
 
@@ -37,7 +37,7 @@ public final class OTPConfigurationScanningViewController: ViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var loading: Bool
     internal var isStandaloneOTP: Bool

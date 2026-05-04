@@ -114,10 +114,11 @@ extension NavigationTo {
     file: StaticString = #fileID,
     line: UInt = #line
   ) async {
+    let performAnimated = self.performAnimated
     await consumingErrors(
       errorDiagnostics: "Navigation perform failed!",
       {
-        try await self.performAnimated(
+        try await performAnimated(
           animated,
           context,
           file,
@@ -151,10 +152,11 @@ extension NavigationTo {
     line: UInt = #line
   ) async
   where Destination.TransitionContext == Void {
+    let performAnimated = self.performAnimated
     await consumingErrors(
       errorDiagnostics: "Navigation perform failed!",
       {
-        try await self.performAnimated(
+        try await performAnimated(
           animated,
           Void(),
           file,
@@ -185,10 +187,11 @@ extension NavigationTo {
     file: StaticString = #fileID,
     line: UInt = #line
   ) async {
+    let revertAnimated = self.revertAnimated
     await consumingErrors(
       errorDiagnostics: "Navigation revert failed!",
       {
-        try await self.revertAnimated(
+        try await revertAnimated(
           animated,
           file,
           line

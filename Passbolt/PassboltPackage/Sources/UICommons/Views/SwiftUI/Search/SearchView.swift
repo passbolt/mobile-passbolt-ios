@@ -202,7 +202,7 @@ extension SearchView where LeftAccessoryView == ImageWithPadding, RightAccessory
   }
 }
 
-private func defaultSearchImage() -> ImageWithPadding {
+@MainActor private func defaultSearchImage() -> ImageWithPadding {
   ImageWithPadding(
     4,
     named: .search

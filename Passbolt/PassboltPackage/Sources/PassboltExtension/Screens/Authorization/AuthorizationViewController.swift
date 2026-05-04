@@ -89,13 +89,13 @@ extension AuthorizationViewController {
 
   internal func loadAvatar() async {
     await consumingErrors {
-      let mediaDownloadOperation: MediaDownloadNetworkOperation = try features.instance()
+      let mediaDownloadOperation: MediaDownloadNetworkOperation = try await features.instance()
       guard let avatarURL: URLString = await self.viewState.current.avatarURL
       else {
         return
       }
       let data: Data = try await mediaDownloadOperation.execute(avatarURL)
-      self.viewState.update { state in
+      await self.viewState.update { state in
         state.avatarData = data
       }
     }
@@ -103,14 +103,14 @@ extension AuthorizationViewController {
 
   internal func back() async {
     await consumingErrors {
-      let navigationToSelf: NavigationToAuthorization = try features.instance()
+      let navigationToSelf: NavigationToAuthorization = try await features.instance()
       try await navigationToSelf.revert()
     }
   }
 
-  internal func presentHelp() async {
+  @Sendable internal func presentHelp() async {
     await consumingErrors {
-      let navigationToHelp: NavigationToHelpMenu = try features.instance()
+      let navigationToHelp: NavigationToHelpMenu = try await features.instance()
       try await navigationToHelp.perform()
     }
   }
@@ -159,13 +159,13 @@ extension AuthorizationViewController {
     }
     catch let mfaRequired as SessionMFAAuthorizationRequired {
       await consumingErrors {
-        let navigationToMFA: NavigationToMFA = try features.instance()
+        let navigationToMFA: NavigationToMFA = try await features.instance()
         try await navigationToMFA.perform(context: mfaRequired.mfaProviders)
       }
     }
     catch let error as ServerPGPFingeprintInvalid {
       await consumingErrors {
-        let navigationToFingerprintInvalid: NavigationToServerFingerprintInvalid = try features.instance()
+        let navigationToFingerprintInvalid: NavigationToServerFingerprintInvalid = try await features.instance()
         try await navigationToFingerprintInvalid.perform(
           context: .init(
             accountID: error.account.localID,

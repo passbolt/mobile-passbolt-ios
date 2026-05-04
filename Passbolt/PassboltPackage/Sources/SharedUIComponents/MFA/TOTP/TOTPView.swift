@@ -121,6 +121,7 @@ private struct OTPInputView: UIViewRepresentable {
       self.onCodeEntered = onCodeEntered
     }
 
+    @MainActor
     fileprivate func configure(_ view: UICommons.OTPInput) {
       cancellable = view.textPublisher
         .filter { $0.count == view.length }

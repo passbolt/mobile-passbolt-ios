@@ -25,27 +25,13 @@ import SwiftUI
 
 extension Binding {
 
-  func unwrapped<Wrapped>() -> Binding<Wrapped>?
-  where Value == Wrapped? {
-    guard let value: Wrapped = self.wrappedValue
-    else { return nil }
-
-    return .init(
-      get: { self.wrappedValue ?? value },
-      set: { (newValue: Value, transaction: Transaction) in
-        self.transaction(transaction).wrappedValue = newValue
-      }
-    )
-  }
-
-  func optionalSome<Wrapped>() -> Binding<Bool>
-  where Value == Wrapped? {
+  public func some<Wrapped>() -> Binding<Bool>
+  where Value == Optional<Wrapped>, Wrapped: Sendable {
     .init(
       get: { self.wrappedValue != nil },
-      set: { (newValue: Bool, transaction: Transaction) in
-        guard !newValue
-        else { return }  // can only remove value
-        self.transaction(transaction).wrappedValue = nil
+      set: { (newValue: Bool) in
+        guard !newValue else { return }  // can't set not nil
+        self.wrappedValue = .none
       }
     )
   }

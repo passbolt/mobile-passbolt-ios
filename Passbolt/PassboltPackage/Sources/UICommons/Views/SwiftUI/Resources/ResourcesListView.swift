@@ -79,9 +79,9 @@ public struct ResourcesListView: View {
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
   private let loadMoreAction: @Sendable () async -> Void
-  private let createAction: (() async throws -> Void)?
-  private let resourceTapAction: (Resource.ID) async throws -> Void
-  private let resourceMenuAction: ((Resource.ID) async throws -> Void)?
+  private let createAction: (@Sendable () async throws -> Void)?
+  private let resourceTapAction: @Sendable (Resource.ID) async throws -> Void
+  private let resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
 
   public init(
     suggestedResources: Array<ResourceListItemDSV>?,
@@ -91,9 +91,9 @@ public struct ResourcesListView: View {
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
     loadMoreAction: @escaping @Sendable () async -> Void,
-    createAction: (() async throws -> Void)?,
-    resourceTapAction: @escaping (Resource.ID) async throws -> Void,
-    resourceMenuAction: ((Resource.ID) async throws -> Void)?
+    createAction: (@Sendable () async throws -> Void)?,
+    resourceTapAction: @escaping @Sendable (Resource.ID) async throws -> Void,
+    resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
   ) {
     self.suggestedResources = suggestedResources
     self._resources = resources
@@ -180,7 +180,7 @@ public struct ResourcesListView: View {
         .backgroundColor(.passboltBackground)
 
     case .addResource:
-      if let createAction: () async throws -> Void = self.createAction {
+      if let createAction: @Sendable () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
           .frame(height: row.estimatedHeight)
       }
@@ -195,7 +195,7 @@ public struct ResourcesListView: View {
         contentAction: {
           try await self.resourceTapAction(resource.id)
         },
-        rightAction: self.resourceMenuAction.map { action in
+        rightAction: self.resourceMenuAction.flatMap { action in
           { try await action(resource.id) }
         },
         rightAccessory: {

@@ -27,7 +27,9 @@ import Resources
 
 @MainActor
 public final class ResourcePasswordEditViewController: ViewController {
-  public struct Context {
+
+  public struct Context: Sendable {
+
     internal var onFormDiscarded: @Sendable () async throws -> Void
 
     public init(
@@ -37,7 +39,7 @@ public final class ResourcePasswordEditViewController: ViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     internal var fields: IdentifiedArray<ResourceEditFieldViewModel>
   }
 
@@ -84,7 +86,7 @@ public final class ResourcePasswordEditViewController: ViewController {
         let update: (resource: Resource, localState: LocalState) = try update.value
         assert(update.resource.secretAvailable, "Can't edit resource without secret!")
 
-        let countEntropy: (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
+        let countEntropy: @Sendable (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
           await secretGenerator.entropy(input)
         }
 
@@ -141,7 +143,7 @@ public final class ResourcePasswordEditViewController: ViewController {
 @MainActor private func fields(
   for resource: Resource,
   edited: Set<ResourceType.FieldPath>,
-  countEntropy: (String) async -> Entropy
+  countEntropy: @Sendable (String) async -> Entropy
 ) async -> IdentifiedArray<ResourceEditFieldViewModel> {
   if resource.type.specification.slug == .placeholder {
     return .init()  // show no fields for placeholder type

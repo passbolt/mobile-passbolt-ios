@@ -165,27 +165,27 @@ extension ResourcesListViewController.Callbacks {
       .init(
         suggestionFilter: { requestedServiceIdentifiers.matches($0) },
         onClose: {
-          autofillContext.cancelAndCloseExtension()
+          await autofillContext.cancelAndCloseExtension()
         },
         onPresentationMenuTap: {
-          let navigationToHomePresentationMenu: NavigationToHomePresentationMenu = try features.instance()
+          let navigationToHomePresentationMenu: NavigationToHomePresentationMenu = try await features.instance()
           await navigationToHomePresentationMenu
             .performCatching()
         },
         onAvatarTap: {
-          let session: Session = try features.instance()
+          let session: Session = try await features.instance()
           await session.close(.none)
         },
         createResource: {
-          let resourceEditPreparation: ResourceEditPreparation = try features.instance()
-          let metadataSettingsService: MetadataSettingsService = try features.instance()
+          let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
+          let metadataSettingsService: MetadataSettingsService = try await features.instance()
 
           let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareNew(
             metadataSettingsService.typesSettings().defaultResourceTypeSlug,
             .none,
             requestedServiceIdentifiers.first.map { URLString(rawValue: $0.rawValue) }
           )
-          let navigationToResourceEdit: NavigationToResourceEdit = try features.instance()
+          let navigationToResourceEdit: NavigationToResourceEdit = try await features.instance()
 
           await navigationToResourceEdit
             .performCatching(
@@ -204,7 +204,7 @@ extension ResourcesListViewController.Callbacks {
             )
         },
         selectResource: selectResource(_:),
-        backAction: allowBack ? {} : .none
+        backAction: allowBack ? { @Sendable in } : .none
       )
   }
 }

@@ -53,6 +53,21 @@ public struct Users: Sendable {
   }
 }
 
+extension Users {
+
+  @Sendable public func loadAvatar(for userID: User.ID) -> @Sendable () async -> Data? {
+    {
+      do {
+        return try await userAvatarImage(userID)
+      }
+      catch {
+        error.logged()
+        return nil
+      }
+    }
+  }
+}
+
 extension Users: LoadableFeature {
 
   #if DEBUG
@@ -66,15 +81,4 @@ extension Users: LoadableFeature {
     )
   }
   #endif
-}
-
-extension Users {
-
-  @Sendable public func avatarImage(
-    for userID: User.ID
-  ) -> @Sendable () async -> Data? {
-    { [self] () async -> Data? in
-      try? await self.userAvatarImage(userID)
-    }
-  }
 }

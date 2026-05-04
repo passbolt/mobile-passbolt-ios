@@ -88,9 +88,9 @@ import UIKit
 
 // MARK: - Module-level storage
 
-private var snackBarState: SnackBarState?
-private var snackBarHostingController: UIHostingController<SnackBarContainerView>?
-private var snackBarContainerView: UIView?
+@MainActor private var snackBarState: SnackBarState?
+@MainActor private var snackBarHostingController: UIHostingController<SnackBarContainerView>?
+@MainActor private var snackBarContainerView: UIView?
 
 // MARK: - SnackBarState
 
@@ -126,7 +126,8 @@ private final class SnackBarState {
 
     eventSubscriptionTask = Task<Void, Error>
       .detached { [weak self] in
-        let handler: (@MainActor (SnackBarMessageEvent.Payload) -> Void)? = self?.handleSnackBarMessageEvent
+        let handler: (@MainActor @Sendable (SnackBarMessageEvent.Payload) -> Void)? =
+          self?.handleSnackBarMessageEvent
         try await SnackBarMessageEvent.subscribe(bufferSize: 8) {
           await handler?($0)
         }
@@ -240,9 +241,9 @@ private final class SnackBarState {
 private struct SnackBarContentView: View {
 
   private let message: SnackBarMessage
-  private let onDismiss: () -> Void
+  private let onDismiss: @MainActor () -> Void
 
-  fileprivate init(message: SnackBarMessage, onDismiss: @escaping () -> Void) {
+  fileprivate init(message: SnackBarMessage, onDismiss: @escaping @MainActor () -> Void) {
     self.message = message
     self.onDismiss = onDismiss
   }
@@ -286,13 +287,13 @@ private struct SnackBarContainerView: View {
   private let currentMessage: SnackBarMessage?
   private let isVisible: Bool
   private let keyboardHeight: CGFloat
-  private let onDismiss: () -> Void
+  private let onDismiss: @MainActor () -> Void
 
   fileprivate init(
     currentMessage: SnackBarMessage? = .none,
     isVisible: Bool = false,
     keyboardHeight: CGFloat = 0,
-    onDismiss: @escaping () -> Void = {}
+    onDismiss: @escaping @MainActor () -> Void = {}
   ) {
     self.currentMessage = currentMessage
     self.isVisible = isVisible

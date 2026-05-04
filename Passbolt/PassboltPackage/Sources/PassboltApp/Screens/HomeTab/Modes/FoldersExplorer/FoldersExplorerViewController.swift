@@ -284,7 +284,7 @@ extension FoldersExplorerViewController {
     folderID: ResourceFolder.ID?
   ) async {
     await consumingErrors {
-      let resourceCreatePreparation: ResourceCreatePreparation = try features.instance()
+      let resourceCreatePreparation: ResourceCreatePreparation = try await features.instance()
       let resourceCreatingContext: ResourceCreatingContext = try await resourceCreatePreparation.prepare()
       try await navigationToResouceCreateMenu.perform(
         context: .init(
@@ -306,13 +306,13 @@ extension FoldersExplorerViewController {
   internal func presentResourceMenu(_ resourceID: Resource.ID) async {
     await consumingErrors {
       let features: Features =
-        try features
+        try await features
         .branchIfNeeded(
           scope: ResourceScope.self,
           context: resourceID
         )
 
-      let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+      let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try await features.instance()
       try await navigationToResourceContextualMenu.perform(
         context: .init()
       )

@@ -120,7 +120,7 @@ internal final class AccountKeyInspectorViewController: ViewController {
     )
   }
 
-  internal func showExportMenu() async {
+  @Sendable internal func showExportMenu() async {
     await self.navigationToAccountKeyExportMenu.performCatching()
   }
 }

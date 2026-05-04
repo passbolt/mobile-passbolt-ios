@@ -119,7 +119,7 @@ internal final class AccountSelectionViewController: ViewController {
     )
   }
 
-  internal func toggleMode() async {
+  @Sendable internal func toggleMode() async {
     withAnimation {
       viewState.update { state in
         state.mode = state.mode == .selection ? .removal : .selection
@@ -127,7 +127,7 @@ internal final class AccountSelectionViewController: ViewController {
     }
   }
 
-  internal func removeAccount(_ account: Account) async {
+  @Sendable internal func removeAccount(_ account: Account) async {
     self.viewState.update(
       \.alert,
       to: .init(
@@ -156,12 +156,12 @@ internal final class AccountSelectionViewController: ViewController {
   internal func backButtonTapped() async {
     await consumingErrors {
       try features.ensureScope(SessionScope.self)
-      let navigationToSelf: NavigationToManageAccounts = try features.instance()
+      let navigationToSelf: NavigationToManageAccounts = try await features.instance()
       try await navigationToSelf.revert()
     }
   }
 
-  internal func openHelp() async {
+  @Sendable internal func openHelp() async {
     await consumingErrors {
       try await navigationToHelp.perform(context: .init())
     }

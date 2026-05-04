@@ -27,7 +27,7 @@ public struct AsyncToggle: View {
 
   @State private var runningTask: Task<Void, Never>?
   private let state: Bool
-  private let toggle: (Bool) async -> Void
+  private let toggle: @Sendable (Bool) async -> Void
 
   public init(
     state: Bool,
@@ -43,7 +43,7 @@ public struct AsyncToggle: View {
         get: { self.state },
         set: { (newValue: Bool) in
           if case .none = self.runningTask {
-            self.runningTask = .detached { @MainActor [state, toggle] () async -> Void in
+            self.runningTask = Task { @MainActor [state, toggle] () async -> Void in
               await toggle(!state)
               self.runningTask = .none
             }

@@ -29,11 +29,11 @@ import SwiftUI
 public struct IconButton: View {
 
   private let iconName: ImageNameConstant
-  private let action: @MainActor () async -> Void
+  private let action: @MainActor @Sendable () async -> Void
 
   public init(
     iconName: ImageNameConstant,
-    action: @escaping @MainActor () async -> Void
+    action: @escaping @MainActor @Sendable () async -> Void
   ) {
     self.iconName = iconName
     self.action = action

@@ -26,9 +26,9 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
-public final class OTPEditFormViewController: ViewController {
+public final class OTPEditFormViewController: @MainActor ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
 
     internal var totpPath: ResourceType.FieldPath
 
@@ -39,7 +39,7 @@ public final class OTPEditFormViewController: ViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var isStandaloneTOTP: Bool
     internal var isEditing: Bool

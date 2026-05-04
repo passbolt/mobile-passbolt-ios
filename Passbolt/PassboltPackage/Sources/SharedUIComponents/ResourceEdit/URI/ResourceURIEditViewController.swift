@@ -29,7 +29,7 @@ public final class ResourceURIEditViewController: ViewController {
   /// This limit is limited by the server. Subject to change.
   private nonisolated static let additionalURIsLimit: Int = 19
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     internal var mainURI: Validated<String>
     internal var additionalURIs: IdentifiedArray<IdentifiedURI> = .init()
 

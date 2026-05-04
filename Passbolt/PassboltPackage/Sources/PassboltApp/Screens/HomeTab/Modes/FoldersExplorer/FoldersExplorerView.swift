@@ -46,7 +46,7 @@ internal struct FoldersExplorerView: ControlledView {
         self.searchView(with: state)
       },
       titleLeadingItem: EmptyView.init,
-      titleTrailingItem: { IconButton(iconName: .more, action: self.controller.presentResourceFolderMenu) },
+      titleTrailingItem: { IconButton(iconName: .more, action: { await self.controller.presentResourceFolderMenu() }) },
       contentView: {
         self.contentView(with: state)
       }
@@ -81,7 +81,7 @@ internal struct FoldersExplorerView: ControlledView {
       refreshAction: self.controller.refreshIfNeeded,
       loadMoreAction: self.controller.loadMore,
       createAction: state.canCreateResources
-        ? { await self.controller.presentAddNew(folderID: state.folderID) }
+        ? { @Sendable in await self.controller.presentAddNew(folderID: state.folderID) }
         : .none,
       folderTapAction: { folderID in
         let folder: ResourceFolderListItemDSV? =

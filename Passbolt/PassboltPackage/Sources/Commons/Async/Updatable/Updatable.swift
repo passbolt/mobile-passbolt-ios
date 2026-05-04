@@ -92,8 +92,10 @@ where Value: Sendable {
 
   public mutating func next() async -> Element? {
     do {
-      let element: Element = try await futureValue { (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
-        self.notifyAfter(fulfill, self.generation)
+      let generation: UpdateGeneration = self.generation
+      let element: Element = try await futureValue {
+        [notifyAfter] (fulfill: @escaping @Sendable (Update<Value>) -> Void) in
+        notifyAfter(fulfill, generation)
       }
       self.generation = element.generation
       return element

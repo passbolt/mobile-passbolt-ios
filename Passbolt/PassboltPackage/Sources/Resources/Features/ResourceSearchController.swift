@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceSearchController {
+public struct ResourceSearchController: Sendable {
 
   public var state: AnyUpdatable<ResourceSearchState>
   public var refreshIfNeeded: @Sendable () async throws -> Void

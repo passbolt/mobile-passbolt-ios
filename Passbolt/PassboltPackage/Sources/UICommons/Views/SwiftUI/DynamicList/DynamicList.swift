@@ -378,21 +378,21 @@ private struct OffsetLayout: Layout {
 // MARK: - Layout Keys
 
 private struct LayoutIndex: LayoutValueKey {
-  static var defaultValue: Int = 0
+  static let defaultValue: Int = 0
   typealias Value = Int
 }
 
 // MARK: - Preference Keys
 
 private struct ScrollContentOffsetPreferenceKey: PreferenceKey {
-  static var defaultValue: CGPoint? = nil
+  static let defaultValue: CGPoint? = nil
   static func reduce(value: inout CGPoint?, nextValue: () -> CGPoint?) {
     value = nextValue() ?? value
   }
 }
 
 private struct ViewportSizePreferenceKey: PreferenceKey {
-  static var defaultValue: CGSize = .zero
+  static let defaultValue: CGSize = .zero
   static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
     value = nextValue()
   }

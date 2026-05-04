@@ -24,7 +24,7 @@
 import Accounts
 import UICommons
 
-public enum AccountSelectionListItem: Hashable {
+public enum AccountSelectionListItem: Hashable, Sendable {
 
   case account(AccountSelectionCellItem)
   case addAccount(AccountSelectionAddAccountCellItem)
@@ -45,7 +45,7 @@ public enum AccountSelectionListItem: Hashable {
   }
 }
 
-public struct AccountSelectionCellItem: Hashable {
+public struct AccountSelectionCellItem: Hashable, @unchecked Sendable {
 
   public var account: Account
   public var title: String
@@ -91,7 +91,7 @@ public struct AccountSelectionCellItem: Hashable {
   }
 }
 
-public struct AccountSelectionAddAccountCellItem: Hashable {
+public struct AccountSelectionAddAccountCellItem: Hashable, Sendable {
 
   public let title: String
 

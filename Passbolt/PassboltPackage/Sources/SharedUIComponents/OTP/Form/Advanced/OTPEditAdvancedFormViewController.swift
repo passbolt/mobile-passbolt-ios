@@ -28,7 +28,7 @@ import Resources
 
 public final class OTPEditAdvancedFormViewController: @MainActor ViewController {
 
-  public struct Context {
+  public struct Context: Sendable {
 
     public var totpPath: Resource.FieldPath
 
@@ -39,7 +39,7 @@ public final class OTPEditAdvancedFormViewController: @MainActor ViewController 
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var algorithm: Validated<HOTPAlgorithm?>
     internal var period: Validated<String>

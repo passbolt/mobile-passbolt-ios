@@ -27,7 +27,7 @@ import OSFeatures
 
 public final class HelpMenuViewController: ViewController {
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     let actions: Array<Action>
   }
 

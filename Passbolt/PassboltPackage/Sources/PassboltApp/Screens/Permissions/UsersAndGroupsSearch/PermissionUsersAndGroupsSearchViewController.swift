@@ -112,7 +112,7 @@ internal final class PermissionUsersAndGroupsSearchViewController: @MainActor Vi
         case .user(let id, _, _):
           return await .user(
             id,
-            avatarImage: users.avatarImage(for: id),
+            avatarImage: users.loadAvatar(for: id),
             isSuspended: try users.userDetails(id).isSuspended
           )
 
@@ -121,7 +121,7 @@ internal final class PermissionUsersAndGroupsSearchViewController: @MainActor Vi
         }
       }
 
-      self.viewState.update(\.selectedItems, to: selectedItems)
+      await self.viewState.update(\.selectedItems, to: selectedItems)
     }
   }
 

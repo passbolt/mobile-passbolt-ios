@@ -24,7 +24,7 @@
 import Display
 import UICommons
 
-internal struct OTPEditFormView: ControlledView {
+internal struct OTPEditFormView: @MainActor ControlledView {
 
   internal let controller: OTPEditFormViewController
 

@@ -269,13 +269,13 @@ extension ResourceUserGroupsExplorerViewContorller {
   func presentResourceMenu(_ resourceID: Resource.ID) async {
     await consumingErrors {
       let features: Features =
-        try self.features
+        try await self.features
         .branchIfNeeded(
           scope: ResourceScope.self,
           context: resourceID
         )
 
-      let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+      let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try await features.instance()
       try await navigationToResourceContextualMenu.perform(
         context: .init()
       )

@@ -34,8 +34,8 @@ internal final class DUOAuthorizationViewController: ViewController {
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-
-  private var finishAuthorization: ((Result<(String, String, String), Error>) -> Void)?
+  internal typealias FinishAuthorization = @Sendable (Result<(String, String, String), Error>) -> Void
+  private var finishAuthorization: CriticalState<FinishAuthorization?> = .init(.none)
 
   private let duoAuthorizationNetworkOperation: DUOAuthorizationPromptNetworkOperation
   private let session: Session
@@ -58,7 +58,7 @@ internal final class DUOAuthorizationViewController: ViewController {
 extension DUOAuthorizationViewController {
 
   internal func requestAuthorization() async {
-    assert(self.finishAuthorization == nil, "Can't begin authorization when there is one already pending.")
+    assert(self.finishAuthorization.get() == nil, "Can't begin authorization when there is one already pending.")
     do {
       let response: DUOAuthorizationPromptNetworkOperationResult = try await self.duoAuthorizationNetworkOperation()
 
@@ -70,10 +70,11 @@ extension DUOAuthorizationViewController {
         )
       )
 
-      let tokens: (code: String, duoToken: String, passboltToken: String) = try await future { fulfill in
-        self.finishAuthorization = fulfill
-      }
-      self.finishAuthorization = .none
+      let tokens: (code: String, duoToken: String, passboltToken: String) =
+        try await future { [finishAuthorization] (fulfill: @escaping FinishAuthorization) in
+          finishAuthorization.set(fulfill)
+        }
+      self.finishAuthorization.set(.none)
       self.viewState.update(\.request, to: .none)
 
       try await self.session.authorizeMFA(
@@ -87,7 +88,7 @@ extension DUOAuthorizationViewController {
       )
     }
     catch {
-      self.finishAuthorization = .none
+      self.finishAuthorization.set(.none)
       self.viewState.update { (viewState: inout ViewState) in
         viewState.request = .none
       }
@@ -106,20 +107,22 @@ extension DUOAuthorizationViewController {
     duoToken: String,
     passboltToken: String
   ) {
-    self.finishAuthorization?(
-      .success(
-        (
-          duoCode: duoCode,
-          duoToken: duoToken,
-          passboltToken: passboltToken
+    self.finishAuthorization
+      .exchange(with: .none)?(
+        .success(
+          (
+            duoCode: duoCode,
+            duoToken: duoToken,
+            passboltToken: passboltToken
+          )
         )
       )
-    )
   }
 
   internal func handleAuthorization(
     error: Error
   ) {
-    self.finishAuthorization?(.failure(error))
+    self.finishAuthorization
+      .exchange(with: .none)?(.failure(error))
   }
 }

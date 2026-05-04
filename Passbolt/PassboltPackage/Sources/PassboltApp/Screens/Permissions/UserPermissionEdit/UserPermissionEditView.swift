@@ -163,7 +163,7 @@ internal struct UserPermissionEditView: ControlledView {
           key: "resource.permission.edit.button.delete.title"
         ),
         iconName: .trash,
-        action: self.controller.deletePermission
+        action: { self.controller.deletePermission() }
       )
     }
     .padding(

@@ -62,7 +62,7 @@ internal final class ResourceFolderEditController: ViewController, Sendable {
               case .user(let id, _, _):
                 return await .user(
                   id,
-                  avatarImage: users.avatarImage(for: id),
+                  avatarImage: users.loadAvatar(for: id),
                   isSuspended: try users.userDetails(id).isSuspended
                 )
 
@@ -102,7 +102,7 @@ extension ResourceFolderEditController {
     _ = self.resourceFolderEditForm.setFolderName(folderName)
   }
 
-  internal final func saveChanges() async {
+  @Sendable internal final func saveChanges() async {
     do {
       try await self.resourceFolderEditForm.sendForm()
       try await self.navigationToSelf.revert()

@@ -25,11 +25,11 @@ import SwiftUI
 
 public struct AsyncUserAvatarView: View {
 
-  private let imageLoad: (() async -> Data?)?
+  private let imageLoad: (@Sendable () async -> Data?)?
   @State var loadedImage: Image?
 
   public init(
-    imageLoad: @escaping () async -> Data?
+    imageLoad: @escaping @Sendable () async -> Data?
   ) {
     self.imageLoad = imageLoad
   }

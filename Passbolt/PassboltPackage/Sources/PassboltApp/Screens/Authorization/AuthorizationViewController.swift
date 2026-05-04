@@ -103,14 +103,14 @@ extension AuthorizationViewController {
 
   internal func back() async {
     await consumingErrors {
-      let navigationToSelf: NavigationToAuthorization = try features.instance()
+      let navigationToSelf: NavigationToAuthorization = try await features.instance()
       try await navigationToSelf.revert()
     }
   }
 
-  internal func presentHelp() async {
+  @Sendable internal func presentHelp() async {
     await consumingErrors {
-      let navigationToHelp: NavigationToHelpMenu = try features.instance()
+      let navigationToHelp: NavigationToHelpMenu = try await features.instance()
       try await navigationToHelp.perform(context: .init())
     }
   }
@@ -159,7 +159,7 @@ extension AuthorizationViewController {
     }
     catch let error as ServerPGPFingeprintInvalid {
       await consumingErrors {
-        let navigationToFingerprintInvalid: NavigationToServerFingerprintInvalid = try features.instance()
+        let navigationToFingerprintInvalid: NavigationToServerFingerprintInvalid = try await features.instance()
         try await navigationToFingerprintInvalid.perform(
           context: .init(
             accountID: error.account.localID,

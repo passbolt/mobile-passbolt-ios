@@ -70,7 +70,7 @@ internal final class ResourceTagsListDisplayController: ViewController {
             .init(text: searchText, limit: pageSize, offset: 0)
           )
 
-          updateView { viewState in
+          await updateView { viewState in
             viewState.resourceTags = filteredResourceTags
             viewState.hasMoreData = filteredResourceTags.count >= pageSize
             viewState.isLoadingMore = false

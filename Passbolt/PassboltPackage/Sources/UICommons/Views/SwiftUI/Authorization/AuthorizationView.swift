@@ -35,9 +35,9 @@ where SupportActionView: View {
   private let avatarImage: Data?
   private var passphrase: Binding<Validated<String>>
   private let mainActionLabel: DisplayableString
-  private let mainAction: () async -> Void
+  private let mainAction: @MainActor () async -> Void
   private let biometricsAvailability: OSBiometryAvailability
-  private let biometricsAction: () async -> Void
+  private let biometricsAction: @MainActor () async -> Void
   private let supportActionView: @MainActor () -> SupportActionView
 
   public init(
@@ -47,9 +47,9 @@ where SupportActionView: View {
     avatarImage: Data?,
     passphrase: Binding<Validated<String>>,
     mainActionLabel: DisplayableString,
-    mainAction: @escaping () async -> Void,
+    mainAction: @escaping @MainActor () async -> Void,
     biometricsAvailability: OSBiometryAvailability,
-    biometricsAction: @escaping () async -> Void,
+    biometricsAction: @escaping @MainActor () async -> Void,
     @ViewBuilder supportActionView: @escaping @MainActor () -> SupportActionView
   ) {
     self.label = label
@@ -71,12 +71,12 @@ where SupportActionView: View {
         .frame(width: proxy.size.width, height: proxy.size.height)
     }
     .ignoresSafeArea(.keyboard)
-    .onNotification(named: UIResponder.keyboardWillShowNotification) {
+    .onNotification(named: UIResponder.keyboardWillShowNotification) { @MainActor in
       withAnimation(.easeInOut(duration: 0.25)) {
         self.keyboardIsVisible = true
       }
     }
-    .onNotification(named: UIResponder.keyboardWillHideNotification) {
+    .onNotification(named: UIResponder.keyboardWillHideNotification) { @MainActor in
       withAnimation(.easeInOut(duration: 0.25)) {
         self.keyboardIsVisible = false
       }

@@ -54,7 +54,7 @@ internal final class ResourcesListViewController: ViewController {
             try await navigationToAccountMenu.perform()
           },
           createResource: {
-            let resourceCreatePreparation: ResourceCreatePreparation = try features.instance()
+            let resourceCreatePreparation: ResourceCreatePreparation = try await features.instance()
             let context: ResourceCreatingContext = try await resourceCreatePreparation.prepare()
 
             try await navigationToResourceContextualMenu
@@ -71,13 +71,13 @@ internal final class ResourcesListViewController: ViewController {
           },
           contextualMenuAction: { resourceID in
             let features: Features =
-              try features
+              try await features
               .branchIfNeeded(
                 scope: ResourceScope.self,
                 context: resourceID
               )
 
-            let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try features.instance()
+            let navigationToResourceContextualMenu: NavigationToResourceContextualMenu = try await features.instance()
             try await navigationToResourceContextualMenu.perform(
               context: .init()
             )

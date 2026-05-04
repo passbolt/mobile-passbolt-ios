@@ -183,7 +183,7 @@ extension ResourceOTPContextualMenuViewController {
           .error(message: "Invalid or missing TOTP in secret")
       }
 
-      let totpCodeGenerator: TOTPCodeGenerator = try self.features.instance()
+      let totpCodeGenerator: TOTPCodeGenerator = try await self.features.instance()
 
       let totp: TOTPValue =
         totpCodeGenerator.prepare(
@@ -202,7 +202,7 @@ extension ResourceOTPContextualMenuViewController {
 
   internal func editOTP() async {
     await consumingErrors { [features, resourceID] in
-      let resourceEditPreparation: ResourceEditPreparation = try features.instance()
+      let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
       let editingContext: ResourceEditingContext = try await resourceEditPreparation.prepareExisting(resourceID)
 
       try await self.navigationToSelf.revert()

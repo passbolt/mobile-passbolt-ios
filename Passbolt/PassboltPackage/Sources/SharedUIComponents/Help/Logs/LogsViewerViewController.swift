@@ -34,7 +34,7 @@ public final class LogsViewerViewController: ViewController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
     internal var isInitialLoading: Bool = true
     internal var diagnosticsInfo: Array<String> = .init()
     internal var presentShareSheet: Bool = false

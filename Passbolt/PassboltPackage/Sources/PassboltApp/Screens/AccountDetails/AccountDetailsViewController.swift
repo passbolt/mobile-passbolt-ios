@@ -104,7 +104,7 @@ internal final class AccountDetailsViewController: @MainActor ViewController {
 }
 extension AccountDetailsViewController {
 
-  internal func saveChanges() async throws {
+  @Sendable internal func saveChanges() async throws {
     let currentAccountLabel = await viewState.current.currentAccountLabel
     let label: String
     if currentAccountLabel.value.isEmpty {
@@ -127,7 +127,7 @@ extension AccountDetailsViewController {
     try await self.navigationToSelf.revert()
   }
 
-  internal func transferAccount() async throws {
+  @Sendable internal func transferAccount() async throws {
     try await self.navigationToAccountExportInfo.perform()
   }
 }

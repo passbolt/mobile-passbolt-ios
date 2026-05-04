@@ -27,7 +27,7 @@ import Features
 // MARK: - Interface
 
 /// Access user groups data using current session.
-public struct UserGroups {
+public struct UserGroups: Sendable {
 
   /// Access filtered user groups in context of resources.
   public var filteredResourceUserGroupList:

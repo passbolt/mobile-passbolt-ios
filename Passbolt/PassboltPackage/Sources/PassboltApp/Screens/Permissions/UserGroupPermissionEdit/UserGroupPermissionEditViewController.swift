@@ -57,18 +57,6 @@ internal final class UserGroupPermissionEditViewController: @MainActor ViewContr
 
     let users: Users = try features.instance()
 
-    func loadAvatar(for userID: User.ID) -> () async -> Data? {
-      {
-        do {
-          return try await users.userAvatarImage(userID)
-        }
-        catch {
-          error.logged()
-          return nil
-        }
-      }
-    }
-
     self.viewState = .init(
       initial:
         .init(
@@ -80,7 +68,7 @@ internal final class UserGroupPermissionEditViewController: @MainActor ViewContr
             .map { user in
               .user(
                 user.id,
-                avatarImage: loadAvatar(for: user.id),
+                avatarImage: users.loadAvatar(for: user.id),
                 isSuspended: user.isSuspended
               )
             }

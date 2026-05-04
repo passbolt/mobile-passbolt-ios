@@ -39,7 +39,7 @@ extension View {
   }
 }
 
-public struct ExternalActivityConfiguration: Sendable {
+public struct ExternalActivityConfiguration: @unchecked Sendable {
 
   public let id: ObjectIdentifier
   fileprivate let itemsConfiguration: UIActivityItemsConfiguration
@@ -54,7 +54,7 @@ public struct ExternalActivityConfiguration: Sendable {
     self.excludedActivities = excludedActivities
   }
 
-  public static func share(
+  @MainActor public static func share(
     privateKey: ArmoredPGPPrivateKey
   ) -> Self {
     let itemProvider: NSItemProvider = .init(
@@ -101,7 +101,7 @@ public struct ExternalActivityConfiguration: Sendable {
     )
   }
 
-  public static func share(
+  @MainActor public static func share(
     publicKey: ArmoredPGPPublicKey
   ) -> Self {
     let itemProvider: NSItemProvider = .init(

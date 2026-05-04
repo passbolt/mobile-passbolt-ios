@@ -28,12 +28,12 @@ public struct ResourceFoldersListSectionView: View {
 
   private let title: DisplayableString?
   private let folders: Array<ResourceFolderListItemDSV>
-  private let tapAction: (ResourceFolder.ID) async throws -> Void
+  private let tapAction: @Sendable (ResourceFolder.ID) async throws -> Void
 
   public init(
     title: DisplayableString? = .none,
     folders: Array<ResourceFolderListItemDSV>,
-    tapAction: @escaping (ResourceFolder.ID) async throws -> Void
+    tapAction: @Sendable @escaping (ResourceFolder.ID) async throws -> Void
   ) {
     self.title = title
     self.folders = folders

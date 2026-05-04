@@ -29,15 +29,15 @@ public struct ResourceDetailsTagsListSectionView: View {
   private let title: DisplayableString?
   private let tags: OrderedSet<ResourceTag>
   private let createAction: (() -> Void)?
-  private let tagTapAction: ((ResourceTag.ID) -> Void)?
-  private let tagMenuAction: ((ResourceTag.ID) -> Void)?
+  private let tagTapAction: (@Sendable (ResourceTag.ID) -> Void)?
+  private let tagMenuAction: (@Sendable (ResourceTag.ID) -> Void)?
 
   public init(
     title: DisplayableString? = .none,
     tags: OrderedSet<ResourceTag>,
     createAction: (() -> Void)?,
-    tagTapAction: ((ResourceTag.ID) -> Void)?,
-    tagMenuAction: ((ResourceTag.ID) -> Void)?
+    tagTapAction: (@Sendable (ResourceTag.ID) -> Void)?,
+    tagMenuAction: (@Sendable (ResourceTag.ID) -> Void)?
   ) {
     self.title = title
     self.tags = tags
@@ -79,11 +79,11 @@ public struct ResourceDetailsTagsListSectionView: View {
             shared: item.shared,
             action: self.tagTapAction
               .map { action in
-                { action(item.id) }
+                { @Sendable in action(item.id) }
               },
             menuAction: self.tagMenuAction
               .map { action in
-                { action(item.id) }
+                { @Sendable in action(item.id) }
               }
           )
         }

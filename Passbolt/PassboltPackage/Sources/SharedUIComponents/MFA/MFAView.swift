@@ -53,7 +53,7 @@ public struct MFAView: ControlledView {
 
       SecondaryButton(
         title: "mfa.provider.try.another",
-        action: self.controller.nextProvider
+        action: { await self.controller.nextProvider() }
       )
     }
     .padding(.horizontal, 16)

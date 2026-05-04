@@ -81,7 +81,7 @@ internal struct WelcomeScreenView: ControlledView {
       .accessibilityIdentifier("button.account.transfer")
       SecondaryButton(
         title: "welcome.no.account",
-        action: self.controller.showNoAccountAlert
+        action: { self.controller.showNoAccountAlert() }
       )
       .accessibilityIdentifier("button.account.none")
     }
@@ -92,7 +92,7 @@ internal struct WelcomeScreenView: ControlledView {
       ToolbarItem(placement: .topBarTrailing) {
         IconButton(
           iconName: .help,
-          action: self.controller.openHelpMenu
+          action: { await self.controller.openHelpMenu() }
         )
       }
     }

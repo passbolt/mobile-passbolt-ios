@@ -23,11 +23,11 @@
 
 import UIKit.UIPasteboard
 
-public struct OSPasteboard {
+public struct OSPasteboard: Sendable {
 
-  public var get: () -> String?
-  public var put: (String?) -> Void
-  public var putWithAutoExpiration: (String?) -> Void
+  public var get: @Sendable () -> String?
+  public var put: @Sendable (String?) -> Void
+  public var putWithAutoExpiration: @Sendable (String?) -> Void
 }
 
 extension OSPasteboard {
@@ -61,16 +61,19 @@ extension OSPasteboard {
 
   fileprivate static var live: Self {
 
+    @Sendable
     func getString() -> String? {
       UIPasteboard.general.string
     }
 
+    @Sendable
     func put(
       string: String?
     ) {
       UIPasteboard.general.string = string
     }
 
+    @Sendable
     func putWithAutoExpiration(
       string: String?
     ) {

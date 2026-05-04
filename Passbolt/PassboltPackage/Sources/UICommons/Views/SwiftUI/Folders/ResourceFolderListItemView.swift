@@ -47,7 +47,7 @@ public struct ResourceFolderListItemView: View {
     shared: Bool,
     contentCount: Int,
     locationString: String,
-    action: @escaping () async throws -> Void
+    action: @Sendable @escaping () async throws -> Void
   ) {
     self.name = name
     self.shared = shared

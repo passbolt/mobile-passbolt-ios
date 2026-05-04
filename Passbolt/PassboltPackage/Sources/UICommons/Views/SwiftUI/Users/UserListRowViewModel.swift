@@ -23,12 +23,12 @@
 
 import CommonModels
 
-public struct UserListRowViewModel {
+public struct UserListRowViewModel: @unchecked Sendable {
 
   public let id: User.ID
   public var fullName: DisplayableString
   public var username: DisplayableString
-  public var avatarImageFetch: () async -> Data?
+  public var avatarImageFetch: @Sendable () async -> Data?
   public let isSuspended: Bool
 
   public init(

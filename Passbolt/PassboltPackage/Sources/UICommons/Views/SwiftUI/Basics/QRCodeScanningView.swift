@@ -53,6 +53,10 @@ public struct QRCodeScanningView: UIViewControllerRepresentable {
 
 internal final class QRCodeScanningViewController: UIViewController {
 
+  private final class SessionHolder: @unchecked Sendable {
+    var session: AVCaptureSession?
+  }
+
   private let captureMetadataQueue: DispatchQueue = .init(label: "com.passbolt.qr.reader")
   private lazy var metadataOutput: AVCaptureMetadataOutput = {
     let output: AVCaptureMetadataOutput = .init()
@@ -62,21 +66,7 @@ internal final class QRCodeScanningViewController: UIViewController {
     )
     return output
   }()
-  private lazy var cameraSession: AVCaptureSession? = {
-    let session: AVCaptureSession = .init()
-    guard
-      let device: AVCaptureDevice = .default(for: .video),
-      let input: AVCaptureDeviceInput = try? .init(device: device),
-      session.canAddInput(input),
-      session.canAddOutput(self.metadataOutput)
-    else { return nil }
-
-    session.addInput(input)
-    session.addOutput(self.metadataOutput)
-
-    self.metadataOutput.metadataObjectTypes = [.qr]
-    return session
-  }()
+  private let cameraSessionHolder: SessionHolder = .init()
 
   private let process: @Sendable (String) -> Void
 
@@ -97,22 +87,41 @@ internal final class QRCodeScanningViewController: UIViewController {
   }
 
   deinit {
-    self.cameraSession?.stopRunning()
+    self.cameraSessionHolder.session?.stopRunning()
+  }
+
+  private func prepareCameraSession() -> AVCaptureSession? {
+    let session: AVCaptureSession = .init()
+    guard
+      let device: AVCaptureDevice = .default(for: .video),
+      let input: AVCaptureDeviceInput = try? .init(device: device),
+      session.canAddInput(input),
+      session.canAddOutput(self.metadataOutput)
+    else { return nil }
+
+    session.addInput(input)
+    session.addOutput(self.metadataOutput)
+
+    self.metadataOutput.metadataObjectTypes = [.qr]
+    return session
   }
 
   override func loadView() {
+    let session: AVCaptureSession? = self.prepareCameraSession()
+    self.cameraSessionHolder.session = session
     self.view = CodeReaderView(
-      session: self.cameraSession
+      session: session
     )
+    let holder: SessionHolder = self.cameraSessionHolder
     self.captureMetadataQueue.async {
-      self.cameraSession?.startRunning()
+      holder.session?.startRunning()
     }
   }
 }
 
 extension QRCodeScanningViewController: AVCaptureMetadataOutputObjectsDelegate {
 
-  internal func metadataOutput(
+  nonisolated internal func metadataOutput(
     _ output: AVCaptureMetadataOutput,
     didOutput metadataObjects: Array<AVMetadataObject>,
     from connection: AVCaptureConnection

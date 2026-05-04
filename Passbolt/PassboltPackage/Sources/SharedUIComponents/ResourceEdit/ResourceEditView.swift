@@ -273,7 +273,7 @@ public struct ResourceEditView: ControlledView {
     }
   }
 
-  @MainActor private func action(for option: MainFormViewModel.AdditionalOption) -> () async -> Void {
+  @MainActor private func action(for option: MainFormViewModel.AdditionalOption) -> @Sendable () async -> Void {
     switch option {
     case .addNote:
       return self.controller.editNote

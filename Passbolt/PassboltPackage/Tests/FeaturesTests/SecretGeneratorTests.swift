@@ -57,11 +57,11 @@ final class SecretGeneratorTests: LoadableFeatureTestCase<SecretGenerator> {
   // MARK: - Generation tests
 
   func test_generate_withPasswordType_callsPasswordGenerator() async throws {
-    var passwordGeneratorCalled: Bool = false
+    let passwordGeneratorCalled: CriticalState<Bool> = .init(false)
     self.patch(
       \PasswordGenerator.generate,
       with: { _ in
-        passwordGeneratorCalled = true
+        passwordGeneratorCalled.set(true)
         return "password-result"
       }
     )
@@ -70,16 +70,16 @@ final class SecretGeneratorTests: LoadableFeatureTestCase<SecretGenerator> {
     let configuration: SecretGenerator.Configuration = .passwordConfiguration()
     let result: String = try generator.generate(configuration)
 
-    XCTAssertTrue(passwordGeneratorCalled)
+    XCTAssertTrue(passwordGeneratorCalled.get())
     XCTAssertEqual(result, "password-result")
   }
 
   func test_generate_withPassphraseType_callsPassphraseGenerator() async throws {
-    var passphraseGeneratorCalled: Bool = false
+    let passphraseGeneratorCalled: CriticalState<Bool> = .init(false)
     self.patch(
       \PassphraseGenerator.generate,
       with: { _ in
-        passphraseGeneratorCalled = true
+        passphraseGeneratorCalled.set(true)
         return "passphrase-result"
       }
     )
@@ -88,7 +88,7 @@ final class SecretGeneratorTests: LoadableFeatureTestCase<SecretGenerator> {
     let configuration: SecretGenerator.Configuration = .passphraseConfiguration()
     let result: String = try generator.generate(configuration)
 
-    XCTAssertTrue(passphraseGeneratorCalled)
+    XCTAssertTrue(passphraseGeneratorCalled.get())
     XCTAssertEqual(result, "passphrase-result")
   }
 

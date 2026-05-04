@@ -101,3 +101,4 @@ extension AccountWithProfile {
 }
 
 extension AccountWithProfile: Equatable {}
+extension AccountWithProfile: Sendable {}

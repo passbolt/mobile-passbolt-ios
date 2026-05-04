@@ -81,12 +81,12 @@ extension ResourceSearchDisplayController {
   public struct Context {
 
     internal var searchPrompt: DisplayableString
-    internal var onPresentationMenuTap: (() async throws -> Void)?
+    internal var onPresentationMenuTap: (@Sendable () async throws -> Void)?
     internal var onAvatarTap: () async throws -> Void
 
     public init(
       searchPrompt: DisplayableString,
-      onPresentationMenuTap: (() async throws -> Void)?,
+      onPresentationMenuTap: (@Sendable () async throws -> Void)?,
       onAvatarTap: @escaping () async throws -> Void
     ) {
       self.searchPrompt = searchPrompt
@@ -95,7 +95,7 @@ extension ResourceSearchDisplayController {
     }
   }
 
-  public struct ViewState: Equatable {
+  public struct ViewState: Equatable, Sendable {
 
     internal var searchPrompt: DisplayableString
     internal var accountAvatar: Data?
@@ -127,7 +127,7 @@ extension ResourceSearchDisplayController {
     }
   }
 
-  internal var onShowPresentationMenu: (() async throws -> Void)? {
+  internal var onShowPresentationMenu: (@Sendable () async throws -> Void)? {
     self.context.onPresentationMenuTap
   }
 

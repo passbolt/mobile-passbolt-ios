@@ -190,7 +190,7 @@ extension OTPResourcesListViewController {
 
   private func createOTP() async {
     await consumingErrors {
-      let metadataTypeSettings: MetadataSettingsService = try self.features.instance()
+      let metadataTypeSettings: MetadataSettingsService = try await self.features.instance()
       let totpType: ResourceSpecification.Slug =
         metadataTypeSettings.typesSettings().defaultResourceTypes == .v5
         ? .v5StandaloneTOTP
@@ -204,8 +204,11 @@ extension OTPResourcesListViewController {
       else {
         return
       }
-      let features: Features = try self.features.branchIfNeeded(scope: ResourceEditScope.self, context: editingContext)
-      let navigationToOTPScanning: NavigationToOTPScanning = try features.instance()
+      let features: Features = try await self.features.branchIfNeeded(
+        scope: ResourceEditScope.self,
+        context: editingContext
+      )
+      let navigationToOTPScanning: NavigationToOTPScanning = try await features.instance()
       await navigationToOTPScanning.performCatching(
         context: .init(
           totpPath: totpPath
@@ -244,13 +247,13 @@ extension OTPResourcesListViewController {
     await consumingErrors(
       errorDiagnostics: "Failed to navigate to OTP contextual menu."
     ) {
-      self.hideOTPCodes()
+      await self.hideOTPCodes()
       let features: Features =
-        try features.branchIfNeeded(
+        try await features.branchIfNeeded(
           scope: ResourceScope.self,
           context: resourceID
         )
-      let navigationToContextualMenu: NavigationToResourceOTPContextualMenu = try features.instance()
+      let navigationToContextualMenu: NavigationToResourceOTPContextualMenu = try await features.instance()
       try await navigationToContextualMenu.perform(
         context: .init(
           revealOTP: { [self] in

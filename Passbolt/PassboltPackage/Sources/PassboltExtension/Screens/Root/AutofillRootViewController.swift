@@ -64,7 +64,7 @@ extension AutofillRootViewController {
 
     if storedAccounts.isEmpty {
       await consumingErrors {
-        let navigationToNoAccounts: NavigationToNoAccounts = try features.instance()
+        let navigationToNoAccounts: NavigationToNoAccounts = try await features.instance()
         try await navigationToNoAccounts.perform()
       }
     }
@@ -81,12 +81,12 @@ extension AutofillRootViewController {
       }
 
       await consumingErrors {
-        let navigationToAccountSelection: NavigationToAccountSelection = try features.instance()
+        let navigationToAccountSelection: NavigationToAccountSelection = try await features.instance()
         try await navigationToAccountSelection.perform(
           context: .signIn
         )
         if let account: AccountWithProfile = initialAccount {
-          let navigationToAuthorization: NavigationToAuthorization = try features.instance()
+          let navigationToAuthorization: NavigationToAuthorization = try await features.instance()
           try await navigationToAuthorization.perform(
             context: account.account
           )

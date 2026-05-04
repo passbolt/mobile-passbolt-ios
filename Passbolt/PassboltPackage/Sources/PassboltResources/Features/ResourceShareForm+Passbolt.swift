@@ -70,6 +70,7 @@ extension ResourceShareForm {
       }
     }
 
+    @Sendable
     func permissionsSequence() -> AnyUpdatable<OrderedSet<ResourcePermission>> {
       formState
         .map { (formState: FormState) -> OrderedSet<ResourcePermission> in

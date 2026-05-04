@@ -68,7 +68,7 @@ internal struct TransferSignInView: ControlledView {
         supportActionView: {
           SecondaryButton(
             title: "authorization.forgot.passphrase.button.title",
-            action: self.controller.forgotPassphraseTapped
+            action: { self.controller.forgotPassphraseTapped() }
           )
           .accessibilityIdentifier("button.forgot.passphrase")
         }
@@ -81,7 +81,7 @@ internal struct TransferSignInView: ControlledView {
       ToolbarItem(placement: .topBarLeading) {
         IconButton(
           iconName: .arrowLeft,
-          action: self.controller.backTapped
+          action: { self.controller.backTapped() }
         )
         .accessibilityIdentifier("button.exit")
       }

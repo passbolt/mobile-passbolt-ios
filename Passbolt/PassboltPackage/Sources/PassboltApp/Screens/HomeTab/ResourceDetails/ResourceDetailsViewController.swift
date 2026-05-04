@@ -129,7 +129,7 @@ internal final class ResourceDetailsViewController: ViewController {
             case .user(let id, _, _):
               return await .user(
                 id,
-                avatarImage: users.avatarImage(for: id),
+                avatarImage: users.loadAvatar(for: id),
                 isSuspended: try users.userDetails(id).isSuspended
               )
 
@@ -229,7 +229,7 @@ extension ResourceDetailsViewController {
       let fieldValue: JSON = resource[keyPath: path]
       if let totpSecret: TOTPSecret = fieldValue.totpSecretValue {
         let totpValue: TOTPValue =
-          try self.features
+          try await self.features
           .instance(of: TOTPCodeGenerator.self)
           .prepare(
             .init(

@@ -26,9 +26,9 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourceShareForm {
+public struct ResourceShareForm: Sendable {
 
-  public var permissionsSequence: () -> AnyUpdatable<OrderedSet<ResourcePermission>>
+  public var permissionsSequence: @Sendable () -> AnyUpdatable<OrderedSet<ResourcePermission>>
   public var currentPermissions: @Sendable () async -> OrderedSet<ResourcePermission>
   public var setUserPermission: @Sendable (User.ID, Permission) async -> Void
   public var deleteUserPermission: @Sendable (User.ID) async -> Void
@@ -37,7 +37,7 @@ public struct ResourceShareForm {
   public var sendForm: @Sendable () async throws -> Void
 
   public init(
-    permissionsSequence: @escaping () -> AnyUpdatable<OrderedSet<ResourcePermission>>,
+    permissionsSequence: @escaping @Sendable () -> AnyUpdatable<OrderedSet<ResourcePermission>>,
     currentPermissions: @escaping @Sendable () async -> OrderedSet<ResourcePermission>,
     setUserPermission: @escaping @Sendable (User.ID, Permission) async -> Void,
     deleteUserPermission: @escaping @Sendable (User.ID) async -> Void,

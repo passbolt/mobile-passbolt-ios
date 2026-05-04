@@ -24,7 +24,7 @@
 import Commons
 import SwiftUI
 
-public protocol FormPickerFieldValue: Identifiable {
+public protocol FormPickerFieldValue: Identifiable, Sendable {
 
   var fromPickerFieldLabel: String { get }
 }
