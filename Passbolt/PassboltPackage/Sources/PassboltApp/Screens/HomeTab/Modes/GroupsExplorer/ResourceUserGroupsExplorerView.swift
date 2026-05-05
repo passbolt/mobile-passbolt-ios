@@ -51,6 +51,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       titleTrailingItem: EmptyView.init,
       contentView: {
         self.contentView(with: state)
+          .shadowTopEdgeOverlay()
       }
     )
     .environment(\.hideLeadingItem, state.groupID == .none)
@@ -68,21 +69,11 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
   @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    if state.groupID != nil, !state.resources.isEmpty {
+    if state.groupID != nil {
       self.resourcesListContent(with: state)
     }
-    else if state.groupID == nil, !state.groups.isEmpty {
-      self.resourcesUserGroupsListContent(with: state)
-    }
     else {
-      List {
-        EmptyListView()
-      }
-      .listStyle(.plain)
-      .environment(\.defaultMinListRowHeight, 20)
-      .refreshable {
-        await self.controller.refreshIfNeeded()
-      }
+      self.resourcesUserGroupsListContent(with: state)
     }
   }
 

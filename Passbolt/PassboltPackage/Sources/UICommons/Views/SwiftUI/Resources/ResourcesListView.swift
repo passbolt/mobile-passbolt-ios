@@ -111,6 +111,7 @@ public struct ResourcesListView: View {
   }
 
   public var body: some View {
+    let rowData: Array<ResourcesListRowData> = self.rowData
     DynamicList(
       items: rowData,
       hasMoreData: hasMoreData,
@@ -120,6 +121,11 @@ public struct ResourcesListView: View {
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )
+    .background {
+      if rowData.hasResources == false {
+        EmptyListView()
+      }
+    }
   }
 
   private var rowData: Array<ResourcesListRowData> {
@@ -222,6 +228,20 @@ public struct ResourcesListView: View {
       }
       .frame(height: row.estimatedHeight)
       .padding()
+    }
+  }
+}
+
+extension Array where Element == ResourcesListRowData {
+
+  fileprivate var hasResources: Bool {
+    self.contains { row in
+      if case .resource = row {
+        return true
+      }
+      else {
+        return false
+      }
     }
   }
 }

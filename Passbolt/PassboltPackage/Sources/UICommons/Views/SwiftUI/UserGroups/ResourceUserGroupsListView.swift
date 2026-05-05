@@ -92,6 +92,7 @@ public struct ResourceUserGroupsListView: View {
   }
 
   public var body: some View {
+    let rowData: Array<ResourceUserGroupsListRowData> = self.rowData
     DynamicList(
       items: rowData,
       hasMoreData: hasMoreData,
@@ -101,6 +102,11 @@ public struct ResourceUserGroupsListView: View {
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )
+    .background {
+      if rowData.hasGroups == false {
+        EmptyListView()
+      }
+    }
   }
 
   private var rowData: Array<ResourceUserGroupsListRowData> {
@@ -138,6 +144,18 @@ public struct ResourceUserGroupsListView: View {
       }
       .frame(height: row.estimatedHeight)
       .padding()
+    }
+  }
+}
+
+extension Array where Element == ResourceUserGroupsListRowData {
+
+  fileprivate var hasGroups: Bool {
+    self.contains { row in
+      if case .userGroup = row {
+        return true
+      }
+      return false
     }
   }
 }

@@ -92,6 +92,7 @@ public struct ResourceTagsListView: View {
   }
 
   public var body: some View {
+    let rowData: Array<ResourceTagsListRowData> = self.rowData
     DynamicList(
       items: rowData,
       hasMoreData: hasMoreData,
@@ -101,6 +102,11 @@ public struct ResourceTagsListView: View {
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )
+    .background {
+      if rowData.hasTags == false {
+        EmptyListView()
+      }
+    }
   }
 
   private var rowData: Array<ResourceTagsListRowData> {
@@ -139,6 +145,20 @@ public struct ResourceTagsListView: View {
       }
       .frame(height: row.estimatedHeight)
       .padding()
+    }
+  }
+}
+
+extension Array where Element == ResourceTagsListRowData {
+
+  fileprivate var hasTags: Bool {
+    self.contains { row in
+      switch row {
+      case .tag:
+        return true
+      case .loadingIndicator:
+        return false
+      }
     }
   }
 }

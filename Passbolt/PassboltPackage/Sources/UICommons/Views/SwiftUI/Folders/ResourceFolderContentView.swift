@@ -154,28 +154,20 @@ public struct ResourceFolderContentView: View {
   }
 
   public var body: some View {
-
-    if self.contentEmpty {
-      ScrollView {
-        if let createAction: @Sendable () async throws -> Void = self.createAction {
-          ResourceListAddView(action: createAction)
-        }
+    DynamicList(
+      items: rowData,
+      hasMoreData: hasMoreData,
+      isLoadingMore: isLoadingMore,
+      onLoadMore: loadMoreAction,
+      refreshAction: refreshAction,
+      contentResetToken: contentResetToken,
+      content: { viewForRow($0) }
+    )
+    .shadowTopEdgeOverlay()
+    .background {
+      if self.contentEmpty {
         EmptyListView()
       }
-      .refreshable {
-        await self.refreshAction()
-      }
-    }
-    else {
-      DynamicList(
-        items: rowData,
-        hasMoreData: hasMoreData,
-        isLoadingMore: isLoadingMore,
-        onLoadMore: loadMoreAction,
-        refreshAction: refreshAction,
-        contentResetToken: contentResetToken,
-        content: { viewForRow($0) }
-      )
     }
   }
 

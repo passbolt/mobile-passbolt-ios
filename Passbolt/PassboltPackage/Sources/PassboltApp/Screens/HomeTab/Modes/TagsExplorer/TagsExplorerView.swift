@@ -51,6 +51,7 @@ internal struct TagsExplorerView: ControlledView {
       titleTrailingItem: EmptyView.init,
       contentView: {
         self.contentView(with: state)
+          .shadowTopEdgeOverlay()
       }
     )
     .environment(\.hideLeadingItem, state.resourceTagID == .none)
@@ -68,21 +69,11 @@ internal struct TagsExplorerView: ControlledView {
   @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    if state.resourceTagID != nil, !state.resources.isEmpty {
+    if state.resourceTagID != nil {
       self.resourcesListContent(with: state)
     }
-    else if state.resourceTagID == nil, !state.tags.isEmpty {
-      self.tagsListContent(with: state)
-    }
     else {
-      List {
-        EmptyListView()
-      }
-      .listStyle(.plain)
-      .environment(\.defaultMinListRowHeight, 20)
-      .refreshable {
-        await self.controller.refreshIfNeeded()
-      }
+      self.tagsListContent(with: state)
     }
   }
 
