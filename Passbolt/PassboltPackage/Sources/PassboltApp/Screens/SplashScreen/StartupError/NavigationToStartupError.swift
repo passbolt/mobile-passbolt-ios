@@ -34,7 +34,7 @@ internal typealias NavigationToStartupError = NavigationTo<NavigationToStartupEr
 extension NavigationToStartupError {
 
   fileprivate static var live: FeatureLoader {
-    legacySheetPresentationTransition(to: StartupErrorView.self)
+    sheetPresentationTransition(to: StartupErrorView.self)
   }
 }
 

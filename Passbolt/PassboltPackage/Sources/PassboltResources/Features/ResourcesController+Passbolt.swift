@@ -72,7 +72,9 @@ extension ResourcesController {
               flattenContent: $0.flattenContent
             )
           },
-          expiredOnly: filter.expiredOnly
+          expiredOnly: filter.expiredOnly,
+          limit: filter.limit,
+          offset: filter.offset
         )
       )
     }

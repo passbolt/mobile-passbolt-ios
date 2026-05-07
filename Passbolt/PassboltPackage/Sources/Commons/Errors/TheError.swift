@@ -87,7 +87,7 @@ extension TheError /* CustomDebugStringConvertible */ {
   /// Get details from error
   /// The details are used for support to identify the issue
   ///
-  public func getDetails() -> Dictionary<String, Any>? {
+  public func getDetails() -> Dictionary<String, any Sendable>? {
     // Check if the last item in the stack exists and has details
     if let lastInfo = self.context.infoStack.last, let details = lastInfo.details {
       return details
@@ -184,7 +184,7 @@ extension TheError {
   ///   - value: Value to be recorded.
   ///   - key: Key identifying recorded value.
   public mutating func record(
-    _ value: @autoclosure () -> Any,
+    _ value: @autoclosure () -> any Sendable,
     for key: StaticString
   ) {
     self.context.record(value(), for: key)
@@ -196,7 +196,7 @@ extension TheError {
   ///
   /// - Parameter values: Values to be recorded.
   public mutating func record(
-    values: @autoclosure () -> Dictionary<StaticString, Any>
+    values: @autoclosure () -> Dictionary<StaticString, any Sendable>
   ) {
     self.context.record(values: values())
   }
@@ -210,7 +210,7 @@ extension TheError {
   ///   - key: Key identifying recorded value.
   /// - Returns: Copy of this error with additional value associated with current context.
   public func recording(
-    _ value: @autoclosure () -> Any,
+    _ value: @autoclosure () -> any Sendable,
     for key: StaticString
   ) -> Self {
     #if DEBUG
@@ -229,7 +229,7 @@ extension TheError {
   /// - Parameter values: Values to be recorded.
   /// - Returns: Copy of this error with additional values associated with current context.
   public func recording(
-    values: @autoclosure () -> Dictionary<StaticString, Any>
+    values: @autoclosure () -> Dictionary<StaticString, any Sendable>
   ) -> Self {
     #if DEBUG
     var copy: Self = self

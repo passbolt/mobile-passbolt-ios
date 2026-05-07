@@ -40,9 +40,15 @@ extension ResourceTags {
       try features.instance()
 
     @Sendable nonisolated func filteredTagsList(
-      filter: String
+      filter: ResourceTagsFilter
     ) async throws -> Array<ResourceTagListItemDSV> {
-      try await resourceTagsListFetchDatabaseOperation(filter)
+      try await resourceTagsListFetchDatabaseOperation(
+        ResourceTagsDatabaseFilter(
+          text: filter.text,
+          limit: filter.limit,
+          offset: filter.offset
+        )
+      )
     }
 
     @Sendable nonisolated func details(

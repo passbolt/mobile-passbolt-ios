@@ -27,13 +27,19 @@ public struct UserGroupsFilter: Sendable {
 
   public var userID: User.ID?
   public var text: String
+  public var limit: Int?
+  public var offset: Int
 
   public init(
     userID: User.ID?,
-    text: String
+    text: String,
+    limit: Int? = .none,
+    offset: Int = 0
   ) {
     self.userID = userID
     self.text = text
+    self.limit = limit
+    self.offset = offset
   }
 }
 

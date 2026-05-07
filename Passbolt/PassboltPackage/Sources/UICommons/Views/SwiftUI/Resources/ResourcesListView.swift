@@ -24,74 +24,204 @@
 import CommonModels
 import SwiftUI
 
+// MARK: - Row Data Model
+public enum ResourcesListRowData: DynamicListItem {
+
+  case sectionHeader(title: String)
+  case addResource
+  case resource(ResourceListItemDSV)
+  case loadingIndicator
+
+  public var id: String {
+    switch self {
+    case .sectionHeader(let title):
+      return "header_\(title)"
+    case .addResource:
+      return "add_resource"
+    case .resource(let resource):
+      return "resource_\(resource.id.rawValue.rawValue.uuidString)"
+    case .loadingIndicator:
+      return "loading"
+    }
+  }
+
+  public var estimatedHeight: CGFloat {
+    switch self {
+    case .sectionHeader:
+      return 24
+    case .addResource, .resource:
+      return 64
+    case .loadingIndicator:
+      return 44
+    }
+  }
+}
+
+extension ResourcesListRowData: Hashable {
+
+  public static func == (lhs: ResourcesListRowData, rhs: ResourcesListRowData) -> Bool {
+    lhs.id == rhs.id
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(id)
+  }
+}
+
 public struct ResourcesListView: View {
 
-  @State var id: IID = .init()
+  @State private var id: IID = .init()
   private let suggestedResources: Array<ResourceListItemDSV>?
-  private let resources: Array<ResourceListItemDSV>
+  @Binding private var resources: Array<ResourceListItemDSV>
   private let contentEmpty: Bool
+  private let hasMoreData: Bool
+  private let isLoadingMore: Bool
+  private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
+  private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (() async throws -> Void)?
   private let resourceTapAction: (Resource.ID) async throws -> Void
   private let resourceMenuAction: ((Resource.ID) async throws -> Void)?
 
   public init(
     suggestedResources: Array<ResourceListItemDSV>?,
-    resources: Array<ResourceListItemDSV>,
+    resources: Binding<Array<ResourceListItemDSV>>,
+    hasMoreData: Bool,
+    isLoadingMore: Bool,
+    contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
+    loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (() async throws -> Void)?,
     resourceTapAction: @escaping (Resource.ID) async throws -> Void,
     resourceMenuAction: ((Resource.ID) async throws -> Void)?
   ) {
     self.suggestedResources = suggestedResources
-    self.resources = resources
+    self._resources = resources
+    self.hasMoreData = hasMoreData
+    self.isLoadingMore = isLoadingMore
+    self.contentResetToken = contentResetToken
     self.contentEmpty =
       suggestedResources?.isEmpty ?? true
       && resources.isEmpty
     self.refreshAction = refreshAction
+    self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.resourceTapAction = resourceTapAction
     self.resourceMenuAction = resourceMenuAction
   }
 
   public var body: some View {
-    List {
+    DynamicList(
+      items: rowData,
+      hasMoreData: hasMoreData,
+      isLoadingMore: isLoadingMore,
+      onLoadMore: loadMoreAction,
+      refreshAction: refreshAction,
+      contentResetToken: contentResetToken,
+      content: { viewForRow($0) }
+    )
+  }
+
+  private var rowData: Array<ResourcesListRowData> {
+    var rows: Array<ResourcesListRowData> = []
+
+    // Add create button if available
+    if self.createAction != nil {
+      rows.append(.addResource)
+    }
+
+    // Add suggested section if available
+    if let suggested: Array<ResourceListItemDSV> = self.suggestedResources, !suggested.isEmpty {
+      rows.append(
+        .sectionHeader(
+          title: DisplayableString.localized("autofill.extension.resource.list.section.suggested.title").string()
+        )
+      )
+      for resource in suggested {
+        rows.append(.resource(resource))
+      }
+
+      // Add "All" section header if we have both suggested and regular resources
+      if !self.resources.isEmpty {
+        rows.append(
+          .sectionHeader(
+            title: DisplayableString.localized("autofill.extension.resource.list.section.all.title").string()
+          )
+        )
+      }
+    }
+
+    // Add all resources
+    for resource in self.resources {
+      rows.append(.resource(resource))
+    }
+
+    // Add loading indicator if loading more
+    if self.isLoadingMore {
+      rows.append(.loadingIndicator)
+    }
+
+    return rows
+  }
+
+  @ViewBuilder
+  private func viewForRow(_ row: ResourcesListRowData) -> some View {
+    switch row {
+    case .sectionHeader(let title):
+      Text(title)
+        .text(
+          font: .inter(ofSize: 14, weight: .semibold),
+          color: .passboltPrimaryText
+        )
+        .padding(leading: 16, trailing: 16)
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: row.estimatedHeight)
+        .backgroundColor(.passboltBackground)
+
+    case .addResource:
       if let createAction: () async throws -> Void = self.createAction {
         ResourceListAddView(action: createAction)
-      }  // else no create row
+          .frame(height: row.estimatedHeight)
+      }
 
-      if self.contentEmpty {
-        // empty
-        EmptyListView()
-      }
-      else if let suggestedResources: Array<ResourceListItemDSV> = self.suggestedResources {
-        ResourcesListSectionView(
-          title: .localized("autofill.extension.resource.list.section.suggested.title"),
-          resources: suggestedResources,
-          tapAction: self.resourceTapAction,
-          menuAction: self.resourceMenuAction
-        )
+    case .resource(let resource):
+      ResourceListItemView(
+        name: resource.name,
+        username: resource.username,
+        isExpired: resource.isExpired,
+        icon: resource.icon,
+        resourceTypeSlug: resource.typeInfo.typeSlug,
+        contentAction: {
+          try await self.resourceTapAction(resource.id)
+        },
+        rightAction: self.resourceMenuAction.map { action in
+          { try await action(resource.id) }
+        },
+        rightAccessory: {
+          if case .none = self.resourceMenuAction {
+            EmptyView()
+          }
+          else {
+            Image(named: .more)
+              .resizable()
+              .aspectRatio(1, contentMode: .fit)
+              .foregroundColor(Color.passboltIcon)
+              .frame(width: 44)
+              .padding(8)
+          }
+        }
+      )
+      .frame(height: row.estimatedHeight)
 
-        ResourcesListSectionView(
-          title: .localized("autofill.extension.resource.list.section.all.title"),
-          resources: self.resources,
-          tapAction: self.resourceTapAction,
-          menuAction: self.resourceMenuAction
-        )
+    case .loadingIndicator:
+      HStack {
+        Spacer()
+        SwiftUI.ProgressView()
+        Spacer()
       }
-      else {
-        ResourcesListSectionView(
-          resources: self.resources,
-          tapAction: self.resourceTapAction,
-          menuAction: self.resourceMenuAction
-        )
-      }
+      .frame(height: row.estimatedHeight)
+      .padding()
     }
-    .refreshable {
-      await self.refreshAction()
-    }
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
-    .id(self.id)
   }
 }

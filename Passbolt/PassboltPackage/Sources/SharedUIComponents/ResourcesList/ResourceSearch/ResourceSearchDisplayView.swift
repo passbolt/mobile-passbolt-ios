@@ -49,7 +49,7 @@ public struct ResourceSearchDisplayView: ControlledView {
       prompt: .localized(key: "resources.search.placeholder"),
       text: self.binding(
         to: \.searchText,
-        updating: self.controller.updateSearchText
+        updating: { self.controller.updateSearchText($0) }
       ),
       leftAccessory: {
         AsyncButton(

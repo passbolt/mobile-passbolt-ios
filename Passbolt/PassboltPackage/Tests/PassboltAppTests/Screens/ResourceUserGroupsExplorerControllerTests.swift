@@ -32,6 +32,7 @@ import Users
 import XCTest
 
 @testable import PassboltApp
+
 internal final class ResourceUserGroupsExplorerControllerTests: FeaturesTestCase {
 
   override func commonPrepare() {

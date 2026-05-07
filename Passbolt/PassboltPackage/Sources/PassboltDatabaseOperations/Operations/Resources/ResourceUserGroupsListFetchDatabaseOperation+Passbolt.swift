@@ -89,7 +89,23 @@ extension ResourceUserGroupsListFetchDatabaseOperation {
       /* NOP */
     }
 
-    statement.append("ORDER BY name COLLATE NOCASE ASC;")
+    statement.append("ORDER BY name COLLATE NOCASE ASC")
+
+    if let limit: Int = input.limit {
+      statement
+        .append(
+          """
+          LIMIT ? OFFSET ?
+          """
+        )
+      statement.appendArgument(limit)
+      statement.appendArgument(input.offset)
+    }
+    else {
+      /* NOP */
+    }
+
+    statement.append(";")
 
     return
       try connection

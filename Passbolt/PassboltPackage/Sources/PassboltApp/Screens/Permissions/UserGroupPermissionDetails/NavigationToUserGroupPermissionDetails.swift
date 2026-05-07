@@ -35,7 +35,7 @@ internal typealias NavigationToUserGroupPermissionDetails =
 extension NavigationToUserGroupPermissionDetails {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: UserGroupPermissionDetailsView.self)
+    pushTransition(to: UserGroupPermissionDetailsView.self)
   }
 }
 

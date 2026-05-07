@@ -31,15 +31,18 @@ where RegularView: View, LoadingView: View {
   private let action: () async throws -> Void
   private let regularLabel: () -> RegularView
   private let loadingLabel: () -> LoadingView
+  private let externalLoadingIndicator: Bool?
 
   public init(
     role: ButtonRole? = .none,
     action: @MainActor @escaping () async throws -> Void,
+    externalLoadingIndicator: Bool? = .none,
     @ViewBuilder regularLabel: @escaping () -> RegularView,
     @ViewBuilder loadingLabel: @escaping () -> LoadingView
   ) {
     self.role = role
     self.action = action
+    self.externalLoadingIndicator = externalLoadingIndicator
     self.regularLabel = regularLabel
     self.loadingLabel = loadingLabel
   }
@@ -53,6 +56,7 @@ where RegularView: View, LoadingView: View {
     self.action = action
     self.regularLabel = label
     self.loadingLabel = EmptyView.init
+    self.externalLoadingIndicator = .none
   }
 
   public var body: some View {
@@ -73,7 +77,7 @@ where RegularView: View, LoadingView: View {
       },
       label: {
         // use loading label if loading and defined
-        if self.runningTask == nil || LoadingView.self == EmptyView.self {
+        if showLoadingIndicator == false {
           self.regularLabel()
             .contentShape(.interaction, Rectangle())
         }
@@ -83,6 +87,17 @@ where RegularView: View, LoadingView: View {
         }
       }
     )
+  }
+
+  private var showLoadingIndicator: Bool {
+    if LoadingView.self == EmptyView.self {
+      return false
+    }
+    return isLoadingExternally || self.runningTask != nil
+  }
+
+  private var isLoadingExternally: Bool {
+    self.externalLoadingIndicator ?? false
   }
 }
 

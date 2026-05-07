@@ -277,6 +277,17 @@ extension ResourceFoldersListFetchDatabaseOperation {
       statement.append("ORDER BY name COLLATE NOCASE ASC")
     }
 
+    if let limit: Int = input.limit {
+      statement
+        .append(
+          """
+          LIMIT ? OFFSET ?
+          """
+        )
+      statement.appendArgument(limit)
+      statement.appendArgument(input.offset)
+    }
+
     // end query
     statement.append(";")
 

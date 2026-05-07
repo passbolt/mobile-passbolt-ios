@@ -58,7 +58,10 @@ internal struct PermissionUsersAndGroupsSearchView: ControlledView {
         prompt: .localized(
           key: "resource.permission.edit.user.and.group.search.prompt"
         ),
-        text: binding(to: \.searchText, updating: self.controller.updateSearchText)
+        text: binding(
+          to: \.searchText,
+          updating: { self.controller.updateSearchText($0) }
+        )
       )
       .padding(
         top: 0,

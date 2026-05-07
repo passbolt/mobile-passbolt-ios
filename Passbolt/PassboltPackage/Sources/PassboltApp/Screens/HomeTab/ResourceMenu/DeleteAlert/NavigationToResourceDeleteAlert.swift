@@ -34,7 +34,7 @@ internal typealias NavigationToResourceDeleteAlert = NavigationTo<ResourceDelete
 extension NavigationToResourceDeleteAlert {
 
   fileprivate static var live: FeatureLoader {
-    legacyAlertPresentationTransition(
+    alertPresentationTransition(
       using: ResourceDeleteAlertController.self
     )
   }

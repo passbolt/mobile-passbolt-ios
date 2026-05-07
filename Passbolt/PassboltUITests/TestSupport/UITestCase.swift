@@ -792,7 +792,8 @@ internal class UITestCase: XCTestCase {
     case appLoadTimeout
   }
 
-  @MainActor internal func screen<ScreenType>(_ type: Screen.Type = ScreenType.self) -> ScreenType where ScreenType: Screen {
+  @MainActor internal func screen<ScreenType>(_ type: Screen.Type = ScreenType.self) -> ScreenType
+  where ScreenType: Screen {
     ScreenType(application: self.application)
   }
 }

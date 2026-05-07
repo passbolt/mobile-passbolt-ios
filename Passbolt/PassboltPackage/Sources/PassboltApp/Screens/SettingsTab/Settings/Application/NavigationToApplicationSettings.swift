@@ -31,7 +31,7 @@ internal typealias NavigationToApplicationSettings = NavigationTo<ApplicationSet
 extension NavigationToApplicationSettings {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: ApplicationSettingsView.self)
+    pushTransition(to: ApplicationSettingsView.self)
   }
 }
 

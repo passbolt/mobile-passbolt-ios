@@ -37,7 +37,8 @@ where Element: Sendable {
   }
 }
 
-extension AsyncIteratorProtocol {
+extension AsyncIteratorProtocol
+where Element: Sendable {
 
   @inlinable public func asAnyAsyncIterator() -> AnyAsyncIterator<Element> {
     // protocol requirement marks `next` as mutating

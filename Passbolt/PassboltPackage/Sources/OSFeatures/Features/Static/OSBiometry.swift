@@ -147,7 +147,7 @@ extension OSBiometry {
                   throwing:
                     SystemFeaturePermissionNotGranted
                     .error("Biometrics permission not granted")
-                    .recording(error as Any, for: "underlyingError")
+                    .recording(String(describing: error), for: "underlyingError")
                 )
               }
             }

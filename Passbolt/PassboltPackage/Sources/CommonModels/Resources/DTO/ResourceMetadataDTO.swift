@@ -174,7 +174,7 @@ extension ResourceMetadataDTO {
           message: "Resource metadata description mismatch.",
           underlyingError: .none,
           details: [
-            "field": description as Any,
+            "field": description as any Sendable,
             "json": json[keyPath: \.description],
           ]
         )
@@ -188,7 +188,7 @@ extension ResourceMetadataDTO {
           message: "Resource metadata username mismatch.",
           underlyingError: .none,
           details: [
-            "field": username as Any,
+            "field": username as any Sendable,
             "json": json[keyPath: \.username],
           ]
         )

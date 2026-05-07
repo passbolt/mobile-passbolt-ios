@@ -38,7 +38,7 @@ public struct URLOpeningFailed: TheError {
           line: line
         )
       ),
-      displayableMessage: .localized(key: "generic.error")
+      displayableMessage: .localized(key: "error.url.open.failed")
     )
   }
 

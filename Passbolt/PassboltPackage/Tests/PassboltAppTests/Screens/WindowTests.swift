@@ -34,7 +34,7 @@ final class WindowTests: LoadableFeatureTestCase<WindowController> {
   override class var testedImplementation: FeatureLoader? {
     .disposable(
       WindowController.self,
-      load: WindowController.load
+      load: { try WindowController.load(features: $0) }
     )
   }
 

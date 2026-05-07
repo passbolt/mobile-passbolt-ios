@@ -63,7 +63,9 @@ extension ResourceFolders {
             text: filter.text,
             folderID: filter.folderID,
             flattenContent: filter.flattenContent,
-            permissions: filter.permissions
+            permissions: filter.permissions,
+            limit: filter.limit,
+            offset: filter.offset
           )
         )
 
@@ -77,7 +79,9 @@ extension ResourceFolders {
             folders: .init(
               folderID: filter.folderID,
               flattenContent: filter.flattenContent
-            )
+            ),
+            limit: filter.limit,
+            offset: filter.offset
           )
         )
 

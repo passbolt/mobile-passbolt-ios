@@ -28,14 +28,12 @@
 public final class TestFeaturesContainer {
 
   private let mocks: CriticalState<Dictionary<FeaturesScopeIdentifier, Sendable>>
-  internal let cancellables: Cancellables  // for legacy elements
   private let lock: NSRecursiveLock
 
   internal init() {
     self.mocks = .init([  // initialize with Root scope
       RootFeaturesScope.identifier: RootFeaturesScope.self
     ])
-    self.cancellables = .init()
     self.lock = .init()
   }
 }

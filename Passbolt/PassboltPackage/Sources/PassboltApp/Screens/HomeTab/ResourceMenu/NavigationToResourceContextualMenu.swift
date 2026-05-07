@@ -34,7 +34,7 @@ internal typealias NavigationToResourceContextualMenu = NavigationTo<NavigationT
 extension NavigationToResourceContextualMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: ResourceContextualMenuView.self
     )
   }

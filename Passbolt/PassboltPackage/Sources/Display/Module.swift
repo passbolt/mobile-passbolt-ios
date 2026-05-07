@@ -30,8 +30,10 @@
 extension FeaturesRegistry {
 
   public mutating func useLiveDisplay() {
-    self.useLiveNavigationResolver()
+    self.useLiveNavigationStateRegistry()
+    self.useLiveRootNavigation()
     self.useLiveNavigationRestoration()
     self.useLiveNavigationToRoot()
+    self.useLiveNavigationStateProvider()
   }
 }

@@ -68,83 +68,64 @@ internal struct TagsExplorerView: ControlledView {
   @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    List(
-      content: {
-        if state.resourceTagID != nil, !state.resources.isEmpty {
-          self.resourcesListContent(with: state)
-        }
-        else if state.resourceTagID == nil, !state.tags.isEmpty {
-          self.tagsListContent(with: state)
-        }
-        else {
-          EmptyListView()
-        }
+    if state.resourceTagID != nil, !state.resources.isEmpty {
+      self.resourcesListContent(with: state)
+    }
+    else if state.resourceTagID == nil, !state.tags.isEmpty {
+      self.tagsListContent(with: state)
+    }
+    else {
+      List {
+        EmptyListView()
       }
-    )
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
-    .refreshable {
-      await self.controller.refreshIfNeeded()
+      .listStyle(.plain)
+      .environment(\.defaultMinListRowHeight, 20)
+      .refreshable {
+        await self.controller.refreshIfNeeded()
+      }
     }
   }
 
   @ViewBuilder private func tagsListContent(with state: ViewState) -> some View {
-    Section {
-      ForEach(
-        state.tags,
-        id: \ResourceTagListItemDSV.id
-      ) { listTag in
-        ResourceTagListItemView(
-          name: listTag.slug.rawValue,
-          shared: listTag.shared,
-          contentCount: listTag.contentCount,
-          action: {
-            await self.controller
-              .presentTagContent(
-                .init(
-                  id: listTag.id,
-                  slug: listTag.slug,
-                  shared: listTag.shared
-                )
+    UICommons.ResourceTagsListView(
+      tags: state.tags,
+      hasMoreData: state.hasMoreData,
+      isLoadingMore: state.isLoadingMore,
+      contentResetToken: state.contentResetToken,
+      refreshAction: self.controller.refreshIfNeeded,
+      loadMoreAction: self.controller.loadMore,
+      createAction: .none,
+      tagTapAction: { tagID in
+        if let tag: ResourceTagListItemDSV = state.tags.first(where: { $0.id == tagID }) {
+          await self.controller
+            .presentTagContent(
+              .init(
+                id: tag.id,
+                slug: tag.slug,
+                shared: tag.shared
               )
-          }
-        )
+            )
+        }
       }
-    }
-    .listSectionSeparator(.hidden)
-    .backgroundColor(.passboltBackground)
+    )
   }
 
   @ViewBuilder private func resourcesListContent(with state: ViewState) -> some View {
-    Section {
-      ForEach(
-        state.resources,
-        id: \ResourceListItemDSV.id
-      ) { resource in
-        ResourceListItemView(
-          name: resource.name,
-          username: resource.username,
-          isExpired: resource.isExpired,
-          icon: resource.icon,
-          resourceTypeSlug: resource.typeInfo.typeSlug,
-          contentAction: {
-            await self.controller.presentResourceDetails(resource.id)
-          },
-          rightAction: {
-            await self.controller.presentResourceMenu(resource.id)
-          },
-          rightAccessory: {
-            Image(named: .more)
-              .resizable()
-              .aspectRatio(1, contentMode: .fit)
-              .foregroundColor(Color.passboltIcon)
-              .padding(8)
-              .frame(width: 44)
-          }
-        )
+    UICommons.ResourcesListView(
+      suggestedResources: .none,
+      resources: .constant(state.resources),
+      hasMoreData: state.hasMoreData,
+      isLoadingMore: state.isLoadingMore,
+      contentResetToken: state.contentResetToken,
+      refreshAction: self.controller.refreshIfNeeded,
+      loadMoreAction: self.controller.loadMore,
+      createAction: .none,
+      resourceTapAction: { resourceID in
+        await self.controller.presentResourceDetails(resourceID)
+      },
+      resourceMenuAction: { resourceID in
+        await self.controller.presentResourceMenu(resourceID)
       }
-    }
-    .listSectionSeparator(.hidden)
-    .backgroundColor(.passboltBackground)
+    )
   }
 }

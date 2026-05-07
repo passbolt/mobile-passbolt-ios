@@ -30,7 +30,9 @@ extension FeaturesRegistry {
   public mutating func useCrypto() {
     self.useSignatureVerification()
     self.usePGP()
-    self.useRandomStringGenerator()
+    self.usePasswordGenerator()
+    self.useSecretGenerator()
+    self.usePassphraseGenerator()
     self.useHMAC()
   }
 }

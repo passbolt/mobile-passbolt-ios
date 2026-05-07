@@ -25,7 +25,7 @@ import Localization
 
 public struct InvalidValue: TheError {
 
-  public static func error<Value>(
+  public static func error<Value: Sendable>(
     _ message: StaticString = "InvalidValue",
     validationRule: StaticString,
     value: Value,
@@ -73,7 +73,7 @@ extension InvalidValue: Hashable {
 
 extension InvalidValue {
 
-  public static func alwaysInvalid<Value>(
+  public static func alwaysInvalid<Value: Sendable>(
     message: StaticString = "InvalidValue-alwaysInvalid",
     validationRule: StaticString = "alwaysInvalid",
     value: Value,
@@ -91,7 +91,7 @@ extension InvalidValue {
     )
   }
 
-  public static func null<Value>(
+  public static func null<Value: Sendable>(
     message: StaticString = "InvalidValue-null",
     validationRule: StaticString = "nonNull",
     value: Value,
@@ -109,7 +109,7 @@ extension InvalidValue {
     )
   }
 
-  public static func empty<Value>(
+  public static func empty<Value: Sendable>(
     message: StaticString = "InvalidValue-empty",
     validationRule: StaticString = "nonEmpty",
     value: Value,
@@ -127,7 +127,7 @@ extension InvalidValue {
     )
   }
 
-  public static func tooShort<Value>(
+  public static func tooShort<Value: Sendable>(
     message: StaticString = "InvalidValue-tooShort",
     validationRule: StaticString = "minimumLength",
     value: Value,
@@ -145,7 +145,7 @@ extension InvalidValue {
     )
   }
 
-  public static func tooLong<Value>(
+  public static func tooLong<Value: Sendable>(
     message: StaticString = "InvalidValue-tooLong",
     validationRule: StaticString = "maximumLength",
     value: Value,
@@ -163,7 +163,7 @@ extension InvalidValue {
     )
   }
 
-  public static func notContains<Value>(
+  public static func notContains<Value: Sendable>(
     message: StaticString = "InvalidValue-notContains",
     validationRule: StaticString = "contains",
     value: Value,
@@ -181,7 +181,7 @@ extension InvalidValue {
     )
   }
 
-  public static func wrongType<Value>(
+  public static func wrongType<Value: Sendable>(
     message: StaticString = "InvalidValue-wrongType",
     validationRule: StaticString = "wrongType",
     value: Value,
@@ -199,7 +199,7 @@ extension InvalidValue {
     )
   }
 
-  public static func invalid<Value>(
+  public static func invalid<Value: Sendable>(
     message: StaticString = "InvalidValue-invalid",
     validationRule: StaticString = "invalid",
     value: Value,

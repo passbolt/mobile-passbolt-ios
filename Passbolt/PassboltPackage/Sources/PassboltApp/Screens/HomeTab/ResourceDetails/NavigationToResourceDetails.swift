@@ -34,7 +34,7 @@ internal typealias NavigationToResourceDetails = NavigationTo<NavigationToResour
 extension NavigationToResourceDetails {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceDetailsView.self
     )
   }

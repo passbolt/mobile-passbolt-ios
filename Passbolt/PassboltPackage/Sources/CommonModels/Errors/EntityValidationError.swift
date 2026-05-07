@@ -25,7 +25,7 @@ public struct EntityValidationError: TheError {
   public static func error(
     message: StaticString = "EntityValidationError",
     underlyingError: Error? = .none,
-    details: Dictionary<String, Any>,
+    details: Dictionary<String, any Sendable>,
     file: StaticString = #fileID,
     line: UInt = #line
   ) -> Self {

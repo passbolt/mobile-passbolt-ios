@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public final class EventSubscription<Description>
+public final class EventSubscription<Description>: @unchecked Sendable
 where Description: EventDescription {
 
   @usableFromInline internal let criticalSection: CriticalState<Void>
@@ -57,7 +57,10 @@ extension EventSubscription {
         try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Description.Payload, Error>) in
           self.criticalSection.access { _ in
             assert(self.pendingContinuation == nil, "Reusing subscriptions is forbidden!")
-            if self.buffer.isEmpty {
+            if Task.isCancelled {
+              continuation.resume(throwing: CancellationError())
+            }
+            else if self.buffer.isEmpty {
               self.pendingContinuation = continuation
             }
             else {

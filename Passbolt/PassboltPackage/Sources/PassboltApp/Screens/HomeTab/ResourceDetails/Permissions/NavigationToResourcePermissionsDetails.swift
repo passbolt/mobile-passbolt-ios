@@ -35,7 +35,7 @@ internal typealias NavigationToResourcePermissionsDetails =
 extension NavigationToResourcePermissionsDetails {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourcePermissionsDetailsView.self
     )
   }

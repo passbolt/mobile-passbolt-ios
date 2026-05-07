@@ -32,17 +32,20 @@ public struct PrimaryButton: View {
   private let style: Style
   private let action: @MainActor () async throws -> Void
   private let isDisabled: Binding<Bool>
+  private let isLoading: Bool?
 
   public init(
     title: DisplayableString,
     iconName: ImageNameConstant? = .none,
     style: Style = .regular,
+    isLoading: Bool? = .none,
     disabled: Binding<Bool> = .constant(false),
     action: @escaping @MainActor () async throws -> Void
   ) {
     self.icon = iconName.map(Image.init(named:))
     self.title = title
     self.style = style
+    self.isLoading = isLoading
     self.isDisabled = disabled
     self.action = action
   }
@@ -50,6 +53,7 @@ public struct PrimaryButton: View {
   public var body: some View {
     AsyncButton(
       action: self.action,
+      externalLoadingIndicator: self.isLoading,
       regularLabel: {
         self.regularLabelView
       },

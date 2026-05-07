@@ -31,7 +31,7 @@ internal typealias NavigationToAccountMenu = NavigationTo<AccountMenuNavigationD
 extension NavigationToAccountMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(to: AccountMenuView.self)
+    partialSheetPresentationTransition(to: AccountMenuView.self)
   }
 }
 

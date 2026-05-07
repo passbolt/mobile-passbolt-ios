@@ -34,7 +34,7 @@ public typealias NavigationToHomePresentationMenu = NavigationTo<NavigationToHom
 extension NavigationToHomePresentationMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: HomePresentationMenuView.self
     )
   }
@@ -42,7 +42,7 @@ extension NavigationToHomePresentationMenu {
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToHomePresentationMenu() {
+  public mutating func useLiveNavigationToHomePresentationMenu() {
     self.use(
       NavigationToHomePresentationMenu.live,
       in: SessionScope.self

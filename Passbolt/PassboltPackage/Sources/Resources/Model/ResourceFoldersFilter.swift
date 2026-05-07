@@ -30,19 +30,25 @@ public struct ResourceFoldersFilter {
   public var folderID: ResourceFolder.ID?  // none means root
   public var flattenContent: Bool
   public var permissions: OrderedSet<Permission>
+  public var limit: Int?
+  public var offset: Int
 
   public init(
     sorting: ResourcesSorting,
     text: String,
     folderID: ResourceFolder.ID?,
     flattenContent: Bool,
-    permissions: OrderedSet<Permission>
+    permissions: OrderedSet<Permission>,
+    limit: Int? = .none,
+    offset: Int = 0
   ) {
     self.sorting = sorting
     self.text = text
     self.folderID = folderID
     self.flattenContent = flattenContent
     self.permissions = permissions
+    self.limit = limit
+    self.offset = offset
   }
 }
 

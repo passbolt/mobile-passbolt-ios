@@ -44,6 +44,9 @@ internal final class BiometricsSetupViewController: ViewController {
   let biometry: OSBiometry
   let navigationToExtensionSetup: NavigationToExtensionSetup
   let navigationToSelf: NavigationToBiometricsSetup
+  private let navigationStateRegistry: NavigationStateRegistry
+  private var sheetNavigationState: NavigationState?
+  private var previousActiveState: NavigationState?
 
   internal init(context: (), features: Features) throws {
 
@@ -69,6 +72,7 @@ internal final class BiometricsSetupViewController: ViewController {
     self.accountPreferences = try features.instance()
     self.navigationToExtensionSetup = try features.instance()
     self.navigationToSelf = try features.instance()
+    self.navigationStateRegistry = try features.instance()
 
     self.viewState = .init(
       initial: .init(
@@ -126,13 +130,33 @@ internal final class BiometricsSetupViewController: ViewController {
     await nextStep()
   }
 
+  internal func setSheetNavigationState(_ state: NavigationState) {
+    self.previousActiveState = navigationStateRegistry.activeState()
+    self.sheetNavigationState = state
+    navigationStateRegistry.setActive(state)
+  }
+
   private func nextStep() async {
     if await extensions.autofillExtensionEnabled() {
-      await self.navigationToSelf.revertCatching()
+      await dismissSheet()
     }
     else {
-      await self.navigationToExtensionSetup.performCatching(context: .init(allowSkipping: true))
+      await self.navigationToExtensionSetup.performCatching(
+        context: .init(
+          allowSkipping: true,
+          onDismiss: { [weak self] in
+            await self?.dismissSheet()
+          }
+        )
+      )
     }
+  }
+
+  private func dismissSheet() async {
+    if let previousState: NavigationState = previousActiveState {
+      navigationStateRegistry.setActive(previousState)
+    }
+    await self.navigationToSelf.revertCatching()
   }
 
   internal func setupBiometrics() async {

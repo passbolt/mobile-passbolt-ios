@@ -25,7 +25,7 @@ import Commons
 import SwiftUI
 
 public struct WithViewState<State, ContentView>: View
-where State: Equatable, ContentView: View {
+where State: Equatable & Sendable, ContentView: View {
 
   @ObservedObject private var viewState: TrimmedViewState<State>
   private let content: (State) -> ContentView

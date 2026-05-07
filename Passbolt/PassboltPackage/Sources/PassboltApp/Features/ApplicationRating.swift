@@ -91,7 +91,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         ApplicationRating.self,
-        load: ApplicationRating.load(features:)
+        load: { try ApplicationRating.load(features: $0) }
       ),
       in: RootFeaturesScope.self
     )

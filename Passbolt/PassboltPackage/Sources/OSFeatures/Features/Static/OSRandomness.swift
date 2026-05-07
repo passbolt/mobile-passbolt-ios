@@ -28,9 +28,9 @@ import func Foundation.time
 
 // MARK: - Interface
 
-public struct OSRandomness {
+public struct OSRandomness: Sendable {
 
-  public var nextValue: () -> UInt64
+  public var nextValue: @Sendable () -> UInt64
 }
 
 extension OSRandomness: RandomNumberGenerator {
@@ -56,10 +56,12 @@ extension OSRandomness: StaticFeature {
 extension OSRandomness {
 
   fileprivate static var live: Self {
-    var rng: SystemRandomNumberGenerator = .init()
+    let rng: CriticalState<SystemRandomNumberGenerator> = .init(.init())
 
-    func nextValue() -> UInt64 {
-      rng.next()
+    @Sendable func nextValue() -> UInt64 {
+      rng.access { generator in
+        generator.next()
+      }
     }
 
     return Self(

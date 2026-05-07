@@ -190,6 +190,7 @@ extension ResourceSpecification {
         .metaDescription,
         .metaURIs,
         .metaCustomFields,
+        .metaAppearance,
       ],
       secretFields: [
         .secretCustomFields

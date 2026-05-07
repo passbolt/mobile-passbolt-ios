@@ -27,7 +27,7 @@ import Features
 // views - it should uniquely identify a view on display.
 @MainActor public protocol ViewController: AnyObject, Hashable {
 
-  associatedtype ViewState: Equatable = Stateless
+  associatedtype ViewState: Equatable & Sendable = Stateless
   associatedtype Context = Void
 
   nonisolated var viewState: ViewStateSource<ViewState> { get }
@@ -218,7 +218,7 @@ extension Features {
 
 public enum Controlled {
 
-  @ViewBuilder public static func by<ControlledViewA, DefaultView>(
+  @MainActor @ViewBuilder public static func by<ControlledViewA, DefaultView>(
     _ controller: any ViewController,
     view: ControlledViewA.Type,
     @ViewBuilder orDefault defaultView: () -> DefaultView
@@ -233,7 +233,7 @@ public enum Controlled {
     }
   }
 
-  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, DefaultView>(
+  @MainActor @ViewBuilder public static func by<ControlledViewA, ControlledViewB, DefaultView>(
     _ controller: any ViewController,
     view: ControlledViewA.Type,
     or _: ControlledViewB.Type,
@@ -252,7 +252,7 @@ public enum Controlled {
     }
   }
 
-  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, DefaultView>(
+  @MainActor @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, DefaultView>(
     _ controller: any ViewController,
     view: ControlledViewA.Type,
     or _: ControlledViewB.Type,
@@ -280,7 +280,8 @@ public enum Controlled {
     }
   }
 
-  @ViewBuilder public static func by<ControlledViewA, ControlledViewB, ControlledViewC, ControlledViewD, DefaultView>(
+  @MainActor @ViewBuilder
+  public static func by<ControlledViewA, ControlledViewB, ControlledViewC, ControlledViewD, DefaultView>(
     _ controller: any ViewController,
     view: ControlledViewA.Type,
     or _: ControlledViewB.Type,
@@ -313,7 +314,7 @@ public enum Controlled {
     }
   }
 
-  @ViewBuilder
+  @MainActor @ViewBuilder
   public static func by<
     ControlledViewA,
     ControlledViewB,

@@ -27,18 +27,18 @@ import SwiftUI
 public struct ResourcesListSectionView: View {
 
   private let title: DisplayableString?
-  private let resources: Array<ResourceListItemDSV>
+  @Binding private var resources: Array<ResourceListItemDSV>
   private let tapAction: (Resource.ID) async throws -> Void
   private let menuAction: ((Resource.ID) async throws -> Void)?
 
   public init(
     title: DisplayableString? = .none,
-    resources: Array<ResourceListItemDSV>,
+    resources: Binding<Array<ResourceListItemDSV>>,
     tapAction: @escaping (Resource.ID) async throws -> Void,
     menuAction: ((Resource.ID) async throws -> Void)? = .none
   ) {
     self.title = title
-    self.resources = resources
+    self._resources = resources
     self.tapAction = tapAction
     self.menuAction = menuAction
   }

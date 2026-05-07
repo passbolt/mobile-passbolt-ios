@@ -21,6 +21,10 @@ let package = Package(
       targets: ["NFC"]
     ),
     .library(
+      name: "Shared",
+      targets: ["Shared"]
+    ),
+    .library(
       name: "SharedUIComponents",
       targets: ["SharedUIComponents"]
     ),
@@ -150,6 +154,9 @@ let package = Package(
         "Features",
         "FeatureScopes",
       ],
+      resources: [
+        .process("Resources/eff_large_wordlist.txt")
+      ],
       swiftSettings: [
         .swiftLanguageMode(.v6)
       ]
@@ -183,8 +190,28 @@ let package = Package(
       ]
     ),
     .target(
+      name: "Shared",
+      dependencies: [
+        "CommonModels",
+        "Commons",
+        "Crypto",
+        "DatabaseOperations",
+        "NetworkOperations",
+        "OSFeatures",
+        "Features",
+        "FeatureScopes",
+        "Accounts",
+        "Session",
+        "SessionData",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
+      ]
+    ),
+    .target(
       name: "SharedUIComponents",
       dependencies: [
+        "Shared",
         "Accounts",
         "AccountSetup",
         "CommonModels",
@@ -200,6 +227,7 @@ let package = Package(
     .target(
       name: "PassboltApp",
       dependencies: [
+        "Shared",
         "SharedUIComponents",
         "NFC",
         "Crypto",
@@ -227,6 +255,7 @@ let package = Package(
     .target(
       name: "PassboltExtension",
       dependencies: [
+        "Shared",
         "SharedUIComponents",
         "Crypto",
         // Base
@@ -264,6 +293,9 @@ let package = Package(
           name: "AsyncAlgorithms",
           package: "swift-async-algorithms"
         ),
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -289,6 +321,9 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -313,6 +348,9 @@ let package = Package(
         "Features",
         "FeatureScopes",
         "UICommons",
+      ],
+      swiftSettings: [
+        .swiftLanguageMode(.v6)
       ]
     ),
     .target(
@@ -830,6 +868,9 @@ let package = Package(
       name: "FeaturesTests",
       dependencies: [
         "Features",
+        "Crypto",
+        "DatabaseOperations",
+        "SharedUIComponents",
         "CoreTest",
         "TestExtensions",
       ]
@@ -886,6 +927,15 @@ let package = Package(
       name: "PassboltNetworkOperationsTests",
       dependencies: [
         "PassboltResources",
+        "CoreTest",
+        "TestExtensions",
+      ]
+    ),
+    .testTarget(
+      name: "SharedUIComponentsTests",
+      dependencies: [
+        "SharedUIComponents",
+        "Shared",
         "CoreTest",
         "TestExtensions",
       ]

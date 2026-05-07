@@ -41,26 +41,22 @@
 
   @discardableResult
   internal func ensureDisplayed(timeout: TimeInterval = 5.0) -> Self {
-    for element in self.requiredElements {
-      if !element.exists {
-        // Wait for the element to appear only if it does not already exist to speed up tests
-        XCTAssertTrue(
-          element.waitForExistence(
-            timeout: timeout
-          ),
-          "Expected element \(element) to be present on screen \(Self.self)"
-        )
-      }
+    for element in self.requiredElements where !element.exists {
+      // Wait for the element to appear only if it does not already exist to speed up tests
+      XCTAssertTrue(
+        element.waitForExistence(
+          timeout: timeout
+        ),
+        "Expected element \(element) to be present on screen \(Self.self)"
+      )
     }
 
     return self
   }
 
   internal func isDisplayed() -> Bool {
-    for element in self.requiredElements {
-      if !element.exists {
-        return false
-      }
+    for element in self.requiredElements where !element.exists {
+      return false
     }
     return true
   }
@@ -70,7 +66,7 @@
     element.tap()
     element.typeText(text)
     if self.app.buttons["return"].exists {
-      self.app.buttons["return"].tap() // Dismiss keyboard
+      self.app.buttons["return"].tap()  // Dismiss keyboard
     }
 
     return self

@@ -51,6 +51,10 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
       with: always(.unavailable)
     )
     patch(
+      \AccountDetails.isPassphraseStored,
+      with: always(false)
+    )
+    patch(
       \MediaDownloadNetworkOperation.execute,
       with: { _ in Data() }
     )
@@ -87,10 +91,14 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
     )
   }
 
-  func test_viewState_biometricsAvailability_isFaceID_whenAvailable() async throws {
+  func test_viewState_biometricsAvailability_isFaceID_whenAvailableAndPassphraseStored() async throws {
     patch(
       \OSBiometry.availability,
       with: always(.faceID)
+    )
+    patch(
+      \AccountDetails.isPassphraseStored,
+      with: always(true)
     )
 
     let tested: AuthorizationViewController = try self.testedInstance(
@@ -105,10 +113,14 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
     )
   }
 
-  func test_viewState_biometricsAvailability_isTouchID_whenAvailable() async throws {
+  func test_viewState_biometricsAvailability_isTouchID_whenAvailableAndPassphraseStored() async throws {
     patch(
       \OSBiometry.availability,
       with: always(.touchID)
+    )
+    patch(
+      \AccountDetails.isPassphraseStored,
+      with: always(true)
     )
 
     let tested: AuthorizationViewController = try self.testedInstance(
@@ -119,6 +131,24 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
 
     XCTAssertEqual(
       .touchID,
+      tested.viewState.value.biometricsAvailability
+    )
+  }
+
+  func test_viewState_biometricsAvailability_isUnavailable_whenFaceIDAvailableButPassphraseNotStored() async throws {
+    patch(
+      \OSBiometry.availability,
+      with: always(.faceID)
+    )
+
+    let tested: AuthorizationViewController = try self.testedInstance(
+      context: .mock_ada
+    )
+
+    let _ = await tested.viewState.current
+
+    XCTAssertEqual(
+      .unavailable,
       tested.viewState.value.biometricsAvailability
     )
   }
@@ -198,11 +228,15 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
     XCTAssertFalse(authorizeCalled.get())
   }
 
-  func test_tryBiometricSignIn_authorizes_whenBiometricsAvailable() async throws {
+  func test_tryBiometricSignIn_authorizes_whenBiometricsAvailableAndPassphraseStored() async throws {
     let authorizeCalled: CriticalState<Bool> = .init(false)
     patch(
       \OSBiometry.availability,
       with: always(.faceID)
+    )
+    patch(
+      \AccountDetails.isPassphraseStored,
+      with: always(true)
     )
     patch(
       \Session.authorize,

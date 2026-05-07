@@ -39,6 +39,8 @@ internal final class MainTabsViewController: ViewController {
 
   private let features: Features
 
+  internal let navigationStateRegistry: NavigationStateRegistry
+  internal let rootNavigationState: RootNavigationState
   internal let homeController: HomeViewController
   internal let settingsController: MainSettingsViewController
   internal let otpController: OTPResourcesListViewController
@@ -52,6 +54,10 @@ internal final class MainTabsViewController: ViewController {
       )
       .branch(scope: SessionScope.self, context: context)
 
+    self.navigationStateRegistry = try self.features.instance()
+    let rootNavigation: RootNavigation = try self.features.instance()
+    self.rootNavigationState = rootNavigation.state
+
     self.viewState = .init(
       initial: .init()
     )
@@ -64,20 +70,27 @@ internal final class MainTabsViewController: ViewController {
   }
 
   private func configureAppearance() {
-    let appearance = UITabBarAppearance()
-    appearance.configureWithOpaqueBackground()
-    appearance.backgroundColor = .passboltBackground
-    appearance.shadowColor = .clear
-
-    appearance.shadowImage = UIImage()
     let fontAttributes: [NSAttributedString.Key: Any] = [
       .font: UIFont.inter(ofSize: 12, weight: .semibold)
     ]
-    appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
-    appearance.stackedLayoutAppearance.selected.titleTextAttributes = fontAttributes
 
-    UITabBar.appearance().standardAppearance = appearance
-    UITabBar.appearance().scrollEdgeAppearance = appearance
+    if #available(iOS 26, *) {
+      let appearance: UITabBarAppearance = UITabBarAppearance()
+      appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
+      appearance.stackedLayoutAppearance.selected.titleTextAttributes = fontAttributes
+      UITabBar.appearance().standardAppearance = appearance
+    }
+    else {
+      let appearance: UITabBarAppearance = UITabBarAppearance()
+      appearance.configureWithOpaqueBackground()
+      appearance.backgroundColor = .passboltBackground
+      appearance.shadowColor = .clear
+      appearance.shadowImage = UIImage()
+      appearance.stackedLayoutAppearance.normal.titleTextAttributes = fontAttributes
+      appearance.stackedLayoutAppearance.selected.titleTextAttributes = fontAttributes
+      UITabBar.appearance().standardAppearance = appearance
+      UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
   }
 
   @Sendable internal func activate() async {
@@ -93,10 +106,15 @@ internal final class MainTabsViewController: ViewController {
           .performCatching()
 
       case .autofillSetup:
-        let navigationToExtensionSetup: NavigationToExtensionSetup? = try self.features.instance()
-        await navigationToExtensionSetup?
+        let navigationToExtensionSetupSheet: NavigationToExtensionSetupSheet = try self.features.instance()
+        await navigationToExtensionSetupSheet
           .performCatching(
-            context: .init(allowSkipping: true)
+            context: .init(
+              allowSkipping: true,
+              onDismiss: { [navigationToExtensionSetupSheet] in
+                await navigationToExtensionSetupSheet.revertCatching()
+              }
+            )
           )
       }
     }

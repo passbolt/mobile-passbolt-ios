@@ -28,11 +28,11 @@ import Features
 
 public struct ResourceTags {
 
-  public var filteredTagsList: @Sendable (String) async throws -> Array<ResourceTagListItemDSV>
+  public var filteredTagsList: @Sendable (ResourceTagsFilter) async throws -> Array<ResourceTagListItemDSV>
   public var details: @Sendable (ResourceTag.ID) async throws -> ResourceTag
 
   public init(
-    filteredTagsList: @escaping @Sendable (String) async throws -> Array<ResourceTagListItemDSV>,
+    filteredTagsList: @escaping @Sendable (ResourceTagsFilter) async throws -> Array<ResourceTagListItemDSV>,
     details: @escaping @Sendable (ResourceTag.ID) async throws -> ResourceTag
   ) {
     self.filteredTagsList = filteredTagsList

@@ -66,7 +66,7 @@ final class SessionLockingTests: FeaturesTestCase {
   func test_ensureAutolock_clearsPassphrase_whenEnteringBackground() async throws {
     patch(
       \ApplicationLifecycle.lifecycle,
-      with: CurrentValueSubject(ApplicationLifecycle.Transition.didEnterBackground)
+      with: Just(ApplicationLifecycle.Transition.didEnterBackground)
         .asAsyncSequence()
     )
     patch(
@@ -103,7 +103,7 @@ final class SessionLockingTests: FeaturesTestCase {
   func test_ensureAutolock_clearsPassphrase_whenEnteringForeground() async {
     patch(
       \ApplicationLifecycle.lifecycle,
-      with: CurrentValueSubject(ApplicationLifecycle.Transition.willEnterForeground)
+      with: Just(ApplicationLifecycle.Transition.willEnterForeground)
         .asAsyncSequence()
     )
     patch(

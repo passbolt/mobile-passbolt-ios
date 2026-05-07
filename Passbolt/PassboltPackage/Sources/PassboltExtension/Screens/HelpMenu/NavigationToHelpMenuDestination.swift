@@ -34,7 +34,7 @@ internal typealias NavigationToHelpMenu = NavigationTo<NavigationToHelpMenuDesti
 extension NavigationToHelpMenu {
 
   fileprivate static var live: FeatureLoader {
-    legacyPartialSheetPresentationTransition(
+    partialSheetPresentationTransition(
       to: HelpMenuView.self
     )
   }

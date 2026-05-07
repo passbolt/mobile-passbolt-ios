@@ -174,7 +174,7 @@ public func checkFeedbackAssistant() -> Bool {
   }
 }
 
-private var feedbackAlertPresented: Bool = false
+@MainActor private var feedbackAlertPresented: Bool = false
 @MainActor
 public func showFeedbackAlertIfNeeded(
   completion: @escaping () async -> Void

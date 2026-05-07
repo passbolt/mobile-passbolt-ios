@@ -37,7 +37,11 @@ internal struct ResourceUserGroupsListDisplayView: ControlledView {
     WithViewState(from: self.controller) { state in
       UICommons.ResourceUserGroupsListView(
         userGroups: state.userGroups,
+        hasMoreData: state.hasMoreData,
+        isLoadingMore: state.isLoadingMore,
+        contentResetToken: state.contentResetToken,
         refreshAction: self.controller.refresh,
+        loadMoreAction: self.controller.loadMore,
         createAction: .none,
         groupTapAction: self.controller.selectGroup
       )

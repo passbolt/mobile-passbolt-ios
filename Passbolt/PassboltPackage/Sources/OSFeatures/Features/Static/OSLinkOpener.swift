@@ -74,17 +74,17 @@ extension OSLinkOpener {
     }
 
     @Sendable func open(
-      url: URLString
+      url urlString: URLString
     ) async throws {
-      guard let url: URL = .init(string: url.rawValue)
+      guard let preparedURL: URL = urlString.asURL()
       else {
-        throw InvalidInputData.error()
+        throw URLInvalid.error(rawString: urlString.rawValue)
       }
-      guard await UIApplication.shared.canOpenURL(url)
+      guard await UIApplication.shared.canOpenURL(preparedURL)
       else {
         throw URLOpeningFailed.error()
       }
-      try await open(url)
+      try await open(preparedURL)
     }
 
     return Self(
@@ -110,5 +110,17 @@ extension FeaturesRegistry {
     self.use(
       OSLinkOpener.live
     )
+  }
+}
+
+extension URLString {
+
+  fileprivate func asURL() -> URL? {
+    var value: String = self.rawValue
+    // Add default https scheme if no scheme is present
+    if URLComponents(string: value)?.scheme == nil {
+      value = "https://" + value
+    }
+    return URL(string: value)
   }
 }

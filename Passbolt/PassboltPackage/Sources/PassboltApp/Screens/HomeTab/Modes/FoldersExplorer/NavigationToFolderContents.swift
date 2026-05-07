@@ -35,7 +35,7 @@ internal typealias NavigationToFolderContent = NavigationTo<NavigationToFolderCo
 extension NavigationToFolderContent {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: FoldersExplorerView.self
     )
   }

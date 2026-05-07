@@ -68,3 +68,4 @@ public struct ResourceFolderEditingContext {
 }
 
 extension ResourceFolderEditingContext: Equatable {}
+extension ResourceFolderEditingContext: Sendable {}

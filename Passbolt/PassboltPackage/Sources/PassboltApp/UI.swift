@@ -86,23 +86,29 @@ extension UI {
     in session: UISceneSession,
     with options: UIScene.ConnectionOptions
   ) -> Window {
-    Window(
-      in: scene,
-      using: {
-        do {
-          var features: Features = self.features
-          return try WindowController.instance(
-            with: &features
-          )
-        }
-        catch {
-          error
-            .asTheError()
-            .asFatalError()
-        }
-      },
-      with: features,
-      rootViewController: UIHostingController<SplashView>(rootView: .init())
-    )
+    do {
+      return try Window(
+        in: scene,
+        using: {
+          do {
+            var features: Features = self.features
+            return try WindowController.instance(
+              with: &features
+            )
+          }
+          catch {
+            error
+              .asTheError()
+              .asFatalError()
+          }
+        },
+        with: features
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
   }
 }

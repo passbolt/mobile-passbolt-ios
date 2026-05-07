@@ -37,7 +37,11 @@ internal struct ResourceTagsListDisplayView: ControlledView {
     WithViewState(from: self.controller) { state in
       UICommons.ResourceTagsListView(
         tags: state.resourceTags,
+        hasMoreData: state.hasMoreData,
+        isLoadingMore: state.isLoadingMore,
+        contentResetToken: state.contentResetToken,
         refreshAction: self.controller.refresh,
+        loadMoreAction: self.controller.loadMore,
         createAction: .none,
         tagTapAction: self.controller.selectTag
       )

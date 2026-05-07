@@ -22,4 +22,5 @@
 //
 
 @_exported import FeatureScopes
+@_exported import Shared
 @_exported import UICommons

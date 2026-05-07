@@ -34,7 +34,7 @@ internal typealias NavigationToOTPAttachSelectionList = NavigationTo<OTPAttachSe
 extension NavigationToOTPAttachSelectionList {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: OTPAttachSelectionListView.self
     )
   }

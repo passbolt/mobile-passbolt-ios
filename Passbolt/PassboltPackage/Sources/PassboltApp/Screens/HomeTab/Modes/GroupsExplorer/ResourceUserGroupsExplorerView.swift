@@ -68,75 +68,58 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
   @MainActor @ViewBuilder private func contentView(
     with state: ViewState
   ) -> some View {
-    List(
-      content: {
-        if state.groupID != nil, !state.resources.isEmpty {
-          self.resourcesListContent(with: state)
-        }
-        else if state.groupID == nil, !state.groups.isEmpty {
-          self.resourcesUserGroupsListContent(with: state)
-        }
-        else {
-          EmptyListView()
-        }
+    if state.groupID != nil, !state.resources.isEmpty {
+      self.resourcesListContent(with: state)
+    }
+    else if state.groupID == nil, !state.groups.isEmpty {
+      self.resourcesUserGroupsListContent(with: state)
+    }
+    else {
+      List {
+        EmptyListView()
       }
-    )
-    .listStyle(.plain)
-    .environment(\.defaultMinListRowHeight, 20)
-    .refreshable {
-      await self.controller.refreshIfNeeded()
+      .listStyle(.plain)
+      .environment(\.defaultMinListRowHeight, 20)
+      .refreshable {
+        await self.controller.refreshIfNeeded()
+      }
     }
   }
 
   @ViewBuilder private func resourcesUserGroupsListContent(with state: ViewState) -> some View {
-    Section {
-      ForEach(
-        state.groups,
-        id: \ResourceUserGroupListItemDSV.id
-      ) { listGroup in
-        ResourceUserGroupListItemView(
-          name: listGroup.name,
-          contentCount: listGroup.contentCount,
-          action: {
-            await self.controller.presentGroupContent(listGroup)
-          }
-        )
+    UICommons.ResourceUserGroupsListView(
+      userGroups: state.groups,
+      hasMoreData: state.hasMoreData,
+      isLoadingMore: state.isLoadingMore,
+      contentResetToken: state.contentResetToken,
+      refreshAction: self.controller.refreshIfNeeded,
+      loadMoreAction: self.controller.loadMore,
+      createAction: .none,
+      groupTapAction: { groupID in
+        // Find the group item and navigate
+        if let group: ResourceUserGroupListItemDSV = state.groups.first(where: { $0.id == groupID }) {
+          await self.controller.presentGroupContent(group)
+        }
       }
-    }
-    .listSectionSeparator(.hidden)
-    .backgroundColor(.passboltBackground)
+    )
   }
 
   @ViewBuilder private func resourcesListContent(with state: ViewState) -> some View {
-    Section {
-      ForEach(
-        state.resources,
-        id: \ResourceListItemDSV.id
-      ) { resource in
-        ResourceListItemView(
-          name: resource.name,
-          username: resource.username,
-          isExpired: resource.isExpired,
-          icon: resource.icon,
-          resourceTypeSlug: resource.typeInfo.typeSlug,
-          contentAction: {
-            await self.controller.presentResourceDetails(resource.id)
-          },
-          rightAction: {
-            await self.controller.presentResourceMenu(resource.id)
-          },
-          rightAccessory: {
-            Image(named: .more)
-              .resizable()
-              .aspectRatio(1, contentMode: .fit)
-              .foregroundColor(Color.passboltIcon)
-              .padding(16)
-              .frame(width: 44)
-          }
-        )
+    UICommons.ResourcesListView(
+      suggestedResources: .none,
+      resources: .constant(state.resources),
+      hasMoreData: state.hasMoreData,
+      isLoadingMore: state.isLoadingMore,
+      contentResetToken: state.contentResetToken,
+      refreshAction: self.controller.refreshIfNeeded,
+      loadMoreAction: self.controller.loadMore,
+      createAction: .none,
+      resourceTapAction: { resourceID in
+        await self.controller.presentResourceDetails(resourceID)
+      },
+      resourceMenuAction: { resourceID in
+        await self.controller.presentResourceMenu(resourceID)
       }
-    }
-    .listSectionSeparator(.hidden)
-    .backgroundColor(.passboltBackground)
+    )
   }
 }

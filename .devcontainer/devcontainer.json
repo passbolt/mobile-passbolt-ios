@@ -1,0 +1,16 @@
+{
+  "name": "Claude code container",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "service": "devcontainer",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/${localEnv:USER}/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude.json,target=/home/${localEnv:USER}/.claude.json,type=bind,consistency=cached"
+  ],
+  "postCreateCommand": "curl -fsSL https://github.com/AikidoSec/safe-chain/releases/latest/download/install-safe-chain.sh | sh",
+  "postStartCommand": "bash -l -c 'npm install -g @anthropic-ai/claude-code@latest && npm update -g'"
+}

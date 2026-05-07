@@ -63,13 +63,15 @@ internal final class AuthorizationViewController: ViewController {
       initial: .init(),
       updateFrom: accountDetails.updates,
       update: { updateState, _ in
+        let passphraseStored: Bool = accountDetails.isPassphraseStored()
         let accountDetails: AccountWithProfile = try accountDetails.profile()
-        let biomertricAvailability: OSBiometryAvailability = biometry.availability()
+        let biometricAvailability: OSBiometryAvailability = biometry.availability()
+          .accountAvailability(isPassphraseStored: passphraseStored)
         updateState { state in
           state.label = accountDetails.label
           state.username = accountDetails.username
           state.domain = accountDetails.domain.rawValue
-          state.biometricsAvailability = biomertricAvailability
+          state.biometricsAvailability = biometricAvailability
           state.avatarURL = accountDetails.profile.avatarImageURL
         }
       }

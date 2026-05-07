@@ -23,7 +23,7 @@
 
 import Localization
 
-public struct Validated<Value> {
+public struct Validated<Value>: Sendable where Value: Sendable {
 
   public var value: Value
   public private(set) var error: TheError?
@@ -82,7 +82,7 @@ extension Validated {
     displayable: DisplayableString,
     file: StaticString = #fileID,
     line: UInt = #line
-  ) -> Self {
+  ) -> Self where Value: Sendable {
     Self(
       value: value,
       error: InvalidValue.error(

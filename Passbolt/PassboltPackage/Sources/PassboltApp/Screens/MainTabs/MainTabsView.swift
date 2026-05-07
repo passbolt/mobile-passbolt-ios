@@ -26,28 +26,41 @@ import Display
 internal struct MainTabsView: ControlledView {
 
   internal let controller: MainTabsViewController
+  @State private var selectedTab: TabIdentifier = .home
 
   internal init(controller: MainTabsViewController) {
     self.controller = controller
   }
 
   internal var body: some View {
-    TabView {
+    TabView(selection: $selectedTab) {
       Tab<HomeView>(
         title: "tab.home",
         iconName: .home,
+        tabID: .home,
+        selectedTab: $selectedTab,
+        navigationStateRegistry: controller.navigationStateRegistry,
+        rootNavigationState: controller.rootNavigationState,
         controllerProvider: self.controller.homeController
       )
       when(\.isOTPTabAvailable) {
         Tab<OTPResourcesListView>(
           title: "tab.otp",
           iconName: .otp,
+          tabID: .otp,
+          selectedTab: $selectedTab,
+          navigationStateRegistry: controller.navigationStateRegistry,
+          rootNavigationState: controller.rootNavigationState,
           controllerProvider: self.controller.otpController
         )
       }
       Tab<MainSettingsView>(
         title: "tab.settings",
         iconName: .settings,
+        tabID: .settings,
+        selectedTab: $selectedTab,
+        navigationStateRegistry: controller.navigationStateRegistry,
+        rootNavigationState: controller.rootNavigationState,
         controllerProvider: self.controller.settingsController
       )
     }
@@ -56,24 +69,43 @@ internal struct MainTabsView: ControlledView {
   }
 }
 
+private enum TabIdentifier: Hashable {
+  case home
+  case otp
+  case settings
+}
+
 private struct Tab<TabView: ControlledView>: View {
 
   private let title: DisplayableString
   private let iconName: ImageNameConstant
+  private let tabID: TabIdentifier
+  @Binding private var selectedTab: TabIdentifier
+  private let navigationStateRegistry: NavigationStateRegistry
   private let controllerProvider: () -> TabView.Controller
+  @StateObject private var navigationState = NavigationState()
+  @ObservedObject private var rootState: RootNavigationState
 
   fileprivate init(
     title: DisplayableString,
     iconName: ImageNameConstant,
+    tabID: TabIdentifier,
+    selectedTab: Binding<TabIdentifier>,
+    navigationStateRegistry: NavigationStateRegistry,
+    rootNavigationState: RootNavigationState,
     controllerProvider: @autoclosure @escaping () -> TabView.Controller
   ) {
     self.title = title
     self.iconName = iconName
+    self.tabID = tabID
+    self._selectedTab = selectedTab
+    self.navigationStateRegistry = navigationStateRegistry
+    self.rootState = rootNavigationState
     self.controllerProvider = controllerProvider
   }
 
   fileprivate var body: some View {
-    NavigationStack {
+    NavigationContainer(navigationState: navigationState) {
       TabView(controller: self.controllerProvider())
         .overlay(alignment: .bottom) {
           if #available(iOS 26, *) {
@@ -92,11 +124,29 @@ private struct Tab<TabView: ControlledView>: View {
           }
         }
     }
+    .tag(tabID)
     .tabItem {
       TabItemView(
         title: title,
         iconName: iconName
       )
+    }
+    .onAppear {
+      // Only set active if this tab is currently selected
+      if selectedTab == tabID {
+        navigationStateRegistry.setActive(navigationState)
+      }
+    }
+    .onChange(of: selectedTab) { newTab in
+      if newTab == tabID {
+        navigationStateRegistry.setActive(navigationState)
+      }
+    }
+    .onChange(of: rootState.reactivationSignal) { _ in
+      // Re-activate navigation state after root restoration
+      if selectedTab == tabID {
+        navigationStateRegistry.setActive(navigationState)
+      }
     }
   }
 }

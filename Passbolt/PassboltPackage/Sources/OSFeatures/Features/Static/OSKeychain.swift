@@ -289,8 +289,8 @@ private func loadKeychainData(
           KeychainAuthorizationFailure
           .error("Failed to access biometric authorization for loading keychain data")
           .recording(key, for: "key")
-          .recording(tag as Any, for: "tag")
-          .recording(errorPtr as Any, for: "underlyingError")
+          .recording(tag as any Sendable, for: "tag")
+          .recording(String(describing: errorPtr), for: "underlyingError")
       )
     )
   }
@@ -315,7 +315,7 @@ private func loadKeychainData(
               KeychainAuthorizationFailure
               .error("Authorization failed for loading keychain data")
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
+              .recording(tag as any Sendable, for: "tag")
           )
         )
 
@@ -335,7 +335,7 @@ private func loadKeychainData(
                 osStatus: status
               )
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
+              .recording(tag as any Sendable, for: "tag")
           )
         )
       }
@@ -350,8 +350,8 @@ private func loadKeychainData(
               DataInvalid
               .error("Keychain data invalid")
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
-              .recording(queryResult as Any, for: "queryResult")
+              .recording(tag as any Sendable, for: "tag")
+              .recording(String(describing: queryResult), for: "queryResult")
           )
         )
       }
@@ -373,8 +373,8 @@ private func loadKeychainMeta(
           KeychainAuthorizationFailure
           .error("Failed to access biometric authorization for loading keychain data")
           .recording(key, for: "key")
-          .recording(tag as Any, for: "tag")
-          .recording(errorPtr as Any, for: "underlyingError")
+          .recording(tag as any Sendable, for: "tag")
+          .recording(String(describing: errorPtr), for: "underlyingError")
       )
     )
   }
@@ -399,7 +399,7 @@ private func loadKeychainMeta(
               KeychainAuthorizationFailure
               .error("Authorization failed for loading keychain data")
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
+              .recording(tag as any Sendable, for: "tag")
           )
         )
 
@@ -419,7 +419,7 @@ private func loadKeychainMeta(
                 osStatus: status
               )
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
+              .recording(tag as any Sendable, for: "tag")
           )
         )
       }
@@ -434,8 +434,8 @@ private func loadKeychainMeta(
               DataInvalid
               .error("Keychain data invalid")
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
-              .recording(queryResult as Any, for: "queryResult")
+              .recording(tag as any Sendable, for: "tag")
+              .recording(String(describing: queryResult), for: "queryResult")
           )
         )
       }
@@ -482,8 +482,8 @@ private func saveKeychain(
           KeychainAuthorizationFailure
           .error("Failed to access biometric authorization for saving keychain data")
           .recording(key, for: "key")
-          .recording(tag as Any, for: "tag")
-          .recording(errorPtr as Any, for: "underlyingError")
+          .recording(tag as any Sendable, for: "tag")
+          .recording(String(describing: errorPtr), for: "underlyingError")
       )
     )
   }
@@ -508,7 +508,7 @@ private func saveKeychain(
                       osStatus: status
                     )
                     .recording(key, for: "key")
-                    .recording(tag as Any, for: "tag")
+                    .recording(tag as any Sendable, for: "tag")
                 )
               )
             }
@@ -534,7 +534,7 @@ private func saveKeychain(
                   osStatus: status
                 )
                 .recording(key, for: "key")
-                .recording(tag as Any, for: "tag")
+                .recording(tag as any Sendable, for: "tag")
             )
           )
         }
@@ -562,7 +562,7 @@ private func deleteKeychainData(
                 osStatus: status
               )
               .recording(key, for: "key")
-              .recording(tag as Any, for: "tag")
+              .recording(tag as any Sendable, for: "tag")
           )
         )
       }
@@ -612,7 +612,7 @@ private func loadKeychainKeyQuery(
           underlyingError:
             OSKeychainQueryInvalid
             .error("'load' keychain query preparation failed")
-            .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+            .recording(String(describing: error?.takeRetainedValue()), for: "underlyingError")
         )
       )
     }
@@ -667,7 +667,7 @@ private func loadKeychainMetaQuery(
           underlyingError:
             OSKeychainQueryInvalid
             .error("'load meta' keychain query preparation failed")
-            .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+            .recording(String(describing: error?.takeRetainedValue()), for: "underlyingError")
         )
       )
     }
@@ -687,15 +687,15 @@ private func checkKeychainItemExistsQuery(
   context: LAContext?
 ) -> CFDictionary {
   assert(!key.isEmpty, "Cannot use empty identifier for keychain")
-  context?.interactionNotAllowed = true
+  let authContext: LAContext = context ?? LAContext()
+  authContext.interactionNotAllowed = true
   var query: Dictionary<CFString, Any> = [
     kSecClass: kSecClassGenericPassword,
     kSecMatchLimit: kSecMatchLimitOne,
     kSecReturnAttributes: kCFBooleanFalse as Any,
     kSecReturnData: kCFBooleanFalse as Any,
     kSecAttrService: key,
-    kSecUseAuthenticationUI: kSecUseAuthenticationUIFail as Any,
-    kSecUseAuthenticationContext: context as Any,
+    kSecUseAuthenticationContext: authContext,
   ]
   if !keychainShareGroupIdentifier.isEmpty {
     query[kSecAttrAccessGroup] = keychainShareGroupIdentifier
@@ -757,7 +757,7 @@ private func saveKeychainKeyQuery(
           underlyingError:
             OSKeychainQueryInvalid
             .error("'save' keychain query preparation failed")
-            .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+            .recording(String(describing: error?.takeRetainedValue()), for: "underlyingError")
         )
       )
     }
@@ -809,7 +809,7 @@ private func updateKeychainKeyQuery(
           underlyingError:
             OSKeychainQueryInvalid
             .error("'update' keychain query preparation failed")
-            .recording(error?.takeRetainedValue() as Any, for: "underlyingError")
+            .recording(String(describing: error?.takeRetainedValue()), for: "underlyingError")
         )
       )
     }

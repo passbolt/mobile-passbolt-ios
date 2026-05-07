@@ -34,7 +34,7 @@ internal typealias NavigationToTermsAndLicensesSettings = NavigationTo<TermsAndL
 extension NavigationToTermsAndLicensesSettings {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: TermsAndLicensesView.self)
+    pushTransition(to: TermsAndLicensesView.self)
   }
 }
 

@@ -34,7 +34,7 @@ internal typealias NavigationToExtensionSetup = NavigationTo<ExtensionSetupNavig
 extension NavigationToExtensionSetup {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: ExtensionSetupView.self)
+    pushTransition(to: ExtensionSetupView.self)
   }
 }
 

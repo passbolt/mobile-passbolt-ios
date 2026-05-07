@@ -99,7 +99,7 @@ where Value: Collection {
   }
 
   public static func contains(
-    where predicate: @escaping (Value.Element) -> Bool,
+    where predicate: @escaping @Sendable (Value.Element) -> Bool,
     displayable: DisplayableString,
     file: StaticString = #fileID,
     line: UInt = #line

@@ -25,6 +25,7 @@ import Crypto
 import Display
 import Features
 import PassboltExtension
+import SwiftUI
 
 import class AuthenticationServices.ASCredentialProviderViewController
 import class AuthenticationServices.ASCredentialServiceIdentifier
@@ -33,8 +34,6 @@ import struct AuthenticationServices.ASExtensionError
 @MainActor
 internal final class ApplicationExtension {
 
-  internal static let shared: ApplicationExtension = .init()
-
   private let ui: UI
   private let features: Features
   private let requestedServiceIdentifiers:
@@ -42,15 +41,15 @@ internal final class ApplicationExtension {
   private let rootViewControllerRef: WeakRef<ASCredentialProviderViewController>
   private var isInitialized: Bool = false
 
-  @MainActor private init() {
+  @MainActor internal init(rootViewController: ASCredentialProviderViewController) {
     let requestedServiceIdentifiers:
       CriticalState<[AutofillExtensionContext.ServiceIdentifier]> = .init(
         .init()
       )
     let rootViewControllerRef: WeakRef<ASCredentialProviderViewController> = .init()
+    rootViewControllerRef.value = rootViewController
     let features: Features = FeaturesFactory {
       (registry: inout FeaturesRegistry) in
-      registry.useExtensionRootAnchorProvider()
       registry.usePassboltFeatures()
       registry.usePassboltInitialization()
       registry.use(
@@ -154,6 +153,20 @@ extension ApplicationExtension {
 
   internal func prepareInterfaceForExtensionConfiguration() {
     self.ui.prepareInterfaceForExtensionConfiguration()
+  }
+
+  @MainActor internal func makeRootHostingController() -> UIViewController {
+    do {
+      let rootNavigation: RootNavigation = try features.instance()
+      return UIHostingController(
+        rootView: RootView(rootState: rootNavigation.state) { EmptyView() }
+      )
+    }
+    catch {
+      error
+        .asTheError()
+        .asFatalError()
+    }
   }
 }
 

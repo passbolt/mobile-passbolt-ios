@@ -109,7 +109,7 @@ public struct FolderLocationTreeView: View {
 
 extension FolderLocationTreeView {
 
-  public indirect enum Node: Hashable, Identifiable {
+  public indirect enum Node: Hashable, Identifiable, Sendable {
 
     case root(child: Node? = .none)
     case node(

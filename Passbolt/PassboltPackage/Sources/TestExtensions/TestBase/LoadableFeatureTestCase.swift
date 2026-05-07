@@ -47,7 +47,6 @@ where Feature: LoadableFeature {
 
   private var features: TestFeaturesContainer!
   private var instance: Feature!
-  public private(set) var cancellables: Cancellables!
 
   private lazy var testedImplementation: FeatureLoader = {
     if let implementation: FeatureLoader = Self.testedImplementation {
@@ -88,7 +87,6 @@ where Feature: LoadableFeature {
     try await super.setUp()
     self.features = .init()
 
-    self.cancellables = .init()
     do {
       try self.prepare()
     }
@@ -111,7 +109,6 @@ where Feature: LoadableFeature {
     }
     self.features = .none
     self.instance = .none
-    self.cancellables = .none
     try await super.tearDown()
   }
 

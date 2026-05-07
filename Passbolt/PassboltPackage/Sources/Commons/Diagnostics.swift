@@ -28,23 +28,29 @@ import class UIKit.UIDevice
 
 // MARK: - Interface
 
-public struct Diagnostics {
+public struct Diagnostics: Sendable {
 
   #if DEBUG
-  public static var shared: Self = {
-    let enabled: Bool = {
-      // Disabled automatically for XCTest
-      !(Bundle.main.infoDictionary?["CFBundleName"] as? String == "xctest"
-        || ProcessInfo.processInfo.environment.keys.contains("XCTestBundlePath")
-        || ProcessInfo.processInfo.environment.keys.contains("XCTestSessionIdentifier"))
+  private static let sharedStorage: CriticalState<Self> = .init(
+    {
+      let enabled: Bool = {
+        // Disabled automatically for XCTest
+        !(Bundle.main.infoDictionary?["CFBundleName"] as? String == "xctest"
+          || ProcessInfo.processInfo.environment.keys.contains("XCTestBundlePath")
+          || ProcessInfo.processInfo.environment.keys.contains("XCTestSessionIdentifier"))
+      }()
+      if enabled {
+        return .live
+      }
+      else {
+        return .disabled
+      }
     }()
-    if enabled {
-      return .live
-    }
-    else {
-      return .disabled
-    }
-  }()
+  )
+  public static var shared: Self {
+    get { sharedStorage.get() }
+    set { sharedStorage.set(newValue) }
+  }
   #else
   public static let shared: Self = .live
   #endif
@@ -60,7 +66,7 @@ public struct Diagnostics {
   }
 
   public let logger: Logger
-  public var info: () -> Array<String>
+  public var info: @Sendable () -> Array<String>
 }
 
 // MARK: - Implementation
@@ -72,15 +78,17 @@ extension Diagnostics {
       subsystem: "com.passbolt.mobile",
       category: "diagnostic"
     )
+    let deviceModel: String = MainActor.assumeIsolated { UIDevice.current.model }
+    let systemVersion: String = MainActor.assumeIsolated { UIDevice.current.systemVersion }
     let environmentInfo: String =
       """
-      Device: \(UIDevice.current.model)
-      OS: \(UIDevice.current.systemVersion)
+      Device: \(deviceModel)
+      OS: \(systemVersion)
       App: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?.?.?")
       ----------
       """
 
-    func info() -> Array<String> {
+    let info: @Sendable () -> Array<String> = { [environmentInfo] in
       do {
         let logStore: OSLogStore = try .init(scope: .currentProcessIdentifier)
         let dateFormatter: DateFormatter = .init()

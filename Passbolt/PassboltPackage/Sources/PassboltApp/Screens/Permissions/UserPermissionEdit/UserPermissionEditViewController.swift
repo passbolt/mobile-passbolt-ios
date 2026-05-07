@@ -103,7 +103,7 @@ internal final class UserPermissionEditViewController: @MainActor ViewController
           .destructive(
             id: .init(),
             title: .localized(key: .confirm),
-            perform: confirmedDeletePermission
+            perform: { [weak self] in await self?.confirmedDeletePermission() }
           ),
         ]
       )

@@ -21,7 +21,9 @@
 // @since         v1.0
 //
 
+import DatabaseOperations
 import FeatureScopes
+import Resources
 import SessionData
 import TestExtensions
 
@@ -63,9 +65,9 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
   }
 
   func test_filteredTagsList_fetchesData_withGivenFilter() async throws {
-    let expectedResult: String = "filter"
+    let expectedText: String = "filter"
 
-    let result: UnsafeSendable<String?> = .init()
+    let result: UnsafeSendable<ResourceTagsDatabaseFilter?> = .init()
     patch(
       \ResourceTagsListFetchDatabaseOperation.execute,
       with: { (input) async throws in
@@ -76,9 +78,9 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     let feature: ResourceTags = try self.testedInstance()
 
-    _ = try await feature.filteredTagsList(expectedResult)
+    _ = try await feature.filteredTagsList(.init(text: expectedText))
 
-    XCTAssertEqual(result.value, expectedResult)
+    XCTAssertEqual(result.value??.text, expectedText)
   }
 
   func test_filteredTagsList_throws_whenDatabaseFetchFails() async throws {
@@ -90,7 +92,7 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
     let feature: ResourceTags = try self.testedInstance()
 
     await XCTAssertError(matches: MockIssue.self) {
-      try await feature.filteredTagsList("filter")
+      try await feature.filteredTagsList(.init(text: "filter"))
     }
   }
 
@@ -111,8 +113,77 @@ final class ResourceTagsTests: LoadableFeatureTestCase<ResourceTags> {
 
     let feature: ResourceTags = try self.testedInstance()
 
-    let result: Array<ResourceTagListItemDSV> = try await feature.filteredTagsList("filter")
+    let result: Array<ResourceTagListItemDSV> = try await feature.filteredTagsList(.init(text: "filter"))
 
     XCTAssertEqual(result, expectedResult)
+  }
+
+  func test_filteredTagsList_respectsPaginationLimit() async throws {
+    let result: UnsafeSendable<ResourceTagsDatabaseFilter?> = .init()
+    patch(
+      \ResourceTagsListFetchDatabaseOperation.execute,
+      with: { (input) async throws in
+        result.value = input
+        return []
+      }
+    )
+
+    let feature: ResourceTags = try self.testedInstance()
+
+    _ = try await feature.filteredTagsList(.init(text: "filter", limit: 25, offset: 0))
+
+    XCTAssertEqual(result.value??.limit, 25)
+    XCTAssertEqual(result.value??.offset, 0)
+  }
+
+  func test_filteredTagsList_respectsPaginationOffset() async throws {
+    let result: UnsafeSendable<ResourceTagsDatabaseFilter?> = .init()
+    patch(
+      \ResourceTagsListFetchDatabaseOperation.execute,
+      with: { (input) async throws in
+        result.value = input
+        return []
+      }
+    )
+
+    let feature: ResourceTags = try self.testedInstance()
+
+    _ = try await feature.filteredTagsList(.init(text: "filter", limit: 50, offset: 100))
+
+    XCTAssertEqual(result.value??.limit, 50)
+    XCTAssertEqual(result.value??.offset, 100)
+  }
+
+  func test_filteredTagsList_handlesEmptyResultsWithPagination() async throws {
+    patch(
+      \ResourceTagsListFetchDatabaseOperation.execute,
+      with: always([])
+    )
+
+    let feature: ResourceTags = try self.testedInstance()
+
+    let result: Array<ResourceTagListItemDSV> = try await feature.filteredTagsList(
+      .init(text: "nonexistent", limit: 50, offset: 1000)
+    )
+
+    XCTAssertTrue(result.isEmpty)
+  }
+
+  func test_filteredTagsList_handlesNilLimit() async throws {
+    let result: UnsafeSendable<ResourceTagsDatabaseFilter?> = .init()
+    patch(
+      \ResourceTagsListFetchDatabaseOperation.execute,
+      with: { (input) async throws in
+        result.value = input
+        return []
+      }
+    )
+
+    let feature: ResourceTags = try self.testedInstance()
+
+    _ = try await feature.filteredTagsList(.init(text: "filter", limit: nil, offset: 0))
+
+    XCTAssertNil(result.value??.limit)
+    XCTAssertEqual(result.value??.offset, 0)
   }
 }

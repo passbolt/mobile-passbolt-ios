@@ -197,6 +197,15 @@
 "resource.create.invalid.configuration" = "현재 구성으로는 리소스를 생성할 수 없습니다.";
 "resource.edit.invalid.configuration" = "현재 구성으로는 리소스를 수정할 수 없습니다.";
 
+"resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
+
+"resource.edit.password.alert.weak.title" = "Confirm your password";
+"resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
+"resource.edit.password.alert.pwned.title" = "Confirm your password";
+"resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
+
+"resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
+
 "help.logs.viewer.title" = "로그";
 
 "help.menu.title" = "도움";
@@ -462,6 +471,7 @@ NFC가 있어야 작동합니다.";
 "error.nfc.not.supported" = "NFC는 지원하지 않습니다.";
 "error.nfc.payload.invalid" = "NFC 페이로드가 잘못되었습니다.";
 "error.url.invalid" = "잘못된 URL.";
+"error.url.open.failed" = "Unable to open the URL.";
 "error.internet.connection.issue" = "인터넷에 연결할 수 없습니다.";
 "error.client.certificate.invalid" = "클라이언트 인증서가 잘못되었습니다.";
 "error.server.connection.issue" = "서버에 연결할 수 없습니다.";

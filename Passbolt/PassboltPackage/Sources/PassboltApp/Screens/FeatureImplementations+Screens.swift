@@ -22,6 +22,7 @@
 //
 
 import Features
+import Shared
 import SharedUIComponents
 
 extension FeaturesRegistry {
@@ -32,6 +33,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToWelcomeScreen()
     self.useLiveNavigationToHelpMenu()
     self.useLiveNavigationToLogsViewer()
+    self.useLiveNavigationToAccountKitPicker()
     self.useLiveNavigationToGenericResult()
     self.useLiveNavigationToTransferSignIn()
     self.useLiveNavigationToAccountImportInfo()
@@ -56,9 +58,9 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountDetails()
     self.useLiveNavigationToManageAccounts()
     self.useLiveNavigationToExtensionSetup()
+    self.useLiveNavigationToExtensionSetupSheet()
 
     // MARK: - Home
-    self.useLiveHomePresentation()
     self.useLiveNavigationToTagContent()
     self.useLiveNavigationToGroupContent()
     self.useLiveNavigationToFolderContent()
@@ -109,5 +111,9 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountKeyExportMenu()
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
+
+    // MARK: - Shared features
+    self.useShared()
+    self.useLiveNavigationToHomePresentationMenu()
   }
 }

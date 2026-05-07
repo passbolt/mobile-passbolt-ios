@@ -37,8 +37,6 @@ extension AccountKitImport {
     let pgp: PGP = features.instance()
     let accounts: Accounts = try features.instance()
 
-    Diagnostics.logger.info("Beginning importing account kit...")
-
     /// Imports an account kit and returns the account transfer data.
     ///
     /// This function processes the provided account kit payload, performing the following steps:

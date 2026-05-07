@@ -49,7 +49,7 @@ internal final class PermissionsEditScreen: Screen {
       .collectionViews
       .cells
       .asArray
-      .dropFirst() // remove "Add users" cell
+      .dropFirst()  // remove "Add users" cell
       .map { PermissionCell(element: $0) }
   }
 

@@ -31,7 +31,7 @@ internal typealias NavigationToAccountKeyInspector = NavigationTo<AccountKeyInsp
 extension NavigationToAccountKeyInspector {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: AccountKeyInspectorView.self
     )
   }

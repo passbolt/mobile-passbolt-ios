@@ -34,7 +34,7 @@ internal typealias NavigationToUserPermissionEdit = NavigationTo<NavigationToUse
 extension NavigationToUserPermissionEdit {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: UserPermissionEditView.self)
+    pushTransition(to: UserPermissionEditView.self)
   }
 }
 

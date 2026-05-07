@@ -48,7 +48,7 @@ extension DiagnosticsInfo {
     _ message: StaticString,
     file: StaticString = #fileID,
     line: UInt = #line,
-    details: Dictionary<String, Any>? = nil
+    details: Dictionary<String, any Sendable>? = nil
   ) -> Self {
     Self(
       message: message,
@@ -63,14 +63,14 @@ extension DiagnosticsInfo {
 extension DiagnosticsInfo {
 
   internal mutating func record(
-    _ value: Any,
+    _ value: any Sendable,
     for key: StaticString
   ) {
     self.values[key] = value
   }
 
   internal mutating func record(
-    _ values: Dictionary<StaticString, Any>
+    _ values: Dictionary<StaticString, any Sendable>
   ) {
     self.values.merge(values, uniquingKeysWith: { $1 })
   }

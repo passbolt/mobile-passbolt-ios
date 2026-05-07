@@ -34,7 +34,7 @@ internal typealias NavigationToCodeScanning = NavigationTo<NavigationToCodeScann
 extension NavigationToCodeScanning {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: CodeScanningView.self)
+    pushTransition(to: CodeScanningView.self)
   }
 }
 

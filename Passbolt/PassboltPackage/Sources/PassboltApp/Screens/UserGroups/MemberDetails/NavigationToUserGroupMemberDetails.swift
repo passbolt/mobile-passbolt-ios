@@ -34,7 +34,7 @@ internal typealias NavigationToUserGroupMemberDetails = NavigationTo<NavigationT
 extension NavigationToUserGroupMemberDetails {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: UserGroupMemberDetailsView.self)
+    pushTransition(to: UserGroupMemberDetailsView.self)
   }
 }
 

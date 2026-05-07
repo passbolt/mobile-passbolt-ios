@@ -34,7 +34,7 @@ public typealias NavigationToExternalActivity = NavigationTo<ExternalActivityNav
 extension NavigationToExternalActivity {
 
   fileprivate static var live: FeatureLoader {
-    legacySheetPresentationTransition(
+    sheetPresentationTransition(
       to: ExternalActivityNavigationView.self
     )
   }

@@ -34,7 +34,7 @@ internal typealias NavigationToGroupContent = NavigationTo<NavigationToGroupCont
 extension NavigationToGroupContent {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceUserGroupsExplorerView.self
     )
   }

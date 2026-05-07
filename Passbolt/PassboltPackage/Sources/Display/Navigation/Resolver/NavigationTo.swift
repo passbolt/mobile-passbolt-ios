@@ -23,7 +23,7 @@
 
 import Features
 
-public struct NavigationTo<Destination>
+public struct NavigationTo<Destination>: @unchecked Sendable
 where Destination: NavigationDestination {
 
   @usableFromInline internal var performAnimated:
@@ -93,7 +93,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func perform(
+  public func perform(
     animated: Bool = true,
     context: Destination.TransitionContext,
     file: StaticString = #fileID,
@@ -108,7 +108,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func performCatching(
+  public func performCatching(
     animated: Bool = true,
     context: Destination.TransitionContext,
     file: StaticString = #fileID,
@@ -130,7 +130,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func perform(
+  public func perform(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -145,7 +145,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func performCatching(
+  public func performCatching(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -167,7 +167,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func revert(
+  public func revert(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -180,7 +180,7 @@ extension NavigationTo {
   }
 
   @_transparent
-  @Sendable public func revertCatching(
+  public func revertCatching(
     animated: Bool = true,
     file: StaticString = #fileID,
     line: UInt = #line
@@ -211,7 +211,7 @@ extension NavigationTo {
     .disposable(
       Self.self,
       load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
+        let rootNavigation: RootNavigation = try features.instance()
 
         @MainActor @Sendable func perform(
           animated: Bool,
@@ -219,25 +219,9 @@ extension NavigationTo {
           file: StaticString,
           line: UInt
         ) async throws {
-          let anchor: NavigationAnchor = try UIHostingController(
-            rootView: prepareTransitionView(features, context)
-          )
-          anchor.destinationIdentifier = Destination.identifier
-
-          if createNavigationStack {
-            let navigationStack = UINavigationController()
-            navigationStack.viewControllers = [anchor]
-            try await navigationResolver
-              .replaceRoot(
-                navigationStack
-              )
-          }
-          else {
-            try await navigationResolver
-              .replaceRoot(
-                anchor
-              )
-          }
+          let view = try prepareTransitionView(features, context)
+          let item = AnyNavigationItem(id: Destination.identifier) { view }
+          rootNavigation.state.setRoot(item, withNavigationStack: createNavigationStack)
         }
 
         @MainActor @Sendable func revert(
@@ -252,71 +236,7 @@ extension NavigationTo {
           file: StaticString,
           line: UInt
         ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  public static func legacyPushTransition<DestinationView>(
-    to: DestinationView.Type = DestinationView.self,
-    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
-  ) -> FeatureLoader
-  where DestinationView: ControlledView {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let anchor: NavigationAnchor = try UIHostingController(
-            rootView: prepareTransitionView(features, context)
-          )
-          anchor.destinationIdentifier = Destination.identifier
-          // Hide UIKit-backed navigation items to avoid conflicts with SwiftUI navigation bars
-          anchor.navigationItem.leftBarButtonItem = .none
-          anchor.navigationItem.backBarButtonItem = .none
-          anchor.navigationItem.hidesBackButton = true
-          try await navigationResolver
-            .push(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
+          rootNavigation.state.currentRoot?.id != Destination.identifier
         }
 
         return .init(
@@ -342,10 +262,337 @@ extension NavigationTo {
     )
   }
 
-  /// Navigation that attempts to find top-most navigation stack and pops it to initial view controller.
+}
+
+extension NavigationTo {
+
+  /// Uses NavigationStateRegistry to find the active navigation state at runtime.
+  public static func pushTransition<DestinationView>(
+    to: DestinationView.Type = DestinationView.self,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let registry: NavigationStateRegistry = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else {
+            throw
+              InternalInconsistency
+              .error(
+                "No active NavigationState found!",
+                file: file,
+                line: line
+              )
+              .asAssertionFailure()
+          }
+          let view = try prepareTransitionView(features, context)
+          let item = AnyNavigationItem(id: Destination.identifier) {
+            view
+          }
+          try navigationState.push(item, unique: Destination.isUnique)
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return }
+          navigationState.dismiss(with: Destination.identifier)
+        }
+
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return false }
+          return !Destination.isUnique || !navigationState.exists(with: Destination.identifier)
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
+        )
+      }
+    )
+  }
+
+  /// SwiftUI-native push navigation with automatic controller instantiation.
+  public static func pushTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.pushTransition(
+      to: DestinationView.self,
+      { features, context in
+        try DestinationView(controller: features.instance(context: context))
+      }
+    )
+  }
+
+  public static func sheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type = DestinationView.self,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let registry: NavigationStateRegistry = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else {
+            throw
+              InternalInconsistency
+              .error(
+                "No active NavigationState found!",
+                file: file,
+                line: line
+              )
+              .asAssertionFailure()
+          }
+          let view = try prepareTransitionView(features, context)
+          let item = AnyNavigationItem(id: Destination.identifier) {
+            view
+          }
+          try navigationState.presentSheet(item, unique: Destination.isUnique)
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return }
+          navigationState.dismiss(with: Destination.identifier)
+        }
+
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return false }
+          return !Destination.isUnique || !navigationState.exists(with: Destination.identifier)
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
+        )
+      }
+    )
+  }
+
+  public static func sheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.sheetPresentationTransition(
+      to: DestinationView.self,
+      { features, context in
+        try DestinationView(controller: features.instance(context: context))
+      }
+    )
+  }
+
+  @_disfavoredOverload
+  public static func sheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
+    Self.sheetPresentationTransition(
+      to: DestinationView.self,
+      { features, _ in
+        try DestinationView(controller: features.instance())
+      }
+    )
+  }
+
+  public static func partialSheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type = DestinationView.self,
+    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
+  ) -> FeatureLoader
+  where DestinationView: ControlledView {
+    .disposable(
+      Self.self,
+      load: { features in
+        let registry: NavigationStateRegistry = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else {
+            throw
+              InternalInconsistency
+              .error(
+                "No active NavigationState found!",
+                file: file,
+                line: line
+              )
+              .asAssertionFailure()
+          }
+          let view = try prepareTransitionView(features, context)
+          let item = AnyNavigationItem(id: Destination.identifier) {
+            view
+          }
+          try navigationState.presentPartialSheet(item, unique: Destination.isUnique)
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return }
+          navigationState.dismiss(with: Destination.identifier)
+        }
+
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return false }
+          return !Destination.isUnique || !navigationState.exists(with: Destination.identifier)
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
+        )
+      }
+    )
+  }
+
+  public static func partialSheetPresentationTransition<DestinationView>(
+    to: DestinationView.Type
+  ) -> FeatureLoader
+  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
+    Self.partialSheetPresentationTransition(
+      to: DestinationView.self,
+      { features, context in
+        try DestinationView(controller: features.instance(context: context))
+      }
+    )
+  }
+
+  /// SwiftUI-native alert presentation.
+  public static func alertPresentationTransition<Alert>(
+    using: Alert.Type = Alert.self,
+    _ prepare: @escaping @MainActor (Features, Destination.TransitionContext) throws -> Alert
+  ) -> FeatureLoader
+  where Alert: AlertController {
+    .disposable(
+      Self.self,
+      load: { features in
+        let registry: NavigationStateRegistry = try features.instance()
+
+        @MainActor @Sendable func perform(
+          animated: Bool,
+          context: Destination.TransitionContext,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else {
+            throw
+              InternalInconsistency
+              .error(
+                "No active NavigationState found!",
+                file: file,
+                line: line
+              )
+              .asAssertionFailure()
+          }
+          let alert: Alert = try prepare(features, context)
+          let alertItem = AlertItem(
+            id: Destination.identifier,
+            title: alert.title.string(),
+            message: alert.message?.string(),
+            actions: alert.actions.map { action in
+              SwiftUIAlertAction(
+                title: action.title.string(),
+                role: action.role.swiftUIAlertActionRole,
+                action: action.action
+              )
+            }
+          )
+          navigationState.presentAlert(alertItem)
+        }
+
+        @MainActor @Sendable func revert(
+          animated: Bool,
+          file: StaticString,
+          line: UInt
+        ) async throws {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return }
+          navigationState.alertDismissed()
+        }
+
+        @MainActor func canPerform(
+          file: StaticString,
+          line: UInt
+        ) -> Bool {
+          guard let navigationState: NavigationState = registry.activeState()
+          else { return false }
+          return !Destination.isUnique || !navigationState.exists(with: Destination.identifier)
+        }
+
+        return .init(
+          performAnimated: perform(animated:context:file:line:),
+          revertAnimated: revert(animated:file:line:),
+          canPerformCheck: canPerform(file:line:)
+        )
+      }
+    )
+  }
+
+  public static func alertPresentationTransition<Alert>(
+    using: Alert.Type = Alert.self
+  ) -> FeatureLoader
+  where Alert: AlertController, Destination.TransitionContext == Alert.Context {
+    Self.alertPresentationTransition(
+      using: Alert.self,
+      { features, context in
+        try Alert(
+          with: context,
+          using: features
+        )
+      }
+    )
+  }
+
   public static func popToRoot() -> FeatureLoader {
     .disposable(Self.self) { features in
-      let navigationResolver: NavigationResolver = try features.instance()
+      let registry: NavigationStateRegistry = try features.instance()
 
       @MainActor @Sendable func perform(
         animated: Bool,
@@ -353,7 +600,9 @@ extension NavigationTo {
         file: StaticString,
         line: UInt
       ) async throws {
-        navigationResolver.popToRoot()
+        guard let navigationState: NavigationState = registry.activeState()
+        else { return }
+        navigationState.popToRoot()
       }
 
       @MainActor @Sendable func revert(
@@ -377,326 +626,5 @@ extension NavigationTo {
         canPerformCheck: canPerform(file:line:)
       )
     }
-  }
-
-  public static func legacyPushTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
-    Self.legacyPushTransition(
-      to: DestinationView.self,
-      { features, context in
-        try DestinationView(controller: features.instance(context: context))
-      }
-    )
-  }
-
-  public static func legacySheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type = DestinationView.self,
-    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
-  ) -> FeatureLoader
-  where DestinationView: ControlledView {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let anchor: NavigationAnchor = try UIHostingController(
-            rootView: prepareTransitionView(features, context)
-          )
-          anchor.destinationIdentifier = Destination.identifier
-          try await navigationResolver
-            .present(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  @_disfavoredOverload
-  public static func legacySheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == Void {
-    Self.legacySheetPresentationTransition(
-      to: DestinationView.self,
-      { features, _ in
-        try DestinationView(controller: features.instance())
-      }
-    )
-  }
-
-  public static func legacySheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
-    Self.legacySheetPresentationTransition(
-      to: DestinationView.self,
-      { features, context in
-        try DestinationView(
-          controller:
-            features
-            .instance(context: context)
-        )
-      }
-    )
-  }
-
-  public static func legacyPartialSheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type = DestinationView.self,
-    _ prepareTransitionView: @escaping @MainActor (Features, Destination.TransitionContext) throws -> DestinationView
-  ) -> FeatureLoader
-  where DestinationView: ControlledView {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let anchor: NavigationAnchor
-          anchor = UIHostingController(
-            rootView: try prepareTransitionView(features, context)
-          )
-          anchor.sheetPresentationController?.detents = [
-            navigationResolver.dynamicLegacySheetDetent(for: anchor)
-          ]
-
-          anchor.destinationIdentifier = Destination.identifier
-          try await navigationResolver
-            .present(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  public static func legacyPartialSheetPresentationTransition<DestinationView>(
-    to: DestinationView.Type
-  ) -> FeatureLoader
-  where DestinationView: ControlledView, DestinationView.Controller.Context == Destination.TransitionContext {
-    Self.legacyPartialSheetPresentationTransition(
-      to: DestinationView.self,
-      { features, context in
-        try DestinationView(controller: features.instance(context: context))
-      }
-    )
-  }
-
-  public static func legacyAlertPresentationTransition<Alert>(
-    using: Alert.Type = Alert.self,
-    _ prepare: @escaping @MainActor (Features, Destination.TransitionContext) throws -> Alert
-  ) -> FeatureLoader
-  where Alert: AlertController {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          let alert: Alert = try prepare(features, context)
-          let anchor: NavigationAnchor = {
-            let alertController: UIAlertController = .init(
-              title: alert.title.string(),
-              message: alert.message?.string(),
-              preferredStyle: .alert
-            )
-            for action in alert.actions {
-              alertController.addAction(
-                .init(
-                  title: action.title.string(),
-                  style: action.role.style,
-                  handler: { _ in
-                    action.action()
-                  }
-                )
-              )
-            }
-            return alertController
-          }()
-          anchor.destinationIdentifier = Destination.identifier
-          try await navigationResolver
-            .present(
-              anchor,
-              unique: Destination.isUnique,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .dismiss(
-              with: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
-  }
-
-  public static func legacyAlertPresentationTransition<Alert>(
-    using: Alert.Type = Alert.self
-  ) -> FeatureLoader
-  where Alert: AlertController, Destination.TransitionContext == Alert.Context {
-    Self.legacyAlertPresentationTransition(
-      using: Alert.self,
-      { features, context in
-        try Alert(
-          with: context,
-          using: features
-        )
-      }
-    )
-  }
-}
-
-extension NavigationTo {
-
-  public static func legacyPopTransition<DestinationView>(
-    to: DestinationView.Type = DestinationView.self
-  ) -> FeatureLoader
-  where DestinationView: ControlledView {
-    .disposable(
-      Self.self,
-      load: { features in
-        let navigationResolver: NavigationResolver = try features.instance()
-
-        @MainActor @Sendable func perform(
-          animated: Bool,
-          context: Destination.TransitionContext,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          try await navigationResolver
-            .pop(
-              to: Destination.identifier,
-              animated: animated,
-              file: file,
-              line: line
-            )
-        }
-
-        @MainActor @Sendable func revert(
-          animated: Bool,
-          file: StaticString,
-          line: UInt
-        ) async throws {
-          throw InternalInconsistency.error("Can't revert pop transition!")
-        }
-
-        @MainActor func canPerform(
-          file: StaticString,
-          line: UInt
-        ) -> Bool {
-          navigationResolver.exists(with: Destination.identifier) == false
-        }
-
-        return .init(
-          performAnimated: perform(animated:context:file:line:),
-          revertAnimated: revert(animated:file:line:),
-          canPerformCheck: canPerform(file:line:)
-        )
-      }
-    )
   }
 }

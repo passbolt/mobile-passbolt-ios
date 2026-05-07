@@ -65,7 +65,7 @@ extension FeaturesRegistry {
     self.use(
       .disposable(
         UpdateCheck.self,
-        load: UpdateCheck.load(using:)
+        load: { try UpdateCheck.load(using: $0) }
       )
     )
   }
@@ -105,7 +105,6 @@ fileprivate actor UpdateChecker {
   private let applicationMeta: ApplicationMeta
   private let appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
   private let mdmConfiguration: MDMConfiguration
-  private let cancellables: Cancellables = .init()
   private var status: Status = .unknown
 
   fileprivate init(

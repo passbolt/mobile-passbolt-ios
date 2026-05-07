@@ -37,7 +37,7 @@ internal typealias NavigationToResourceFolderContents =
 extension NavigationToResourceFolderContents {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ResourceFolderContentView.self
     )
   }

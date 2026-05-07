@@ -95,7 +95,7 @@ internal final class TransferSignInViewController: ViewController {
           .destructive(
             id: .init(),
             title: "transfer.account.exit.confirmation.confirm.button.title",
-            perform: cancelTransfer
+            perform: { [weak self] in await self?.cancelTransfer() }
           ),
         ]
       )

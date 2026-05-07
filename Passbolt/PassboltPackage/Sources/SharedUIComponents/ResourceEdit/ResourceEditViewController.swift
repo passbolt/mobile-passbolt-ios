@@ -70,6 +70,10 @@ public final class ResourceEditViewController: ViewController {
     internal var isStandaloneTOTP: Bool {
       self.resourceTypeSlug.isStandaloneTOTPType
     }
+    // Alert handling
+    internal var alert: AlertViewModel?
+    // Flag driving loader overlay
+    internal var isLoading: Bool = false
   }
 
   public nonisolated let viewState: ViewStateSource<ViewState>
@@ -101,7 +105,7 @@ public final class ResourceEditViewController: ViewController {
     self.navigationToOTPScanning.canPerform()
   }
 
-  private let randomGenerator: RandomStringGenerator
+  private let secretGenerator: PasswordService
 
   private let success: @Sendable (Resource) async -> Void
   private let customOnSuccessNavigation: (() async throws -> Void)?
@@ -123,8 +127,8 @@ public final class ResourceEditViewController: ViewController {
     self.success = context.success
     self.customOnSuccessNavigation = context.customOnSuccessNavigation
 
-    let randomGenerator: RandomStringGenerator = try features.instance()
-    self.randomGenerator = randomGenerator
+    let secretGenerator: PasswordService = try features.instance()
+    self.secretGenerator = secretGenerator
 
     self.navigationToSelf = try features.instance()
     self.navigationToOTPEdit = try features.instance()
@@ -175,16 +179,16 @@ public final class ResourceEditViewController: ViewController {
         else {
           return
         }
-        let countEntropy: (String) -> Entropy = { [randomGenerator] (input: String) -> Entropy in
-          randomGenerator.entropy(input, CharacterSets.all)
+        let countEntropy: (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
+          await secretGenerator.entropy(input)
         }
-        let nameField: ResourceEditFieldViewModel? = .init(
+        let nameField: ResourceEditFieldViewModel? = await .init(
           nameFieldSpecification,
           in: update.resource,
           edited: update.localState.editedFields.contains(nameFieldSpecification.path),
           countEntropy: countEntropy
         )
-        let mainForm: MainFormViewModel = prepareMainFormViewModel(
+        let mainForm: MainFormViewModel = await prepareMainFormViewModel(
           for: update.resource,
           edited: update.localState.editedFields,
           countEntropy: countEntropy
@@ -211,15 +215,16 @@ public final class ResourceEditViewController: ViewController {
 
   @MainActor internal func generatePassword(
     for field: ResourceType.FieldPath
-  ) {
-    let generated: String = self.randomGenerator.generate(
-      CharacterSets.all,
-      18,
-      Entropy.veryStrongPassword
-    )
-    self.resourceEditForm.update(field, to: generated)
-    self.localState.mutate { (state: inout LocalState) in
-      state.editedFields.insert(field)
+  ) async {
+    do {
+      let generated: String = try await self.secretGenerator.generate()
+      self.resourceEditForm.update(field, to: generated)
+      self.localState.mutate { (state: inout LocalState) in
+        state.editedFields.insert(field)
+      }
+    }
+    catch {
+      SnackBarMessageEvent.send(.error("resource.edit.unable.to.generate.secret"))
     }
   }
 
@@ -228,7 +233,50 @@ public final class ResourceEditViewController: ViewController {
       let editedFields: Set<ResourceType.FieldPath> = self.localState.value.editedFields
       try await self.resourceEditForm.updateExpiryDateIfNeeded(editedFields)
       try await self.resourceEditForm.validateForm()
+      let resource: Resource = try await self.resourceEditForm.state.value
+      if resource.requiresPasswordValidation(editedFields: editedFields) == false {
+        return await self.confirmedSubmission()
+      }
+      if let password: String = resource.firstPasswordString {
+        switch try await secretGenerator.validate(password) {
+        case .valid:
+          await self.confirmedSubmission()
+        case .pwned:
+          self.viewState.update(
+            \.alert,
+            to: .pwnedPassword(onConfirm: confirmedSubmission)
+          )
+        case .weak:
+          self.viewState.update(
+            \.alert,
+            to: .weakPassword(onConfirm: confirmedSubmission)
+          )
+        }
+      }
+    }
+    catch is PasswordService.PasswordExternalCheckFailure {
+      self.viewState.update(
+        \.alert,
+        to: .passwordCheckError(onConfirm: confirmedSubmission)
+      )
+    }
+    catch let error as InvalidForm {
+      self.localState.mutate { (state: inout LocalState) in
+        state.editedFields = self.allFields
+      }
+      throw error
+    }
+    catch {
+      throw error
+    }
+  }
+
+  @Sendable
+  @MainActor private func confirmedSubmission() async {
+    do {
+      self.viewState.update(\.isLoading, to: true)
       let resource: Resource = try await self.resourceEditForm.sendForm()
+
       if let customOnSuccessNavigation {
         try await customOnSuccessNavigation()
       }
@@ -243,20 +291,29 @@ public final class ResourceEditViewController: ViewController {
       )
       await self.success(resource)
     }
-    catch let error as InvalidForm {
-      self.localState.mutate { (state: inout LocalState) in
-        state.editedFields = self.allFields
-      }
-      throw error
-    }
     catch let error as MetadataPinnedKeyValidationError {
       await self.navigateToMetadataPinnedKeyValidation(reason: error.reason)
     }
     catch {
-      throw error
+      SnackBarMessageEvent.send(.error(error))
+    }
+    self.viewState.update(\.isLoading, to: false)
+  }
+
+  @MainActor internal func navigateBack() async {
+    let viewState: ViewState = await self.viewState.current
+    if viewState.edited {
+      self.viewState.update(
+        \.alert,
+        to: .discardForm(onConfirm: discardForm)
+      )
+    }
+    else {
+      await discardForm()
     }
   }
 
+  @Sendable
   @MainActor internal func discardForm() async {
     await consumingErrors(
       errorDiagnostics: "Failed to discard resource edit form!"
@@ -471,8 +528,8 @@ public final class ResourceEditViewController: ViewController {
 @MainActor internal func prepareMainFormViewModel(
   for resource: Resource,
   edited: Set<ResourceType.FieldPath>,
-  countEntropy: (String) -> Entropy
-) -> MainFormViewModel {
+  countEntropy: (String) async -> Entropy
+) async -> MainFormViewModel {
   let resourceTypeSlug: ResourceSpecification.Slug = resource.type.specification.slug
   guard resourceTypeSlug != .placeholder
   else {
@@ -481,17 +538,18 @@ public final class ResourceEditViewController: ViewController {
   let isStandaloneTOTP: Bool = resource.isStandaloneTOTPResource
 
   let fieldPaths: Array<ResourceType.FieldPath> = resourceTypeSlug.mainFormFields
-  let fields: Array<ResourceEditFieldViewModel> = fieldPaths.compactMap {
-    if let fieldSpec = resource.type.fieldSpecification(for: $0) {
-      return .init(
+  var fields: Array<ResourceEditFieldViewModel> = .init()
+  for fieldPath: ResourceType.FieldPath in fieldPaths {
+    if let fieldSpec: ResourceFieldSpecification = resource.type.fieldSpecification(for: fieldPath),
+      let fieldViewModel: ResourceEditFieldViewModel = await .init(
         fieldSpec,
         in: resource,
         edited: edited.contains(fieldSpec.path),
         countEntropy: countEntropy
       )
+    {
+      fields.append(fieldViewModel)
     }
-
-    return nil
   }
 
   var result: IdentifiedArray<ResourceEditFieldViewModel> = .init()
@@ -676,8 +734,8 @@ internal struct ResourceEditFieldViewModel {
     _ field: ResourceFieldSpecification,
     in resource: Resource,
     edited: Bool,
-    countEntropy: (String) -> Entropy
-  ) {
+    countEntropy: (String) async -> Entropy
+  ) async {
     assert(
       resource.type.specification.slug != .placeholder,
       "Can't prepare fields for placeholder resources"
@@ -744,7 +802,7 @@ internal struct ResourceEditFieldViewModel {
 
       self.value = .password(
         validated,
-        entropy: countEntropy(validated.value)
+        entropy: await countEntropy(validated.value)
       )
 
     case .selection(let name, let values, _, let placeholder):
@@ -920,5 +978,62 @@ extension ResourceType {
 
   fileprivate var canEditCustomFields: Bool {
     self.specification.metaFields.contains(where: { $0.name == .customFields })
+  }
+}
+
+extension AlertViewModel {
+
+  fileprivate static func weakPassword(onConfirm: @Sendable @escaping () async -> Void) -> Self {
+    .init(
+      title: "resource.edit.password.alert.weak.title",
+      message: "resource.edit.password.alert.weak.message",
+      actions: [
+        .cancel(title: .localized(key: .cancel)),
+        .destructive(title: .localized(key: .continue), perform: onConfirm),
+      ]
+    )
+  }
+
+  fileprivate static func pwnedPassword(onConfirm: @Sendable @escaping () async -> Void) -> Self {
+    .init(
+      title: "resource.edit.password.alert.pwned.title",
+      message: "resource.edit.password.alert.pwned.message",
+      actions: [
+        .cancel(title: .localized(key: .cancel)),
+        .destructive(title: .localized(key: .continue), perform: onConfirm),
+      ]
+    )
+  }
+
+  fileprivate static func passwordCheckError(onConfirm: @Sendable @escaping () async -> Void) -> Self {
+    .init(
+      title: "",
+      message: "resource.edit.password.alert.password.check.error.message",
+      actions: [
+        .cancel(title: .localized(key: .cancel)),
+        .destructive(title: .localized(key: .continue), perform: onConfirm),
+      ]
+    )
+  }
+
+  fileprivate static func discardForm(onConfirm: @Sendable @escaping () async -> Void) -> Self {
+    .init(
+      title: "generic.are.you.sure",
+      message: "resource.edit.exit.confirmation.message",
+      actions: [
+        .cancel(title: "resource.edit.exit.confirmation.button.edit.title"),
+        .destructive(title: "resource.edit.exit.confirmation.button.revert.title", perform: onConfirm),
+      ]
+    )
+  }
+}
+
+extension Resource {
+
+  fileprivate func requiresPasswordValidation(editedFields: Set<ResourceType.FieldPath>) -> Bool {
+    if let passwordPath = self.firstPasswordPath {
+      return editedFields.contains(passwordPath)
+    }
+    return false
   }
 }

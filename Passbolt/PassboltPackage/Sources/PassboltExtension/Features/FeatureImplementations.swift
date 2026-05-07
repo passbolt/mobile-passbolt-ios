@@ -33,6 +33,7 @@ import PassboltResources
 import PassboltSession
 import PassboltSessionData
 import PassboltUsers
+import Shared
 import SharedUIComponents
 
 extension FeaturesRegistry {
@@ -51,6 +52,8 @@ extension FeaturesRegistry {
     self.usePassboltResourcesModule()
     self.usePassboltExtensionAccountKitImport()
     self.usePassboltMetadataModule()
+    self.useLiveNavigationStateRegistry()
+    self.useLiveRootNavigation()
     // it is required until navigations will become fully integrated
     self.useResourceEditNavigation()
     self.useLiveNavigationToAutofillRoot()
@@ -59,7 +62,6 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAuthorization()
     self.useLiveNavigationToMFAInput()
     self.useLiveNavigationToHomeView()
-    self.useLiveHomePresentation()
     self.useLiveNavigationToServerFingerprintInvalid()
     self.useLiveNavigationToResourceFolderContent()
     self.useLiveNavigationToResourcesList()
@@ -68,5 +70,7 @@ extension FeaturesRegistry {
 
     self.useLiveNavigationToMetadataPinnedKeyValidationDialog()
     self.useLiveNavigationToExtensionSetupCompleted()
+    self.useShared()
+    self.useLiveNavigationToHomePresentationMenu()
   }
 }

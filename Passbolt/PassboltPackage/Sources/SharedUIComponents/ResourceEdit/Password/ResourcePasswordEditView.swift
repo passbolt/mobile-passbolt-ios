@@ -127,9 +127,9 @@ internal struct ResourcePasswordEditView: ControlledView {
             }
           ),
           accessory: {
-            Button(
+            AsyncButton(
               action: {
-                self.controller.generatePassword(for: fieldModel.path)
+                await self.controller.generatePassword(for: fieldModel.path)
               },
               label: {
                 Image(named: .dice)

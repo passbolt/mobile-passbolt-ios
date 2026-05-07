@@ -23,11 +23,11 @@
 
 import Features
 
-public struct NavigationRestoration {
+public struct NavigationRestoration: Sendable {
 
-  public var saveCurrent: () async throws -> Void
-  public var canRestore: () async throws -> Bool
-  public var restore: () async throws -> Void
+  public var saveCurrent: @Sendable () async throws -> Void
+  public var canRestore: @Sendable () async throws -> Bool
+  public var restore: @Sendable () async throws -> Void
 }
 
 extension NavigationRestoration: LoadableFeature {
@@ -43,22 +43,27 @@ extension NavigationRestoration: LoadableFeature {
   @MainActor fileprivate static func load(
     features: Features
   ) throws -> Self {
-
-    let restorationPoint: CriticalState<NavigationAnchor?> = .init(.none)
-    let navigationResolver: NavigationResolver = try features.instance()
+    let rootNavigation: RootNavigation = try features.instance()
+    let restorationPoint: CriticalState<(item: AnyNavigationItem, useNavigationStack: Bool)?> = .init(.none)
 
     return .init(
-      saveCurrent: {
-        restorationPoint.set(navigationResolver.currentRoot())
+      saveCurrent: { [rootNavigation] in
+        await MainActor.run {
+          if let currentRoot: AnyNavigationItem = rootNavigation.state.currentRoot {
+            restorationPoint.set((currentRoot, rootNavigation.state.useNavigationStack))
+          }
+        }
       },
       canRestore: {
         restorationPoint.get() != nil
       },
-      restore: {
-        guard let anchor: NavigationAnchor = restorationPoint.get() else {
+      restore: { [rootNavigation] in
+        guard let saved = restorationPoint.get() else {
           return
         }
-        try await navigationResolver.replaceRoot(anchor)
+        await MainActor.run {
+          rootNavigation.state.setRoot(saved.item, withNavigationStack: saved.useNavigationStack)
+        }
         restorationPoint.set(.none)
       }
     )
@@ -71,7 +76,7 @@ extension FeaturesRegistry {
     self.use(
       .lazyLoaded(
         NavigationRestoration.self,
-        load: NavigationRestoration.load(features:)
+        load: { try NavigationRestoration.load(features: $0) }
       )
     )
   }

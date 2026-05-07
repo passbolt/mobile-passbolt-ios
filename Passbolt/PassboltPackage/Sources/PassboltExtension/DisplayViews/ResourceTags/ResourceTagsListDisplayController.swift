@@ -48,22 +48,36 @@ internal final class ResourceTagsListDisplayController: ViewController {
     self.sessionData = try features.instance()
     self.resourceTags = try features.instance()
 
+    let pageSize: Int = context.pageSize
+
     self.viewState = .init(
       initial: .init(
-        resourceTags: .init()
+        resourceTags: .init(),
+        isLoadingMore: false,
+        hasMoreData: true,
+        contentResetToken: 0,
+        lastFilterText: ""
       ),
       updateFrom: ComputedVariable(
         combined: context.filter,
         with: self.sessionData.lastUpdate
       ),
+
       update: { [resourceTags] (updateView, update) in
         await consumingErrors {
+          let searchText: String = try update.value.0
           let filteredResourceTags: Array<ResourceTagListItemDSV> = try await resourceTags.filteredTagsList(
-            update.value.0
+            .init(text: searchText, limit: pageSize, offset: 0)
           )
 
           updateView { viewState in
             viewState.resourceTags = filteredResourceTags
+            viewState.hasMoreData = filteredResourceTags.count >= pageSize
+            viewState.isLoadingMore = false
+            if viewState.lastFilterText != searchText {
+              viewState.contentResetToken += 1
+            }
+            viewState.lastFilterText = searchText
           }
         }
       }
@@ -77,11 +91,26 @@ extension ResourceTagsListDisplayController {
 
     internal var filter: AnyUpdatable<String>
     internal var selectTag: (ResourceTag.ID) async throws -> Void
+    internal var pageSize: Int
+
+    internal init(
+      filter: AnyUpdatable<String>,
+      selectTag: @escaping (ResourceTag.ID) async throws -> Void,
+      pageSize: Int = 50
+    ) {
+      self.filter = filter
+      self.selectTag = selectTag
+      self.pageSize = pageSize
+    }
   }
 
   internal struct ViewState: Equatable {
 
     internal var resourceTags: Array<ResourceTagListItemDSV>
+    internal var isLoadingMore: Bool
+    internal var hasMoreData: Bool
+    internal var contentResetToken: Int
+    internal var lastFilterText: String
   }
 }
 
@@ -95,6 +124,42 @@ extension ResourceTagsListDisplayController {
       error.consume(
         context: "Failed to refresh session data."
       )
+    }
+  }
+
+  @MainActor internal final func loadMore() async {
+    let currentState: ViewState = await viewState.current
+    let hasMore: Bool = currentState.hasMoreData
+    let isLoading: Bool = currentState.isLoadingMore
+
+    guard hasMore, !isLoading else { return }
+
+    self.viewState.update { state in
+      state.isLoadingMore = true
+    }
+
+    do {
+      let pageSize: Int = self.context.pageSize
+      let searchText: String = try await self.context.filter.value
+      let nextPageTags: Array<ResourceTagListItemDSV> = try await self.resourceTags.filteredTagsList(
+        .init(
+          text: searchText,
+          limit: pageSize,
+          offset: currentState.resourceTags.count
+        )
+      )
+
+      self.viewState.update { state in
+        state.resourceTags.append(contentsOf: nextPageTags)
+        state.hasMoreData = nextPageTags.count >= pageSize
+        state.isLoadingMore = false
+      }
+    }
+    catch {
+      error.consume(context: "Failed to load more tags.")
+      self.viewState.update { state in
+        state.isLoadingMore = false
+      }
     }
   }
 

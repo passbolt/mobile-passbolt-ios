@@ -32,29 +32,41 @@ where Element: Sendable {
     _ upstream: Upstream,
     bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy = .unbounded
   ) where Upstream.Output == Element {
-    self.makeIterator = {
+    let iteratorFactory: () -> AnyAsyncIterator<Element> = {
       upstream.values.makeAsyncIterator().asAnyAsyncIterator()
+    }
+    let box: UncheckedSendableBox<() -> AnyAsyncIterator<Element>> = UncheckedSendableBox(iteratorFactory)
+    self.makeIterator = {
+      box.value()
     }
   }
 
   public init<Content>(
     _ content: Content
   ) where Content: AsyncSequence, Content.Element == Element {
-    self.makeIterator = {
+    let iteratorFactory: () -> AnyAsyncIterator<Element> = {
       content.makeAsyncIterator().asAnyAsyncIterator()
+    }
+    let box: UncheckedSendableBox<() -> AnyAsyncIterator<Element>> = UncheckedSendableBox(iteratorFactory)
+    self.makeIterator = {
+      box.value()
     }
   }
 
   public init<Content>(
     _ content: Content
   ) where Content: Sequence, Content.Element == Element {
-    self.makeIterator = {
+    let iteratorFactory: () -> AnyAsyncIterator<Element> = {
       var iterator: Content.Iterator = content.makeIterator()
       return AnyAsyncIterator<Element>(
         nextElement: {
           iterator.next()
         }
       )
+    }
+    let box: UncheckedSendableBox<() -> AnyAsyncIterator<Element>> = UncheckedSendableBox(iteratorFactory)
+    self.makeIterator = {
+      box.value()
     }
   }
 
@@ -76,14 +88,16 @@ extension AnyAsyncSequence: AsyncSequence {
   }
 }
 
-extension Sequence {
+extension Sequence
+where Element: Sendable {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Element> {
     AnyAsyncSequence(self)
   }
 }
 
-extension AsyncSequence {
+extension AsyncSequence
+where Element: Sendable {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Element> {
     if let sequence: AnyAsyncSequence<Element> = self as? AnyAsyncSequence<Element> {
@@ -105,7 +119,8 @@ extension AsyncSequence {
   }
 }
 
-extension Publisher {
+extension Publisher
+where Output: Sendable {
 
   public func asAnyAsyncSequence() -> AnyAsyncSequence<Output> {
     AnyAsyncSequence(self)

@@ -34,7 +34,7 @@ internal typealias NavigationToAccountQRCodeExport = NavigationTo<NavigationToAc
 extension NavigationToAccountQRCodeExport {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: AccountQRCodeExportView.self)
+    pushTransition(to: AccountQRCodeExportView.self)
   }
 }
 

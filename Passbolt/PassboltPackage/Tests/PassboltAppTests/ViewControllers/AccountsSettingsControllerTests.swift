@@ -23,8 +23,8 @@
 
 import FeatureScopes
 import TestExtensions
-@testable import Display
 
+@testable import Display
 @testable import PassboltApp
 
 // swift-format-ignore: AlwaysUseLowerCamelCase

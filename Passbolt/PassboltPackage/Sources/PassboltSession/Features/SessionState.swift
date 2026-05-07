@@ -48,6 +48,9 @@ internal struct SessionState {
   /// Register a session task that has started.
   /// Tracks the task by its unique ID.
   internal var sessionTaskStarted: @SessionActor (SessionTaskID) -> Void
+  /// Store task reference for cancellation.
+  /// Only stores if the task is still tracked as running.
+  internal var sessionTaskRegistered: @SessionActor (SessionTaskID, Task<Void, Error>) -> Void
   /// Unregister a session task that has finished.
   /// Removes the task ID from tracking.
   internal var sessionTaskFinished: @SessionActor (SessionTaskID) -> Void
@@ -118,6 +121,7 @@ extension SessionState: LoadableFeature {
       mfaToken: unimplemented0(),
       pendingAuthorization: unimplemented0(),
       sessionTaskStarted: unimplemented1(),
+      sessionTaskRegistered: unimplemented2(),
       sessionTaskFinished: unimplemented1(),
       createdSession: unimplemented6(),
       refreshedSession: unimplemented5(),
@@ -157,17 +161,18 @@ extension SessionState {
     var currentPassphraseExpiration: Timestamp = 0
     let passphraseExpirationTime: Timestamp = 5 * 60  // 5 Minutes
     var wipePassphraseUponTaskCompletion: Bool = false
-    var runningTasks: Set<PassboltID> = .init() {
+    var runningTaskIDs: Set<PassboltID> = .init() {
       didSet {
-        if runningTasks.isEmpty, wipePassphraseUponTaskCompletion {
+        if runningTaskIDs.isEmpty, wipePassphraseUponTaskCompletion {
           Diagnostics.logger.info("All session tasks completed, proceeding with deferred passphrase wipe...")
           passphraseWipe()
         }
-        else if !runningTasks.isEmpty, wipePassphraseUponTaskCompletion {
-          Diagnostics.logger.info("Session tasks still running (\(runningTasks.count)), deferred wipe pending.")
+        else if !runningTaskIDs.isEmpty, wipePassphraseUponTaskCompletion {
+          Diagnostics.logger.info("Session tasks still running (\(runningTaskIDs.count)), deferred wipe pending.")
         }
       }
     }
+    var taskCancellables: Dictionary<PassboltID, Task<Void, Error>> = .init()
 
     @SessionActor func passphrase() -> Passphrase? {
       if currentPassphraseExpiration >= osTime.timestamp() {
@@ -175,10 +180,10 @@ extension SessionState {
       }
       else {
         Diagnostics.logger.info("Passphrase cache expired...")
-        if !runningTasks.isEmpty {
+        if !runningTaskIDs.isEmpty {
           Diagnostics.logger
             .info(
-              "There are \(runningTasks.count) session task(s) running, postponing cache removal until they complete."
+              "There are \(runningTaskIDs.count) session task(s) running, postponing cache removal until they complete."
             )
           wipePassphraseUponTaskCompletion = true
           return currentPassphrase  // return expired passphrase until tasks complete
@@ -232,13 +237,19 @@ extension SessionState {
     }
 
     @SessionActor func taskStarted(_ taskID: SessionTaskID) {
-      runningTasks.insert(taskID)
-      Diagnostics.logger.info("Session task \(taskID.description) started (active: \(runningTasks.count))...")
+      runningTaskIDs.insert(taskID)
+      Diagnostics.logger.info("Session task \(taskID.description) started (active: \(runningTaskIDs.count))...")
+    }
+
+    @SessionActor func taskRegistered(_ taskID: SessionTaskID, _ task: Task<Void, Error>) {
+      guard runningTaskIDs.contains(taskID) else { return }
+      taskCancellables[taskID] = task
     }
 
     @SessionActor func taskFinished(_ taskID: SessionTaskID) {
-      runningTasks.remove(taskID)
-      Diagnostics.logger.info("Session task \(taskID.description) finished (active: \(runningTasks.count))...")
+      runningTaskIDs.remove(taskID)
+      taskCancellables.removeValue(forKey: taskID)
+      Diagnostics.logger.info("Session task \(taskID.description) finished (active: \(runningTaskIDs.count))...")
     }
 
     @SessionActor func createdSession(
@@ -451,16 +462,16 @@ extension SessionState {
     }
 
     @SessionActor func passphraseWipe(force: Bool = false) {
-      if force == false, !runningTasks.isEmpty {
+      if force == false, !runningTaskIDs.isEmpty {
         Diagnostics.logger
           .info(
-            "Requested removal of passphrase cache, postponing due to \(runningTasks.count) running task(s)."
+            "Requested removal of passphrase cache, postponing due to \(runningTaskIDs.count) running task(s)."
           )
         wipePassphraseUponTaskCompletion = true
         return
       }
       else if force == true {
-        Diagnostics.logger.info("Forcing wiping passphrase cache (running tasks: \(runningTasks.count))...")
+        Diagnostics.logger.info("Forcing wiping passphrase cache (running tasks: \(runningTaskIDs.count))...")
       }
       else {
         Diagnostics.logger.info("Wiping passphrase cache...")
@@ -488,8 +499,11 @@ extension SessionState {
       if wipePassphraseUponTaskCompletion {
         Diagnostics.logger.info("Session closed with pending deferred wipe - clearing flag")
       }
-      if !runningTasks.isEmpty {
-        Diagnostics.logger.info("Session closed with \(runningTasks.count) running task(s).")
+      if !runningTaskIDs.isEmpty {
+        Diagnostics.logger.info("Session closed with \(runningTaskIDs.count) running task(s), cancelling...")
+        for (_, task) in taskCancellables {
+          task.cancel()
+        }
       }
 
       currentAccount = .none
@@ -500,7 +514,8 @@ extension SessionState {
       currentMFAToken = .none
       currentPendingAuthorization = .none
       wipePassphraseUponTaskCompletion = false
-      runningTasks.removeAll()
+      runningTaskIDs.removeAll()
+      taskCancellables.removeAll()
       updatesSource.update()
       SessionStateChangeEvent.send(.closed)
     }
@@ -514,6 +529,7 @@ extension SessionState {
       mfaToken: mfaToken,
       pendingAuthorization: pendingAuthorization,
       sessionTaskStarted: taskStarted(_:),
+      sessionTaskRegistered: taskRegistered(_:_:),
       sessionTaskFinished: taskFinished(_:),
       createdSession: createdSession(account:passphrase:accessToken:refreshToken:mfaToken:mfaRequiredWithProviders:),
       refreshedSession: refreshedSession(account:passphrase:accessToken:refreshToken:mfaToken:),
@@ -552,7 +568,12 @@ extension SessionState {
       }
       try await operation()
     }
-
+    // Register task reference for cancellation on a separate actor job.
+    // sessionTaskRegistered checks if the task is still running before storing,
+    // so a late registration (after task completes) is safely ignored.
+    Task { @SessionActor [sessionTaskRegistered] in
+      sessionTaskRegistered(identifier, task)
+    }
     return task
   }
 }

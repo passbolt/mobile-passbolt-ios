@@ -35,9 +35,7 @@ internal typealias NavigationToDiagnostics = NavigationTo<LogsNavigationDestinat
 extension NavigationToDiagnostics {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
-      to: LogsViewerView.self
-    )
+    pushTransition(to: LogsViewerView.self)
   }
 }
 

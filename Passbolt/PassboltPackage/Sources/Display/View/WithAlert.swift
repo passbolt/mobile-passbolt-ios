@@ -24,9 +24,9 @@
 import Commons
 import SwiftUI
 
-public struct AlertViewModel: Equatable {
+public struct AlertViewModel: Equatable, Sendable {
 
-  public enum Action: Equatable, Identifiable {
+  public enum Action: Equatable, Identifiable, Sendable {
 
     public static func == (
       _ lhs: AlertViewModel.Action,
@@ -131,7 +131,7 @@ public struct AlertViewModel: Equatable {
 }
 
 public struct WithAlert<AlertState, ContentView>: View
-where AlertState: Equatable, ContentView: View {
+where AlertState: Equatable & Sendable, ContentView: View {
 
   @ObservedObject private var viewState: TrimmedViewState<AlertState?>
   private let binding: Binding<AlertState?>

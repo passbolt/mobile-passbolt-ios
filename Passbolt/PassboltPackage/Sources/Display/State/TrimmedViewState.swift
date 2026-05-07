@@ -25,7 +25,7 @@ import Commons
 import SwiftUI
 
 internal final class TrimmedViewState<ViewState>: ObservableObject
-where ViewState: Equatable {
+where ViewState: Equatable, ViewState: Sendable {
 
   @MainActor
   internal var value: ViewState {

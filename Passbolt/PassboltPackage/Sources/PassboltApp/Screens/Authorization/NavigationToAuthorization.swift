@@ -27,6 +27,7 @@ import SharedUIComponents
 
 internal enum NavigationToAuthorizationDestination: NavigationDestination {
 
+  internal static var isUnique: Bool = true
   internal typealias TransitionContext = AuthorizationViewController.Context
 }
 
@@ -35,7 +36,7 @@ internal typealias NavigationToAuthorization = NavigationTo<NavigationToAuthoriz
 extension NavigationToAuthorization {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(to: AuthorizationView.self)
+    pushTransition(to: AuthorizationView.self)
   }
 }
 

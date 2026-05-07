@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-public enum PasswordGeneratorCase: String, CodingKey {
+public enum PasswordGeneratorCase: String, CodingKey, CaseIterable {
   case uppercase = "uppercase"
   case lowercase = "lowercase"
   case camelcase = "camelcase"

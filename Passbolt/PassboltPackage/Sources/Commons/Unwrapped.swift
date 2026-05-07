@@ -21,13 +21,13 @@
 // @since         v1.0
 //
 
-@Sendable public func unwrapped<A>(
+@Sendable public func unwrapped<A: Sendable>(
   default: A
 ) -> @Sendable (A?) -> A {
   { $0 ?? `default` }
 }
 
-@Sendable public func unwrappedMap<A, B>(
+@Sendable public func unwrappedMap<A, B: Sendable>(
   default: B,
   mapping: @escaping @Sendable (A) -> B?
 ) -> @Sendable (A?) -> B {

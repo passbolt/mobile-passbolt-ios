@@ -42,17 +42,8 @@ public struct IconButton: View {
   public var body: some View {
     AsyncButton(
       action: self.action,
-      regularLabel: {
+      label: {
         Image(named: self.iconName)
-      },
-      loadingLabel: {
-        SwiftUI.ProgressView()
-          .progressViewStyle(.circular)
-          .frame(
-            width: 40,
-            height: 40
-          )
-          .padding(8)
       }
     )
     .foregroundColor(.passboltPrimaryText)

@@ -82,15 +82,16 @@ internal struct OperationAuthorizationView: ControlledView {
 
       withValidatedBinding(
         \.passphrase,
-        updating: self.controller.setPassphrase(_:)
-      ) { (passphrase: Binding<Validated<String>>) in
-        FormSecureTextFieldView(
-          title: "authorization.passphrase.description.text",
-          prompt: "",
-          mandatory: true,
-          state: passphrase
-        )
-      }
+        updating: { self.controller.setPassphrase($0) },
+        content: { (passphrase: Binding<Validated<String>>) in
+          FormSecureTextFieldView(
+            title: "authorization.passphrase.description.text",
+            prompt: "",
+            mandatory: true,
+            state: passphrase
+          )
+        }
+      )
       .padding(top: 16)
       .accessibilityIdentifier("authorization.passphrase.input")
 

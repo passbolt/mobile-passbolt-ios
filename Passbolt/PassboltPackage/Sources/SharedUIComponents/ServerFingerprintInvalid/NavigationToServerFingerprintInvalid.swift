@@ -34,7 +34,7 @@ public typealias NavigationToServerFingerprintInvalid = NavigationTo<NavigationT
 extension NavigationToServerFingerprintInvalid {
 
   fileprivate static var live: FeatureLoader {
-    legacyPushTransition(
+    pushTransition(
       to: ServerFingerprintInvalidView.self
     )
   }

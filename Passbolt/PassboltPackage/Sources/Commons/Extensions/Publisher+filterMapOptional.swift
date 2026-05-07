@@ -21,8 +21,6 @@
 // @since         v1.0
 //
 
-import Foundation
-
 extension Publisher {
 
   public func filterMapOptional<T>() -> Publishers.CompactMap<Self, T>
