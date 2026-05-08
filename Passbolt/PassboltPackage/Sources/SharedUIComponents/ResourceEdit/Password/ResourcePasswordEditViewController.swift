@@ -50,7 +50,9 @@ public final class ResourcePasswordEditViewController: ViewController {
 
   private let resourceEditForm: ResourceEditForm
   private let secretGenerator: PasswordService
+  private let passwordGeneration: PasswordGenerationService
   private let navigationToSelf: NavigationToResourcePasswordEdit
+  private let navigationToAdvancedGeneration: NavigationToAdvancedPasswordGeneration
 
   public nonisolated let viewState: ViewStateSource<ViewState>
   private let context: Context
@@ -68,8 +70,10 @@ public final class ResourcePasswordEditViewController: ViewController {
 
     let secretGenerator: PasswordService = try features.instance()
     self.secretGenerator = secretGenerator
+    self.passwordGeneration = try features.instance()
 
     self.navigationToSelf = try features.instance()
+    self.navigationToAdvancedGeneration = try features.instance()
     self.resourceEditForm = try features.instance()
     self.editingContext = try features.context(of: ResourceEditScope.self)
     self.localState = .init(initial: .init(editedFields: .init()))
@@ -129,7 +133,7 @@ public final class ResourcePasswordEditViewController: ViewController {
     for field: ResourceType.FieldPath
   ) async {
     do {
-      let generated: String = try await self.secretGenerator.generate()
+      let generated: String = try await self.passwordGeneration.generate()
       self.resourceEditForm.update(field, to: generated)
       self.localState.mutate { (state: inout LocalState) in
         state.editedFields.insert(field)
@@ -137,6 +141,21 @@ public final class ResourcePasswordEditViewController: ViewController {
     }
     catch {
       SnackBarMessageEvent.send(.error("resource.edit.unable.to.generate.secret"))
+    }
+  }
+
+  @MainActor internal func navigateToAdvancedPasswordGeneration(
+    for field: ResourceType.FieldPath
+  ) async {
+    await consumingErrors {
+      try await self.navigationToAdvancedGeneration.perform(
+        context: .init(
+          onSaveGenerated: { @MainActor @Sendable [weak self] (password: String) async in
+            guard let self else { return }
+            self.set(password, for: field)
+          }
+        )
+      )
     }
   }
 }

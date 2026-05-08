@@ -21,18 +21,21 @@
 // @since         v1.0
 //
 
-import Features
+import CommonModels
+import Display
 
-extension FeaturesRegistry {
+extension PasswordGeneratorCase: FormPickerFieldValue {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
-    self.useLiveNavigationToAdvancedPasswordGeneration()
+  public var id: Self { self }
+
+  public var fromPickerFieldLabel: String {
+    switch self {
+    case .uppercase:
+      return DisplayableString("resource.edit.password.advanced.case.uppercase").string()
+    case .lowercase:
+      return DisplayableString("resource.edit.password.advanced.case.lowercase").string()
+    case .camelcase:
+      return DisplayableString("resource.edit.password.advanced.case.camelcase").string()
+    }
   }
 }

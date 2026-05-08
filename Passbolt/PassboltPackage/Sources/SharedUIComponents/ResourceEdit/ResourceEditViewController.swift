@@ -103,12 +103,14 @@ public final class ResourceEditViewController: ViewController {
   private let navigationToIconEdit: NavigationToResourceIconEdit
   private let navigationToCustomFieldsEdit: NavigationToResourceCustomFieldsEdit
   private let navigationToPinSettings: NavigationToPinCodeConfiguration
+  private let navigationToAdvancedPasswordGeneration: NavigationToAdvancedPasswordGeneration
 
   internal var canNavigateToOTPScanning: Bool {
     self.navigationToOTPScanning.canPerform()
   }
 
   private let secretGenerator: PasswordService
+  private let passwordGeneration: PasswordGenerationService
   private let pinCodeGenerator: PinCodeService
 
   private let linkOpener: OSLinkOpener
@@ -135,6 +137,7 @@ public final class ResourceEditViewController: ViewController {
 
     let secretGenerator: PasswordService = try features.instance()
     self.secretGenerator = secretGenerator
+    self.passwordGeneration = try features.instance()
     self.pinCodeGenerator = try features.instance()
 
     self.navigationToSelf = try features.instance()
@@ -147,6 +150,7 @@ public final class ResourceEditViewController: ViewController {
     self.navigationToIconEdit = try features.instance()
     self.navigationToCustomFieldsEdit = try features.instance()
     self.navigationToPinSettings = try features.instance()
+    self.navigationToAdvancedPasswordGeneration = try features.instance()
 
     self.linkOpener = features.instance()
 
@@ -236,7 +240,7 @@ public final class ResourceEditViewController: ViewController {
     for field: ResourceType.FieldPath
   ) async {
     do {
-      let generated: String = try await self.secretGenerator.generate()
+      let generated: String = try await self.passwordGeneration.generate()
       self.resourceEditForm.update(field, to: generated)
       self.localState.mutate { (state: inout LocalState) in
         state.editedFields.insert(field)
@@ -244,6 +248,21 @@ public final class ResourceEditViewController: ViewController {
     }
     catch {
       SnackBarMessageEvent.send(.error("resource.edit.unable.to.generate.secret"))
+    }
+  }
+
+  internal func navigateToAdvancedPasswordGeneration(
+    for field: ResourceType.FieldPath
+  ) async {
+    await consumingErrors {
+      try await self.navigationToAdvancedPasswordGeneration.perform(
+        context: .init(
+          onSaveGenerated: { @MainActor @Sendable [weak self] (password: String) async in
+            guard let self else { return }
+            self.set(password, for: field)
+          }
+        )
+      )
     }
   }
 
@@ -257,9 +276,18 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
-  internal func navigateToPinCodeAdvancedSettings() async {
+  internal func navigateToPinCodeAdvancedSettings(
+    for field: ResourceType.FieldPath
+  ) async {
     await consumingErrors {
-      try await navigationToPinSettings.perform()
+      try await self.navigationToPinSettings.perform(
+        context: .init(
+          onSaveGenerated: { @MainActor @Sendable [weak self] (pin: String) async in
+            guard let self else { return }
+            self.set(pin, for: field)
+          }
+        )
+      )
     }
   }
 

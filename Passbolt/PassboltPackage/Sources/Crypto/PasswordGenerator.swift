@@ -72,21 +72,19 @@ extension PasswordGenerator: LoadableFeature {
 
     @Sendable func generate(settings: PasswordGeneratorSettings) throws -> String {
       let alphabets: Set<Alphabet> = settings.characterSets
-      var attempt: Int = 0
+      let entireAlphabet: Set<Character> = alphabets.reduce(.init()) { $0.union($1) }
+      guard !entireAlphabet.isEmpty else { throw GenerationError.error() }
 
       var rng: OSRandomness = randomness
+      var attempt: Int = 0
       // Random chars might not be enough to meet the entropy requirement,
       // so we need to loop until we get a valid password or reach the maximum number of attempts
       while attempt < Self.maximumAttempts {
         var output: String = ""
-        let entireAlphabet: Set<Character> = alphabets.reduce(.init()) { $0.union($1) }
-        // local mutable copy for randomElement(using:) inout requirement
-
         var calculatedEntropy: Entropy = .zero
         while calculatedEntropy < Self.minimumEntropy || output.count < settings.length {
           guard let element = entireAlphabet.randomElement(using: &rng)
           else { continue }
-
           output.append(element)
           calculatedEntropy = entropy(password: output, settings: settings)
         }

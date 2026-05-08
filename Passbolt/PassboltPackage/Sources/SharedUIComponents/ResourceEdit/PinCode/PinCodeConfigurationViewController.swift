@@ -25,16 +25,28 @@ import Display
 
 internal final class PinCodeConfigurationViewController: ViewController {
 
+  internal struct Context {
+    internal let onSaveGenerated: @Sendable (String) async -> Void
+
+    internal init(
+      onSaveGenerated: @escaping @Sendable (String) async -> Void
+    ) {
+      self.onSaveGenerated = onSaveGenerated
+    }
+  }
+
   internal struct ViewState: Equatable {
     internal var pinCodeLength: Int = 4
   }
 
   nonisolated let viewState: ViewStateSource<ViewState>
 
+  private let onSaveGenerated: @Sendable (String) async -> Void
   private let pinCodeService: PinCodeService
   private let navigationToSelf: NavigationToPinCodeConfiguration
 
-  internal init(context: (), features: Features) throws {
+  internal init(context: Context, features: Features) throws {
+    self.onSaveGenerated = context.onSaveGenerated
     self.pinCodeService = try features.instance()
     self.navigationToSelf = try features.instance()
     self.viewState = .init(
@@ -46,8 +58,13 @@ internal final class PinCodeConfigurationViewController: ViewController {
     await consumingErrors {
       let length: Int = await self.viewState.current.pinCodeLength
       var currentConfiguration: PinCodeService.Configuration = await pinCodeService.currentConfiguration()
+      let lengthChanged: Bool = currentConfiguration.pinCodeLength != length
       currentConfiguration.pinCodeLength = length
       await pinCodeService.updateConfiguration(currentConfiguration)
+      if lengthChanged {
+        let generated: String = await pinCodeService.generate()
+        await self.onSaveGenerated(generated)
+      }
       try await navigationToSelf.revert()
     }
   }

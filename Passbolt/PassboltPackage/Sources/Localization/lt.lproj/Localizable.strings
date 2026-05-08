@@ -194,6 +194,22 @@
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
 "resource.edit.pin.code.length.title" = "Length";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
+"resource.edit.password.advanced.title" = "Advanced password generation";
+"resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
+"resource.edit.password.advanced.preview.password.title" = "Password preview";
+"resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
+"resource.edit.password.advanced.tab.password" = "Password";
+"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
+"resource.edit.password.advanced.length.title" = "Length";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.character_sets.title" = "Character types";
+"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.separator.title" = "Word separator";
+"resource.edit.password.advanced.case.title" = "Word case";
+"resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
+"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.camelcase" = "Camel Case";
+"resource.edit.password.advanced.save.button.title" = "Save preferences";
 
 "resource.edit.customFields.title" = "Custom Fields";
 "resource.edit.customFields.error.invalid" = "Invalid value";
@@ -626,6 +642,8 @@
 "error.resource.field.unknown" = "Nenumatyti laukai nėra laukiami!";
 "error.validation.password.length.invalid" = "Neteisingi slaptažodžio ilgio nustatymai!";
 "error.validation.password.mask.empty" = "Slaptažodžio galiojimo šablonas negali būti tuščias!";
+"error.validation.passphrase.separator.too_long" = "Word separator is too long!";
+"error.validation.passphrase.words.invalid" = "Invalid number of words!";
 
 // Home - presentation mode menu
 

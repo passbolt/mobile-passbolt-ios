@@ -21,18 +21,30 @@
 // @since         v1.0
 //
 
-import Features
+import Display
+import FeatureScopes
+
+internal enum NavigationToAdvancedPasswordGenerationDestination: NavigationDestination {
+
+  internal typealias TransitionContext = AdvancedPasswordGenerationViewController.Context
+}
+
+internal typealias NavigationToAdvancedPasswordGeneration =
+  NavigationTo<NavigationToAdvancedPasswordGenerationDestination>
+
+extension NavigationToAdvancedPasswordGeneration {
+
+  fileprivate static var live: FeatureLoader {
+    pushTransition(to: AdvancedPasswordGenerationView.self)
+  }
+}
 
 extension FeaturesRegistry {
 
-  public mutating func useResourceEditNavigation() {
-    self.useLiveNavigationToResourceEdit()
-    self.useLiveNavigationToResourceURIEdit()
-    self.useLiveNavigationToResourceTextEdit()
-    self.useLiveNavigationToResourcePasswordEdit()
-    self.useLiveNavigationToResourceIconEdit()
-    self.useLiveNavigationToResourceCustomFieldsEdit()
-    self.useLiveNavigationToPinCodeConfiguration()
-    self.useLiveNavigationToAdvancedPasswordGeneration()
+  internal mutating func useLiveNavigationToAdvancedPasswordGeneration() {
+    self.use(
+      NavigationToAdvancedPasswordGeneration.live,
+      in: ResourceEditScope.self
+    )
   }
 }

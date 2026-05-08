@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct PasswordPoliciesDSV: Sendable {
+public struct PasswordPoliciesDSV: Sendable, Equatable {
 
   public var id: Tagged<PassboltID, Self>
   public var defaultGenerator: PasswordGeneratorType

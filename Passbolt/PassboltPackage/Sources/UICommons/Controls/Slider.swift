@@ -27,6 +27,7 @@ public struct Slider: View {
   private let title: DisplayableString
   private let min: Int
   private let max: Int
+  private let onCommit: (() -> Void)?
   @State private var inputText: String
   @FocusState private var fieldFocused: Bool
 
@@ -34,11 +35,18 @@ public struct Slider: View {
     Double(min) ... Double(max)
   }
 
-  public init(_ title: DisplayableString, value: Binding<Int>, min: Int, max: Int) {
+  public init(
+    _ title: DisplayableString,
+    value: Binding<Int>,
+    min: Int,
+    max: Int,
+    onCommit: (() -> Void)? = nil
+  ) {
     self.title = title
     self._value = value
     self.min = min
     self.max = max
+    self.onCommit = onCommit
     self._inputText = State(initialValue: String(value.wrappedValue))
   }
 
@@ -61,7 +69,12 @@ public struct Slider: View {
             }
           ),
           in: range,
-          step: 1
+          step: 1,
+          onEditingChanged: { (editing: Bool) in
+            if !editing {
+              self.onCommit?()
+            }
+          }
         )
         .tint(Color.passboltPrimaryBlue)
         TextField(
@@ -94,6 +107,7 @@ public struct Slider: View {
           if !inRange {
             self.inputText = String(value)
           }
+          self.onCommit?()
         }
         .onSubmit {
           let inRange: Bool =
@@ -102,6 +116,7 @@ public struct Slider: View {
           if !inRange {
             self.inputText = String(value)
           }
+          self.onCommit?()
         }
         .onChange(of: value) { (newValue: Int) in
           if !self.fieldFocused, Int(self.inputText) != newValue {

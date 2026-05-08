@@ -23,7 +23,7 @@
 
 import Commons
 
-public struct PasswordGeneratorSettings: Sendable {
+public struct PasswordGeneratorSettings: Sendable, Equatable {
 
   public var length: Int
   public var maskUpper: Bool
@@ -70,8 +70,8 @@ public struct PasswordGeneratorSettings: Sendable {
 // MARK: - Validation
 
 extension PasswordGeneratorSettings {
-  private static let passwordGenMinPasswordLength = 8
-  private static let passwordGenMaxPasswordLength = 128
+  public static let passwordGenMinPasswordLength: Int = 8
+  public static let passwordGenMaxPasswordLength: Int = 128
 
   public func validate() throws {
     try self.lengthValidator.ensureValid(self.length)

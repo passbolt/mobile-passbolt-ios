@@ -23,7 +23,12 @@
 
 import Commons
 
-public struct PassphraseGeneratorSettings: Sendable {
+public struct PassphraseGeneratorSettings: Sendable, Equatable {
+
+  public static let passphraseGenMinWords: Int = 4
+  public static let passphraseGenMaxWords: Int = 40
+  public static let wordSeparatorMaxLength: UInt = 10
+
   public var words: Int
   public var wordSeparator: String
   public var wordCase: PasswordGeneratorCase
@@ -36,5 +41,23 @@ public struct PassphraseGeneratorSettings: Sendable {
     self.words = words
     self.wordSeparator = wordSeparator
     self.wordCase = wordCase
+  }
+}
+
+extension PassphraseGeneratorSettings {
+
+  public static var wordsValidator: Validator<Int> {
+    .inRange(
+      of: PassphraseGeneratorSettings.passphraseGenMinWords
+        ... PassphraseGeneratorSettings.passphraseGenMaxWords,
+      displayable: "error.validation.passphrase.words.invalid"
+    )
+  }
+
+  public static var wordSeparatorValidator: Validator<String> {
+    .maxLength(
+      PassphraseGeneratorSettings.wordSeparatorMaxLength,
+      displayable: "error.validation.passphrase.separator.too_long"
+    )
   }
 }

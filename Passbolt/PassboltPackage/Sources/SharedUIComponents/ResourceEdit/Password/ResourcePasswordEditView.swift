@@ -143,6 +143,26 @@ internal struct ResourcePasswordEditView: ControlledView {
         )
 
         EntropyView(entropy: entropy)
+
+        AsyncButton(
+          action: {
+            await self.controller.navigateToAdvancedPasswordGeneration(for: fieldModel.path)
+          },
+          label: {
+            HStack(spacing: 16) {
+              Image(named: .cog)
+                .renderingMode(.template)
+              Text(displayable: "resource.edit.password.advanced.title")
+                .text(font: .inter(ofSize: 14, weight: .semibold))
+              Spacer()
+              Image(named: .chevronRight)
+                .renderingMode(.template)
+            }
+            .foregroundStyle(Color.passboltPrimaryText)
+            .frame(height: 56)
+            .padding(.vertical, 8)
+          }
+        )
       }
       .padding(bottom: 8)
 

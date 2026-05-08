@@ -423,6 +423,26 @@ public struct ResourceEditView: ControlledView {
         )
 
         EntropyView(entropy: entropy)
+
+        AsyncButton(
+          action: {
+            await self.controller.navigateToAdvancedPasswordGeneration(for: fieldModel.path)
+          },
+          label: {
+            HStack(spacing: 16) {
+              Image(named: .cog)
+                .renderingMode(.template)
+              Text(displayable: "resource.edit.password.advanced.title")
+                .text(font: .inter(ofSize: 14, weight: .semibold))
+              Spacer()
+              Image(named: .chevronRight)
+                .renderingMode(.template)
+            }
+            .foregroundStyle(Color.passboltPrimaryText)
+            .frame(height: 56)
+            .padding(.top, 8)
+          }
+        )
       }
       .padding(bottom: 8)
 
@@ -460,7 +480,9 @@ public struct ResourceEditView: ControlledView {
         )
         .keyboardType(.numberPad)
         AsyncButton(
-          action: self.controller.navigateToPinCodeAdvancedSettings,
+          action: {
+            await self.controller.navigateToPinCodeAdvancedSettings(for: fieldModel.path)
+          },
           label: {
             HStack(spacing: 16) {
               Image(named: .cog)
