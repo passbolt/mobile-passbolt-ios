@@ -112,13 +112,17 @@ where Content: View, Accessory: View {
               )
           },
           loadingLabel: {
-            SwiftUI.ProgressView()
-              .progressViewStyle(.circular)
-              .tint(.passboltPrimaryText)
-              .frame(  // minimal for interaction
-                minWidth: 32,
-                minHeight: 32
-              )
+            ZStack {
+              self.accessory()
+                .hidden()
+              SwiftUI.ProgressView()
+                .progressViewStyle(.circular)
+                .tint(.passboltPrimaryText)
+            }
+            .frame(  // minimal for interaction
+              minWidth: 32,
+              minHeight: 32
+            )
           }
         )
       }
@@ -186,13 +190,17 @@ where Content: View, Accessory: View {
               )
           },
           loadingLabel: {
-            SwiftUI.ProgressView()
-              .progressViewStyle(.circular)
-              .tint(.passboltPrimaryText)
-              .frame(  // minimal for interaction
-                minWidth: 32,
-                minHeight: 32
-              )
+            ZStack {
+              self.accessory()
+                .hidden()
+              SwiftUI.ProgressView()
+                .progressViewStyle(.circular)
+                .tint(.passboltPrimaryText)
+            }
+            .frame(  // minimal for interaction
+              minWidth: 32,
+              minHeight: 32
+            )
           }
         )
       }

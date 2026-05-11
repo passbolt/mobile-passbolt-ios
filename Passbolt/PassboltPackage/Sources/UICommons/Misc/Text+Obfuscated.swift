@@ -21,22 +21,40 @@
 // @since         v1.0
 //
 
-import UIKit
+import SwiftUI
 
-extension UIFont {
+extension Text {
 
-  internal static let registerObfuscation: Void = {
-    func registerFont(fileName: String) {
-      guard
-        let pathForResourceString = Bundle.module.path(forResource: fileName, ofType: "otf"),
-        let fontData = NSData(contentsOfFile: pathForResourceString),
-        let dataProvider = CGDataProvider(data: fontData),
-        let fontRef = CGFont(dataProvider)
-      else { return }
+  @MainActor public func obfuscated(ofSize size: CGFloat) -> some View {
+    self
+      .font(.obfuscation(ofSize: size))
+      .unclippedTextRenderer()
+  }
+}
 
-      CTFontManagerRegisterGraphicsFont(fontRef, nil)
+@available(iOS 18.0, *)
+private struct UnclippedTextRenderer: TextRenderer {
+  fileprivate func draw(layout: Text.Layout, in ctx: inout GraphicsContext) {
+    for line in layout {
+      ctx.draw(line)
     }
-    registerFont(fileName: "Obfuscation Regular")
-  }()
+  }
 
+  fileprivate func sizeThatFits(proposal: ProposedViewSize, text: TextProxy) -> CGSize {
+    text.sizeThatFits(proposal)
+  }
+}
+
+extension View {
+
+  ///  Use the unclipped text renderer for iOS 18 and above to prevent text from being clipped when using custom fonts with `Text`.
+  @ViewBuilder
+  fileprivate func unclippedTextRenderer() -> some View {
+    if #available(iOS 18.0, *) {
+      self.textRenderer(UnclippedTextRenderer())
+    }
+    else {
+      self
+    }
+  }
 }
