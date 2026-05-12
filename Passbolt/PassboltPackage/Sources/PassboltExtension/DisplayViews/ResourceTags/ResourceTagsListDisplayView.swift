@@ -41,6 +41,7 @@ internal struct ResourceTagsListDisplayView: ControlledView {
         isLoadingMore: state.isLoadingMore,
         contentResetToken: state.contentResetToken,
         refreshAction: self.controller.refresh,
+        refreshIndicatorSource: self.controller.refreshIndicatorSource,
         loadMoreAction: self.controller.loadMore,
         createAction: .none,
         tagTapAction: self.controller.selectTag

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import FeatureScopes
 import OSFeatures
@@ -30,6 +31,7 @@ import SessionData
 public final class ResourcesListDisplayController: ViewController {
 
   public nonisolated let viewState: ViewStateSource<ViewState>
+  public nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
 
   private let sessionData: SessionData
   private let resources: ResourcesController
@@ -48,6 +50,7 @@ public final class ResourcesListDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.resources = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
 
     let pageSize = context.pageSize
 

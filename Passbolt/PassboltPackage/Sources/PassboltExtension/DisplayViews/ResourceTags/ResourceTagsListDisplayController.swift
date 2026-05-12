@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import FeatureScopes
 import OSFeatures
@@ -30,6 +31,7 @@ import SessionData
 internal final class ResourceTagsListDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
 
   private let sessionData: SessionData
   private let resourceTags: ResourceTags
@@ -47,6 +49,7 @@ internal final class ResourceTagsListDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.resourceTags = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
 
     let pageSize: Int = context.pageSize
 

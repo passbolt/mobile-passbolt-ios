@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import FeatureScopes
 import OSFeatures
@@ -30,6 +31,7 @@ import SessionData
 internal final class ResourceFolderContentDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
 
   internal var createFolder: (@Sendable () async throws -> Void)?
   internal var createResource: (@Sendable () async throws -> Void)?
@@ -54,6 +56,7 @@ internal final class ResourceFolderContentDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.resourceFolders = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
 
     self.createFolder = context.createFolder
     self.createResource = context.createResource

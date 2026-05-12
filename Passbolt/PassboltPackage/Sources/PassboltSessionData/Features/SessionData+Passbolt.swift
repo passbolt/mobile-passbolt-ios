@@ -59,6 +59,7 @@ extension SessionData {
     // we could store last update time and reuse it to avoid
     // fetching all the data when initializing
     let lastUpdate: Variable<Timestamp> = .init(initial: 0)
+    let isRefreshing: Variable<Bool> = .init(initial: false)
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
@@ -155,11 +156,13 @@ extension SessionData {
           return runningTask
         }
         else {
+          isRefreshing.assign(true)
           let runningTask: Task<Void, Error> = session.execute {
             defer {
               refreshTask.access { task in
                 task = .none
               }
+              isRefreshing.assign(false)
             }
             // when diffing endpoint becomes available
             // there should be some additional logic
@@ -185,6 +188,12 @@ extension SessionData {
               lastUpdate = time.timestamp()
             }
           }
+          // Clear isRefreshing on completion regardless of how the
+          // task body terminated, in case the body never and the defer above didn't fire.
+          Task { @Sendable in
+            _ = try? await runningTask.value
+            isRefreshing.assign(false)
+          }
           task = runningTask
           return runningTask
         }
@@ -195,6 +204,7 @@ extension SessionData {
 
     return Self(
       lastUpdate: lastUpdate.asAnyUpdatable(),
+      isRefreshing: isRefreshing.asAnyUpdatable(),
       refreshIfNeeded: refreshIfNeeded
     )
   }

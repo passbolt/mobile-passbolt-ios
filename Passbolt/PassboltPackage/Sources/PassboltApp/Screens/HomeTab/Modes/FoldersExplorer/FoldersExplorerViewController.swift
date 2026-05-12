@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import Resources
 import SessionData
@@ -47,6 +48,7 @@ internal final class FoldersExplorerViewController: ViewController {
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
 
   internal let searchController: ResourceSearchDisplayController
   internal let features: Features
@@ -91,6 +93,7 @@ internal final class FoldersExplorerViewController: ViewController {
     )
 
     self.sessionData = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
     let folders: ResourceFolders = try features.instance()
     self.folders = folders
 

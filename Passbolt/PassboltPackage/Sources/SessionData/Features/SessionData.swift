@@ -27,13 +27,16 @@ import Features
 public struct SessionData: Sendable {
 
   public var lastUpdate: AnyUpdatable<Timestamp>
+  public var isRefreshing: AnyUpdatable<Bool>
   public var refreshIfNeeded: @Sendable () async throws -> Void
 
   public init(
     lastUpdate: AnyUpdatable<Timestamp>,
+    isRefreshing: AnyUpdatable<Bool>,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void
   ) {
     self.lastUpdate = lastUpdate
+    self.isRefreshing = isRefreshing
     self.refreshIfNeeded = refreshIfNeeded
   }
 }
@@ -44,6 +47,7 @@ extension SessionData: LoadableFeature {
   nonisolated public static var placeholder: Self {
     .init(
       lastUpdate: PlaceholderUpdatable().asAnyUpdatable(),
+      isRefreshing: PlaceholderUpdatable().asAnyUpdatable(),
       refreshIfNeeded: unimplemented0()
     )
   }

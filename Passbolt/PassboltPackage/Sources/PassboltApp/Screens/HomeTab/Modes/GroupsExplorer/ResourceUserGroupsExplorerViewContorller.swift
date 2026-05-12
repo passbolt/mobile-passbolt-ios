@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import Resources
 import Session
@@ -44,6 +45,7 @@ internal final class ResourceUserGroupsExplorerViewContorller: ViewController {
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
 
   internal let searchController: ResourceSearchDisplayController
 
@@ -65,6 +67,7 @@ internal final class ResourceUserGroupsExplorerViewContorller: ViewController {
   internal init(context: Context, features: Features) throws {
     self.features = features
     self.sessionData = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
     self.navigationToResourceDetails = try features.instance()
     self.navigationToGroupContent = try features.instance()
 

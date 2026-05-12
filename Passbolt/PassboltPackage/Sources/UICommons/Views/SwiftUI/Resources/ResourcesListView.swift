@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+import Commons
 import SwiftUI
 
 // MARK: - Row Data Model
@@ -86,6 +87,7 @@ public struct ResourcesListView: View {
   private let isLoadingMore: Bool
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
+  private let refreshIndicatorSource: AnyUpdatable<Bool>?
   private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (@Sendable () async throws -> Void)?
   private let resourceTapAction: @Sendable (Resource.ID) async throws -> Void
@@ -98,6 +100,7 @@ public struct ResourcesListView: View {
     isLoadingMore: Bool,
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
+    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
     loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (@Sendable () async throws -> Void)?,
     resourceTapAction: @escaping @Sendable (Resource.ID) async throws -> Void,
@@ -112,6 +115,7 @@ public struct ResourcesListView: View {
       suggestedResources?.isEmpty ?? true
       && resources.isEmpty
     self.refreshAction = refreshAction
+    self.refreshIndicatorSource = refreshIndicatorSource
     self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.resourceTapAction = resourceTapAction
@@ -126,6 +130,7 @@ public struct ResourcesListView: View {
       isLoadingMore: isLoadingMore,
       onLoadMore: loadMoreAction,
       refreshAction: refreshAction,
+      refreshIndicatorSource: refreshIndicatorSource,
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )

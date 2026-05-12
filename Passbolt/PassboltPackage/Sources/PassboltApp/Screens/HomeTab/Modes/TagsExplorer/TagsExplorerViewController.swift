@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Commons
 import Display
 import FeatureScopes
 import Metadata
@@ -48,6 +49,7 @@ internal final class TagsExplorerViewController: ViewController {
   }
 
   nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
   internal let searchController: ResourceSearchDisplayController
 
   fileprivate let features: Features
@@ -67,6 +69,7 @@ internal final class TagsExplorerViewController: ViewController {
   init(context: Context, features: Features) throws {
     self.features = features
     self.sessionData = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
 
     self.navigationToTagContent = try features.instance()
     self.navigationToResourceDetails = try features.instance()

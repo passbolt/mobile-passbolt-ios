@@ -84,6 +84,7 @@ internal struct TagsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
+      refreshIndicatorSource: self.controller.refreshIndicatorSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       tagTapAction: { tagID in
@@ -109,6 +110,7 @@ internal struct TagsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
+      refreshIndicatorSource: self.controller.refreshIndicatorSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       resourceTapAction: { resourceID in

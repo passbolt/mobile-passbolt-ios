@@ -79,6 +79,7 @@ internal struct FoldersExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
+      refreshIndicatorSource: self.controller.refreshIndicatorSource,
       loadMoreAction: self.controller.loadMore,
       createAction: state.canCreateResources
         ? { @Sendable in await self.controller.presentAddNew(folderID: state.folderID) }

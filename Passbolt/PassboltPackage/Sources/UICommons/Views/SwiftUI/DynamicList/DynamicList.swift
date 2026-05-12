@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Commons
+
 /// A high-performance virtual scrolling list that only renders items within the visible viewport.
 ///
 /// `DynamicList` uses a custom `Layout` to position items based on their estimated heights,
@@ -45,6 +47,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
   private let isLoadingMore: Bool
   private let onLoadMore: @Sendable () async -> Void
   private let refreshAction: (@Sendable () async -> Void)?
+  private let refreshIndicatorSource: AnyUpdatable<Bool>?
   private let contentResetToken: Int
   private let loadMoreThreshold: Int
   @State private var visibleRange: Range<Int> = 0 ..< 1
@@ -69,6 +72,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
     isLoadingMore: Bool,
     onLoadMore: @Sendable @escaping () async -> Void,
     refreshAction: (@Sendable () async -> Void)? = nil,
+    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
     contentResetToken: Int = 0,
     content: @escaping (ItemType) -> Content,
     loadMoreThreshold: Int = 10
@@ -78,6 +82,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
     self.isLoadingMore = isLoadingMore
     self.onLoadMore = onLoadMore
     self.refreshAction = refreshAction
+    self.refreshIndicatorSource = refreshIndicatorSource
     self.contentResetToken = contentResetToken
     self.content = content
     self.loadMoreThreshold = loadMoreThreshold
@@ -120,9 +125,10 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
         self.visibleRange = newValue.visibleRange
         self.checkIfNeedToLoadMore()
       }
-      .refreshable {
-        await self.refreshAction?()
-      }
+      .refreshableWithIndicator(
+        refreshAction: self.refreshAction,
+        refreshIndicatorSource: self.refreshIndicatorSource
+      )
       .onAppear {
         recomputeVisibleRange()
       }
@@ -180,9 +186,10 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
           self.checkIfNeedToLoadMore()
         }
       }
-      .refreshable {
-        await self.refreshAction?()
-      }
+      .refreshableWithIndicator(
+        refreshAction: self.refreshAction,
+        refreshIndicatorSource: self.refreshIndicatorSource
+      )
       .onAppear {
         recomputeVisibleRange()
       }
@@ -380,6 +387,74 @@ private struct OffsetLayout: Layout {
 private struct LayoutIndex: LayoutValueKey {
   static let defaultValue: Int = 0
   typealias Value = Int
+}
+
+// MARK: - Refresh modifier
+
+private struct RefreshableWithIndicator: ViewModifier {
+
+  fileprivate let refreshAction: (@Sendable () async -> Void)?
+  fileprivate let refreshIndicatorSource: AnyUpdatable<Bool>?
+  @State private var userPullingRefresh: Bool = false
+  @State private var externalRefreshing: Bool = false
+
+  fileprivate func body(content: Content) -> some View {
+    content
+      .refreshable {
+        withAnimation(.easeInOut(duration: 0.25)) {
+          self.userPullingRefresh = true
+        }
+        defer {
+          withAnimation(.easeInOut(duration: 0.25)) {
+            self.externalRefreshing = false
+            self.userPullingRefresh = false
+          }
+        }
+        await self.refreshAction?()
+      }
+      .safeAreaInset(edge: .top, spacing: 0) {
+        if self.externalRefreshing && !self.userPullingRefresh {
+          HStack {
+            Spacer()
+            SwiftUI.ProgressView()
+              .progressViewStyle(.circular)
+              .controlSize(.large)
+              .tint(Color.passboltSecondaryGray)
+            Spacer()
+          }
+          .padding(.vertical, 12)
+        }
+        else {
+          Color.clear.frame(width: 0, height: 0)
+        }
+      }
+      .task {
+        guard let source: AnyUpdatable<Bool> = self.refreshIndicatorSource
+        else { return }
+        var iterator: UpdatableIterator<Bool> = source.makeAsyncIterator()
+        while let update: Update<Bool> = await iterator.next() {
+          let newValue: Bool = (try? update.value) ?? false
+          withAnimation(.easeInOut(duration: 0.25)) {
+            self.externalRefreshing = newValue
+          }
+        }
+      }
+  }
+}
+
+extension View {
+
+  fileprivate func refreshableWithIndicator(
+    refreshAction: (@Sendable () async -> Void)?,
+    refreshIndicatorSource: AnyUpdatable<Bool>?
+  ) -> some View {
+    self.modifier(
+      RefreshableWithIndicator(
+        refreshAction: refreshAction,
+        refreshIndicatorSource: refreshIndicatorSource
+      )
+    )
+  }
 }
 
 // MARK: - Preference Keys

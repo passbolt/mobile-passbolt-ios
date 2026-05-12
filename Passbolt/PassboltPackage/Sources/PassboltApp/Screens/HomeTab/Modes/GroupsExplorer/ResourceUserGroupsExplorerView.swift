@@ -84,6 +84,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
+      refreshIndicatorSource: self.controller.refreshIndicatorSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       groupTapAction: { groupID in
@@ -103,6 +104,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
+      refreshIndicatorSource: self.controller.refreshIndicatorSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       resourceTapAction: { resourceID in

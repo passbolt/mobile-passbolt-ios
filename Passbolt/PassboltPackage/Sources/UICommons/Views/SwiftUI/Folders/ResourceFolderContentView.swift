@@ -22,6 +22,7 @@
 //
 
 import CommonModels
+import Commons
 import SwiftUI
 
 // MARK: - Row Data Model
@@ -109,6 +110,7 @@ public struct ResourceFolderContentView: View {
   private let isLoadingMore: Bool
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
+  private let refreshIndicatorSource: AnyUpdatable<Bool>?
   private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (@Sendable () async throws -> Void)?
   private let folderTapAction: @Sendable (ResourceFolder.ID) async throws -> Void
@@ -126,6 +128,7 @@ public struct ResourceFolderContentView: View {
     isLoadingMore: Bool,
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
+    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
     loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (@Sendable () async throws -> Void)?,
     folderTapAction: @Sendable @escaping (ResourceFolder.ID) async throws -> Void,
@@ -156,6 +159,7 @@ public struct ResourceFolderContentView: View {
     self.isLoadingMore = isLoadingMore
     self.contentResetToken = contentResetToken
     self.refreshAction = refreshAction
+    self.refreshIndicatorSource = refreshIndicatorSource
     self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.folderTapAction = folderTapAction
@@ -170,6 +174,7 @@ public struct ResourceFolderContentView: View {
       isLoadingMore: isLoadingMore,
       onLoadMore: loadMoreAction,
       refreshAction: refreshAction,
+      refreshIndicatorSource: refreshIndicatorSource,
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )

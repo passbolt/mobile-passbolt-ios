@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import FeatureScopes
 import Metadata
@@ -50,6 +51,7 @@ internal final class OTPResourcesListViewController: ViewController {
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
+  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
 
   internal let createAvailable: Bool
 
@@ -74,6 +76,7 @@ internal final class OTPResourcesListViewController: ViewController {
     self.context = context
     self.resources = try features.instance()
     self.sessionData = try features.instance()
+    self.refreshIndicatorSource = self.sessionData.isRefreshing
 
     self.createAvailable = try features.sessionConfiguration().resources.totpEnabled
     let otpController: ResourcesOTPController = try features.instance()

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import SharedUIComponents
 import UICommons
@@ -71,6 +72,7 @@ internal struct OTPResourcesListView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshList,
+      refreshIndicatorSource: self.controller.refreshIndicatorSource,
       loadMoreAction: self.controller.loadMore,
       createAction: self.controller.createOTPAction,
       resourceTapAction: self.controller.revealAndCopyOTP(for:),
@@ -145,6 +147,7 @@ private struct OTPResourcesList: View {
   private let isLoadingMore: Bool
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
+  private let refreshIndicatorSource: AnyUpdatable<Bool>?
   private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (@Sendable () async -> Void)?
   private let resourceTapAction: (Resource.ID) async -> Void
@@ -156,6 +159,7 @@ private struct OTPResourcesList: View {
     isLoadingMore: Bool,
     contentResetToken: Int,
     refreshAction: @Sendable @escaping () async -> Void,
+    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
     loadMoreAction: @Sendable @escaping () async -> Void,
     createAction: (@Sendable () async -> Void)?,
     resourceTapAction: @escaping (Resource.ID) async -> Void,
@@ -166,6 +170,7 @@ private struct OTPResourcesList: View {
     self.isLoadingMore = isLoadingMore
     self.contentResetToken = contentResetToken
     self.refreshAction = refreshAction
+    self.refreshIndicatorSource = refreshIndicatorSource
     self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.resourceTapAction = resourceTapAction
@@ -179,6 +184,7 @@ private struct OTPResourcesList: View {
       isLoadingMore: isLoadingMore,
       onLoadMore: loadMoreAction,
       refreshAction: refreshAction,
+      refreshIndicatorSource: refreshIndicatorSource,
       content: { viewForRow($0) }
     )
     .id(contentResetToken)
