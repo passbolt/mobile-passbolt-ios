@@ -179,8 +179,6 @@ extension SessionNetworkRequestExecutor {
         }
         catch _ as HTTPUnauthorized {
           sessionState.accessTokenInvalidate()
-          try sessionState
-            .authorizationRequested(.passphrase(account))
 
           return try await retry(
             requestMutation,
