@@ -86,6 +86,12 @@ extension GenericPermissionDTO {
           resourceFolders.id == ?1
         AND
           users.id == ?2
+        ON CONFLICT
+          (
+            resourceFolderID,
+            userID
+          )
+        DO NOTHING
         ;
         """,
         arguments: resourceFolderID,
@@ -116,6 +122,12 @@ extension GenericPermissionDTO {
           resources.id == ?1
         AND
           userGroups.id == ?2
+        ON CONFLICT
+          (
+            resourceID,
+            userGroupID
+          )
+        DO NOTHING
         ;
         """,
         arguments: resourceID,
@@ -146,6 +158,12 @@ extension GenericPermissionDTO {
           resourceFolders.id == ?1
         AND
           userGroups.id == ?2
+        ON CONFLICT
+          (
+            resourceFolderID,
+            userGroupID
+          )
+        DO NOTHING
         ;
         """,
         arguments: resourceFolderID,
