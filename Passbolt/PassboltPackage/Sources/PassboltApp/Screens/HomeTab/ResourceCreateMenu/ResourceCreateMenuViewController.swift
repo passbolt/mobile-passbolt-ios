@@ -69,6 +69,16 @@ internal final class ResourceCreateMenuViewController: @MainActor ViewController
     self.navigationToSelf = try features.instance()
     self.features = features
     self.context = context
+    self.viewState = .init(
+      initial: .init(
+        menuItems: .init(),
+        canCreateFolders: false
+      )
+    )
+  }
+
+  // Populate the menu with options async - otherwise it breaks height calculation on iOS 16
+  internal func activate() async {
     let menuItems: Array<ResourceCreateMenuItem> = context.resourceCreatingContext.availableTypes.map {
       .init(
         title: $0.specification.slug.title,
@@ -76,12 +86,11 @@ internal final class ResourceCreateMenuViewController: @MainActor ViewController
         icon: $0.specification.slug.icon
       )
     }
-    self.viewState = .init(
-      initial: .init(
-        menuItems: menuItems,
-        canCreateFolders: context.allowFolderCreation
-      )
-    )
+    let canCreateFolders: Bool = context.allowFolderCreation
+    self.viewState.update { state in
+      state.menuItems = menuItems
+      state.canCreateFolders = canCreateFolders
+    }
   }
 
   /// Dismisses the resource creation menu

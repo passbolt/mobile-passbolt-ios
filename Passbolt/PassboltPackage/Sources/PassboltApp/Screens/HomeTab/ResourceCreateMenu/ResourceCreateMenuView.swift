@@ -56,6 +56,7 @@ internal struct ResourceCreateMenuView: @MainActor ControlledView {
         }
       }
     )
+    .task { await controller.activate() }
   }
 }
 

@@ -147,7 +147,7 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
           label: {
             self.accessory()
               .frame(
-                maxHeight: 52,
+                maxHeight: 40,
                 alignment: .trailing
               )
           }
@@ -160,7 +160,7 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
       else {
         self.accessory()
           .frame(
-            maxHeight: 52,
+            maxHeight: 40,
             alignment: .trailing
           )
       }

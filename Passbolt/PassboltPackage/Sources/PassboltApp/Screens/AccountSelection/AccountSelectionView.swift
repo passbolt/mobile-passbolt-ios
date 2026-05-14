@@ -203,11 +203,11 @@ extension AccountSelectionViewController.Mode {
 private struct AccountSelectionRow: View {
   @State private var currentImage: Image
   private let account: AccountSelectionCellItem
-  private let onRemoveTap: @MainActor @Sendable () async -> Void
+  private let onRemoveTap: (@MainActor @Sendable () async -> Void)?
 
   init(account: AccountSelectionCellItem, onRemoveTap: (@MainActor @Sendable () async -> Void)?) {
     self.account = account
-    self.onRemoveTap = onRemoveTap ?? {}
+    self.onRemoveTap = onRemoveTap
     self._currentImage = State(initialValue: Image(named: .person))
   }
 
@@ -237,11 +237,13 @@ private struct AccountSelectionRow: View {
       }
       .padding(.leading, 12)
       Spacer()
-      IconButton(
-        iconName: .trash,
-        action: { await onRemoveTap() }
-      )
-      .accessibilityIdentifier("account.selection.remove.button")
+      if let onRemoveTap {
+        IconButton(
+          iconName: .trash,
+          action: { await onRemoveTap() }
+        )
+        .accessibilityIdentifier("account.selection.remove.button")
+      }
     }
     .onReceive(account.imagePublisher ?? Just(nil).eraseToAnyPublisher()) { @MainActor data in
       currentImage = data.flatMap { Image.init(data: $0) } ?? Image(named: .person)
