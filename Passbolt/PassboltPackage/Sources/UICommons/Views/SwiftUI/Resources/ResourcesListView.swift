@@ -27,9 +27,11 @@ import SwiftUI
 // MARK: - Row Data Model
 public enum ResourcesListRowData: DynamicListItem {
 
+  public typealias Section = Tagged<String, Self>
+
   case sectionHeader(title: String)
   case addResource
-  case resource(ResourceListItemDSV)
+  case resource(ResourceListItemDSV, Section)
   case loadingIndicator
 
   public var id: String {
@@ -38,8 +40,8 @@ public enum ResourcesListRowData: DynamicListItem {
       return "header_\(title)"
     case .addResource:
       return "add_resource"
-    case .resource(let resource):
-      return "resource_\(resource.id.rawValue.rawValue.uuidString)"
+    case .resource(let resource, let section):
+      return "resource_\(resource.id.rawValue.rawValue.uuidString)_\(section.rawValue)"
     case .loadingIndicator:
       return "loading"
     }
@@ -55,6 +57,12 @@ public enum ResourcesListRowData: DynamicListItem {
       return 44
     }
   }
+}
+
+extension ResourcesListRowData.Section {
+
+  static let suggested: Self = "suggested"
+  static let all: Self = "all"
 }
 
 extension ResourcesListRowData: Hashable {
@@ -144,7 +152,7 @@ public struct ResourcesListView: View {
         )
       )
       for resource in suggested {
-        rows.append(.resource(resource))
+        rows.append(.resource(resource, .suggested))
       }
 
       // Add "All" section header if we have both suggested and regular resources
@@ -159,7 +167,7 @@ public struct ResourcesListView: View {
 
     // Add all resources
     for resource in self.resources {
-      rows.append(.resource(resource))
+      rows.append(.resource(resource, .all))
     }
 
     // Add loading indicator if loading more
@@ -191,7 +199,7 @@ public struct ResourcesListView: View {
           .frame(height: row.estimatedHeight)
       }
 
-    case .resource(let resource):
+    case .resource(let resource, _):
       ResourceListItemView(
         name: resource.name,
         username: resource.username,
