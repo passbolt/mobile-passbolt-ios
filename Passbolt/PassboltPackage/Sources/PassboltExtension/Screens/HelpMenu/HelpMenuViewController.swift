@@ -28,38 +28,48 @@ import SharedUIComponents
 internal final class HelpMenuViewController: ViewController {
 
   internal struct ViewState: Equatable {
-    let actions: Array<Action>
+    var actions: Array<Action>
   }
 
   nonisolated let viewState: ViewStateSource<ViewState>
   private let navigationToSelf: NavigationToHelpMenu
+  private let resolvedActions: Array<Action>
 
   internal init(context: Void, features: Features) throws {
     let linkOpener: OSLinkOpener = features.instance()
     self.navigationToSelf = try features.instance()
     let navigationToLogsViewer: NavigationToLogsViewer = try features.instance()
 
+    self.resolvedActions = [
+      .init(
+        title: "help.menu.show.logs.action.title",
+        icon: .bug,
+        action: {
+          try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
+        }
+      ),
+      .init(
+        title: "help.menu.show.web.help.action.title",
+        icon: .open,
+        action: {
+          try await linkOpener
+            .openURL("https://help.passbolt.com")
+        }
+      ),
+    ]
     self.viewState = .init(
       initial: .init(
-        actions: [
-          .init(
-            title: "help.menu.show.logs.action.title",
-            icon: .bug,
-            action: {
-              try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
-            }
-          ),
-          .init(
-            title: "help.menu.show.web.help.action.title",
-            icon: .open,
-            action: {
-              try await linkOpener
-                .openURL("https://help.passbolt.com")
-            }
-          ),
-        ]
+        actions: []
       )
     )
+  }
+
+  // Populate the menu with options async - otherwise it breaks height calculation on iOS 16
+  @MainActor internal func activate() async {
+    let actions: Array<Action> = self.resolvedActions
+    self.viewState.update { state in
+      state.actions = actions
+    }
   }
 
   internal func closeMenu() async {

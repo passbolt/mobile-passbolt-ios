@@ -28,12 +28,13 @@ import OSFeatures
 public final class HelpMenuViewController: ViewController {
 
   public struct ViewState: Equatable, Sendable {
-    let actions: Array<Action>
+    var actions: Array<Action>
   }
 
   public nonisolated let viewState: ViewStateSource<ViewState>
   private let navigationToSelf: NavigationToHelpMenu
   private let transferFeatures: Features
+  private let resolvedActions: Array<Action>
 
   public init(context: Array<Action>, features: Features) throws {
     let linkOpener: OSLinkOpener = features.instance()
@@ -44,39 +45,49 @@ public final class HelpMenuViewController: ViewController {
     let navigationToAccountKitPicker: NavigationToAccountKitPicker = try transferFeatures.instance()
     let accountKitImport: AccountKitImport = try transferFeatures.instance()
     let navigationToLogsViewer: NavigationToLogsViewer = try features.instance()
+    self.resolvedActions =
+      context
+      + [
+        .init(
+          title: "help.menu.show.logs.action.title",
+          icon: .bug,
+          action: {
+            try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
+          }
+        ),
+        accountKitImport.isImportAccountKitAvailable()
+          ? .init(
+            title: "help.menu.show.import.account.kit.title",
+            icon: .importFile,
+            action: { @MainActor in
+              try await navigationToSelf.revert()
+              try await navigationToAccountKitPicker.perform()
+            }
+          )
+          : nil,
+        .init(
+          title: "help.menu.show.web.help.action.title",
+          icon: .open,
+          action: {
+            try await linkOpener
+              .openURL("https://help.passbolt.com")
+          }
+        ),
+      ]
+      .compactMap { $0 }
     self.viewState = .init(
       initial: .init(
-        actions: context
-          + [
-            .init(
-              title: "help.menu.show.logs.action.title",
-              icon: .bug,
-              action: {
-                try await navigationToLogsViewer.perform(context: .init(useCustomNavigationBar: true))
-              }
-            ),
-            accountKitImport.isImportAccountKitAvailable()
-              ? .init(
-                title: "help.menu.show.import.account.kit.title",
-                icon: .importFile,
-                action: { @MainActor in
-                  try await navigationToSelf.revert()
-                  try await navigationToAccountKitPicker.perform()
-                }
-              )
-              : nil,
-            .init(
-              title: "help.menu.show.web.help.action.title",
-              icon: .open,
-              action: {
-                try await linkOpener
-                  .openURL("https://help.passbolt.com")
-              }
-            ),
-          ]
-          .compactMap { $0 }
+        actions: []
       )
     )
+  }
+
+  // Populate the menu with options async - otherwise it breaks height calculation on iOS 16
+  @MainActor internal func activate() async {
+    let actions: Array<Action> = self.resolvedActions
+    self.viewState.update { state in
+      state.actions = actions
+    }
   }
 
   internal func closeMenu() async {

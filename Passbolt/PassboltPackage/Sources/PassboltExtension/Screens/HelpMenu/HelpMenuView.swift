@@ -63,6 +63,7 @@ internal struct HelpMenuView: ControlledView {
       }
     )
     .ignoresSafeArea()
+    .task { await controller.activate() }
   }
 }
 

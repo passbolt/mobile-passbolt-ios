@@ -102,6 +102,11 @@ public struct CommonListResourceOTPView<AccessoryView>: View where AccessoryView
               }
           }
         }
+        .frame(
+          width: 40,
+          height: 40,
+          alignment: .center
+        )
 
         VStack(alignment: .leading, spacing: 4) {
           Text(name)
