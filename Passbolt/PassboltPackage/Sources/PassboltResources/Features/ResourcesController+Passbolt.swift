@@ -62,7 +62,13 @@ extension ResourcesController {
           includedTypeSlugs: filter.otpOnly
             ? [.totp, .passwordWithTOTP, .v5StandaloneTOTP, .v5DefaultWithTOTP]
             : [],
-          excludedTypeSlugs: [],
+          excludedTypeSlugs: isInExtensionContext
+            ? [
+              .v5PinCode,
+              .v5CustomFields,
+              .v5StandaloneNote,
+            ]
+            : [],
           permissions: Set(filter.permissions),
           tags: filter.tags,
           userGroups: filter.userGroups,
