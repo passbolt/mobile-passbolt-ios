@@ -51,7 +51,7 @@ public struct AccountSelectionCellItem: Hashable, @unchecked Sendable {
   public var title: String
   public var subtitle: String
   public var isCurrentAccount: Bool
-  public var imagePublisher: AnyPublisher<Data?, Never>?
+  public var imageLoad: (@Sendable () async -> Data?)?
   public var listModePublisher: AnyPublisher<AccountSelectionListMode, Never>
 
   public init(
@@ -59,14 +59,14 @@ public struct AccountSelectionCellItem: Hashable, @unchecked Sendable {
     title: String,
     subtitle: String,
     isCurrentAccount: Bool,
-    imagePublisher: AnyPublisher<Data?, Never>?,
+    imageLoad: (@Sendable () async -> Data?)?,
     listModePublisher: AnyPublisher<AccountSelectionListMode, Never>
   ) {
     self.account = account
     self.title = title
     self.subtitle = subtitle
     self.isCurrentAccount = isCurrentAccount
-    self.imagePublisher = imagePublisher
+    self.imageLoad = imageLoad
     self.listModePublisher = listModePublisher
   }
 
@@ -78,8 +78,8 @@ public struct AccountSelectionCellItem: Hashable, @unchecked Sendable {
       && lhs.title == rhs.title
       && lhs.subtitle == rhs.subtitle
       && lhs.isCurrentAccount == rhs.isCurrentAccount
-      && ((lhs.imagePublisher == nil && rhs.imagePublisher == nil)
-        || (lhs.imagePublisher != nil && rhs.imagePublisher != nil))
+      && ((lhs.imageLoad == nil && rhs.imageLoad == nil)
+        || (lhs.imageLoad != nil && rhs.imageLoad != nil))
   }
 
   public func hash(into hasher: inout Hasher) {
@@ -87,7 +87,7 @@ public struct AccountSelectionCellItem: Hashable, @unchecked Sendable {
     hasher.combine(title)
     hasher.combine(subtitle)
     hasher.combine(isCurrentAccount)
-    hasher.combine(imagePublisher != nil)
+    hasher.combine(imageLoad != nil)
   }
 }
 

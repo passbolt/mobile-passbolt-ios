@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Commons
 import Display
 import NetworkOperations
 import Session
@@ -67,6 +68,8 @@ internal final class AccountSelectionViewController: ViewController {
     let session: Session = try features.instance()
     let mediaDownloadNetworkOperation: MediaDownloadNetworkOperation = try features.instance()
 
+    let avatarCache: CriticalState<Dictionary<URLString, Data>> = .init([:])
+
     self.viewState = .init(
       initial: .init(
         isSignIn: context.isSignIn,
@@ -78,18 +81,21 @@ internal final class AccountSelectionViewController: ViewController {
         let currentAccount: Account? = try? await session.currentAccount()
         var listItems: Array<AccountSelectionCellItem> = .init()
         for storedAccount: AccountWithProfile in accounts.storedAccounts() {
+          let avatarImageURL: URLString = storedAccount.avatarImageURL
           let item: AccountSelectionCellItem = AccountSelectionCellItem(
             account: storedAccount.account,
             title: storedAccount.label,
             subtitle: storedAccount.username,
             isCurrentAccount: storedAccount.account == currentAccount,
-            imagePublisher:
-              Just(Void())
-              .asyncMap {
-                try? await mediaDownloadNetworkOperation.execute(storedAccount.avatarImageURL)
+            imageLoad: { [avatarCache, mediaDownloadNetworkOperation] in
+              if let cached: Data = avatarCache.access({ $0[avatarImageURL] }) {
+                return cached
               }
-              .receive(on: DispatchQueue.main)
-              .eraseToAnyPublisher(),
+              guard let downloaded: Data = try? await mediaDownloadNetworkOperation.execute(avatarImageURL)
+              else { return nil }
+              avatarCache.access { $0[avatarImageURL] = downloaded }
+              return downloaded
+            },
             listModePublisher: Empty().eraseToAnyPublisher()
           )
           listItems.append(item)

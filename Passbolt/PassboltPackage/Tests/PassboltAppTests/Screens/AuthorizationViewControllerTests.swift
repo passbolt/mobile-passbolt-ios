@@ -223,7 +223,7 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
       context: .mock_ada
     )
 
-    await tested.tryBiometricSignIn()
+    tested.tryBiometricSignIn()
 
     XCTAssertFalse(authorizeCalled.get())
   }
@@ -249,10 +249,9 @@ final class AuthorizationViewControllerTests: FeaturesTestCase {
       context: .mock_ada
     )
 
-    // Wait for async account details loading
-    try await Task.sleep(nanoseconds: 100_000_000)
-    await tested.tryBiometricSignIn()
-
+    let task: Task<Void, Never>? = tested.tryBiometricSignIn()
+    // wait for task to finish
+    await task?.value
     XCTAssertTrue(authorizeCalled.get())
   }
 

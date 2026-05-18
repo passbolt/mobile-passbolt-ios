@@ -50,6 +50,7 @@ internal final class AuthorizationViewController: ViewController {
   fileprivate let features: Features
   fileprivate let context: Context
   fileprivate let navigationToAccountSelection: NavigationToAccountSelection
+  fileprivate var attemptAutomaticBiometricSignTask: Task<Void, Never>? = .none
 
   internal init(context: Context, features: Features) throws {
     self.navigationToAccountSelection = try features.instance()
@@ -125,13 +126,22 @@ extension AuthorizationViewController {
     )
   }
 
-  internal func tryBiometricSignIn() async {
-    let currentState: ViewState = await self.viewState.current
-    guard currentState.biometricsAvailability != .unavailable
+  internal func tryBiometricSignIn() {
+    guard attemptAutomaticBiometricSignTask == .none
     else {
       return
     }
-    await self.biometricSignIn()
+    self.attemptAutomaticBiometricSignTask = Task { [weak self] in
+      guard let self else {
+        return
+      }
+      let currentState: ViewState = await self.viewState.current
+      guard currentState.biometricsAvailability != .unavailable
+      else {
+        return
+      }
+      await self.biometricSignIn()
+    }
   }
 
   internal func biometricSignIn() async {

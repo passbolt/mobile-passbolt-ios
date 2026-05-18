@@ -79,7 +79,7 @@ internal struct AuthorizationView: ControlledView {
               }
             }
             .task {
-              await self.controller.tryBiometricSignIn()
+              self.controller.tryBiometricSignIn()
             }
         }
       }

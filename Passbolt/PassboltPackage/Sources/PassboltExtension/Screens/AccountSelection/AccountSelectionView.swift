@@ -125,17 +125,16 @@ extension AccountSelectionViewController.Mode {
 }
 
 private struct AccountSelectionRow: View {
-  @State private var currentImage: Image
+  @State private var loadedImage: Image?
   private let account: AccountSelectionCellItem
 
   init(account: AccountSelectionCellItem) {
     self.account = account
-    self._currentImage = State(initialValue: Image(named: .person))
   }
 
   var body: some View {
     HStack(spacing: 0) {
-      currentImage
+      (loadedImage ?? Image(named: .person))
         .resizable()
         .aspectRatio(contentMode: .fill)
         .cornerRadius(20)
@@ -144,6 +143,11 @@ private struct AccountSelectionRow: View {
         .overlay {
           Circle()
             .stroke(Color.passboltDivider, lineWidth: 1)
+        }
+        .task { @MainActor in
+          if case .none = loadedImage, let data: Data = await account.imageLoad?() {
+            loadedImage = Image(data: data) ?? Image(named: .person)
+          }
         }
 
       VStack(alignment: .leading, spacing: 4) {
@@ -159,9 +163,6 @@ private struct AccountSelectionRow: View {
       }
       .padding(.leading, 12)
       Spacer()
-    }
-    .onReceive(account.imagePublisher ?? Just(nil).eraseToAnyPublisher()) { @MainActor data in
-      currentImage = data.flatMap { Image.init(data: $0) } ?? Image(named: .person)
     }
   }
 }
