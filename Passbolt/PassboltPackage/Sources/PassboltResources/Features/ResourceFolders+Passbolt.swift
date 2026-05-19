@@ -78,6 +78,12 @@ extension ResourceFolders {
           .init(
             sorting: .nameAlphabetically,
             text: filter.text,
+            excludedTypeSlugs: isInExtensionContext
+              ? [
+                .v5PinCode,
+                .v5StandaloneNote,
+                .v5CustomFields,
+              ] : [],
             folders: .init(
               folderID: filter.folderID,
               flattenContent: filter.flattenContent

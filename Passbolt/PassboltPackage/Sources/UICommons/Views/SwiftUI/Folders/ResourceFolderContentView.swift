@@ -27,11 +27,13 @@ import SwiftUI
 // MARK: - Row Data Model
 public enum FolderContentRowData: DynamicListItem {
 
+  public typealias Section = Tagged<String, Self>
+
   case addResource
   case sectionHeader(id: String, title: String)
   case divider(id: String)
   case folder(ResourceFolderListItemDSV)
-  case resource(ResourceListItemDSV)
+  case resource(ResourceListItemDSV, Section)
   case loadingIndicator
   case emptyState
 
@@ -45,8 +47,8 @@ public enum FolderContentRowData: DynamicListItem {
       return "divider_\(id)"
     case .folder(let folder):
       return "folder_\(folder.id.rawValue.rawValue.uuidString)"
-    case .resource(let resource):
-      return "resource_\(resource.id.rawValue.rawValue.uuidString)"
+    case .resource(let resource, let section):
+      return "resource_\(resource.id.rawValue.rawValue.uuidString)_\(section.rawValue)"
     case .loadingIndicator:
       return "loading"
     case .emptyState:
@@ -68,6 +70,14 @@ public enum FolderContentRowData: DynamicListItem {
       return 200
     }
   }
+}
+
+extension FolderContentRowData.Section {
+
+  fileprivate static let suggested: Self = "suggested"
+  fileprivate static let nested: Self = "nested"
+  fileprivate static let direct: Self = "direct"
+  fileprivate static let all: Self = "all"
 }
 
 extension FolderContentRowData: Hashable {
@@ -188,7 +198,7 @@ public struct ResourceFolderContentView: View {
           )
         )
         for resource in suggestedResources {
-          rows.append(.resource(resource))
+          rows.append(.resource(resource, .suggested))
         }
       }
 
@@ -214,7 +224,7 @@ public struct ResourceFolderContentView: View {
           rows.append(.folder(folder))
         }
         for resource in self.directResources {
-          rows.append(.resource(resource))
+          rows.append(.resource(resource, .direct))
         }
       }
 
@@ -236,7 +246,7 @@ public struct ResourceFolderContentView: View {
           rows.append(.folder(folder))
         }
         for resource in self.nestedResources {
-          rows.append(.resource(resource))
+          rows.append(.resource(resource, .nested))
         }
       }
     }
@@ -251,7 +261,7 @@ public struct ResourceFolderContentView: View {
         )
       )
       for resource in suggestedResources {
-        rows.append(.resource(resource))
+        rows.append(.resource(resource, .suggested))
       }
 
       rows.append(
@@ -264,7 +274,7 @@ public struct ResourceFolderContentView: View {
         rows.append(.folder(folder))
       }
       for resource in self.directResources {
-        rows.append(.resource(resource))
+        rows.append(.resource(resource, .direct))
       }
     }
     else {
@@ -273,7 +283,7 @@ public struct ResourceFolderContentView: View {
         rows.append(.folder(folder))
       }
       for resource in self.directResources {
-        rows.append(.resource(resource))
+        rows.append(.resource(resource, .direct))
       }
     }
 
@@ -322,7 +332,7 @@ public struct ResourceFolderContentView: View {
       )
       .frame(height: row.estimatedHeight)
 
-    case .resource(let resource):
+    case .resource(let resource, _):
       ResourceListItemView(
         name: resource.name,
         username: resource.username,
