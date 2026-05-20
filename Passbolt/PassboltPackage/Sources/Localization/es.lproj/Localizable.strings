@@ -153,6 +153,11 @@
 "resource.edit.note.content.disclaimer" = "Este seguro es parte del secreto. Si quiere poder buscar este contenido, use la descripción de metadatos.";
 "resource.edit.note.remove.button.title" = "Eliminar nota";
 
+"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.description" = "Upgrade this resource to the new encrypted metadata format for enhanced privacy.";
+"resource.edit.v4.upgrade.banner.button" = "Upgrade";
+"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+
 "resource.edit.section.resource.title" = "Recurso";
 "resource.edit.section.password.title" = "Contraseña";
 "resource.edit.section.totp.title" = "TOTP";

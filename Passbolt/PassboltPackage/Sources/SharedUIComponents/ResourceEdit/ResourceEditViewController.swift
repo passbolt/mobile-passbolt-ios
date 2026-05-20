@@ -70,6 +70,8 @@ public final class ResourceEditViewController: ViewController {
     internal var isStandaloneTOTP: Bool {
       self.resourceTypeSlug.isStandaloneTOTPType
     }
+    // Flag indicating that the V4-to-V5 upgrade banner should be visible
+    internal var showsV4UpgradeBanner: Bool = false
     // Alert handling
     internal var alert: AlertViewModel?
     // Flag driving loader overlay
@@ -109,6 +111,8 @@ public final class ResourceEditViewController: ViewController {
   private let secretGenerator: PasswordService
   private let pinCodeGenerator: PinCodeService
 
+  private let linkOpener: OSLinkOpener
+
   private let success: @Sendable (Resource) async -> Void
   private let customOnSuccessNavigation: (() async throws -> Void)?
 
@@ -144,10 +148,18 @@ public final class ResourceEditViewController: ViewController {
     self.navigationToCustomFieldsEdit = try features.instance()
     self.navigationToPinSettings = try features.instance()
 
+    self.linkOpener = features.instance()
+
     self.resourceEditForm = try features.instance()
 
     self.editsExisting = !context.editingContext.editedResource.isLocal
     self.allFields = Set(context.editingContext.editedResource.fields.map(\.path))
+
+    let metadataSettings: MetadataSettingsService = try features.instance()
+    let v4UpgradeFeatureEnabled: Bool =
+      metadataSettings.typesSettings().allowV4ToV5Upgrade
+      && self.editsExisting
+      && context.editingContext.availableTypes.contains(where: { $0.specification.slug.isV5Type })
 
     self.localState = .init(
       initial: .init(
@@ -202,6 +214,9 @@ public final class ResourceEditViewController: ViewController {
           viewState.mainForm = mainForm
           viewState.containsUndefinedFields = update.resource.containsUndefinedFields
           viewState.edited = !update.localState.editedFields.isEmpty
+          viewState.showsV4UpgradeBanner =
+            v4UpgradeFeatureEnabled
+            && update.resource.type.isV4ResourceType
         }
       }
     )
@@ -423,6 +438,31 @@ public final class ResourceEditViewController: ViewController {
         context: .init(
           onFormDiscarded: onFormDiscarded
         )
+      )
+    }
+  }
+
+  @MainActor internal func upgradeResourceToV5() async {
+    await consumingErrors {
+      let editingContext: ResourceEditingContext =
+        try features.context(of: ResourceEditScope.self)
+      let currentResource: Resource = try await self.resourceEditForm.state.value
+      guard
+        let newSlug: ResourceSpecification.Slug = currentResource.type.v5UpgradedSlug,
+        let newType: ResourceType = editingContext.availableTypes.first(where: {
+          $0.specification.slug == newSlug
+        })
+      else {
+        return SnackBarMessageEvent.send(.error("resource.edit.invalid.configuration"))
+      }
+      try self.resourceEditForm.updateType(newType)
+    }
+  }
+
+  @MainActor internal func openV4UpgradeLearnMore() async {
+    await consumingErrors {
+      try await self.linkOpener.openURL(
+        .blogPostV4toV5Upgrade
       )
     }
   }

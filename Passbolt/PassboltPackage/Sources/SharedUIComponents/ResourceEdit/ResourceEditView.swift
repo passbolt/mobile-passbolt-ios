@@ -77,6 +77,18 @@ public struct ResourceEditView: ControlledView {
               }
             }
 
+            when(\.showsV4UpgradeBanner) {
+              V4UpgradeBannerView(
+                upgradeAction: { @MainActor in
+                  await self.controller.upgradeResourceToV5()
+                },
+                learnMoreAction: { @MainActor in
+                  await self.controller.openV4UpgradeLearnMore()
+                }
+              )
+              .padding(.vertical, 12)
+            }
+
             whenFalse(\.mainForm.fields.isEmpty) {
               with(\.mainForm) { mainForm in
                 Text(displayable: mainForm.title)

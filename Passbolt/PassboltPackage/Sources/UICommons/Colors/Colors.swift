@@ -132,6 +132,14 @@ extension UIColor {
   public static var passboltBackgroundGray: Self {
     .init(named: "backgroundGray", in: .uiCommons, compatibleWith: .current)!
   }
+
+  public static var passboltSelect: Self {
+    .init(named: "select", in: .uiCommons, compatibleWith: .current)!
+  }
+
+  public static var passboltPrimaryButtonMenuBackground: Self {
+    .init(named: "primaryButtonMenuBackground", in: .uiCommons, compatibleWith: .current)!
+  }
 }
 
 extension Color {
@@ -245,5 +253,13 @@ extension Color {
 
   public static var passboltBackgroundGray: Self {
     .init(UIColor.passboltBackgroundGray)
+  }
+
+  public static var passboltSelect: Self {
+    .init(UIColor.passboltSelect)
+  }
+
+  public static var passboltPrimaryButtonMenuBackground: Self {
+    .init(UIColor.passboltPrimaryButtonMenuBackground)
   }
 }

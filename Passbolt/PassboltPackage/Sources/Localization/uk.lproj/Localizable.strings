@@ -153,6 +153,11 @@
 "resource.edit.note.content.disclaimer" = "Ця безпечна частина є частиною секрету. Якщо ви бажаєте мати змогу шукати цей вміст, скористайтеся описом метаданих.";
 "resource.edit.note.remove.button.title" = "Видалити примітку";
 
+"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.description" = "Upgrade this resource to the new encrypted metadata format for enhanced privacy.";
+"resource.edit.v4.upgrade.banner.button" = "Upgrade";
+"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+
 "resource.edit.section.resource.title" = "Resource";
 "resource.edit.section.password.title" = "Пароль";
 "resource.edit.section.totp.title" = "TOTP";

@@ -167,6 +167,11 @@ extension URLString {
   }
 }
 
+extension URLString {
+
+  public static let blogPostV4toV5Upgrade: Self = "https://www.passbolt.com/blog/the-road-to-passbolt-v5-encrypted-metadata-and-other-core-security-changes-2"
+}
+
 // regex based on  https://github.com/passbolt/passbolt_styleguide/blob/master/src/react-quickaccess/components/HomePage/canSuggestUrl.js
 private let ipv4Regex: Regex = """
   (?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}

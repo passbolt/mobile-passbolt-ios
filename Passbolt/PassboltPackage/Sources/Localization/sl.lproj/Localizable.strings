@@ -153,6 +153,11 @@
 "resource.edit.note.content.disclaimer" = "Ta varen del je del skrivnosti. Če želite iskati po tej vsebini, uporabite opis metapodatkov.";
 "resource.edit.note.remove.button.title" = "Odstrani opombo";
 
+"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.description" = "Upgrade this resource to the new encrypted metadata format for enhanced privacy.";
+"resource.edit.v4.upgrade.banner.button" = "Upgrade";
+"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+
 "resource.edit.section.resource.title" = "Vir";
 "resource.edit.section.password.title" = "Geslo";
 "resource.edit.section.totp.title" = "TOTP";

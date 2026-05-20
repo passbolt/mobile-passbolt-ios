@@ -21,48 +21,34 @@
 // @since         v1.0
 //
 
-public struct MetadataTypesSettings: Decodable, Sendable, Equatable {
+import Commons
+import SwiftUI
 
-  public let defaultResourceTypes: VersionType
-  public let allowV4ToV5Upgrade: Bool
+public struct ActionButton: View {
+
+  private let title: DisplayableString
+  private let action: @MainActor () async throws -> Void
 
   public init(
-    defaultResourceTypes: VersionType,
-    allowV4ToV5Upgrade: Bool
+    title: DisplayableString,
+    action: @escaping @MainActor () async throws -> Void
   ) {
-    self.defaultResourceTypes = defaultResourceTypes
-    self.allowV4ToV5Upgrade = allowV4ToV5Upgrade
+    self.title = title
+    self.action = action
   }
 
-  public init(from decoder: Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    defaultResourceTypes = try container.decode(VersionType.self, forKey: .defaultResourceTypes)
-    allowV4ToV5Upgrade = try container.decodeIfPresent(Bool.self, forKey: .allowV4ToV5Upgrade) ?? false
-  }
-
-  private enum CodingKeys: String, CodingKey {
-    case defaultResourceTypes = "default_resource_types"
-    case allowV4ToV5Upgrade = "allow_v4_to_v5_upgrade"
-  }
-
-  public enum VersionType: String, Decodable, Sendable {
-    case v4
-    case v5
-  }
-}
-
-extension MetadataTypesSettings {
-  public static let `default`: Self = .init(
-    defaultResourceTypes: .v4,
-    allowV4ToV5Upgrade: false
-  )
-
-  public var defaultResourceTypeSlug: ResourceSpecification.Slug {
-    switch defaultResourceTypes {
-    case .v4:
-      return .passwordWithDescription
-    case .v5:
-      return .v5Default
-    }
+  public var body: some View {
+    AsyncButton(
+      action: self.action,
+      label: {
+        Text(displayable: self.title)
+          .font(.inter(ofSize: 13, weight: .semibold))
+          .frame(maxWidth: .infinity)
+          .frame(height: 56)
+          .foregroundColor(.passboltPrimaryText)
+          .background(Color.passboltPrimaryButtonMenuBackground)
+          .cornerRadius(4)
+      }
+    )
   }
 }

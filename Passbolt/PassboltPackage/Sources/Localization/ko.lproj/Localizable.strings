@@ -153,6 +153,11 @@
 "resource.edit.note.content.disclaimer" = "이 보안 항목은 기밀의 일부이므로, 해당 내용을 검색할 수 있도록 하려면 메타데이터 설명을 사용하세요.";
 "resource.edit.note.remove.button.title" = "노트 삭제";
 
+"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.description" = "Upgrade this resource to the new encrypted metadata format for enhanced privacy.";
+"resource.edit.v4.upgrade.banner.button" = "Upgrade";
+"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+
 "resource.edit.section.resource.title" = "리소스";
 "resource.edit.section.password.title" = "비밀번호";
 "resource.edit.section.totp.title" = "TOTP";

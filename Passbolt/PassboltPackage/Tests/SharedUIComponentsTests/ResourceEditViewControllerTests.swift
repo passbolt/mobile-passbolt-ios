@@ -21,6 +21,8 @@
 // @since         v1.0
 //
 
+import Metadata
+import OSFeatures
 import Shared
 import TestExtensions
 
@@ -82,6 +84,15 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
     patch(
       \ResourceEditForm.validateForm,
       with: always(())
+    )
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(
+        .init(
+          defaultResourceTypes: .v4,
+          allowV4ToV5Upgrade: false
+        )
+      )
     )
   }
 
@@ -276,5 +287,173 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
     catch {
       XCTFail("Unexpected error type: \(error)")
     }
+  }
+
+  // MARK: - V4 to V5 upgrade banner tests
+
+  private func patchV4ResourceWithAvailableTypes(
+    _ resource: Resource,
+    availableTypes: Array<ResourceType>
+  ) -> ResourceEditViewController.Context {
+    patch(
+      \ResourceEditForm.state,
+      with: Variable<Resource>(initial: resource).asAnyUpdatable()
+    )
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: resource,
+        availableTypes: availableTypes
+      )
+    )
+    return .init(
+      editingContext: .init(
+        editedResource: resource,
+        availableTypes: availableTypes
+      ),
+      success: { _ in }
+    )
+  }
+
+  func test_showsV4UpgradeBanner_isFalse_whenFlagIsDisabled() async throws {
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(.init(defaultResourceTypes: .v4, allowV4ToV5Upgrade: false))
+    )
+    let v5Type: ResourceType = .init(id: .mock_4, slug: .v5StandaloneTOTP)
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      .mock_totp,
+      availableTypes: [.mock_totp, v5Type]
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    let state: ResourceEditViewController.ViewState = await tested.viewState.current
+
+    XCTAssertFalse(state.showsV4UpgradeBanner)
+  }
+
+  func test_showsV4UpgradeBanner_isFalse_whenV5TypeMissingFromAvailableTypes() async throws {
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(.init(defaultResourceTypes: .v4, allowV4ToV5Upgrade: true))
+    )
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      .mock_totp,
+      availableTypes: [.mock_totp]
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    let state: ResourceEditViewController.ViewState = await tested.viewState.current
+
+    XCTAssertFalse(state.showsV4UpgradeBanner)
+  }
+
+  func test_showsV4UpgradeBanner_isFalse_whenResourceIsV5() async throws {
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(.init(defaultResourceTypes: .v5, allowV4ToV5Upgrade: true))
+    )
+    let v5Type: ResourceType = .init(id: .mock_4, slug: .v5DefaultWithTOTP)
+    let v5Resource: Resource = .init(
+      id: .mock_1,
+      type: v5Type,
+      modified: .init(rawValue: 0)
+    )
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      v5Resource,
+      availableTypes: [v5Type]
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    let state: ResourceEditViewController.ViewState = await tested.viewState.current
+
+    XCTAssertFalse(state.showsV4UpgradeBanner)
+  }
+
+  func test_showsV4UpgradeBanner_isTrue_whenAllConditionsMet() async throws {
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(.init(defaultResourceTypes: .v4, allowV4ToV5Upgrade: true))
+    )
+    let v5Type: ResourceType = .init(id: .mock_4, slug: .v5StandaloneTOTP)
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      .mock_totp,
+      availableTypes: [.mock_totp, v5Type]
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    let state: ResourceEditViewController.ViewState = await tested.viewState.current
+
+    XCTAssertTrue(state.showsV4UpgradeBanner)
+  }
+
+  func test_upgradeResourceToV5_callsUpdateType_withV5Equivalent() async throws {
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(.init(defaultResourceTypes: .v4, allowV4ToV5Upgrade: true))
+    )
+    let v5Type: ResourceType = .init(id: .mock_4, slug: .v5StandaloneTOTP)
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      .mock_totp,
+      availableTypes: [.mock_totp, v5Type]
+    )
+    let receivedSlug: CriticalState<ResourceSpecification.Slug?> = .init(.none)
+    patch(
+      \ResourceEditForm.updateType,
+      with: { @Sendable type in
+        receivedSlug.set(type.specification.slug)
+      }
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    await tested.upgradeResourceToV5()
+
+    XCTAssertEqual(receivedSlug.get(), .v5StandaloneTOTP)
+  }
+
+  func test_upgradeResourceToV5_doesNotCallUpdateType_whenV5EquivalentMissing() async throws {
+    patch(
+      \MetadataSettingsService.typesSettings,
+      with: always(.init(defaultResourceTypes: .v4, allowV4ToV5Upgrade: true))
+    )
+    let v5Type: ResourceType = .init(id: .mock_4, slug: .v5Default)
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      .mock_totp,
+      availableTypes: [.mock_totp, v5Type]
+    )
+    let updateCalled: CriticalState<Bool> = .init(false)
+    patch(
+      \ResourceEditForm.updateType,
+      with: { @Sendable _ in
+        updateCalled.set(true)
+      }
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    await tested.upgradeResourceToV5()
+
+    XCTAssertFalse(updateCalled.get())
+  }
+
+  func test_openV4UpgradeLearnMore_opensBlogURL() async throws {
+    let receivedURL: CriticalState<URLString?> = .init(.none)
+    patch(
+      \OSLinkOpener.openURL,
+      with: { @Sendable url in
+        receivedURL.set(url)
+      }
+    )
+    let context: ResourceEditViewController.Context = patchV4ResourceWithAvailableTypes(
+      .mock_totp,
+      availableTypes: [.mock_totp]
+    )
+
+    let tested: ResourceEditViewController = try self.testedInstance(context: context)
+    await tested.openV4UpgradeLearnMore()
+
+    XCTAssertEqual(
+      receivedURL.get(),
+      .blogPostV4toV5Upgrade
+    )
   }
 }

@@ -70,7 +70,7 @@ final class MetadataSettingsServiceTests: LoadableFeatureTestCase<MetadataSettin
   func test_whenTypesSettingsFetched_shouldUseFetchedSettings() async throws {
     patch(
       \MetadataTypesSettingsFetchNetworkOperation.execute,
-      with: always(.init(defaultResourceTypes: .v5))
+      with: always(.init(defaultResourceTypes: .v5, allowV4ToV5Upgrade: false))
     )
 
     let testedInstance = try self.testedInstance()

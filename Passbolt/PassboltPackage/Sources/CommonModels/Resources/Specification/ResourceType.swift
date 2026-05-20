@@ -273,6 +273,21 @@ extension ResourceType {
     }
   }
 
+  public var v5UpgradedSlug: ResourceSpecification.Slug? {
+    switch self.specification.slug {
+    case .password:
+      return .v5Password
+    case .passwordWithDescription:
+      return .v5Default
+    case .passwordWithTOTP:
+      return .v5DefaultWithTOTP
+    case .totp:
+      return .v5StandaloneTOTP
+    case _:
+      return .none
+    }
+  }
+
   public var detachedOTPSlug: ResourceSpecification.Slug? {
     // only types where we know how to remove OTP are supported
     switch self.specification.slug {
