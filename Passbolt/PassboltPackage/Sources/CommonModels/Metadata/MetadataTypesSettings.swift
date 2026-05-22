@@ -42,7 +42,7 @@ public struct MetadataTypesSettings: Decodable, Sendable, Equatable {
 
   private enum CodingKeys: String, CodingKey {
     case defaultResourceTypes = "default_resource_types"
-    case allowV4ToV5Upgrade = "allow_v4_to_v5_upgrade"
+    case allowV4ToV5Upgrade = "allow_v4_v5_upgrade"
   }
 
   public enum VersionType: String, Decodable, Sendable {
