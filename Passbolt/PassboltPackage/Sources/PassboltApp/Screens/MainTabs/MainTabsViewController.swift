@@ -59,7 +59,9 @@ internal final class MainTabsViewController: ViewController {
     self.rootNavigationState = rootNavigation.state
 
     self.viewState = .init(
-      initial: .init()
+      initial: .init(
+        isOTPTabAvailable: context.configuration.resources.totpEnabled
+      )
     )
 
     self.homeController = try self.features.instance()
@@ -94,9 +96,6 @@ internal final class MainTabsViewController: ViewController {
   }
 
   @Sendable internal func activate() async {
-    if await otpTabAvailable() == true {
-      viewState.update(\.isOTPTabAvailable, to: true)
-    }
     await consumingErrors {
       guard let destination = await self.initialModal() else { return }
       switch destination {
@@ -117,17 +116,6 @@ internal final class MainTabsViewController: ViewController {
             )
           )
       }
-    }
-  }
-
-  func otpTabAvailable() async -> Bool {
-    do {
-      let sessionConfiguration: SessionConfiguration = try features.sessionConfiguration()
-      return sessionConfiguration.resources.totpEnabled
-    }
-    catch {
-      error.logged()
-      return false
     }
   }
 
