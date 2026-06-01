@@ -70,8 +70,8 @@ extension EventList {
     )
     self.subscriptions.set(
       \.[id],
-      { @Sendable(eventPayload: Description.Payload) in
-        subscription.deliver(eventPayload)
+      { @Sendable [weak subscription] (eventPayload: Description.Payload) in
+        subscription?.deliver(eventPayload)
       }
     )
     return subscription

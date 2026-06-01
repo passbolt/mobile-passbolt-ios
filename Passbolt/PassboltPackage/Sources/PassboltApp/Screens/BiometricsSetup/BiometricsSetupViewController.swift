@@ -53,17 +53,12 @@ internal final class BiometricsSetupViewController: ViewController {
     let applicationLifecycle: ApplicationLifecycle = features.instance()
     let biometry: OSBiometry = features.instance()
     self.biometry = biometry
-    let biometryUpdatable: AnyUpdatable<OSBiometryAvailability?> =
+    let biometryUpdatable: AnyUpdatable<OSBiometryAvailability> =
       applicationLifecycle
       .lifecycle
       .asAnyUpdatable(withInitial: .didBecomeActive)
-      .map { (transition: ApplicationLifecycle.Transition) -> OSBiometryAvailability? in
-        if case .didBecomeActive = transition {
-          return .none
-        }
-        else {
-          return biometry.availability()
-        }
+      .map { (_: ApplicationLifecycle.Transition) -> OSBiometryAvailability in
+        biometry.availability()
       }
 
     self.accountInitialSetup = try features.instance()
@@ -89,7 +84,7 @@ internal final class BiometricsSetupViewController: ViewController {
         let primaryButtonTitle: DisplayableString
 
         switch try biometryAvailability.value {
-        case .none, .unavailable, .unconfigured:
+        case .unavailable, .unconfigured:
           imageName = .biometrics
           title = "biometrics.info.title"
           message = "biometrics.info.description"
