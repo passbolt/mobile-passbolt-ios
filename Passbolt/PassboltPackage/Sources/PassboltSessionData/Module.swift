@@ -28,6 +28,7 @@ extension FeaturesRegistry {
   public mutating func usePassboltSessionDataModule() {
     self.usePassboltSessionData()
     self.usePassboltSessionConfigurationLoader()
+    self.usePassboltPasswordExpirySettingsLoader()
     self.usePassboltResourceUpdater()
   }
 }

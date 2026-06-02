@@ -24,9 +24,6 @@
 public struct PasswordExpiryFeatureConfiguration {
 
   public let enabled: Bool
-  public var automaticExpiry: Bool = false
-  public var automaticUpdate: Bool = false
-  public var defaultExpiryPeriod: Int? = .none
 
   public init(enabled: Bool) {
     self.enabled = enabled

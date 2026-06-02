@@ -79,6 +79,7 @@ internal struct AuthorizationView: ControlledView {
               }
             }
             .task {
+              self.controller.prewarmAuthorization()
               self.controller.tryBiometricSignIn()
             }
         }

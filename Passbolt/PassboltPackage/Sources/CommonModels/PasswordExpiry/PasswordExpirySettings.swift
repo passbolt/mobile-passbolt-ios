@@ -21,12 +21,26 @@
 // @since         v1.0
 //
 
-import CommonModels
+public struct PasswordExpirySettings: Sendable, Equatable, Decodable {
 
-public typealias PasswordPoliciesStoreDatabaseOperation =
-  DatabaseOperation<PasswordPoliciesStoreDatabaseOperationDescription>
+  public let automaticUpdate: Bool
+  public let automaticExpiry: Bool
+  public let defaultExpiryPeriod: Int?
 
-public enum PasswordPoliciesStoreDatabaseOperationDescription: DatabaseOperationDescription {
+  public init(
+    automaticUpdate: Bool,
+    automaticExpiry: Bool,
+    defaultExpiryPeriod: Int?
+  ) {
+    self.automaticUpdate = automaticUpdate
+    self.automaticExpiry = automaticExpiry
+    self.defaultExpiryPeriod = defaultExpiryPeriod
+  }
 
-  public typealias Input = PasswordPoliciesDTO
+  private enum CodingKeys: String, CodingKey {
+
+    case automaticUpdate = "automatic_update"
+    case automaticExpiry = "automatic_expiry"
+    case defaultExpiryPeriod = "default_expiry_period"
+  }
 }

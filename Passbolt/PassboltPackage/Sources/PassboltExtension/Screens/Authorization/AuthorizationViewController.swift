@@ -26,6 +26,7 @@ import Display
 import FeatureScopes
 import NetworkOperations
 import OSFeatures
+import Session
 import SharedUIComponents
 
 internal final class AuthorizationViewController: ViewController {
@@ -106,6 +107,16 @@ extension AuthorizationViewController {
     await consumingErrors {
       let navigationToSelf: NavigationToAuthorization = try await features.instance()
       try await navigationToSelf.revert()
+    }
+  }
+
+  internal func prewarmAuthorization() {
+    do {
+      let session: Session = try features.instance()
+      session.prewarmAuthorization(self.context)
+    }
+    catch {
+      error.logged()
     }
   }
 

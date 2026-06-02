@@ -30,6 +30,7 @@ extension FeaturesRegistry {
   public mutating func useShared() {
     self.usePwnedPasswordCheckNetworkOperation()
     self.usePwnedPasswordChecker()
+    self.usePasswordPoliciesLoader()
     self.usePasswordService()
     self.usePasswordGenerationService()
     self.usePinCodeService()

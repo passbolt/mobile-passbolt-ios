@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import DatabaseOperations
 import TestExtensions
 
 @testable import Crypto
@@ -63,67 +62,17 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
       with: { _ in "generated-secret" }
     )
     self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in await Self.policy(length: 24) }
+      \PasswordPoliciesLoader.policies,
+      with: { await Self.policy(length: 24) }
     )
   }
 
   // MARK: - currentConfiguration
 
-  func test_currentConfiguration_returnsFetchedConfiguration() async throws {
+  func test_currentConfiguration_returnsLoaderPolicy() async throws {
     let service: PasswordGenerationService = try testedInstance()
     let configuration: PasswordPoliciesDSV = await service.currentConfiguration()
     XCTAssertEqual(configuration.passwordGeneratorSettings.length, 24)
-  }
-
-  func test_currentConfiguration_cachesAfterFirstFetch() async throws {
-    let fetchCount: CriticalState<Int> = .init(0)
-    self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        fetchCount.access { $0 += 1 }
-        return await Self.policy(length: 24)
-      }
-    )
-
-    let service: PasswordGenerationService = try testedInstance()
-    _ = await service.currentConfiguration()
-    _ = await service.currentConfiguration()
-    _ = await service.currentConfiguration()
-
-    XCTAssertEqual(fetchCount.get(), 1)
-  }
-
-  func test_currentConfiguration_returnsDefault_whenFetchFails() async throws {
-    self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in throw MockError() }
-    )
-
-    let service: PasswordGenerationService = try testedInstance()
-    let configuration: PasswordPoliciesDSV = await service.currentConfiguration()
-
-    XCTAssertEqual(
-      configuration.passwordGeneratorSettings.length,
-      SecretGenerator.Configuration.default.passwordGeneratorSettings.length
-    )
-  }
-
-  func test_currentConfiguration_doesNotCacheFallback_andRetriesOnNextCall() async throws {
-    let fetchCount: CriticalState<Int> = .init(0)
-    self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        fetchCount.access { $0 += 1 }
-        throw MockError()
-      }
-    )
-
-    let service: PasswordGenerationService = try testedInstance()
-    _ = await service.currentConfiguration()
-    _ = await service.currentConfiguration()
-
-    XCTAssertEqual(fetchCount.get(), 2)
   }
 
   // MARK: - updateConfiguration
@@ -139,12 +88,12 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
     XCTAssertEqual(configuration.passwordGeneratorSettings.length, 64)
   }
 
-  func test_updateConfiguration_preventsFurtherFetches() async throws {
-    let fetchCount: CriticalState<Int> = .init(0)
+  func test_updateConfiguration_bypassesLoader() async throws {
+    let loaderCalls: CriticalState<Int> = .init(0)
     self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        fetchCount.access { $0 += 1 }
+      \PasswordPoliciesLoader.policies,
+      with: {
+        loaderCalls.access { $0 += 1 }
         return await Self.policy(length: 24)
       }
     )
@@ -155,7 +104,7 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
     _ = await service.currentConfiguration()
     _ = await service.currentConfiguration()
 
-    XCTAssertEqual(fetchCount.get(), 0)
+    XCTAssertEqual(loaderCalls.get(), 0)
   }
 
   // MARK: - generate
@@ -177,43 +126,9 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
     XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 24)
   }
 
-  // MARK: - Single-flight
-
-  func test_currentConfiguration_concurrentFirstCalls_shareOneFetch() async throws {
-    let fetchCount: CriticalState<Int> = .init(0)
-    let proceed: CriticalState<CheckedContinuation<Void, Never>?> = .init(.none)
-
-    self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        fetchCount.access { $0 += 1 }
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-          proceed.set(continuation)
-        }
-        return await Self.policy(length: 24)
-      }
-    )
-
-    let service: PasswordGenerationService = try testedInstance()
-
-    async let first: PasswordPoliciesDSV = service.currentConfiguration()
-    async let second: PasswordPoliciesDSV = service.currentConfiguration()
-    async let third: PasswordPoliciesDSV = service.currentConfiguration()
-
-    // Yield until the (single) in-flight fetch parks on its continuation; other callers
-    // by then must have entered the cache-access path and attached to the same task.
-    while proceed.get() == nil {
-      await Task.yield()
-    }
-    proceed.get()?.resume()
-
-    _ = await (first, second, third)
-    XCTAssertEqual(fetchCount.get(), 1)
-  }
-
   // MARK: - Helpers
 
-  private static func policy(length: Int) -> PasswordPoliciesDSV {
+  fileprivate static func policy(length: Int) -> PasswordPoliciesDSV {
     PasswordPoliciesDSV(
       id: .init(),
       defaultGenerator: .password,
@@ -240,5 +155,3 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
     )
   }
 }
-
-private struct MockError: Error {}

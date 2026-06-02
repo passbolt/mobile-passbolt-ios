@@ -21,42 +21,25 @@
 // @since         v1.0
 //
 
-import Database
+import CommonModels
+import Features
 
-extension SQLiteMigration: CaseIterable {
+public struct PasswordExpirySettingsLoader: Sendable {
 
-  public static var allCases: Array<SQLiteMigration> {
-    [
-      .migration_0,
-      .migration_1,
-      .migration_2,
-      .migration_3,
-      .migration_4,
-      .migration_5,
-      .migration_6,
-      .migration_7,
-      .migration_8,
-      .migration_9,
-      .migration_10,
-      .migration_11,
-      .migration_12,
-      .migration_13,
-      .migration_14,
-      .migration_15,
-      .migration_16,
-      .migration_17,
-      .migration_18,
-      .migration_19,
-      .migration_20,
-      .migration_21,
-      .migration_22,
-      .migration_23,
-      .migration_24,
-      .migration_25,
-      .migration_26,
-      .migration_27,
-      .migration_28,
-      .migration_29,
-    ]
+  public var settings: @Sendable () async throws -> PasswordExpirySettings
+
+  public init(
+    settings: @escaping @Sendable () async throws -> PasswordExpirySettings
+  ) {
+    self.settings = settings
   }
+}
+
+extension PasswordExpirySettingsLoader: LoadableFeature {
+
+  #if DEBUG
+  nonisolated public static var placeholder: Self {
+    Self(settings: unimplemented0())
+  }
+  #endif
 }

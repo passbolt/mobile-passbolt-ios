@@ -22,7 +22,6 @@
 //
 
 import Crypto
-import DatabaseOperations
 import FeatureScopes
 
 public struct PasswordGenerationService: Sendable {
@@ -46,75 +45,26 @@ extension PasswordGenerationService: LoadableFeature {
   }
   #endif
 
-  fileprivate enum CacheState: Sendable {
-    case empty
-    /// Fetch in progress. `nil` payload means the fetch failed and the caller should use `.default`.
-    case loading(Task<Configuration?, Never>)
-    case loaded(Configuration)
-  }
-
-  fileprivate enum CacheResolution: Sendable {
-    case ready(Configuration)
-    case pending(Task<Configuration?, Never>)
-  }
-
   @MainActor public static func load(
     using features: Features
   ) throws -> PasswordGenerationService {
 
-    let fetchPasswordPoliciesOperation: PasswordPoliciesFetchDatabaseOperation = try features.instance()
+    let passwordPoliciesLoader: PasswordPoliciesLoader = try features.instance()
     let secretGenerator: SecretGenerator = try features.instance()
 
-    let cached: CriticalState<CacheState> = .init(.empty)
-
-    @Sendable func fetch() async -> Configuration? {
-      do {
-        return try await fetchPasswordPoliciesOperation.execute(())
-      }
-      catch {
-        error.logged()
-        Diagnostics.logger.error("Failed to fetch password policies, using default configuration")
-        return .none
-      }
-    }
+    // Per-edit override set via `updateConfiguration` (advanced generator).
+    // `nil` means defer to the session-scoped loader.
+    let override: CriticalState<Configuration?> = .init(.none)
 
     @Sendable func currentConfiguration() async -> Configuration {
-      // Single-flight: concurrent first calls share one fetch by awaiting the same Task.
-      let resolution: CacheResolution = cached.access { (state: inout CacheState) -> CacheResolution in
-        switch state {
-        case .loaded(let configuration):
-          return .ready(configuration)
-        case .loading(let task):
-          return .pending(task)
-        case .empty:
-          let task: Task<Configuration?, Never> = Task { await fetch() }
-          state = .loading(task)
-          return .pending(task)
-        }
+      if let overridden: Configuration = override.get() {
+        return overridden
       }
-      switch resolution {
-      case .ready(let configuration):
-        return configuration
-      case .pending(let task):
-        let fetched: Configuration? = await task.value
-        // Promote loading → loaded only if this fetch is still the in-flight task
-        // (i.e. updateConfiguration didn't overwrite it). Reset to empty on failure
-        // so a later call retries the fetch.
-        cached.access { (state: inout CacheState) in
-          guard case .loading(let inFlight) = state, inFlight == task else { return }
-          if let fetched {
-            state = .loaded(fetched)
-          }
-          else {
-            state = .empty
-          }
-        }
-        return fetched ?? .default
-      }
+      return await passwordPoliciesLoader.policies()
     }
 
     @Sendable func updateConfiguration(_ newConfiguration: Configuration) async {
-      cached.set(.loaded(newConfiguration))
+      override.set(newConfiguration)
     }
 
     @Sendable func generate() async throws -> String {

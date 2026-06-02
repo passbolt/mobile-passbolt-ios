@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-import DatabaseOperations
 import TestExtensions
 
 @testable import Crypto
@@ -60,33 +59,8 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
       with: { _, _ in .init(rawValue: 100) }
     )
     self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        .init(
-          id: .init(),
-          defaultGenerator: .password,
-          passwordGeneratorSettings: .init(
-            length: 20,
-            maskUpper: true,
-            maskLower: true,
-            maskDigit: true,
-            maskParenthesis: false,
-            maskEmoji: false,
-            maskChar1: true,
-            maskChar2: false,
-            maskChar3: false,
-            maskChar4: false,
-            maskChar5: false,
-            excludeLookAlikeChars: false
-          ),
-          passphraseGeneratorSettings: .init(
-            words: 5,
-            wordSeparator: " ",
-            wordCase: .lowercase
-          ),
-          externalDictionaryCheck: false
-        )
-      }
+      \PasswordPoliciesLoader.policies,
+      with: { await Self.policy(length: 20, externalDictionaryCheck: false) }
     )
     self.patch(
       \PwnedPasswordChecker.check,
@@ -114,38 +88,6 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 20)
   }
 
-  func test_generate_whenFetchFails_usesDefaultConfiguration() async throws {
-    self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        throw MockError()
-      }
-    )
-
-    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
-    self.patch(
-      \SecretGenerator.generate,
-      with: { configuration in
-        receivedConfiguration.set(configuration)
-        return "generated-from-default"
-      }
-    )
-
-    let generator: PasswordService = try testedInstance()
-    let result: String = try await generator.generate()
-
-    XCTAssertEqual(result, "generated-from-default")
-    XCTAssertNotNil(receivedConfiguration.get())
-    XCTAssertEqual(
-      receivedConfiguration.get()?.defaultGenerator,
-      SecretGenerator.Configuration.default.defaultGenerator
-    )
-    XCTAssertEqual(
-      receivedConfiguration.get()?.passwordGeneratorSettings.length,
-      SecretGenerator.Configuration.default.passwordGeneratorSettings.length
-    )
-  }
-
   func test_entropy_fetchesPoliciesAndCalculates() async throws {
     let expectedEntropy: Entropy = .init(rawValue: 150)
     self.patch(
@@ -159,65 +101,12 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     XCTAssertEqual(result, expectedEntropy)
   }
 
-  func test_entropy_whenFetchFails_usesDefaultConfiguration() async throws {
-    self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        throw MockError()
-      }
-    )
-
-    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
-    self.patch(
-      \SecretGenerator.entropy,
-      with: { _, configuration in
-        receivedConfiguration.set(configuration)
-        return .init(rawValue: 80)
-      }
-    )
-
-    let generator: PasswordService = try testedInstance()
-    let result: Entropy = await generator.entropy("test-secret")
-
-    XCTAssertEqual(result.rawValue, 80)
-    XCTAssertNotNil(receivedConfiguration.get())
-    XCTAssertEqual(
-      receivedConfiguration.get()?.passwordGeneratorSettings.length,
-      SecretGenerator.Configuration.default.passwordGeneratorSettings.length
-    )
-  }
-
   // MARK: - Validation tests
 
   func test_validate_returnsValid_whenEntropyHighAndNotPwned() async throws {
     self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        .init(
-          id: .init(),
-          defaultGenerator: .password,
-          passwordGeneratorSettings: .init(
-            length: 20,
-            maskUpper: true,
-            maskLower: true,
-            maskDigit: true,
-            maskParenthesis: false,
-            maskEmoji: false,
-            maskChar1: true,
-            maskChar2: false,
-            maskChar3: false,
-            maskChar4: false,
-            maskChar5: false,
-            excludeLookAlikeChars: false
-          ),
-          passphraseGeneratorSettings: .init(
-            words: 5,
-            wordSeparator: " ",
-            wordCase: .lowercase
-          ),
-          externalDictionaryCheck: true
-        )
-      }
+      \PasswordPoliciesLoader.policies,
+      with: { await Self.policy(length: 20, externalDictionaryCheck: true) }
     )
     self.patch(
       \SecretGenerator.entropy,
@@ -248,33 +137,8 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
 
   func test_validate_returnsPwned_whenCheckerReturnsFalse() async throws {
     self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        .init(
-          id: .init(),
-          defaultGenerator: .password,
-          passwordGeneratorSettings: .init(
-            length: 20,
-            maskUpper: true,
-            maskLower: true,
-            maskDigit: true,
-            maskParenthesis: false,
-            maskEmoji: false,
-            maskChar1: true,
-            maskChar2: false,
-            maskChar3: false,
-            maskChar4: false,
-            maskChar5: false,
-            excludeLookAlikeChars: false
-          ),
-          passphraseGeneratorSettings: .init(
-            words: 5,
-            wordSeparator: " ",
-            wordCase: .lowercase
-          ),
-          externalDictionaryCheck: true
-        )
-      }
+      \PasswordPoliciesLoader.policies,
+      with: { await Self.policy(length: 20, externalDictionaryCheck: true) }
     )
     self.patch(
       \SecretGenerator.entropy,
@@ -315,33 +179,8 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
 
   func test_validate_throwsExternalCheckFailure_whenCheckerThrows() async throws {
     self.patch(
-      \PasswordPoliciesFetchDatabaseOperation.execute,
-      with: { _ in
-        .init(
-          id: .init(),
-          defaultGenerator: .password,
-          passwordGeneratorSettings: .init(
-            length: 20,
-            maskUpper: true,
-            maskLower: true,
-            maskDigit: true,
-            maskParenthesis: false,
-            maskEmoji: false,
-            maskChar1: true,
-            maskChar2: false,
-            maskChar3: false,
-            maskChar4: false,
-            maskChar5: false,
-            excludeLookAlikeChars: false
-          ),
-          passphraseGeneratorSettings: .init(
-            words: 5,
-            wordSeparator: " ",
-            wordCase: .lowercase
-          ),
-          externalDictionaryCheck: true
-        )
-      }
+      \PasswordPoliciesLoader.policies,
+      with: { await Self.policy(length: 20, externalDictionaryCheck: true) }
     )
     self.patch(
       \SecretGenerator.entropy,
@@ -366,6 +205,35 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     catch {
       XCTFail("Unexpected error type: \(error)")
     }
+  }
+
+  // MARK: - Helpers
+
+  private static func policy(length: Int, externalDictionaryCheck: Bool) -> SecretGenerator.Configuration {
+    SecretGenerator.Configuration(
+      id: .init(),
+      defaultGenerator: .password,
+      passwordGeneratorSettings: .init(
+        length: length,
+        maskUpper: true,
+        maskLower: true,
+        maskDigit: true,
+        maskParenthesis: false,
+        maskEmoji: false,
+        maskChar1: true,
+        maskChar2: false,
+        maskChar3: false,
+        maskChar4: false,
+        maskChar5: false,
+        excludeLookAlikeChars: false
+      ),
+      passphraseGeneratorSettings: .init(
+        words: 5,
+        wordSeparator: " ",
+        wordCase: .lowercase
+      ),
+      externalDictionaryCheck: externalDictionaryCheck
+    )
   }
 }
 

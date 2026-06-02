@@ -65,17 +65,3 @@ extension SessionConfiguration {
     return copy
   }
 }
-
-extension PasswordExpiryFeatureConfiguration {
-
-  public init(
-    automaticUpdate: Bool,
-    automaticExpiry: Bool,
-    defaultExpiryPeriod: Int?
-  ) {
-    self.init(enabled: true)
-    self.automaticUpdate = automaticUpdate
-    self.automaticExpiry = automaticExpiry
-    self.defaultExpiryPeriod = defaultExpiryPeriod
-  }
-}

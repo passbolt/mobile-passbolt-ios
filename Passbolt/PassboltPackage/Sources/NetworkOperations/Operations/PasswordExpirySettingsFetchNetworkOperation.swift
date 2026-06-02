@@ -30,27 +30,3 @@ public enum PasswordExpirySettingsFetchNetworkOperationDescription: NetworkOpera
 
   public typealias Output = PasswordExpirySettings
 }
-
-public struct PasswordExpirySettings: Sendable, Decodable {
-
-  public let automaticUpdate: Bool
-  public let automaticExpiry: Bool
-  public let defaultExpiryPeriod: Int?
-
-  public init(
-    automaticUpdate: Bool,
-    automaticExpiry: Bool,
-    defaultExpiryPeriod: Int?
-  ) {
-    self.automaticUpdate = automaticUpdate
-    self.automaticExpiry = automaticExpiry
-    self.defaultExpiryPeriod = defaultExpiryPeriod
-  }
-
-  private enum CodingKeys: String, CodingKey {
-
-    case automaticUpdate = "automatic_update"
-    case automaticExpiry = "automatic_expiry"
-    case defaultExpiryPeriod = "default_expiry_period"
-  }
-}

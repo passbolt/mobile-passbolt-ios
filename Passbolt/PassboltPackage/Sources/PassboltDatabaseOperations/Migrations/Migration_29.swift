@@ -21,12 +21,28 @@
 // @since         v1.0
 //
 
-import CommonModels
+import Database
 
-public typealias PasswordPoliciesFetchDatabaseOperation =
-  DatabaseOperation<PasswordPoliciesFetchDatabaseOperationDescription>
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension SQLiteMigration {
 
-public enum PasswordPoliciesFetchDatabaseOperationDescription: DatabaseOperationDescription {
-
-  public typealias Output = PasswordPoliciesDSV
+  internal static var migration_29: Self {
+    [
+      // Password policies are now lazy-loaded into memory per session;
+      // the persisted copy is no longer consulted.
+      """
+      DROP TABLE IF EXISTS passwordPolicies; -- drop passwordPolicies table
+      """,
+      """
+      DROP TABLE IF EXISTS passwordGeneratorSettings; -- drop passwordGeneratorSettings table
+      """,
+      """
+      DROP TABLE IF EXISTS passphraseGeneratorSettings; -- drop passphraseGeneratorSettings table
+      """,
+      // - version bump - //
+      """
+      PRAGMA user_version = 30; -- persistent, used to track schema version
+      """,
+    ]
+  }
 }

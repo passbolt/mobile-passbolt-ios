@@ -131,6 +131,10 @@ extension Session {
       sessionState.execute(operation: operation)
     }
 
+    @Sendable func prewarmAuthorization(_ account: Account) {
+      sessionAuthorization.prewarmAuthorization(account)
+    }
+
     return Self(
       updates: sessionState.updates,
       pendingAuthorization: pendingAuthorization,
@@ -138,7 +142,8 @@ extension Session {
       authorize: authorize(_:),
       authorizeMFA: authorizeMFA(_:),
       close: close(_:),
-      execute: execute(operation:)
+      execute: execute(operation:),
+      prewarmAuthorization: prewarmAuthorization(_:)
     )
   }
 }

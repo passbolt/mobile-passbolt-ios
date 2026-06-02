@@ -54,6 +54,10 @@ public struct Session: Sendable {
   /// or current session if any otherwise.
   public var close: @Sendable @SessionActor (_ account: Account?) async -> Void
   public var execute: @Sendable (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
+  /// Fire-and-forget pre-fetch of the server PGP and RSA public keys for the given account.
+  /// Result is consumed once by the next matching `authorize` for the same account;
+  /// failures are silently discarded so the submit path falls back to a fresh fetch.
+  public var prewarmAuthorization: @Sendable (_ account: Account) -> Void
 
   public init(
     updates: AnyUpdatable<Void>,
@@ -62,7 +66,8 @@ public struct Session: Sendable {
     authorize: @escaping @Sendable @SessionActor (SessionAuthorizationMethod) async throws -> Void,
     authorizeMFA: @escaping @Sendable @SessionActor (SessionMFAAuthorizationMethod) async throws -> Void,
     close: @escaping @Sendable @SessionActor (_ account: Account?) async -> Void,
-    execute: @escaping @Sendable (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>
+    execute: @escaping @Sendable (@escaping @Sendable () async throws -> Void) -> Task<Void, Error>,
+    prewarmAuthorization: @escaping @Sendable (_ account: Account) -> Void
   ) {
     self.updates = updates
     self.pendingAuthorization = pendingAuthorization
@@ -71,6 +76,7 @@ public struct Session: Sendable {
     self.authorizeMFA = authorizeMFA
     self.close = close
     self.execute = execute
+    self.prewarmAuthorization = prewarmAuthorization
   }
 }
 
@@ -95,7 +101,8 @@ extension Session: LoadableFeature {
       authorize: unimplemented1(),
       authorizeMFA: unimplemented1(),
       close: unimplemented1(),
-      execute: unimplemented1()
+      execute: unimplemented1(),
+      prewarmAuthorization: unimplemented1()
     )
   }
   #endif

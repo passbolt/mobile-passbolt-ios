@@ -34,6 +34,7 @@ internal struct SessionAuthorization {
 
   internal var authorize: @SessionActor (SessionAuthorizationMethod) async throws -> Void
   internal var refreshTokens: @SessionActor (Account, Passphrase) async throws -> Void
+  internal var prewarmAuthorization: @Sendable (Account) -> Void
 }
 
 extension SessionAuthorization: LoadableFeature {
@@ -42,7 +43,8 @@ extension SessionAuthorization: LoadableFeature {
   nonisolated internal static var placeholder: Self {
     Self(
       authorize: unimplemented1(),
-      refreshTokens: unimplemented2()
+      refreshTokens: unimplemented2(),
+      prewarmAuthorization: unimplemented1()
     )
   }
   #endif
@@ -477,9 +479,16 @@ extension SessionAuthorization {
       }
     }
 
+    @Sendable nonisolated func prewarmAuthorization(
+      _ account: Account
+    ) {
+      sessionNetworkAuthorization.prewarmServerKeys(account)
+    }
+
     return Self(
       authorize: authorize(_:),
-      refreshTokens: refreshTokens(_:passphrase:)
+      refreshTokens: refreshTokens(_:passphrase:),
+      prewarmAuthorization: prewarmAuthorization(_:)
     )
   }
 }

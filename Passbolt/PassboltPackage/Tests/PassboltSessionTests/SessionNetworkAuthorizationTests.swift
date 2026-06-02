@@ -1067,4 +1067,100 @@ final class SessionNetworkAuthorizationTests: LoadableFeatureTestCase<SessionNet
       return self.variables.get(\.offset, of: Seconds.self)
     }
   }
+
+  func test_createSessionTokens_fetchesServerPGPKeyOnce_whenPrewarmedForSameAccount() {
+    patch(
+      \OSTime.timestamp,
+      with: always(0)
+    )
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(keyData: "key"))
+    )
+    patch(
+      \ServerPGPPublicKeyFetchNetworkOperation.execute,
+      with: always(self.executed(returning: .init(serverTime: 0, keyData: "key")))
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("fingerprint"))
+    )
+    patch(
+      \ServerFingerprintStorage.loadServerFingerprint,
+      with: always("fingerprint")
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: always(.success(true))
+    )
+    // intentionally fail later so the test does not need to wire the full happy path
+    patch(
+      \PGP.encryptAndSign,
+      with: always(.failure(MockIssue.error()))
+    )
+
+    withTestedInstanceExecuted(count: 1) { (testedInstance: SessionNetworkAuthorization) in
+      testedInstance.prewarmServerKeys(.mock_ada)
+      _ = try? await testedInstance.createSessionTokens(
+        (
+          account: .mock_ada,
+          passphrase: "passphrase",
+          privateKey: "private_key"
+        ),
+        .none
+      )
+    }
+  }
+
+  func test_createSessionTokens_fetchesServerPGPKeyTwice_whenPrewarmedFetchFails() {
+    patch(
+      \OSTime.timestamp,
+      with: always(0)
+    )
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(keyData: "key"))
+    )
+    self.variables.set(\.pgpCallCount, of: Int.self, to: 0)
+    patch(
+      \ServerPGPPublicKeyFetchNetworkOperation.execute,
+      with: { _ in
+        let count: Int = self.variables.get(\.pgpCallCount, of: Int.self)
+        self.variables.set(\.pgpCallCount, of: Int.self, to: count + 1)
+        self.executed()
+        if count == 0 {
+          throw MockIssue.error()
+        }
+        return .init(serverTime: 0, keyData: "key")
+      }
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("fingerprint"))
+    )
+    patch(
+      \ServerFingerprintStorage.loadServerFingerprint,
+      with: always("fingerprint")
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: always(.success(true))
+    )
+    patch(
+      \PGP.encryptAndSign,
+      with: always(.failure(MockIssue.error()))
+    )
+
+    withTestedInstanceExecuted(count: 2) { (testedInstance: SessionNetworkAuthorization) in
+      testedInstance.prewarmServerKeys(.mock_ada)
+      _ = try? await testedInstance.createSessionTokens(
+        (
+          account: .mock_ada,
+          passphrase: "passphrase",
+          privateKey: "private_key"
+        ),
+        .none
+      )
+    }
+  }
 }

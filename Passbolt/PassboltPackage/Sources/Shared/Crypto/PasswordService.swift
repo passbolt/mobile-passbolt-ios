@@ -22,7 +22,6 @@
 //
 
 import Crypto
-import DatabaseOperations
 import FeatureScopes
 
 public struct PasswordService: Sendable {
@@ -57,36 +56,24 @@ extension PasswordService: LoadableFeature {
     using features: Features
   ) throws -> PasswordService {
 
-    let fetchPasswordPoliciesOperation: PasswordPoliciesFetchDatabaseOperation = try features.instance()
+    let passwordPoliciesLoader: PasswordPoliciesLoader = try features.instance()
     let secretsGenerator: SecretGenerator = try features.instance()
     let pwnedPasswordsChecker: PwnedPasswordChecker = try features.instance()
 
     @Sendable
-    func fetchConfiguration() async -> SecretGenerator.Configuration {
-      do {
-        return try await fetchPasswordPoliciesOperation.execute(())
-      }
-      catch {
-        error.logged()
-        Diagnostics.logger.error("Failed to fetch password policies, using default configuration")
-        return .default
-      }
-    }
-
-    @Sendable
     func generate() async throws -> String {
-      let configuration: SecretGenerator.Configuration = await fetchConfiguration()
+      let configuration: SecretGenerator.Configuration = await passwordPoliciesLoader.policies()
       return try secretsGenerator.generate(configuration)
     }
 
     @Sendable
     func entropy(for secret: String) async -> Entropy {
-      let configuration: SecretGenerator.Configuration = await fetchConfiguration()
+      let configuration: SecretGenerator.Configuration = await passwordPoliciesLoader.policies()
       return secretsGenerator.entropy(secret, configuration)
     }
 
     @Sendable func validate(_ secret: String) async throws -> SecretValidationResult {
-      let configuration: SecretGenerator.Configuration = await fetchConfiguration()
+      let configuration: SecretGenerator.Configuration = await passwordPoliciesLoader.policies()
       let entropy: Entropy = await entropy(for: secret)
       if entropy < Self.minimumEntropy {
         return .weak

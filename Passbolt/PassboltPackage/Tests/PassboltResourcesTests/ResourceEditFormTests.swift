@@ -809,10 +809,13 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(
-        .default
-          .with {
-            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: true, defaultExpiryPeriod: 5)
-          }
+        .default.with { $0.passwordExpiry = .init(enabled: true) }
+      )
+    )
+    patch(
+      \PasswordExpirySettingsLoader.settings,
+      with: always(
+        .init(automaticUpdate: false, automaticExpiry: true, defaultExpiryPeriod: 5)
       )
     )
 
@@ -838,10 +841,13 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(
-        .default
-          .with {
-            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: true, defaultExpiryPeriod: .none)
-          }
+        .default.with { $0.passwordExpiry = .init(enabled: true) }
+      )
+    )
+    patch(
+      \PasswordExpirySettingsLoader.settings,
+      with: always(
+        .init(automaticUpdate: false, automaticExpiry: true, defaultExpiryPeriod: .none)
       )
     )
 
@@ -868,10 +874,13 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(
-        .default
-          .with {
-            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: false, defaultExpiryPeriod: 5)
-          }
+        .default.with { $0.passwordExpiry = .init(enabled: true) }
+      )
+    )
+    patch(
+      \PasswordExpirySettingsLoader.settings,
+      with: always(
+        .init(automaticUpdate: false, automaticExpiry: false, defaultExpiryPeriod: 5)
       )
     )
 
@@ -897,10 +906,13 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(
-        .default
-          .with {
-            $0.passwordExpiry = .init(automaticUpdate: true, automaticExpiry: false, defaultExpiryPeriod: 5)
-          }
+        .default.with { $0.passwordExpiry = .init(enabled: true) }
+      )
+    )
+    patch(
+      \PasswordExpirySettingsLoader.settings,
+      with: always(
+        .init(automaticUpdate: true, automaticExpiry: false, defaultExpiryPeriod: 5)
       )
     )
 
@@ -934,10 +946,13 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(
-        .default
-          .with {
-            $0.passwordExpiry = .init(automaticUpdate: true, automaticExpiry: false, defaultExpiryPeriod: .none)
-          }
+        .default.with { $0.passwordExpiry = .init(enabled: true) }
+      )
+    )
+    patch(
+      \PasswordExpirySettingsLoader.settings,
+      with: always(
+        .init(automaticUpdate: true, automaticExpiry: false, defaultExpiryPeriod: .none)
       )
     )
 
@@ -971,10 +986,13 @@ final class ResourceEditFormTests: FeaturesTestCase {
     patch(
       \SessionConfigurationLoader.sessionConfiguration,
       with: always(
-        .default
-          .with {
-            $0.passwordExpiry = .init(automaticUpdate: false, automaticExpiry: false, defaultExpiryPeriod: 5)
-          }
+        .default.with { $0.passwordExpiry = .init(enabled: true) }
+      )
+    )
+    patch(
+      \PasswordExpirySettingsLoader.settings,
+      with: always(
+        .init(automaticUpdate: false, automaticExpiry: false, defaultExpiryPeriod: 5)
       )
     )
 

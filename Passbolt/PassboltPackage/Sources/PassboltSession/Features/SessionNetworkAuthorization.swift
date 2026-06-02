@@ -57,6 +57,8 @@ internal struct SessionNetworkAuthorization {
       _ account: Account,
       _ refreshToken: SessionRefreshToken
     ) async throws -> Void
+
+  internal var prewarmServerKeys: @Sendable (_ account: Account) -> Void
 }
 
 extension SessionNetworkAuthorization: LoadableFeature {
@@ -66,7 +68,8 @@ extension SessionNetworkAuthorization: LoadableFeature {
     Self(
       createSessionTokens: unimplemented2(),
       refreshSessionTokens: unimplemented3(),
-      invalidateSessionTokens: unimplemented2()
+      invalidateSessionTokens: unimplemented2(),
+      prewarmServerKeys: unimplemented1()
     )
   }
   #endif
@@ -90,6 +93,7 @@ extension SessionNetworkAuthorization {
     let sessionCreateNetworkOperation: SessionCreateNetworkOperation = try features.instance()
     let sessionRefreshNetworkOperation: SessionRefreshNetworkOperation = try features.instance()
     let sessionCloseNetworkOperation: SessionCloseNetworkOperation = try features.instance()
+    let prewarmHandle: ServerKeysPrewarmHandle = .init()
 
     @Sendable nonisolated func fetchServerPublicPGPKeyAndTimeDiff(
       for account: Account
@@ -193,6 +197,28 @@ extension SessionNetworkAuthorization {
         rawValue: try await serverRSAPublicKeyFetchNetworkOperation(.init(domain: account.domain))
           .keyData
       )
+    }
+
+    @Sendable nonisolated func fetchServerKeys(
+      for account: Account
+    ) async throws -> ServerKeysPrewarmHandle.FetchResult {
+      async let pgpFetch: (ArmoredPGPPublicKey, Seconds) = fetchServerPublicPGPKeyAndTimeDiff(for: account)
+      async let rsaFetch: PEMRSAPublicKey = fetchServerPublicRSAKey(for: account)
+      let (pgpKey, timeDiff): (ArmoredPGPPublicKey, Seconds) = try await pgpFetch
+      let rsaKey: PEMRSAPublicKey = try await rsaFetch
+      return ServerKeysPrewarmHandle.FetchResult(
+        pgpKey: pgpKey,
+        timeDiff: timeDiff,
+        rsaKey: rsaKey
+      )
+    }
+
+    @Sendable nonisolated func prewarmServerKeys(
+      for account: Account
+    ) {
+      prewarmHandle.prewarm(for: account) {
+        try await fetchServerKeys(for: account)
+      }
     }
 
     @Sendable nonisolated func prepareEncryptedChallenge(
@@ -409,9 +435,25 @@ extension SessionNetworkAuthorization {
     ) {
       let verificationToken: String = uuidGenerator.uuid()
 
-      let (serverPublicPGPKey, timeDiff): (ArmoredPGPPublicKey, Seconds) =
-        try await fetchServerPublicPGPKeyAndTimeDiff(for: authorizationData.account)
-      let serverPublicRSAKey: PEMRSAPublicKey = try await fetchServerPublicRSAKey(for: authorizationData.account)
+      let fetchResult: ServerKeysPrewarmHandle.FetchResult
+      if let prewarmTask: Task<ServerKeysPrewarmHandle.FetchResult, Error> = prewarmHandle.take(
+        for: authorizationData.account
+      ) {
+        do {
+          fetchResult = try await prewarmTask.value
+        }
+        catch {
+          // prewarm errors are intentionally deferred to the submit path:
+          // discard the failed result and try again from scratch
+          fetchResult = try await fetchServerKeys(for: authorizationData.account)
+        }
+      }
+      else {
+        fetchResult = try await fetchServerKeys(for: authorizationData.account)
+      }
+      let serverPublicPGPKey: ArmoredPGPPublicKey = fetchResult.pgpKey
+      let timeDiff: Seconds = fetchResult.timeDiff
+      let serverPublicRSAKey: PEMRSAPublicKey = fetchResult.rsaKey
 
       pgp.setTimeOffset(timeDiff)
 
@@ -504,8 +546,49 @@ extension SessionNetworkAuthorization {
     return Self(
       createSessionTokens: createSessionTokens,
       refreshSessionTokens: refreshSessionTokens,
-      invalidateSessionTokens: invalidateSessionTokens(_:_:)
+      invalidateSessionTokens: invalidateSessionTokens(_:_:),
+      prewarmServerKeys: prewarmServerKeys(for:)
     )
+  }
+}
+
+private final class ServerKeysPrewarmHandle: Sendable {
+
+  fileprivate struct FetchResult: Sendable {
+    fileprivate let pgpKey: ArmoredPGPPublicKey
+    fileprivate let timeDiff: Seconds
+    fileprivate let rsaKey: PEMRSAPublicKey
+  }
+
+  fileprivate struct Entry: Sendable {
+    fileprivate let accountID: Account.LocalID
+    fileprivate let task: Task<FetchResult, Error>
+  }
+
+  private let state: CriticalState<Entry?> = .init(.none)
+
+  fileprivate func prewarm(
+    for account: Account,
+    fetch: @Sendable @escaping () async throws -> FetchResult
+  ) {
+    let previous: Entry? = self.state.access { entry in
+      if let existing: Entry = entry, existing.accountID == account.localID {
+        return nil
+      }
+      let replaced: Entry? = entry
+      entry = Entry(accountID: account.localID, task: Task { try await fetch() })
+      return replaced
+    }
+    previous?.task.cancel()
+  }
+
+  fileprivate func take(for account: Account) -> Task<FetchResult, Error>? {
+    self.state.access { entry in
+      guard let current: Entry = entry, current.accountID == account.localID
+      else { return nil }
+      entry = nil
+      return current.task
+    }
   }
 }
 

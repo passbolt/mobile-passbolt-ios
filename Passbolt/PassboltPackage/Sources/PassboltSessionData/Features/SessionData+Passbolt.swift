@@ -46,11 +46,9 @@ extension SessionData {
     let usersStoreDatabaseOperation: UsersStoreDatabaseOperation = try features.instance()
     let userGroupsStoreDatabaseOperation: UserGroupsStoreDatabaseOperation = try features.instance()
     let resourceFoldersStoreDatabaseOperation: ResourceFoldersStoreDatabaseOperation = try features.instance()
-    let passwordPoliciesStoreDatabaseOperation: PasswordPoliciesStoreDatabaseOperation = try features.instance()
     let usersFetchNetworkOperation: UsersFetchNetworkOperation = try features.instance()
     let userGroupsFetchNetworkOperation: UserGroupsFetchNetworkOperation = try features.instance()
     let resourceFoldersFetchNetworkOperation: ResourceFoldersFetchNetworkOperation = try features.instance()
-    let passwordPoliciesFetchNetworkOperation: PasswordPoliciesFetchNetworkOperation = try features.instance()
     let metadataKeysService: MetadataKeysService = try features.instance()
     let metadataSettings: MetadataSettingsService = try features.instance()
     let resourceUpdater: ResourceUpdater = try features.instance()
@@ -135,21 +133,6 @@ extension SessionData {
       }
     }
 
-    @Sendable nonisolated func refreshPasswordPolicies() async throws {
-      Diagnostics.logger.info("Refreshing password policies data...")
-      do {
-        try await passwordPoliciesStoreDatabaseOperation(
-          passwordPoliciesFetchNetworkOperation()
-        )
-
-        Diagnostics.logger.info("...password policies data refresh finished!")
-      }
-      catch {
-        Diagnostics.logger.info("...password policies refresh failed!")
-        throw error
-      }
-    }
-
     @Sendable nonisolated func refreshIfNeeded() async throws {
       let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
         if let runningTask: Task<Void, Error> = task {
@@ -175,9 +158,6 @@ extension SessionData {
             }
             try await refreshFolders()
             try await refreshResources()
-            if configuration.passwordPolicies.passwordPoliciesEnabled {
-              try await refreshPasswordPolicies()
-            }
 
             if configuration.metadata.enabled {
               try await metadataKeysService.sendSessionKeys()
