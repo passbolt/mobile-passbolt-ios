@@ -59,7 +59,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       with: { _ in
         expectation.fulfill()
         return .init(
-          resourceID: .mock_1,
+          resource: .mock_1,
           ownerPermissionID: .mock_1
         )
       }
@@ -84,7 +84,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       with: { _ in
         expectation.fulfill()
         return .init(
-          resourceID: .mock_1,
+          resource: .mock_1,
           ownerPermissionID: .mock_1
         )
       }
@@ -142,7 +142,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       with: { _ in
         expectation.fulfill()
         return .init(
-          resourceID: .mock_1
+          resource: .mock_1
         )
       }
     )
@@ -166,7 +166,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
       with: { _ in
         expectation.fulfill()
         return .init(
-          resourceID: .mock_1
+          resource: .mock_1
         )
       }
     )
@@ -241,7 +241,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
         XCTAssertEqual(input.metadataKeyType, .shared)
 
         return .init(
-          resourceID: .mock_1,
+          resource: .mock_1,
           ownerPermissionID: .mock_1
         )
       }
@@ -282,7 +282,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
         XCTAssertEqual(input.metadataKeyID, sharedMetadataKeyID)
 
         return .init(
-          resourceID: .mock_1
+          resource: .mock_1
         )
       }
     )

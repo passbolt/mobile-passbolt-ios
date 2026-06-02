@@ -21,49 +21,28 @@
 // @since         v1.0
 //
 
-import NetworkOperations
+import CommonModels
 
-// MARK: Implementation
+import struct Foundation.Date
 
-extension ResourceEditNetworkOperation {
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension ResourceDTO {
 
-  @Sendable fileprivate static func requestPreparation(
-    _ input: Input
-  ) -> Mutation<HTTPRequest> {
-    .combined(
-      .pathSuffix("/resources/\(input.resourceID).json"),
-      .queryItem("contain[permission]", value: "1"),
-      .queryItem("contain[permissions]", value: "1"),
-      .queryItem("contain[favorite]", value: "1"),
-      .queryItem("contain[tag]", value: "1"),
-      .jsonBody(from: input),
-      .method(.put)
-    )
-  }
-
-  @Sendable fileprivate static func responseDecoder(
-    _ input: Input,
-    _ response: HTTPResponse
-  ) throws -> Output {
-    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
-      .bodyAsJSON()
-      .decode(
-        input,
-        response
-      )
-      .body
-  }
-}
-
-extension FeaturesRegistry {
-
-  internal mutating func usePassboltResourceEditNetworkOperation() {
-    self.use(
-      .networkOperationWithSession(
-        of: ResourceEditNetworkOperation.self,
-        requestPreparation: ResourceEditNetworkOperation.requestPreparation(_:),
-        responseDecoding: ResourceEditNetworkOperation.responseDecoder(_:_:)
-      )
+  public static var mock_1: Self {
+    .init(
+      id: .mock_1,
+      typeID: .mock_1,
+      parentFolderID: .none,
+      favoriteID: .none,
+      name: "Test Resource",
+      permission: .owner,
+      permissions: .init(),
+      uri: .none,
+      username: .none,
+      description: .none,
+      tags: .init(),
+      modified: Date(timeIntervalSince1970: 0),
+      expired: .none
     )
   }
 }

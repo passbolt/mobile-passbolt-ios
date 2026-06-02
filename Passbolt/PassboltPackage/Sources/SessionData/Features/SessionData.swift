@@ -29,15 +29,18 @@ public struct SessionData: Sendable {
   public var lastUpdate: AnyUpdatable<Timestamp>
   public var isRefreshing: AnyUpdatable<Bool>
   public var refreshIfNeeded: @Sendable () async throws -> Void
+  public var updateResource: @Sendable (ResourceDTO) async throws -> Void
 
   public init(
     lastUpdate: AnyUpdatable<Timestamp>,
     isRefreshing: AnyUpdatable<Bool>,
-    refreshIfNeeded: @escaping @Sendable () async throws -> Void
+    refreshIfNeeded: @escaping @Sendable () async throws -> Void,
+    updateResource: @escaping @Sendable (ResourceDTO) async throws -> Void
   ) {
     self.lastUpdate = lastUpdate
     self.isRefreshing = isRefreshing
     self.refreshIfNeeded = refreshIfNeeded
+    self.updateResource = updateResource
   }
 }
 
@@ -48,7 +51,8 @@ extension SessionData: LoadableFeature {
     .init(
       lastUpdate: PlaceholderUpdatable().asAnyUpdatable(),
       isRefreshing: PlaceholderUpdatable().asAnyUpdatable(),
-      refreshIfNeeded: unimplemented0()
+      refreshIfNeeded: unimplemented0(),
+      updateResource: unimplemented1()
     )
   }
   #endif

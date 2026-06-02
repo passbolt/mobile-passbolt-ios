@@ -174,17 +174,20 @@ extension ResourceEditForm {
           )
       }
 
+      let updatedResourceDTO: ResourceDTO?
+
       if let resourceID: Resource.ID = resource.id {
         var userIDs: Array<User.ID> = try await resourceUsersIDFetchDatabaseOperation.execute(resourceID)
         userIDs.append(currentAccount.userID)
         let encryptedSecrets = try await resourceUpdatePreparation.prepareSecret(userIDs.asOrderedSet(), resourceSecret)
-        _ =
+        let editResult: ResourceEditNetworkOperationResult =
           try await resourceNetworkOperationDispatch
           .editResource(
             resource,
             resourceID,
             encryptedSecrets
           )
+        updatedResourceDTO = editResult.resource
       }
       else {
         guard
@@ -299,21 +302,40 @@ extension ResourceEditForm {
               )
             )
           )
+          // Permissions on the create response are stale after share; full refresh covers this branch.
+          updatedResourceDTO = .none
+        }
+        else {
+          updatedResourceDTO = createdResourceResult.resource
         }
 
         resource.id = createdResourceResult.resourceID
       }
 
-      do {
-        try await sessionData.refreshIfNeeded()
-        return resource
+      // we don't want to fail sending form when syncing local data fails
+      func refreshIgnoringError() async {
+        do {
+          try await sessionData.refreshIfNeeded()
+        }
+        catch {
+          error.logged()
+        }
       }
-      catch {
-        // we don't want to fail sending form when refreshing data fails
-        // but if we can't access updated data then it seemes to be an issue
-        error.logged()
-        return resource
+
+      if let dto: ResourceDTO = updatedResourceDTO {
+        do {
+          try await sessionData.updateResource(dto)
+        }
+        catch {
+          // Targeted update failed; fall back to full refresh so UI is not left stale.
+          error.logged()
+          await refreshIgnoringError()
+        }
       }
+      else {
+        await refreshIgnoringError()
+      }
+      return resource
     }
 
     return .init(

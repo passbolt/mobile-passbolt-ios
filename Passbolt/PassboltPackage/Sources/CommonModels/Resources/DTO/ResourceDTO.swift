@@ -133,10 +133,10 @@ extension ResourceDTO: Decodable {
       )
     self.permissions =
       try container
-      .decode(
+      .decodeIfPresent(
         OrderedSet<GenericPermissionDTO>.self,
         forKey: .permissions
-      )
+      ) ?? []
     self.tags =
       try container.decodeIfPresent(
         OrderedSet<ResourceTag>.self,

@@ -109,16 +109,19 @@ public struct ResourceEditNetworkOperationV4Variable: Encodable, Sendable {
 
 public struct ResourceEditNetworkOperationResult: Decodable, Sendable {
 
-  public var resourceID: Resource.ID
+  public let resource: ResourceDTO
+
+  public var resourceID: Resource.ID { self.resource.id }
 
   public init(
-    resourceID: Resource.ID
+    resource: ResourceDTO
   ) {
-    self.resourceID = resourceID
+    self.resource = resource
   }
 
-  public enum CodingKeys: String, CodingKey {
-
-    case resourceID = "id"
+  public init(
+    from decoder: Decoder
+  ) throws {
+    self.resource = try ResourceDTO(from: decoder)
   }
 }

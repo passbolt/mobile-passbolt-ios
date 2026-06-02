@@ -133,6 +133,16 @@ extension SessionData {
       }
     }
 
+    @Sendable nonisolated func updateResource(_ resource: ResourceDTO) async throws {
+      try await session.execute {
+        try await resourceUpdater.updateResource(resource)
+        lastUpdate.mutate { (lastUpdate: inout Timestamp) in
+          lastUpdate = time.timestamp()
+        }
+      }
+      .value
+    }
+
     @Sendable nonisolated func refreshIfNeeded() async throws {
       let task: Task<Void, Error> = refreshTask.access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
         if let runningTask: Task<Void, Error> = task {
@@ -185,7 +195,8 @@ extension SessionData {
     return Self(
       lastUpdate: lastUpdate.asAnyUpdatable(),
       isRefreshing: isRefreshing.asAnyUpdatable(),
-      refreshIfNeeded: refreshIfNeeded
+      refreshIfNeeded: refreshIfNeeded,
+      updateResource: updateResource
     )
   }
 }

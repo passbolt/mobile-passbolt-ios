@@ -94,34 +94,33 @@ public struct ResourceCreateNetworkOperationV4Variable: Encodable, Sendable {
 
 public struct ResourceCreateNetworkOperationResult: Decodable, Sendable {
 
-  public var resourceID: Resource.ID
-  public var ownerPermissionID: Permission.ID
+  public let resource: ResourceDTO
+  public let ownerPermissionID: Permission.ID
+
+  public var resourceID: Resource.ID { self.resource.id }
 
   public init(
-    resourceID: Resource.ID,
+    resource: ResourceDTO,
     ownerPermissionID: Permission.ID
   ) {
-    self.resourceID = resourceID
+    self.resource = resource
     self.ownerPermissionID = ownerPermissionID
   }
 
   public init(
     from decoder: Decoder
   ) throws {
+    self.resource = try ResourceDTO(from: decoder)
+
     let container: KeyedDecodingContainer<ResourceCreateNetworkOperationResult.CodingKeys> =
       try decoder.container(keyedBy: CodingKeys.self)
-
-    self.resourceID = try container.decode(Resource.ID.self, forKey: .resourceID)
-
     let permissionContainer: KeyedDecodingContainer<ResourceCreateNetworkOperationResult.PermissionCodingKeys> =
       try container.nestedContainer(keyedBy: PermissionCodingKeys.self, forKey: .permission)
-
     self.ownerPermissionID = try permissionContainer.decode(Permission.ID.self, forKey: .permissionID)
   }
 
   public enum CodingKeys: String, CodingKey {
 
-    case resourceID = "id"
     case permission = "permission"
   }
 

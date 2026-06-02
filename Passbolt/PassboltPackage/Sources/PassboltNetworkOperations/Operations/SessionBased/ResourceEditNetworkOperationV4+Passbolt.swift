@@ -32,6 +32,10 @@ extension ResourceEditNetworkOperationV4 {
   ) -> Mutation<HTTPRequest> {
     .combined(
       .pathSuffix("/resources/\(input.resourceID).json"),
+      .queryItem("contain[permission]", value: "1"),
+      .queryItem("contain[permissions]", value: "1"),
+      .queryItem("contain[favorite]", value: "1"),
+      .queryItem("contain[tag]", value: "1"),
       .jsonBody(from: input),
       .method(.put)
     )

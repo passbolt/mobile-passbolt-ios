@@ -518,6 +518,94 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     await fulfillment(of: [resourceStored], timeout: 1.0)
   }
 
+  // MARK: Single resource update
+
+  func test_updateResource_storesValidatedResource() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([.mock_default])
+    )
+    let storeExpectation: XCTestExpectation = .init(description: "Resource should be stored.")
+    patch(
+      \ResourcesStoreDatabaseOperation.execute,
+      with: { resourceDTOs async throws in
+        XCTAssertEqual(resourceDTOs.count, 1, "Exactly one resource should be stored.")
+        XCTAssertEqual(resourceDTOs.first?.id, .mock_1)
+        storeExpectation.fulfill()
+      }
+    )
+    let fetchShouldNotBeCalled: XCTestExpectation = .init(description: "Paginated fetch should not be called.")
+    fetchShouldNotBeCalled.isInverted = true
+    patch(
+      \ResourcesFetchNetworkOperation.execute,
+      with: { _ in
+        fetchShouldNotBeCalled.fulfill()
+        return .empty()
+      }
+    )
+
+    let feature: ResourceUpdater = try self.testedInstance()
+    try await feature.updateResource(mockResource(withType: .mock_default))
+
+    await fulfillment(of: [storeExpectation, fetchShouldNotBeCalled], timeout: 1.0)
+  }
+
+  func test_updateResource_throwsWhenResourceTypeUnsupported() async throws {
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([])
+    )
+
+    let feature: ResourceUpdater = try self.testedInstance()
+    do {
+      try await feature.updateResource(mockResource(withType: .placeholder))
+      XCTFail("Expected updateResource to throw for unsupported resource type.")
+    }
+    catch {
+      // expected
+    }
+  }
+
+  func test_updateResource_throwsWhenSharedKeyMissing() async throws {
+    self.set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_1.with(metadataEnabled: true)
+      )
+    )
+    patch(
+      \ResourceTypesFetchDatabaseOperation.execute,
+      with: always([.mock_default])
+    )
+    patch(
+      \MetadataKeysService.hasAccessToSharedKey,
+      with: always(false)
+    )
+    patch(
+      \ResourcesStoreDatabaseOperation.execute,
+      with: { _ in
+        XCTFail("Resource with unknown shared key should not be stored.")
+      }
+    )
+
+    let resource: ResourceDTO = mockResource(
+      withType: .mock_default,
+      metadataArmoredMessage: "armored_message",
+      metadataKeyId: .init(),
+      metadataKeyType: .shared
+    )
+
+    let feature: ResourceUpdater = try self.testedInstance()
+    do {
+      try await feature.updateResource(resource)
+      XCTFail("Expected updateResource to throw when shared key is unavailable.")
+    }
+    catch {
+      // expected
+    }
+  }
+
   func test_resourceUpdate_whenIncomingResourceIsOlder_shouldNotUpdateIt() async throws {
     let referenceDate: Date = .now
     let resourceStored: XCTestExpectation = .init(description: "Resource should not be stored.")
@@ -604,28 +692,6 @@ extension ResourceUpdater.Configuration {
     .init(
       maximumChunkSize: 1,
       maximumConcurrentTasks: 2
-    )
-  }
-}
-
-// swift-format-ignore: AlwaysUseLowerCamelCase
-extension ResourceDTO {
-
-  static var mock_1: Self {
-    .init(
-      id: .mock_1,
-      typeID: .mock_1,
-      parentFolderID: .none,
-      favoriteID: .none,
-      name: "Test Resource",
-      permission: .owner,
-      permissions: .init(),
-      uri: .none,
-      username: .none,
-      description: .none,
-      tags: .init(),
-      modified: .now,
-      expired: .none
     )
   }
 }

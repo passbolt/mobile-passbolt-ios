@@ -121,6 +121,48 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     try await feature.refreshIfNeeded()
   }
 
+  func test_updateResource_delegatesToResourceUpdater_andBumpsLastUpdate() async throws {
+    let updaterCalled: XCTestExpectation = .init(description: "ResourceUpdater.updateResource should be called.")
+    let timestampRequested: XCTestExpectation = .init(description: "Timestamp should be requested for lastUpdate bump.")
+    timestampRequested.assertForOverFulfill = false
+    patch(
+      \ResourceUpdater.updateResource,
+      with: { _ in
+        updaterCalled.fulfill()
+      }
+    )
+    patch(
+      \OSTime.timestamp,
+      with: {
+        timestampRequested.fulfill()
+        return 42
+      }
+    )
+
+    let feature: SessionData = try self.testedInstance()
+    try await feature.updateResource(.mock_1)
+
+    await fulfillment(of: [updaterCalled, timestampRequested], timeout: 1)
+  }
+
+  func test_updateResource_propagatesUpdaterFailure() async throws {
+    patch(
+      \ResourceUpdater.updateResource,
+      with: { _ in
+        throw MockIssue.error()
+      }
+    )
+
+    let feature: SessionData = try self.testedInstance()
+    do {
+      try await feature.updateResource(.mock_1)
+      XCTFail("Expected SessionData.updateResource to propagate updater failure.")
+    }
+    catch {
+      // expected
+    }
+  }
+
   func test_sessionDataRefresh_shouldFetchMetadataKeys_ifFeatureIsEnabled() async throws {
     set(
       SessionScope.self,

@@ -371,7 +371,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.editResource,
-      with: always(.init(resourceID: .mock_1))
+      with: always(.init(resource: .mock_1))
     )
     patch(
       \ResourceUpdatePreparation.prepareSecret,
@@ -383,6 +383,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: alwaysThrow(MockIssue.error())
     )
     patch(
+      \SessionData.updateResource,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
       \MetadataKeysService.validatePinnedKey,
       with: always(.valid)
     )
@@ -390,6 +394,105 @@ final class ResourceEditFormTests: FeaturesTestCase {
     await verifyIfNotThrows(
       try await tested.sendForm()
     )
+  }
+
+  func test_sendForm_callsUpdateResource_andSkipsRefreshIfNeeded_whenEditSucceeds() async throws {
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resource: .mock_1))
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: always(.init([.mock_1]))
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+
+    let updateResourceCalled: XCTestExpectation = .init(description: "Targeted update should be called.")
+    patch(
+      \SessionData.updateResource,
+      with: { _ in
+        updateResourceCalled.fulfill()
+      }
+    )
+    let refreshShouldNotBeCalled: XCTestExpectation = .init(description: "Full refresh should not be called.")
+    refreshShouldNotBeCalled.isInverted = true
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: {
+        refreshShouldNotBeCalled.fulfill()
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    _ = try await tested.sendForm()
+
+    await fulfillment(of: [updateResourceCalled, refreshShouldNotBeCalled], timeout: 1.0)
+  }
+
+  func test_sendForm_fallsBackToRefreshIfNeeded_whenUpdateResourceFails() async throws {
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resource: .mock_1))
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: always(.init([.mock_1]))
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+
+    patch(
+      \SessionData.updateResource,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let refreshFallback: XCTestExpectation = .init(description: "Full refresh fallback should be triggered.")
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: {
+        refreshFallback.fulfill()
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+    await fulfillment(of: [refreshFallback], timeout: 1.0)
   }
 
   func test_sendForm_throws_whenCreateNetworkRequestFails() async throws {
@@ -446,7 +549,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
@@ -480,7 +583,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
@@ -520,7 +623,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \ResourceNetworkOperationDispatch.createResource,
       with: { _, _, sharing async throws in
         XCTAssertFalse(sharing, "Should not use sharing flag when creating resource in folder with single user")
-        return .init(resourceID: .mock_1, ownerPermissionID: .mock_1)
+        return .init(resource: .mock_1, ownerPermissionID: .mock_1)
       }
     )
     patch(
@@ -536,6 +639,10 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(  // not throws regardless of error in targeted resource update
+      \SessionData.updateResource,
       with: alwaysThrow(MockIssue.error())
     )
     patch(
@@ -565,7 +672,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
@@ -611,7 +718,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \ResourceFolderPermissionsFetchDatabaseOperation.execute,
@@ -654,10 +761,14 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(  // not throws regardless of error in targeted resource update
+      \SessionData.updateResource,
       with: alwaysThrow(MockIssue.error())
     )
     patch(
@@ -689,7 +800,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       \ResourceNetworkOperationDispatch.createResource,
       with: { _, _, sharing async throws in
         XCTAssertTrue(sharing, "Should use sharing flag when creating shared resource")
-        return .init(resourceID: .mock_1, ownerPermissionID: .mock_1)
+        return .init(resource: .mock_1, ownerPermissionID: .mock_1)
       }
     )
     patch(
@@ -760,7 +871,11 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \SessionData.updateResource,
+      with: always(())
     )
     patch(  // not throws regardless of error in refresh
       \SessionData.refreshIfNeeded,
@@ -784,11 +899,11 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
     patch(
       \ResourceNetworkOperationDispatch.createResource,
-      with: always(.init(resourceID: .mock_1, ownerPermissionID: .mock_1))
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
     )
     patch(
       \ResourceNetworkOperationDispatch.editResource,
-      with: always(.init(resourceID: .mock_1))
+      with: always(.init(resource: .mock_1))
     )
     let tested: ResourceEditForm = try self.testedInstance()
     await verifyIfNotThrows(

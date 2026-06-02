@@ -37,6 +37,7 @@ extension ResourceUpdater {
   ) throws -> Self {
     let resourceTypesFetchNetworkOperation: ResourceTypesFetchNetworkOperation = try features.instance()
     let resourceTypesStoreDatabaseOperation: ResourceTypesStoreDatabaseOperation = try features.instance()
+    let resourceTypesFetchDatabaseOperation: ResourceTypesFetchDatabaseOperation = try features.instance()
     let resourceStateUpdateOperation: ResourceUpdateStateDatabaseOperation = try features.instance()
     let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
     let resourceFetchOperation: ResourcesFetchNetworkOperation = try features.instance()
@@ -161,13 +162,51 @@ extension ResourceUpdater {
       try await process(resources: page.items)
     }
 
-    @Sendable func updateResources(_ configuration: Configuration) async throws {
+    @Sendable func ensureResourceTypesLoaded() async throws -> Array<ResourceTypeDTO> {
       let allResourceTypes: Array<ResourceTypeDTO> = try await resourceTypesFetchNetworkOperation()
       let supportedResourceTypes: Array<ResourceTypeDTO> = allResourceTypes.filter { $0.isSupported }
       try await resourceTypesStoreDatabaseOperation(
         supportedResourceTypes
       )
       resourceTypes.set(supportedResourceTypes)
+      return supportedResourceTypes
+    }
+
+    @Sendable func updateResource(_ resource: ResourceDTO) async throws {
+      let supportedResourceTypes: Array<ResourceTypeDTO> = try await resourceTypesFetchDatabaseOperation()
+        .filter { $0.isSupported }
+      guard supportedResourceTypes.contains(where: { $0.id == resource.typeID })
+      else {
+        throw
+          ResourceUpdateFailed
+          .error()
+          .recording(values: ["resource_id": resource.id.rawValue, "reason": "unsupported_resource_type"])
+      }
+
+      if resource.metadataKeyType == .shared,
+        let keyId: MetadataKeyDTO.ID = resource.metadataKeyId,
+        try await metadataKeysService.hasAccessToSharedKey(keyId) == false
+      {
+        throw
+          ResourceUpdateFailed
+          .error()
+          .recording(values: ["resource_id": resource.id.rawValue, "reason": "shared_metadata_key_unavailable"])
+      }
+
+      guard let processed: ResourceDTO = await process(resource: resource)
+      else {
+        throw
+          ResourceUpdateFailed
+          .error()
+          .recording(values: ["resource_id": resource.id.rawValue, "reason": "metadata_processing_failed"])
+      }
+
+      let validated: ResourceDTO = try processed.validate(resourceTypes: supportedResourceTypes)
+      try await serialOperationExecutor.execute([validated])
+    }
+
+    @Sendable func updateResources(_ configuration: Configuration) async throws {
+      _ = try await ensureResourceTypesLoaded()
 
       try await resourceStateUpdateOperation.execute(.init(state: .waitingForUpdate))
       let batchExecutor: BatchExecutor = .init(maxConcurrentTasks: configuration.maximumConcurrentTasks)
@@ -198,7 +237,10 @@ extension ResourceUpdater {
       try await resourceTagsRemoveUnusedDatabaseOperation()
     }
 
-    return .init(updateResources: updateResources)
+    return .init(
+      updateResources: updateResources,
+      updateResource: updateResource
+    )
   }
 }
 
