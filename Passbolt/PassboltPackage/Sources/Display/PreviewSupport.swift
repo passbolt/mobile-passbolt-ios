@@ -27,7 +27,7 @@
   _ view: V.Type,
   with context: V.Controller.Context,
   using dependencies: @escaping (inout PreviewFeaturesContainer) -> Void,
-  perform: @escaping (V.Controller) async -> Void = { _ in }
+  perform: @MainActor @escaping (V.Controller) async -> Void = { _ in }
 ) -> some View where V: ControlledView {
   do {
     var container = PreviewFeaturesContainer()
@@ -46,22 +46,22 @@
 public func createPreview<V>(
   _ view: V.Type,
   using dependencies: @escaping (inout PreviewFeaturesContainer) -> Void = { _ in },
-  perform: (V.Controller) async throws -> Void = { _ in }
+  perform: @MainActor @escaping (V.Controller) async -> Void = { _ in }
 ) -> some View where V: ControlledView, V.Controller.Context == Void {
-  createPreview(view, with: (), using: dependencies)
+  createPreview(view, with: (), using: dependencies, perform: perform)
 }
 
 @MainActor
 public func createPreview<V>(
   _ view: V.Type,
   with context: V.Controller.Context,
-  perform: @escaping (V.Controller) async -> Void = { _ in }
+  perform: @MainActor @escaping (V.Controller) async -> Void = { _ in }
 ) -> some View where V: ControlledView {
   createPreview(view, with: context, using: { _ in }, perform: perform)
 }
 
 private enum PreviewView<V>: View where V: ControlledView {
-  case created(V, (V.Controller) async -> Void)
+  case created(V, @MainActor (V.Controller) async -> Void)
   case error(Error)
 
   fileprivate var body: some View {
