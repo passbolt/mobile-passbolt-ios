@@ -252,35 +252,50 @@ extension PGP {
 
       do {
         let key: CryptoKey = try createUnlockedPrivateKey(fromArmored: privateKey, withPassphrase: passphrase)
-        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let verificationKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let expectedFingerprint: String = verificationKey.getFingerprint()
         let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
           with: {
             $0.decryptionKey(key)?
-              .verificationKey(publicKey)?
+              .verificationKey(verificationKey)?
               .verifyTime(now() + timeOffset.get())
           })
         defer { decryptor.clearPrivateParams() }
         let inputData: Data = Data(input.utf8)
         let result: CryptoVerifiedDataResult = try decryptor.decrypt(inputData, encoding: PGPEncoding.auto.rawValue)
-        if let data = result.bytes(),
-          let rawFingerprint = result.signedByFingerprint()?.bytesToHexString()
-        {
-          let signatureData: Data = try result.signature()
-          let signature: Signature = .init(
-            signature: String(decoding: signatureData, as: UTF8.self),
-            createdAt: Date(timeIntervalSince1970: .init(result.signatureCreationTime())),
-            fingerprint: .init(rawValue: rawFingerprint),
-            keyID: result.signedByKeyIdHex()
+        // `signatureError` only catches tampered/expired/invalid signatures, not signers outside the
+        // verification set; `decrypt` may also verify against the decryption key.
+        try result.signatureError()
+        // Confirm the signer is the supplied verification key. Match the verified key's primary
+        // fingerprint so signatures made by its signing subkey (different issuer fingerprint) pass.
+        guard
+          let signingKey: CryptoKey = result.signedByKey(),
+          signingKey.getFingerprint().caseInsensitiveCompare(expectedFingerprint) == .orderedSame
+        else {
+          throw PGPIssue.error(
+            underlyingError: PGPGenericIssue.error("Signature was not created by the expected key")
           )
-          let verifiedMessage: VerifiedMessage = .init(
-            content: String(decoding: data, as: UTF8.self),
-            signature: signature
-          )
-          return .success(verifiedMessage)
         }
-        throw PGPIssue.error(
-          underlyingError: PGPGenericIssue.error("Cannot decode decrypted data")
+        guard
+          let data: Data = result.bytes(),
+          let rawFingerprint: String = result.signedByFingerprint()?.bytesToHexString()
+        else {
+          throw PGPIssue.error(
+            underlyingError: PGPGenericIssue.error("Cannot decode decrypted data")
+          )
+        }
+        let signatureData: Data = try result.signature()
+        let signature: Signature = .init(
+          signature: String(decoding: signatureData, as: UTF8.self),
+          createdAt: Date(timeIntervalSince1970: .init(result.signatureCreationTime())),
+          fingerprint: .init(rawValue: rawFingerprint),
+          keyID: result.signedByKeyIdHex()
         )
+        let verifiedMessage: VerifiedMessage = .init(
+          content: String(decoding: data, as: UTF8.self),
+          signature: signature
+        )
+        return .success(verifiedMessage)
       }
       catch {
         return .failure(
@@ -416,22 +431,35 @@ extension PGP {
       defer { Gopenpgp.MobileFreeOSMemory() }
 
       do {
-        let publicKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let verificationKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
+        let expectedFingerprint: String = verificationKey.getFingerprint()
         let verifier: CryptoPGPVerifyProtocol = try CryptoPGPHandle.verifier(
           with: {
-            $0.verificationKey(publicKey)?
+            $0.verificationKey(verificationKey)?
               .verifyTime(verifyTime)
           })
 
         let inputData: Data = Data(input.utf8)
         let result: CryptoVerifyCleartextResult = try verifier.verifyCleartext(inputData)
+        // `signatureError` does not reject signers outside the verification set.
         try result.signatureError()
-        if let data = result.cleartext() {
-          return .success(String(decoding: data, as: UTF8.self))
+        // Confirm the signer is the supplied verification key. Match the verified key's primary
+        // fingerprint so signatures made by its signing subkey (different issuer fingerprint) pass.
+        guard
+          let signingKey: CryptoKey = result.signedByKey(),
+          signingKey.getFingerprint().caseInsensitiveCompare(expectedFingerprint) == .orderedSame
+        else {
+          throw PGPIssue.error(
+            underlyingError: PGPGenericIssue.error("Signature was not created by the expected key")
+          )
         }
-        throw PGPIssue.error(
-          underlyingError: PGPGenericIssue.error("Cannot decode verified data")
-        )
+        guard let data: Data = result.cleartext()
+        else {
+          throw PGPIssue.error(
+            underlyingError: PGPGenericIssue.error("Cannot decode verified data")
+          )
+        }
+        return .success(String(decoding: data, as: UTF8.self))
       }
       catch {
         return .failure(

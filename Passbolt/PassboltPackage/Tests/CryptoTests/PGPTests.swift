@@ -82,7 +82,11 @@ final class PGPTests: XCTestCase {
       publicKey
     )
 
-    XCTAssertEqual(try output.get().content, "passbolt\n")
+    let verified: PGP.VerifiedMessage = try output.get()
+    XCTAssertEqual(verified.content, "passbolt\n")
+    // The returned signer metadata must correspond to the verifying key.
+    XCTAssertEqual(verified.signature.fingerprint.rawValue.uppercased(), fingerprint.rawValue)
+    XCTAssertFalse(verified.signature.keyID.isEmpty)
   }
 
   func test_decryptionAndVerification_withInvalidPassphrase_fails() {
@@ -124,6 +128,162 @@ final class PGPTests: XCTestCase {
       root: PGPIssue.self,
       matches: Unidentified.self
     )
+  }
+
+  func test_decryptionAndVerification_withSignatureInvalidForVerifyTime_fails() {
+    let input: String = signedCiphertext
+    let passphrase: Passphrase = "Secret"
+    pgp.setTimeOffset(-631_152_000)  // ~20 years
+
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
+      input,
+      passphrase,
+      privateKey,
+      publicKey
+    )
+
+    XCTAssertFailureUnderlyingError(
+      output,
+      root: PGPIssue.self,
+      matches: Unidentified.self
+    )
+  }
+
+  func test_decryptionWithoutVerifying_withSignatureInvalidForVerifyTime_stillSucceeds() {
+    let input: String = signedCiphertext
+    let passphrase: Passphrase = "Secret"
+    pgp.setTimeOffset(-631_152_000)
+
+    let output: Result<String, Error> = pgp.decrypt(input, passphrase, privateKey)
+
+    XCTAssertSuccessEqual(output, "passbolt\n")
+  }
+
+  func test_decryptionAndVerification_withUnsignedMessage_fails() {
+    let passphrase: Passphrase = "Secret"
+    guard case Result.success(let unsignedCiphertext) = pgp.encrypt("passbolt", publicKey) else {
+      return XCTFail("Encryption failed")
+    }
+
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
+      unsignedCiphertext,
+      passphrase,
+      privateKey,
+      publicKey
+    )
+
+    XCTAssertFailure(output)
+  }
+
+  func test_decryptionAndVerification_withSignatureFromUntrustedKey_fails() {
+    // The message decrypts correctly (it is encrypted to our recipient key) and carries a valid
+    // signature from our key, while verification is requested against a different, untrusted
+    // public key. The signer is not in the verification set, so `signatureError()` must report it
+    // and `decryptAndVerify` must not return it as a verified message.
+    let input: String = signedCiphertext
+    let passphrase: Passphrase = "Secret"
+
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
+      input,
+      passphrase,
+      privateKey,
+      otherPublicKey
+    )
+
+    XCTAssertFailure(output)
+  }
+
+  func test_decryptionAndVerification_withSignatureFromSigningSubkey_succeeds() throws {
+    // Regression: the verification key delegates signing to a dedicated [S] subkey, so the
+    // signature's issuer fingerprint is the subkey's, not the key's primary fingerprint. The
+    // message must still verify, and the reported signer fingerprint must be the subkey's.
+    let input: String = subkeySignedCiphertext
+    let passphrase: Passphrase = "Secret"
+
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
+      input,
+      passphrase,
+      privateKey,
+      subkeySignerPublicKey
+    )
+
+    let verified: PGP.VerifiedMessage = try output.get()
+    XCTAssertEqual(verified.content, "passbolt")
+    XCTAssertEqual(
+      verified.signature.fingerprint.rawValue.uppercased(),
+      subkeySignerSubkeyFingerprint.rawValue
+    )
+    XCTAssertNotEqual(
+      verified.signature.fingerprint.rawValue.uppercased(),
+      subkeySignerPrimaryFingerprint.rawValue
+    )
+  }
+
+  func test_verifyMessage_withTamperedSignature_fails() {
+    // Start from a correctly signed cleartext message and corrupt a few bytes inside the armored
+    // signature block, leaving the signed payload ("passbolt") intact. The cryptographic check
+    // over the tampered signature must fail.
+    let tamperedMessage: String = signedMessage.replacingOccurrences(
+      of: "8D0gOUXjEOa8v",
+      with: "8D0gOUXAAOa8v"
+    )
+    // A point in time when the signing key is valid, matching the happy-path verify tests.
+    let verifyTime: Int64 = 1_682_603_755
+    // Sanity check: the tampering actually modified the message.
+    XCTAssertNotEqual(tamperedMessage, signedMessage)
+
+    let output: Result<String, Error> = pgp.verifyMessage(tamperedMessage, publicKey, verifyTime)
+
+    XCTAssertFailure(output)
+  }
+
+  func test_verifyMessage_withTamperedCleartext_fails() {
+    // Alter the signed payload while leaving the signature block intact. The signature no longer
+    // matches the (modified) cleartext, so verification must fail.
+    let tamperedMessage: String = signedMessage.replacingOccurrences(
+      of: "passbolt",
+      with: "PASSBOLT"
+    )
+    let verifyTime: Int64 = 1_682_603_755
+    XCTAssertNotEqual(tamperedMessage, signedMessage)
+
+    let output: Result<String, Error> = pgp.verifyMessage(tamperedMessage, publicKey, verifyTime)
+
+    XCTAssertFailure(output)
+  }
+
+  func test_verifyMessage_withSignatureFromUntrustedKey_fails() {
+    // The message is correctly signed by our key, but verification is requested against a
+    // different, untrusted public key. The signer is not in the verification set, so it must not
+    // be reported as verified.
+    let input: String = signedMessage
+    let verifyTime: Int64 = 1_682_603_755
+
+    let output: Result<String, Error> = pgp.verifyMessage(input, otherPublicKey, verifyTime)
+
+    XCTAssertFailure(output)
+  }
+
+  func test_verifyMessage_withSignatureFromSigningSubkey_succeeds() {
+    // Regression: the verification key delegates signing to a dedicated [S] subkey, so the
+    // signature's issuer fingerprint differs from the key's primary fingerprint. A valid signature
+    // from such a key must still verify rather than be rejected as "not the expected key".
+    let input: String = subkeySignedMessage
+    // Disable the time check: the fixture is signed with a freshly generated, non-expiring key.
+    let verifyTime: Int64 = 0
+
+    let output: Result<String, Error> = pgp.verifyMessage(input, subkeySignerPublicKey, verifyTime)
+
+    XCTAssertSuccessEqual(output, "passbolt")
+  }
+
+  func test_verifyMessage_withEmptyVerificationKey_fails() {
+    let input: String = signedMessage
+    let verifyTime: Int64 = 1_682_603_755
+
+    let output: Result<String, Error> = pgp.verifyMessage(input, "", verifyTime)
+
+    XCTAssertFailure(output)
   }
 
   func test_encryptionWithoutSigning_withProperInputData_success() {
@@ -463,7 +623,166 @@ final class PGPTests: XCTestCase {
     -----END PGP PUBLIC KEY BLOCK-----
     """
 
+  // A different, valid public key (Ada Lovelace test key) used as an untrusted verification key.
+  private let otherPublicKey: ArmoredPGPPublicKey =
+    """
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    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
+    =Kwft
+    -----END PGP PUBLIC KEY BLOCK-----
+    """
+
   private let fingerprint: Fingerprint = .init(rawValue: "A3A3D9487C5771103D5C91CC6842865C83872670")
+
+  // A key whose signing capability is delegated to a dedicated signing subkey: the primary key is
+  // certify-only ([C]) and a separate [S] subkey produces signatures. Signatures from such a key
+  // carry the *subkey's* fingerprint as their issuer, not the primary's — the regression case for
+  // signer-fingerprint verification. Generated with a fixed 2023-04-27 creation time so the fixture
+  // signatures stay valid against the real `now()` used by the gopenPGP implementation under test.
+  private let subkeySignerPrimaryFingerprint: Fingerprint = .init(
+    rawValue: "A459EDB7714E2C74EC592B4C8D6C70B693FAD9E8"
+  )
+  private let subkeySignerSubkeyFingerprint: Fingerprint = .init(
+    rawValue: "39ECE05AEF46437145E602477AE71E8A517EB10A"
+  )
+
+  private let subkeySignerPublicKey: ArmoredPGPPublicKey =
+    """
+    -----BEGIN PGP PUBLIC KEY BLOCK-----
+
+    mQENBGRKkasBCADHbnS5iDaeHov3GsWgGfOYd/9RJO5X1/C5Vg8ae9Bdafb5RNZW
+    fcU0N2Ab/F3Am2mgLqLU73iEqhmy3SezKw5Nuzo8ZSdkdflvQGCzPSctNhrUOQ/b
+    4g2au7NIMO7Z8HxLEuJBX0Sa19aGTMiQSC/l7YDHqhbEqZ/WnMIMboaX8DswUOGG
+    grYygJkb/Y5RkSHCnNYUWPDJBXxABtifDhUYK8PwXzAtDMiymVi/JhOTJXmS/d8k
+    AAOuuX92p+ciq3p9/9XmAXvjkLhtrxkJdETTReNYL1QpTd31chpqVfaMo72gBjHc
+    xJVO+wEyak4PLcDpOY8+YeG5NuDwLBEyja7zABEBAAG0K1N1YmtleSBTaWduZXIg
+    PHN1YmtleS1zaWduZXJAcGFzc2JvbHQudGVzdD6JAVEEEwEKADsWIQSkWe23cU4s
+    dOxZK0yNbHC2k/rZ6AUCZEqRqwIbAQULCQgHAgIiAgYVCgkICwIEFgIDAQIeBwIX
+    gAAKCRCNbHC2k/rZ6DdpB/96irV0Oqlt4Eg5ByqsA/X+D1ZiEG4TSy3JLuz3/IQH
+    VjD4V0QVc1UxsBGPFD8FFMibGtOuL9u0XZkWVD50wFS5ESXtA3L00knVoR9bzjKD
+    GCpEy4OYf4CP4MahLBelM5MSJiGWdNVMszxqjcz6HbI6+b7v6BHoLbUcaRR6ACEn
+    vNEMfQdRxPad6oxFf7cdgwtJt/LZsIuoygQ7mJw+uasO6HCJMm7wyuVspiGRkEpJ
+    +68cTCw7lO5JcsndBSNglZRfXEl+QqgsrLsLCSu6G9Co1St8VIgKfZdi5ZtL3N+i
+    wVD8kw8E+ZTMaYLAac3jHJ/yrUGxopRSYfznouIUXqF5uQENBGRKkasBCADObYRI
+    AWR3cr9P8yxurJ/T/Z8VcH3aoCe3HyLyXIVmWEXkXa5moBMA/3jxG/Z7yAsDbNRH
+    GMNe7qclOPhhHzHgVpynrSC7tv26IEmj3nA4bnuHWQJRs31dR0L8wsrIai7uwQqt
+    bn/Th9jzgHktymv5yTMlSJy6TMw3ykzwzz1On998RvZwMp9TvxiCjl1rqzR1QNRN
+    4YwPSL/t2ouKkdqdFzy3DCc29+5zDufiEXsszvk4P9SsThPbCC8N0BW2dSPCXBj8
+    N2W8JNKNjGKahjmqZp4AOo8j+0GmI+FDHEkcGJQ7aLDeUmxb+bKAOOOHuM8KzdR0
+    8Iq1EjboPVU6szS/ABEBAAGJAmwEGAEKACAWIQSkWe23cU4sdOxZK0yNbHC2k/rZ
+    6AUCZEqRqwIbAgFACRCNbHC2k/rZ6MB0IAQZAQoAHRYhBDns4FrvRkNxReYCR3rn
+    HopRfrEKBQJkSpGrAAoJEHrnHopRfrEKUNAH/0qAx7sn+oC80euIJTeKb2mlC0RD
+    a4MfHL4nHBn1bXR4YtFqPPJYB+cN98nLlG3Nj9F6MeFZ2AtNm9GIXQMuNNXZm5UC
+    k51dbT994XzGFuAyLN5TyCsH/wohQztXsx28UyjEojdSlzuF2XUa4CffvX88yx1C
+    zXOAXZUER5Qvj0kr+NABHYlacsxHSWOCK1CYP1GCikV6uWk7Bw5y6TQQ3VSgM00e
+    7Rd5LwRuFS+oU/LmDVhlyF3+gNmGIo4Wjg3EMbZhQyuPXT0dHtB6hlYHeV0vUC31
+    FSsjDWUqj0kCvCwbSJntkgxdSuEmEWcpeZLYymNe4mts2St/KoGbFxSQ44FcDQf/
+    cp2/gdNCIXN4VQMNc0oA6pa5sT1LlGsArZFUA0iOwGjmP8jimi9OTPXCBXSuS5lH
+    1UqOJgWC+9IFkyk/e2njrlrKrw5p65M8fi9lgKEBxBroB1YZQ1tdSlf+MH+s9v+L
+    e6y4Fm0DoufM9r1Mrk8wWNeabW4KPLQIhE7nAniHn8s8IDqPmvINA9hlNBWbjL6Y
+    xKxM9vcYTckEGnU6Q+VYvPV3k2i5SsZpanB0CxNScFrS6sn6CIOFg7fo+81ErQts
+    JJKfGDkTHcpUaRH16eqEDyfsI5eZ74tGvegdle1DJ+iZmnFeo9nLL3cNO600Ju79
+    9T61KbKi733Tmd6CNMosgg==
+    =ELV7
+    -----END PGP PUBLIC KEY BLOCK-----
+    """
+
+  // "passbolt" clear-signed by the signing subkey of `subkeySignerPublicKey`.
+  private let subkeySignedMessage: String =
+    """
+    -----BEGIN PGP SIGNED MESSAGE-----
+    Hash: SHA512
+
+    passbolt
+    -----BEGIN PGP SIGNATURE-----
+
+    iQEzBAEBCgAdFiEEOezgWu9GQ3FF5gJHeuceilF+sQoFAmRKkasACgkQeuceilF+
+    sQqDUAgAiJiVvUtaK43VWOhfNt3U3F52rfsBTCGVQ1Cz8IhWnKkbW0gZ3yhYC/N+
+    R1qmjcSFQ0NzK7NBoHgPxkLiK9oz7ck8RmF3VQfjuLVw9yrKlAQKyl/SFArMXQLB
+    HNSA9f/CWOC4vwAI7r4yno8vBMJGVOxIVX5RrWKVcdq2jr1APXy3Raz7+dxS7cXh
+    MLuFhxL79i3E3nFvsrkF4uMYAFgIBhOXsUnP2rnUdmkLaszxA/zVQnxJP0ToLX2b
+    2mih79MBcoDqoQfWeMUyFhhjwhR7dqRY9a51IYgzK78oum4OCp5tYw53Bgz2oaXk
+    tnRmq+j0YrNEDN1H32WnUBBS/jp2Ew==
+    =9tZG
+    -----END PGP SIGNATURE-----
+    """
+
+  // "passbolt" encrypted to the `publicKey` recipient and signed by the signing subkey of
+  // `subkeySignerPublicKey`; decryptable with `privateKey` and verifiable with `subkeySignerPublicKey`.
+  private let subkeySignedCiphertext: String =
+    """
+    -----BEGIN PGP MESSAGE-----
+
+    hQIMA2YpnJitJuEuARAAi3SFnoWsSN8TZPhYmpDSOh4pZ5mUJieqt+ylb5n5W5gM
+    nQMNLcAHz4iz9BVBgAQS6UdClCXI5XJQqmBxlA5mbFqUhU9q1FtEiq2kl5Fo93pT
+    e+Ww7AcPSiTk05gDmleRxpm0C3DyKpBgoKe92g+ZzBLZxxOrwt9+8BMNArngi3wV
+    1UWGhf64n2jzQWRxIGW5L+3Fc6eZflPoX8yl7JofR+bLsQkhChkhshvxf9R33ZWw
+    TtbjD9xvqj8RSMlyIGsjwesaFFLd/SCn+dJv3YhsFPknqTUso6J0OJ2BXruGOPEY
+    46FzFlV4qhl/hVSFDf6/dMQsW+JDUF0n4neuPSltfp3QE32byyYbE4IF2AOzGaqz
+    vC6UOquTiobJqVK3oN+In5733QIRPNhduAQsKu4QdKo+D2R7DqIEOy3M3JYxycJK
+    uX8sUdjyfhRPorVuO+FriUpYwER4jjRP/CWGImDGuc+cVz/w41iJOg2itPbIa2be
+    DIWpsuEDBI5+EZIoRD+8lUqzEFy2MTc2BnCC6ZB7UBQx63p6CAzF1IhLGLdR981P
+    StEgRqcOpIlHykjXjxbUK2/DqPrEw52PJUM5/qaVkll8wbHhxrv/d4iOqpJxVJz7
+    UeZoTxHYWIv7PCmhhSq7biby1aTqbto9EMGuL4exgHm7q400DR1c/TKoz0TsTm3U
+    wOkBCQIQ1kqT/noEF/pvFiCG5wWp1/SLo1n2ToCY1qPIhiTzoQbQ/X6utNmZcRA2
+    mNw93a3xJvy8mYXiLjH811Rw9DqXEx9CDzVTE2Z4ORWRmF38bZVSnqDX9mPEcqdJ
+    Vmm+HdiE9FTZjvnzcMjK3l2NVHr61XtWvgAjUDMwd0RWvmKiR+iqCQ+wVNoQCRWv
+    NjeAoL7yLLs+50r0PO05vgIm0iEXG+FKRKoaTU421DqaDWlzUztJspdr5ghy3xFM
+    6bG4QW4VMDpq1sdL1+88RQ7S5CqDXHCP07EsBZIINwp35BaJGYVrzwRqMwUbluXz
+    TbYR+O+/F4lKpuqdyAQitQhJR/5ZR+RsaZlJKJwOhP5yFJju33PCCEN2Y04llwpJ
+    2IvFVA9VQlZPz8j9yu29lN6Nhm0Hg9wfikFaMOZyDAC50OoUU9IYQFNXI/n0sdJs
+    i837r0yTU6SHEIuhqxfoqLySXQVVsOq20QwVVOtUYCddEW7rOBSOZowjZbTksnwJ
+    DLVi2l5b5AGCdbtmpXl078Kuz/UjnJPUgGLBpg8COTDBujjfnn/PnycmfA==
+    =FR6h
+    -----END PGP MESSAGE-----
+    """
 
   private let privateKey: ArmoredPGPPrivateKey =
     """
