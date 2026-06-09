@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 
 internal struct YubiKeyView: ControlledView {
@@ -58,7 +59,9 @@ internal struct YubiKeyView: ControlledView {
         Text(
           displayable: available
             ? "mfa.yubiKey.description"
-            : "mfa.yubiKey.unavailable.description"
+            : isInExtensionContext
+              ? "mfa.yubiKey.unavailable.extension.description"
+              : "mfa.yubiKey.nfc.not.supported"
         )
         .font(.inter(ofSize: 14, weight: .regular))
         .multilineTextAlignment(.center)

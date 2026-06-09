@@ -404,6 +404,7 @@ NFC, aby ta operacja się powiodła.";
 "mfa.yubiKey.scan" = "Zeskanuj swój YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "To urządzenie nie obsługuje NFC.";
 "mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
+"mfa.yubiKey.unavailable.extension.description" = "NFC isn't available to the autofill view on this version of iOS, so your YubiKey can't be scanned here.\n\nOpen the Passbolt app to sign in with your YubiKey, or switch to another MFA provider.";
 "mfa.provider.try.another" = "Spróbuj innego dostawcy";
 "mfa.remember.token" = "Zapamiętaj to urządzenie na 30 dni";
 "mfa.unsupported.provider.title" = "Nie obsługujemy Twojego dostawcy uwierzytelniania wieloskładnikowego";

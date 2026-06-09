@@ -404,6 +404,7 @@ NFC가 있어야 작동합니다.";
 "mfa.yubiKey.scan" = "YubiKey 스캔";
 "mfa.yubiKey.nfc.not.supported" = "이 기기는 NFC를 지원하지 않습니다.";
 "mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
+"mfa.yubiKey.unavailable.extension.description" = "NFC isn't available to the autofill view on this version of iOS, so your YubiKey can't be scanned here.\n\nOpen the Passbolt app to sign in with your YubiKey, or switch to another MFA provider.";
 "mfa.provider.try.another" = "다른 공급자로 시도하세요.";
 "mfa.remember.token" = "이 기기를 30일 동안 기억";
 "mfa.unsupported.provider.title" = "다단계인증 공급자가 지원되지 않습니다.";
