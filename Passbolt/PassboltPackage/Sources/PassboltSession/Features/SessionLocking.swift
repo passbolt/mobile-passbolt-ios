@@ -98,7 +98,7 @@ extension SessionLocking {
                 }
                 catch {
                   error.logged()
-                  return true  // default to wiping passphrase on background if we can't determine the setting
+                  return false  // default to not wiping passphrase on background if we can't determine the setting
                 }
               }
 
