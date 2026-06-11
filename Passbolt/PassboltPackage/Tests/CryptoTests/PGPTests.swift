@@ -159,6 +159,30 @@ final class PGPTests: XCTestCase {
     XCTAssertSuccessEqual(output, "passbolt\n")
   }
 
+  func test_decryptionAndVerification_withFreshSignatureAndSlightlyNegativeOffset_succeeds() throws {
+    // Regression for spurious "signature expired" failures: verifying a freshly created
+    // signature with a slightly negative time offset (e.g. -1 from whole-second truncation)
+    // must still succeed thanks to the clock-skew tolerance.
+    let passphrase: Passphrase = "Secret"
+    guard case Result.success(let freshlySignedCiphertext) =
+      pgp.encryptAndSign("passbolt", passphrase, privateKey, publicKey)
+    else {
+      return XCTFail("Encryption failed")
+    }
+
+    pgp.setTimeOffset(-1)
+
+    let output: Result<PGP.VerifiedMessage, Error> = pgp.decryptAndVerify(
+      freshlySignedCiphertext,
+      passphrase,
+      privateKey,
+      publicKey
+    )
+
+    let verified: PGP.VerifiedMessage = try output.get()
+    XCTAssertEqual(verified.content, "passbolt")
+  }
+
   func test_decryptionAndVerification_withUnsignedMessage_fails() {
     let passphrase: Passphrase = "Secret"
     guard case Result.success(let unsignedCiphertext) = pgp.encrypt("passbolt", publicKey) else {

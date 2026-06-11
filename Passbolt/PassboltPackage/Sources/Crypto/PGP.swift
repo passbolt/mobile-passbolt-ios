@@ -26,6 +26,12 @@ import Features
 import Foundation
 @preconcurrency import Gopenpgp
 
+// Clock-skew tolerance (seconds) added to the verification time. gopenpgp rejects a signature
+// created even one second after the verify time, and whole-second truncation plus imprecise
+// client/server sync can push the verify time just below a fresh signature's creation time.
+// Safe because Passbolt signatures have no lifetime, so this only loosens the future boundary.
+private let verificationTimeTolerance: Int64 = 5
+
 public struct PGP: Sendable {
   // The following functions accept private & public keys as PGP formatted strings
   // https://pkg.go.dev/github.com/ProtonMail/gopenpgp/v2#readme-documentation
@@ -179,6 +185,11 @@ extension PGP {
       Int64(Date.now.timeIntervalSince1970)
     }
 
+    // Time used to verify signatures (never to create them): offset + clock-skew tolerance.
+    @Sendable func verifyTime() -> Int64 {
+      now() + timeOffset.get() + verificationTimeTolerance
+    }
+
     @Sendable func createUnlockedPrivateKey(
       fromArmored privateKey: ArmoredPGPPrivateKey,
       withPassphrase passphrase: Passphrase
@@ -258,7 +269,7 @@ extension PGP {
           with: {
             $0.decryptionKey(key)?
               .verificationKey(verificationKey)?
-              .verifyTime(now() + timeOffset.get())
+              .verifyTime(verifyTime())
           })
         defer { decryptor.clearPrivateParams() }
         let inputData: Data = Data(input.utf8)
@@ -361,7 +372,7 @@ extension PGP {
         let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
           with: {
             $0.decryptionKey(key)?
-              .verifyTime(now() + timeOffset.get())
+              .verifyTime(verifyTime())
           })
         defer { decryptor.clearPrivateParams() }
         let result: CryptoVerifiedDataResult = try decryptor.decrypt(inputData, encoding: PGPEncoding.auto.rawValue)
@@ -433,10 +444,13 @@ extension PGP {
       do {
         let verificationKey: CryptoKey = try createPublicKey(fromArmored: publicKey)
         let expectedFingerprint: String = verificationKey.getFingerprint()
+        // verifyTime == 0 is gopenpgp's sentinel for "skip the time check"; adding the tolerance
+        // would turn it into a real timestamp (5s after the epoch) and reject every genuine signature.
+        let effectiveVerifyTime: Int64 = verifyTime == 0 ? 0 : verifyTime + verificationTimeTolerance
         let verifier: CryptoPGPVerifyProtocol = try CryptoPGPHandle.verifier(
           with: {
             $0.verificationKey(verificationKey)?
-              .verifyTime(verifyTime)
+              .verifyTime(effectiveVerifyTime)
           })
 
         let inputData: Data = Data(input.utf8)
@@ -646,7 +660,7 @@ extension PGP {
       let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
         with: {
           $0.sessionKey(sessionKey)?
-            .verifyTime(now() + timeOffset.get())
+            .verifyTime(verifyTime())
         })
       let result = try decryptor.decrypt(message, encoding: PGPEncoding.auto.rawValue)
       if let decryptedData: Data = result.bytes(),
@@ -666,7 +680,7 @@ extension PGP {
       let decryptor: CryptoPGPDecryptionProtocol = try CryptoPGPHandle.decryptor(
         with: {
           $0.decryptionKey(key)?
-            .verifyTime(now() + timeOffset.get())
+            .verifyTime(verifyTime())
           return $0.retrieveSessionKey()
         })
 

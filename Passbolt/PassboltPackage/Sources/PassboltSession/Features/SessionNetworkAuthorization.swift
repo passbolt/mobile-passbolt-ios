@@ -108,10 +108,14 @@ extension SessionNetworkAuthorization {
       let executionTime: Seconds = .init(rawValue: localTimestampAfter.rawValue - localTimestampBefore.rawValue)
       Diagnostics.logger.info("Local timestamp: \(localTimestampAfter.rawValue, privacy: .public)")
       Diagnostics.logger.info("Server timestamp: \(response.serverTime.rawValue, privacy: .public)")
-      // this is not a very precise time synchronization,
-      // but it is good enough to solve the most of the timing issues
-      // with PGP we encountered which are caused by client and server being out of sync
-      let timeDiff: Seconds = .init(rawValue: response.serverTime.rawValue - time.timestamp().rawValue) - executionTime
+      // Rough client/server time sync, good enough for the PGP timing issues caused by clocks
+      // being out of sync. The server timestamp corresponds to the request midpoint, so compare
+      // it against the client midpoint (`localTimestampBefore + executionTime / 2`). Subtracting
+      // the full `executionTime` instead would double-count the round-trip and bias the offset
+      // negative, producing spurious "signature expired" failures.
+      let timeDiff: Seconds =
+        .init(rawValue: response.serverTime.rawValue - localTimestampBefore.rawValue)
+        - .init(rawValue: executionTime.rawValue / 2)
 
       guard timeDiff <= 10 && timeDiff >= -10
       else {
