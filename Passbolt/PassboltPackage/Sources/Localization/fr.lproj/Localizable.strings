@@ -263,10 +263,8 @@
 "transfer.account.title" = "Transférer les détails du compte";
 "transfer.account.import.description" = "Scannez les QR codes pour transférer les détails de votre compte";
 "transfer.account.import.info.step.first" = "Connectez-vous en utilisant l'extension de navigateur";
-"transfer.account.import.info.step.second" = "Aller à la page du profil";
-"transfer.account.import.info.step.second.distinct" = "Profil";
-"transfer.account.import.info.step.third" = "Aller à la section Mobile";
-"transfer.account.import.info.step.third.distinct" = "Mobile";
+"transfer.account.import.info.step.second" = "Aller à la page du **profil**";
+"transfer.account.import.info.step.third" = "Aller à la section **Mobile**";
 "transfer.account.import.info.step.fourth" = "Scanner la séquence des codes QR";
 "transfer.account.import.scan.qr.button" = "Scannez les codes QR";
 "transfer.account.export.description" = "Afficher les QR codes pour transférer les informations de votre compte";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "Désactiver";
 "extension.setup.passbolt.step" = "Choisissez Passbolt!";
 "extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "Aller aux paramètres";
 "extension.setup.later.button" = "Peut-être plus tard";
 

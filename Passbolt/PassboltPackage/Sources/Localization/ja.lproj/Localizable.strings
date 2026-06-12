@@ -263,10 +263,8 @@
 "transfer.account.title" = "アカウント情報を転送";
 "transfer.account.import.description" = "アカウント情報を転送するためにQRコードをスキャン";
 "transfer.account.import.info.step.first" = "ブラウザ拡張機能を使用してサインイン";
-"transfer.account.import.info.step.second" = "プロフィールページに移動";
-"transfer.account.import.info.step.second.distinct" = "プロフィール";
-"transfer.account.import.info.step.third" = "モバイルセクションに移動";
-"transfer.account.import.info.step.third.distinct" = "モバイル";
+"transfer.account.import.info.step.second" = "**プロフィール**ページに移動";
+"transfer.account.import.info.step.third" = "**モバイル**セクションに移動";
 "transfer.account.import.info.step.fourth" = "QRコードシーケンスをスキャン";
 "transfer.account.import.scan.qr.button" = "QRコードをスキャン";
 "transfer.account.export.description" = "アカウント情報を転送するためにQRコードを表示";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "オフにする";
 "extension.setup.passbolt.step" = "パスボルトを選択！";
 "extension.setup.passbolt.step.bold" = "パスボルト！";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "設定に移動";
 "extension.setup.later.button" = "後で";
 

@@ -263,10 +263,8 @@
 "transfer.account.title" = "Kontodaten übertragen";
 "transfer.account.import.description" = "QR-Codes scannen, um Ihre Kontodaten zu übertragen";
 "transfer.account.import.info.step.first" = "Anmeldung über die Browsererweiterung";
-"transfer.account.import.info.step.second" = "Zur Profilseite gehen";
-"transfer.account.import.info.step.second.distinct" = "Profil";
-"transfer.account.import.info.step.third" = "Zum Mobil-Bereich";
-"transfer.account.import.info.step.third.distinct" = "Mobil";
+"transfer.account.import.info.step.second" = "Zur **Profilseite** gehen";
+"transfer.account.import.info.step.third" = "Zum **Mobil**-Bereich";
 "transfer.account.import.info.step.fourth" = "Scannen Sie die QR-Codes nacheinander";
 "transfer.account.import.scan.qr.button" = "QR-Codes scannen";
 "transfer.account.export.description" = "QR-Codes anzeigen, um Ihre Kontodaten zu übertragen";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "Ausschalten";
 "extension.setup.passbolt.step" = "Passbolt wählen!";
 "extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "Zu den Einstellungen";
 "extension.setup.later.button" = "Vielleicht später";
 

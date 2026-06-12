@@ -47,58 +47,19 @@ internal struct ExtensionSetupView: ControlledView {
             ),
             color: .passboltPrimaryText
           )
+          .fixedSize(horizontal: false, vertical: true)
           .multilineTextAlignment(.center)
 
         VStack(alignment: .leading, spacing: 0) {
-          ExtensionStepView(
-            icon: .settingsIcon,
-            text: .displayable(
-              "extension.setup.settings.step",
-              withBoldSubstring: "extension.setup.settings.step.bold",
-              fontSize: 14,
-              color: .passboltPrimaryText
+          ForEach(Array(ExtensionSetupStep.steps.enumerated()), id: \.element.icon) { index, step in
+            if index > 0 {
+              divider
+            }
+            ExtensionStepView(
+              icon: step.icon,
+              text: step.text
             )
-          )
-          divider
-          ExtensionStepView(
-            icon: .keyboardIcon,
-            text: .displayable(
-              "extension.setup.keyboard.step",
-              withBoldSubstring: "extension.setup.keyboard.step.bold",
-              fontSize: 14,
-              color: .passboltPrimaryText
-            )
-          )
-          divider
-          ExtensionStepView(
-            icon: .switchIcon,
-            text: .displayable(
-              "extension.setup.switch.step",
-              withBoldSubstring: "extension.setup.switch.step.bold",
-              fontSize: 14,
-              color: .passboltPrimaryText
-            )
-          )
-          divider
-          ExtensionStepView(
-            icon: .keychainIcon,
-            text: .displayable(
-              "extension.setup.keychain.step",
-              withBoldSubstring: "extension.setup.keychain.step.bold",
-              fontSize: 14,
-              color: .passboltPrimaryText
-            )
-          )
-          divider
-          ExtensionStepView(
-            icon: .passboltIcon,
-            text: .displayable(
-              "extension.setup.passbolt.step",
-              withBoldSubstring: "extension.setup.passbolt.step.bold",
-              fontSize: 14,
-              color: .passboltPrimaryText
-            )
-          )
+          }
         }
       }
 
@@ -150,22 +111,47 @@ internal struct ExtensionSetupView: ControlledView {
   }
 }
 
+private struct ExtensionSetupStep {
+
+  fileprivate let icon: ImageNameConstant
+  fileprivate let text: DisplayableString
+
+  private init(
+    icon: ImageNameConstant,
+    text: DisplayableString
+  ) {
+    self.icon = icon
+    self.text = text
+  }
+
+  @MainActor fileprivate static let steps: Array<ExtensionSetupStep> = [
+    .init(
+      icon: .settingsIcon,
+      text: "extension.setup.step.settings"
+    ),
+    .init(
+      icon: .autofill,
+      text: "extension.setup.step.autofill"
+    ),
+    .init(
+      icon: .switchIcon,
+      text: "extension.setup.step.switch"
+    ),
+    .init(
+      icon: .passboltIcon,
+      text: "extension.setup.step.passbolt"
+    ),
+    .init(
+      icon: .passwords,
+      text: "extension.setup.step.passwords"
+    ),
+  ]
+}
+
 private struct ExtensionStepView: View {
 
-  @Environment(\.colorScheme) var colorScheme
   let icon: ImageNameConstant
-  let text: UICommons.AttributedString
-
-  private var interfaceStyle: UIUserInterfaceStyle {
-    switch colorScheme {
-    case .light:
-      return .light
-    case .dark:
-      return .dark
-    @unknown default:
-      return .unspecified
-    }
-  }
+  let text: DisplayableString
 
   var body: some View {
     HStack(spacing: 16) {
@@ -174,21 +160,24 @@ private struct ExtensionStepView: View {
         .frame(width: 24, height: 24)
         .foregroundColor(.passboltPrimaryBlue)
 
-      Text(text.nsAttributedString(in: interfaceStyle).toAttributedString())
-        .text(
-          font: .inter(ofSize: 14),
-          color: .passboltSecondaryText
-        )
-        .multilineTextAlignment(.leading)
+      Text(
+        localizedMarkdown: text,
+        size: 14,
+        color: .passboltPrimaryText
+      )
+      .multilineTextAlignment(.leading)
+      .fixedSize(horizontal: false, vertical: true)
 
       Spacer()
     }
   }
 }
 
-extension NSAttributedString {
-
-  func toAttributedString() -> SwiftUI.AttributedString {
-    AttributedString(self)
-  }
+#if DEBUG
+#Preview {
+  createPreview(
+    ExtensionSetupView.self,
+    with: .init(allowSkipping: true)
+  )
 }
+#endif

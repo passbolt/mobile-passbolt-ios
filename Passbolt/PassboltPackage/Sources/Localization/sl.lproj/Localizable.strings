@@ -263,10 +263,8 @@
 "transfer.account.title" = "Prenesi podatke računa";
 "transfer.account.import.description" = "Skenirajte QR kode za prenos podatkov vašega računa";
 "transfer.account.import.info.step.first" = "Prijavite se z razširitvijo brskalnika";
-"transfer.account.import.info.step.second" = "Pojdite na stran Profila";
-"transfer.account.import.info.step.second.distinct" = "Profil";
-"transfer.account.import.info.step.third" = "Pojdite v razdelek Mobilna naprava";
-"transfer.account.import.info.step.third.distinct" = "Mobilna naprava";
+"transfer.account.import.info.step.second" = "Pojdite na stran **Profila**";
+"transfer.account.import.info.step.third" = "Pojdite v razdelek **Mobilna naprava**";
 "transfer.account.import.info.step.fourth" = "Skenirajte zaporedje QR kod";
 "transfer.account.import.scan.qr.button" = "Skeniraj QR kode";
 "transfer.account.export.description" = "Pokažite QR kode za prenos podatkov vašega računa";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "Izklopi";
 "extension.setup.passbolt.step" = "Izberite Passbolt!";
 "extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "Pojdi v nastavitve";
 "extension.setup.later.button" = "Morda kasneje";
 

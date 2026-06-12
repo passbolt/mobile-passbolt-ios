@@ -263,10 +263,8 @@
 "transfer.account.title" = "Реквизиты счета для перевода";
 "transfer.account.import.description" = "Сканируйте QR-коды, чтобы перенести данные вашей учетной записи";
 "transfer.account.import.info.step.first" = "Войти с помощью расширения браузера";
-"transfer.account.import.info.step.second" = "Перейти на страницу профиля";
-"transfer.account.import.info.step.second.distinct" = "Профиль";
-"transfer.account.import.info.step.third" = "Перейти в раздел \"Мобильный\"";
-"transfer.account.import.info.step.third.distinct" = "Мобильный";
+"transfer.account.import.info.step.second" = "Перейти на страницу **профиля**";
+"transfer.account.import.info.step.third" = "Перейти в раздел \"**Мобильный**\"";
 "transfer.account.import.info.step.fourth" = "Сканируйте последовательность QR-кодов";
 "transfer.account.import.scan.qr.button" = "Сканирование QR-кодов";
 "transfer.account.export.description" = "Показать QR-коды для передачи данных аккаунта";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "Выключить";
 "extension.setup.passbolt.step" = "Выберите Passbolt!";
 "extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "Перейти к настройкам";
 "extension.setup.later.button" = "Возможно, позже";
 

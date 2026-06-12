@@ -263,10 +263,8 @@
 "transfer.account.title" = "계정 세부 정보 전송";
 "transfer.account.import.description" = "QR 코드를 스캔하여 계정 세부 정보를 전송합니다.";
 "transfer.account.import.info.step.first" = "브라우저 확장프로그램을 사용하여 로그인";
-"transfer.account.import.info.step.second" = "프로필 페이지로 이동";
-"transfer.account.import.info.step.second.distinct" = "프로필";
-"transfer.account.import.info.step.third" = "모바일 섹션으로 이동";
-"transfer.account.import.info.step.third.distinct" = "모바일";
+"transfer.account.import.info.step.second" = "**프로필** 페이지로 이동";
+"transfer.account.import.info.step.third" = "**모바일** 섹션으로 이동";
 "transfer.account.import.info.step.fourth" = "QR코드 시퀀스를 스캔";
 "transfer.account.import.scan.qr.button" = "QR 코드 스캔";
 "transfer.account.export.description" = "QR 코드를 표시하여 계정 세부 정보 전송";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "끄기";
 "extension.setup.passbolt.step" = "Passbolt 선택!";
 "extension.setup.passbolt.step.bold" = "패스볼트!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "설정으로 이동";
 "extension.setup.later.button" = "나중에";
 

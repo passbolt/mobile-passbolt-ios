@@ -124,4 +124,6 @@ extension ImageNameConstant {
   public static var paintbrush: Self { "Paintbrush" }
   public static var checkmark: Self { "Checkmark" }
   public static var table: Self { "Table" }
+  public static var autofill: Self { "autofill" }
+  public static var passwords: Self { "Passwords" }
 }

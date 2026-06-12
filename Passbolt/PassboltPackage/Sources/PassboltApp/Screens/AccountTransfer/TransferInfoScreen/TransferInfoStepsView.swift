@@ -25,20 +25,7 @@ import SwiftUI
 import UICommons
 
 internal struct TransferInfoStepsView: View {
-  internal typealias Step = UICommons.AttributedString
-
-  @Environment(\.colorScheme) private var colorScheme
-
-  private var interfaceStyle: UIUserInterfaceStyle {
-    switch colorScheme {
-    case .light:
-      return .light
-    case .dark:
-      return .dark
-    @unknown default:
-      return .unspecified
-    }
-  }
+  internal typealias Step = DisplayableString
 
   private let title: DisplayableString
   private let steps: Array<Step>
@@ -84,12 +71,12 @@ internal struct TransferInfoStepsView: View {
     HStack(spacing: 16) {
       stepIcon(number: number)
 
-      Text(text.nsAttributedString(in: interfaceStyle).toAttributedString())
-        .text(
-          font: .inter(ofSize: 14),
-          color: .passboltSecondaryText
-        )
-        .multilineTextAlignment(.leading)
+      Text(
+        localizedMarkdown: text,
+        size: 14,
+        color: .passboltSecondaryText
+      )
+      .multilineTextAlignment(.leading)
 
       Spacer()
     }

@@ -266,10 +266,8 @@
 "transfer.account.title" = "Transfer account details";
 "transfer.account.import.description" = "Scan QR codes to transfer your account details";
 "transfer.account.import.info.step.first" = "Sign in using the browser extension";
-"transfer.account.import.info.step.second" = "Go to the Profile page";
-"transfer.account.import.info.step.second.distinct" = "Profile";
-"transfer.account.import.info.step.third" = "Go to the Mobile section";
-"transfer.account.import.info.step.third.distinct" = "Mobile";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Scan the qr codes sequence";
 "transfer.account.import.scan.qr.button" = "Scan QR codes";
 "transfer.account.export.description" = "Show QR codes to transfer your account details";
@@ -325,6 +323,12 @@
 "extension.setup.passbolt.step.bold" = "Passbolt!";
 "extension.setup.setup.button" = "Go to settings";
 "extension.setup.later.button" = "Maybe later";
+
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 
 "tab.home" = "Home";
 "tab.otp" = "TOTP";

@@ -69,46 +69,18 @@ internal struct AccountExportInfoView: ControlledView {
   }
 
   private var step1: TransferInfoStepsView.Step {
-    .displayable(
-      .localized(key: "transfer.account.export.info.step.first"),
-      font: .inter(
-        ofSize: 14,
-        weight: .regular
-      ),
-      color: .passboltSecondaryText
-    )
+    .localized(key: "transfer.account.export.info.step.first")
   }
 
   private var step2: TransferInfoStepsView.Step {
-    .displayable(
-      .localized(key: "transfer.account.export.info.step.second"),
-      font: .inter(
-        ofSize: 14,
-        weight: .regular
-      ),
-      color: .passboltSecondaryText
-    )
+    .localized(key: "transfer.account.export.info.step.second")
   }
 
   private var step3: TransferInfoStepsView.Step {
-    .displayable(
-      .localized(key: "transfer.account.export.info.step.third"),
-      font: .inter(
-        ofSize: 14,
-        weight: .regular
-      ),
-      color: .passboltSecondaryText
-    )
+    .localized(key: "transfer.account.export.info.step.third")
   }
 
   private var step4: TransferInfoStepsView.Step {
-    .displayable(
-      .localized(key: "transfer.account.export.info.step.fourth"),
-      font: .inter(
-        ofSize: 14,
-        weight: .regular
-      ),
-      color: .passboltSecondaryText
-    )
+    .localized(key: "transfer.account.export.info.step.fourth")
   }
 }

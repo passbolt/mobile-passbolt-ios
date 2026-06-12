@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "Apple_Passwords_dark.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

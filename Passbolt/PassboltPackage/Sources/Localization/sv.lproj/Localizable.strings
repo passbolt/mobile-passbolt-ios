@@ -263,10 +263,8 @@
 "transfer.account.title" = "Överför kontoinformation";
 "transfer.account.import.description" = "Skanna QR-koder för att överföra dina kontouppgifter";
 "transfer.account.import.info.step.first" = "Logga in med webbläsartillägget";
-"transfer.account.import.info.step.second" = "Gå till profilsidan";
-"transfer.account.import.info.step.second.distinct" = "Profil";
-"transfer.account.import.info.step.third" = "Gå till avsnittet Mobil";
-"transfer.account.import.info.step.third.distinct" = "Mobil";
+"transfer.account.import.info.step.second" = "Gå till **profilsidan**";
+"transfer.account.import.info.step.third" = "Gå till avsnittet **Mobil**";
 "transfer.account.import.info.step.fourth" = "Skanna qr-kodsekvensen";
 "transfer.account.import.scan.qr.button" = "Skanna QR-koder";
 "transfer.account.export.description" = "Visa QR-koder för att överföra dina kontouppgifter";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "Stäng av";
 "extension.setup.passbolt.step" = "Välj Passbolt!";
 "extension.setup.passbolt.step.bold" = "Passbolt™!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "Gå till inställningar";
 "extension.setup.later.button" = "Kanske senare";
 

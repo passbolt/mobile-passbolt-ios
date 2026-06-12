@@ -263,10 +263,8 @@
 "transfer.account.title" = "Accountgegevens overdragen";
 "transfer.account.import.description" = "Scan QR-codes om je accountgegevens over te dragen";
 "transfer.account.import.info.step.first" = "Meld je aan met de browserextensie";
-"transfer.account.import.info.step.second" = "Ga naar de profielpagina";
-"transfer.account.import.info.step.second.distinct" = "Profiel";
-"transfer.account.import.info.step.third" = "Ga naar het mobiele gedeelte";
-"transfer.account.import.info.step.third.distinct" = "Mobiel";
+"transfer.account.import.info.step.second" = "Ga naar de **profielpagina**";
+"transfer.account.import.info.step.third" = "Ga naar het **mobiele** gedeelte";
 "transfer.account.import.info.step.fourth" = "Scan de reeks qr-codes";
 "transfer.account.import.scan.qr.button" = "Scan QR-codes";
 "transfer.account.export.description" = "Toon QR-codes om je accountgegevens over te dragen";
@@ -320,6 +318,11 @@
 "extension.setup.keychain.step.bold" = "Uitschakelen";
 "extension.setup.passbolt.step" = "Kies Passbolt!";
 "extension.setup.passbolt.step.bold" = "Passbolt!";
+"extension.setup.step.settings" = "Go to the **Settings** → **General**";
+"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
+"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
+"extension.setup.step.passbolt" = "Enable **Passbolt!**";
+"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
 "extension.setup.setup.button" = "Ga naar instellingen";
 "extension.setup.later.button" = "Misschien later";
 
