@@ -79,17 +79,18 @@ extension MetadataKeysService {
 
     @Sendable func verifiedMetadataKey(
       encryptedMessage: String,
-      publicKey: MetadataKeyDTO,
+      signerUserID: User.ID,
       privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
     ) async throws -> VerifiedMetadataPrivateKey? {
+      // Verify against the copy owner's key: each user signs their own copy when trusting the key.
+      // The signer is the owner, not the metadata key's `modifiedBy` (often a different user).
       guard
-        let modifyingUserId: User.ID = publicKey.modifiedBy,
-        let modifyingUserPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([modifyingUserId]).first
+        let signerPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([signerUserID]).first
       else {
         return .none
       }
 
-      let publicKey: ArmoredPGPPublicKey = modifyingUserPublicKeyDSV.publicKey
+      let publicKey: ArmoredPGPPublicKey = signerPublicKeyDSV.publicKey
 
       let result: PGP.VerifiedMessage = try await sessionCryptography.decryptAndVerifyMessage(
         .init(rawValue: encryptedMessage),
@@ -108,14 +109,14 @@ extension MetadataKeysService {
 
     @Sendable func decodeAndVerify(
       encryptedMessage: String,
-      publicKey: MetadataKeyDTO,
+      signerUserID: User.ID,
       privateKeyId: MetadataKeyDTO.MetadataPrivateKey.ID
     ) async throws -> VerifiedMetadataPrivateKey {
       let armoredMessage: ArmoredPGPMessage = .init(rawValue: encryptedMessage)
       do {
         if let verifiedKey: VerifiedMetadataPrivateKey = try await verifiedMetadataKey(
           encryptedMessage: encryptedMessage,
-          publicKey: publicKey,
+          signerUserID: signerUserID,
           privateKeyId: privateKeyId
         ) {
           return verifiedKey
@@ -186,7 +187,11 @@ extension MetadataKeysService {
       for key in newKeys {
         let privateKeys: Array<VerifiedMetadataPrivateKey> = try await key.privateKeys
           .asyncMap {
-            try await decodeAndVerify(encryptedMessage: $0.encryptedData, publicKey: key, privateKeyId: $0.id)
+            try await decodeAndVerify(
+              encryptedMessage: $0.encryptedData,
+              signerUserID: $0.userId,
+              privateKeyId: $0.id
+            )
           }
         do {
           let cached: CachedKeys = try await createCachedKey(publicKey: key, privateKeys: privateKeys)
@@ -411,7 +416,9 @@ extension MetadataKeysService {
             continue
           }
 
-          if signature.fingerprint.rawValue.uppercased() == currentUserFingerprint {
+          // Match on the primary fingerprint, not the issuer: a subkey signature's `fingerprint` is
+          // the subkey's and would never equal the user's primary fingerprint.
+          if signature.primaryFingerprint.rawValue.uppercased() == currentUserFingerprint {
             Diagnostics.logger.debug("Found valid signature from current user.")
             return true
           }
@@ -455,12 +462,19 @@ extension MetadataKeysService {
         if let privateKey: VerifiedMetadataPrivateKey = metadataKey.privateKeys.first,
           let signedMessage: ArmoredPGPMessage = try await signMetadataKey(message: privateKey.raw)
         {
-          _ = try await updateMetadataPrivatekeyOperation.execute(
-            .init(
-              privateKeyId: privateKey.privateKeyId,
-              data: signedMessage.rawValue
+          do {
+            _ = try await updateMetadataPrivatekeyOperation.execute(
+              .init(
+                privateKeyId: privateKey.privateKeyId,
+                data: signedMessage.rawValue
+              )
             )
-          )
+          }
+          catch let validationFailure as NetworkRequestValidationFailure
+            where validationFailure.indicatesMetadataPrivateKeyAlreadyEdited {
+            // Already signed server-side: pin locally instead of re-failing the update on each edit/retry.
+            Diagnostics.logger.info("Metadata private key already edited by current user - storing locally.")
+          }
           try storeInLocalStorage()
         }
       }
@@ -936,5 +950,20 @@ private struct MetadataPinnedKey {
     json[keyPath: \.fingerprint] = .string(fingerprint.rawValue)
     json[keyPath: \.modified] = .float(modified.timeIntervalSince1970)
     return json
+  }
+}
+
+extension NetworkRequestValidationFailure {
+
+  /// `true` for the HTTP 400 returned when the current user already edited this metadata private key.
+  /// Matched on the envelope header message - the only signal the API gives (its `code` is plain 400).
+  fileprivate var indicatesMetadataPrivateKeyAlreadyEdited: Bool {
+    guard
+      let header: Dictionary<String, Any> = validationViolations["header"] as? Dictionary<String, Any>,
+      let message: String = header["message"] as? String
+    else {
+      return false
+    }
+    return message.lowercased().contains("already edited")
   }
 }

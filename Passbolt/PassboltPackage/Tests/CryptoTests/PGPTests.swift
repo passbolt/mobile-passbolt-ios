@@ -241,6 +241,15 @@ final class PGPTests: XCTestCase {
       verified.signature.fingerprint.rawValue.uppercased(),
       subkeySignerPrimaryFingerprint.rawValue
     )
+    // `primaryFingerprint` resolves to the signer's primary key even though a subkey signed.
+    XCTAssertEqual(
+      verified.signature.primaryFingerprint.rawValue.uppercased(),
+      subkeySignerPrimaryFingerprint.rawValue
+    )
+    XCTAssertNotEqual(
+      verified.signature.primaryFingerprint.rawValue.uppercased(),
+      subkeySignerSubkeyFingerprint.rawValue
+    )
   }
 
   func test_verifyMessage_withTamperedSignature_fails() {

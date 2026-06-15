@@ -295,6 +295,7 @@ extension PGP.Signature {
       signature: .empty,
       createdAt: .now,
       fingerprint: .empty,
+      primaryFingerprint: .empty,
       keyID: .empty
     )
   }

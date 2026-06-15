@@ -68,6 +68,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
             signature: "",
             createdAt: .now,
             fingerprint: .empty,
+            primaryFingerprint: .empty,
             keyID: .empty
           )
         )
@@ -529,6 +530,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
               signature: "signature",
               createdAt: .now,
               fingerprint: currentUserFingerprint,
+              primaryFingerprint: currentUserFingerprint,
               keyID: "signature key id"
             )
           )
@@ -685,6 +687,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
               signature: "signature",
               createdAt: .now,
               fingerprint: attackerFingerprint,
+              primaryFingerprint: attackerFingerprint,
               keyID: "attacker key id"
             )
           )
@@ -762,6 +765,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
               signature: "signature",
               createdAt: .now,
               fingerprint: currentUserFingerprint,
+              primaryFingerprint: currentUserFingerprint,
               keyID: "signature key id"
             )
           )
@@ -839,6 +843,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
             signature: "signature",
             createdAt: .now,
             fingerprint: currentUserFingerprint,
+            primaryFingerprint: currentUserFingerprint,
             keyID: "signature key id"
           )
         )
@@ -921,6 +926,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
             signature: "different_signature",
             createdAt: .now,
             fingerprint: differentFingerprint,
+            primaryFingerprint: differentFingerprint,
             keyID: "different_key_id"
           )
         )
@@ -958,6 +964,173 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     await fulfillment(
       of: [storeKeyExpectation, fetchKeyExpectation],
       timeout: 1.0
+    )
+  }
+
+  func testTrustingKey_whenUpdateReturnsHTTPConflict_shouldStillPinLocally() async throws {
+    let currentUserFingerprint: Fingerprint = "CURRENT_USER_FINGERPRINT"
+    let differentFingerprint: Fingerprint = "DIFFERENT_FINGERPRINT"
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \AccountPassphraseStorage.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_ada, publicKey: "public key")])
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success(currentUserFingerprint))
+    )
+    patch(
+      \SessionCryptography.decryptAndVerifyMessage,
+      with: { (input, _) async throws -> PGP.VerifiedMessage in
+        .init(
+          content: input.rawValue,
+          signature: .init(
+            signature: "different_signature",
+            createdAt: .now,
+            fingerprint: differentFingerprint,
+            primaryFingerprint: differentFingerprint,
+            keyID: "different_key_id"
+          )
+        )
+      }
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(.init(rawValue: "signed message"))
+    )
+    patch(
+      \PGP.encryptAndSign,
+      with: always(.success("signed message"))
+    )
+    // Server reports the current user has already edited this private key (409).
+    patch(
+      \MetadataUpdatePrivateKeyNetworkOperation.execute,
+      with: { _ async throws -> MetadataUpdatePrivateKeyNetworkOperationDescription.Output in
+        // 400 envelope returned when the key was already edited by this user.
+        throw NetworkRequestValidationFailure.error(
+          validationViolations: [
+            "header": [
+              "message": "The metadata private key was already edited by the user.",
+              "code": 400,
+            ] as Dictionary<String, Sendable>,
+            "body": "",
+          ]
+        )
+      }
+    )
+
+    let storeKeyExpectation: XCTestExpectation = .init(
+      description: "Key should be pinned locally despite the update conflict."
+    )
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        storeKeyExpectation.fulfill()
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    // Must not rethrow - signature already exists server-side.
+    try await testedInstance.trustCurrentKey()
+
+    await fulfillment(of: [storeKeyExpectation], timeout: 1.0)
+  }
+
+  func testTrustingKey_whenUpdateReturnsUnrelatedValidationFailure_shouldRethrow() async throws {
+    let currentUserFingerprint: Fingerprint = "CURRENT_USER_FINGERPRINT"
+    let differentFingerprint: Fingerprint = "DIFFERENT_FINGERPRINT"
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \AccountPassphraseStorage.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
+      with: always("private key")
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_ada, publicKey: "public key")])
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success(currentUserFingerprint))
+    )
+    patch(
+      \SessionCryptography.decryptAndVerifyMessage,
+      with: { (input, _) async throws -> PGP.VerifiedMessage in
+        .init(
+          content: input.rawValue,
+          signature: .init(
+            signature: "different_signature",
+            createdAt: .now,
+            fingerprint: differentFingerprint,
+            primaryFingerprint: differentFingerprint,
+            keyID: "different_key_id"
+          )
+        )
+      }
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(.init(rawValue: "signed message"))
+    )
+    patch(
+      \PGP.encryptAndSign,
+      with: always(.success("signed message"))
+    )
+    patch(
+      \MetadataUpdatePrivateKeyNetworkOperation.execute,
+      with: { _ async throws -> MetadataUpdatePrivateKeyNetworkOperationDescription.Output in
+        // A different 400 that must NOT be swallowed.
+        throw NetworkRequestValidationFailure.error(
+          validationViolations: [
+            "header": [
+              "message": "The data is not valid.",
+              "code": 400,
+            ] as Dictionary<String, Sendable>,
+            "body": "",
+          ]
+        )
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    asyncTestThrows(
+      NetworkRequestValidationFailure.self,
+      test: {
+        try await testedInstance.trustCurrentKey()
+      }
     )
   }
 
@@ -1012,6 +1185,7 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
               signature: "",
               createdAt: .now,
               fingerprint: currentUserFingerprint,
+              primaryFingerprint: currentUserFingerprint,
               keyID: "key id"
             )
           )

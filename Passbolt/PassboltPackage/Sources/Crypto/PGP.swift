@@ -296,10 +296,13 @@ extension PGP {
           )
         }
         let signatureData: Data = try result.signature()
+        // `fingerprint`: issuer (the signing subkey when used). `primaryFingerprint`: signer's primary
+        // key (`getFingerprint()` returns it regardless of subkey). Both uppercased for raw comparison.
         let signature: Signature = .init(
           signature: String(decoding: signatureData, as: UTF8.self),
           createdAt: Date(timeIntervalSince1970: .init(result.signatureCreationTime())),
-          fingerprint: .init(rawValue: rawFingerprint),
+          fingerprint: .init(rawValue: rawFingerprint.uppercased()),
+          primaryFingerprint: .init(rawValue: signingKey.getFingerprint().uppercased()),
           keyID: result.signedByKeyIdHex()
         )
         let verifiedMessage: VerifiedMessage = .init(
@@ -844,18 +847,23 @@ extension PGP {
   public struct Signature: Sendable {
     public let signature: String
     public let createdAt: Date
+    /// Issuer fingerprint - the signing subkey's when a subkey was used.
     public let fingerprint: Fingerprint
+    /// Signer's primary key fingerprint; use this to match a signer against a user's identity.
+    public let primaryFingerprint: Fingerprint
     public let keyID: String
 
     public init(
       signature: String,
       createdAt: Date,
       fingerprint: Fingerprint,
+      primaryFingerprint: Fingerprint,
       keyID: String
     ) {
       self.signature = signature
       self.createdAt = createdAt
       self.fingerprint = fingerprint
+      self.primaryFingerprint = primaryFingerprint
       self.keyID = keyID
     }
   }
