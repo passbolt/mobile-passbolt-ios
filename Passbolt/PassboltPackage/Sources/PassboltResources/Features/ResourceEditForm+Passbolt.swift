@@ -306,7 +306,19 @@ extension ResourceEditForm {
           updatedResourceDTO = .none
         }
         else {
-          updatedResourceDTO = createdResourceResult.resource
+          // Create response omits `permissions`; synthesize the creator's own entry.
+          var createdResourceDTO: ResourceDTO = createdResourceResult.resource
+          if createdResourceDTO.permissions.isEmpty {
+            createdResourceDTO.permissions = [
+              .userToResource(
+                id: createdResourceResult.ownerPermissionID,
+                userID: currentAccount.userID,
+                resourceID: createdResourceResult.resourceID,
+                permission: createdResourceResult.resource.permission
+              )
+            ]
+          }
+          updatedResourceDTO = createdResourceDTO
         }
 
         resource.id = createdResourceResult.resourceID

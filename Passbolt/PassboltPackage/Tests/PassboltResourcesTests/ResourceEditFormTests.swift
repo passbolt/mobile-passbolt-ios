@@ -781,6 +781,54 @@ final class ResourceEditFormTests: FeaturesTestCase {
     )
   }
 
+  func test_sendForm_synthesizesOwnerPermission_whenCreatingSucceeds() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForUsers,
+      with: always([.mock_1])
+    )
+    patch(  // create response omits `permissions` and carries only the owner permission id
+      \ResourceNetworkOperationDispatch.createResource,
+      with: always(.init(resource: .mock_1, ownerPermissionID: .mock_1))
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: alwaysThrow(MockIssue.error())
+    )
+    let updateResourceCalled: XCTestExpectation = .init(description: "Targeted update should be called.")
+    patch(
+      \SessionData.updateResource,
+      with: { (dto: ResourceDTO) in
+        self.verify(dto.permissions.count == 1)
+        if let permission: GenericPermissionDTO = dto.permissions.first {
+          self.verify(permission.id == .mock_1)
+          self.verify(permission.userID == Account.mock_ada.userID)
+          self.verify(permission.permission == .owner)
+        }
+        else {
+          self.verificationFailure("Synthesized owner permission is missing")
+        }
+        updateResourceCalled.fulfill()
+      }
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+    _ = try await tested.sendForm()
+
+    await fulfillment(of: [updateResourceCalled], timeout: 1.0)
+  }
+
   func test_sendForm_notThrows_whenCreatingAndSharingSucceeds() async throws {
     var editedResource: Resource = self.editedResource
     editedResource.id = .none
