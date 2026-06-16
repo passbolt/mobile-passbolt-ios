@@ -56,4 +56,6 @@ import AegithalosCocoa
   UINavigationBar.appearance().compactAppearance = appearance
   UINavigationBar.appearance().scrollEdgeAppearance = appearance
   UINavigationBar.appearance().compactScrollEdgeAppearance = appearance
+
+  UIRefreshControl.appearance().tintColor = .passboltSecondaryText
 }

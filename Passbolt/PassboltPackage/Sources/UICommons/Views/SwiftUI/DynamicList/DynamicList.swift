@@ -417,10 +417,12 @@ private struct RefreshableWithIndicator: ViewModifier {
         if self.externalRefreshing && !self.userPullingRefresh {
           HStack {
             Spacer()
-            SwiftUI.ProgressView()
-              .progressViewStyle(.circular)
-              .controlSize(.large)
-              .tint(Color.passboltSecondaryGray)
+            // System-initiated refresh has no native `.refreshable` spinner, so this stands in for it.
+            // It uses the same UIKit `UIActivityIndicatorView` that `UIRefreshControl` (the pull spinner) is
+            // built from, so size, spin speed, and color all match — a SwiftUI `ProgressView` is a different
+            // renderer and visibly differs in all three. The two never appear at the same time.
+            RefreshActivityIndicator(color: .passboltSecondaryText)
+              .scaleEffect(0.8)
             Spacer()
           }
           .padding(.vertical, 12)
@@ -455,6 +457,44 @@ extension View {
         refreshIndicatorSource: refreshIndicatorSource
       )
     )
+  }
+}
+
+// MARK: - Activity indicator
+
+/// `UIActivityIndicatorView` wrapper used for the system-initiated refresh spinner so it matches the
+/// `UIRefreshControl` spinner driven by `.refreshable` — same renderer means identical size, spin speed,
+/// and color. (Note: the spinner color is set via `color`, not `tintColor`, which the view ignores.)
+private struct RefreshActivityIndicator: UIViewRepresentable {
+
+  fileprivate let color: UIColor
+  /// Slows the rotation: a standalone `UIActivityIndicatorView` spins faster than `UIRefreshControl`'s, so
+  /// damping the layer time scale matches the pull-to-refresh spinner. Tune toward 1.0 if it looks too slow.
+  fileprivate var speed: Float = 0.65
+  @Environment(\.colorScheme) private var colorScheme
+
+  fileprivate func makeUIView(context: Context) -> UIActivityIndicatorView {
+    let indicator: UIActivityIndicatorView = .init(style: .large)
+    indicator.hidesWhenStopped = false
+    indicator.layer.speed = self.speed
+    self.apply(to: indicator)
+    indicator.startAnimating()
+    return indicator
+  }
+
+  fileprivate func updateUIView(_ uiView: UIActivityIndicatorView, context: Context) {
+    uiView.layer.speed = self.speed
+    self.apply(to: uiView)
+    if !uiView.isAnimating {
+      uiView.startAnimating()
+    }
+  }
+
+  /// Resolve the dynamic color against the current scheme. A `UIView` inside a representable does not reliably
+  /// adopt the SwiftUI color scheme, so the asset's light-mode (darker) variant can leak into dark mode.
+  private func apply(to indicator: UIActivityIndicatorView) {
+    let traits: UITraitCollection = .init(userInterfaceStyle: self.colorScheme == .dark ? .dark : .light)
+    indicator.color = self.color.resolvedColor(with: traits)
   }
 }
 
