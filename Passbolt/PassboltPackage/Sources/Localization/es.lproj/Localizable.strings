@@ -154,7 +154,7 @@
 "resource.edit.note.remove.button.title" = "Eliminar nota";
 
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
-"resource.edit.v4.upgrade.banner.description" = "Upgrade this resource to the new encrypted metadata format for enhanced privacy.";
+"resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
 "resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
 

@@ -46,7 +46,7 @@ public struct V4UpgradeBannerView: View {
 
       VStack(alignment: .leading, spacing: 16) {
         Text(displayable: "resource.edit.v4.upgrade.banner.description")
-          .font(.inter(ofSize: 14, weight: .regular))
+          .font(.inter(ofSize: 14, weight: .medium))
           .foregroundColor(.passboltPrimaryText)
           .multilineTextAlignment(.leading)
 

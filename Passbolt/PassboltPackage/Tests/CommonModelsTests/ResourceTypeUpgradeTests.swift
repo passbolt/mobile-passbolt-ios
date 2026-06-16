@@ -65,4 +65,30 @@ final class ResourceTypeUpgradeTests: XCTestCase {
       )
     }
   }
+
+  // Regression: upgrading a v4 resource to its v5 equivalent must write the
+  // NEW resource type id into the encrypted metadata, not keep the old v4 id.
+  func test_updateType_writesNewTypeID_intoMetadata_whenUpgradingFromV4ToV5() throws {
+    let v5Type: ResourceType = .init(id: .init(), slug: .v5Default)
+    var resource: Resource = .init(type: .init(id: .init(), slug: .passwordWithDescription))
+
+    try resource.updateType(to: v5Type)
+
+    XCTAssertEqual(
+      resource.meta[keyPath: \.resource_type_id].stringValue,
+      v5Type.id.rawValue.rawValue.uuidString
+    )
+  }
+
+  func test_updateType_writesNewTypeID_intoMetadata_whenChangingBetweenV5Types() throws {
+    let targetType: ResourceType = .init(id: .init(), slug: .v5DefaultWithTOTP)
+    var resource: Resource = .init(type: .init(id: .init(), slug: .v5Default))
+
+    try resource.updateType(to: targetType)
+
+    XCTAssertEqual(
+      resource.meta[keyPath: \.resource_type_id].stringValue,
+      targetType.id.rawValue.rawValue.uuidString
+    )
+  }
 }

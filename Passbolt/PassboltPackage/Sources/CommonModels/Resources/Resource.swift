@@ -338,8 +338,7 @@ extension Resource {
     for field in removedFields {
       self[keyPath: field.path].remove()
     }
-    // update metadata resource type if needed
-    if self.type.isV4ResourceType == false {
+    if resourceType.isV4ResourceType == false {
       self.meta[keyPath: \.resource_type_id] = .string(resourceType.id.rawValue.rawValue.uuidString)
     }
     // assign new type and initialize fields if needed
