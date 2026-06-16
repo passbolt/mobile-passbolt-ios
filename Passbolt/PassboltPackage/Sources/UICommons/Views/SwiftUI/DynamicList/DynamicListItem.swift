@@ -30,4 +30,13 @@ public protocol DynamicListItem: Identifiable & Hashable {
 
   /// The estimated height of this item in points, used for layout positioning in the virtual scroll view.
   var estimatedHeight: CGFloat { get }
+
+  var accessibilityIdentifier: String? { get }
+}
+
+extension DynamicListItem {
+
+  public var accessibilityIdentifier: String? {
+    .none
+  }
 }

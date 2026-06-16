@@ -195,7 +195,6 @@ internal struct ResourceDetailsView: ControlledView {
         .padding(8)
         .background(Color.passboltBackgroundGray)
         .cornerRadius(4)
-        .accessibilityIdentifier("resource.detail.section.\(section.accessibilityIdenitifier).content")
       }
       CommonListSpacer(minHeight: 8)
     }
@@ -264,14 +263,17 @@ internal struct ResourceDetailsView: ControlledView {
           switch fieldModel.accessoryAction {
           case .copy:
             CopyButtonImage()
+              .accessibilityAddTraits(.isButton)
               .accessibilityIdentifier("copy.button.\(fieldModel.name.string())")
 
           case .reveal:
             RevealButtonImage()
+              .accessibilityAddTraits(.isButton)
               .accessibilityIdentifier("reveal.button.\(fieldModel.name.string())")
 
           case .hide:
             CoverButtonImage()
+              .accessibilityAddTraits(.isButton)
               .accessibilityIdentifier("hide.button.\(fieldModel.name.string())")
 
           case .none:
@@ -368,6 +370,7 @@ internal struct ResourceDetailsView: ControlledView {
               ),
               color: .passboltSecondaryText
             )
+            .accessibilityIdentifier("text.value.\(fieldModel.name.string())")
 
         case .encrypted:
           Text("••••••••")
@@ -405,6 +408,7 @@ internal struct ResourceDetailsView: ControlledView {
               ),
               color: .none
             )
+            .accessibilityIdentifier("text.password.\(fieldModel.name.string())")
 
         case .encryptedTOTP:
           TOTPValueView(value: .none)

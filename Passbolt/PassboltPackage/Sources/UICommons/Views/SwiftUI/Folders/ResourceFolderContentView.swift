@@ -71,6 +71,25 @@ public enum FolderContentRowData: DynamicListItem {
       return 200
     }
   }
+
+  public var accessibilityIdentifier: String? {
+    switch self {
+    case .addResource:
+      return "folder_contents_create_button"
+    case .sectionHeader(_, let title):
+      return "folder_contents_section_header_\(title)"
+    case .divider(let id):
+      return "folder_contents_divider_\(id)"
+    case .loadingIndicator:
+      return "folder_contents_loading_indicator"
+    case .emptyState:
+      return "folder_contents_empty_state"
+    case .folder(let folder):
+      return "folder_contents_folder_\(folder.name)"
+    case .resource(let resource, _):
+      return "folder_contents_resource_\(resource.name)"
+    }
+  }
 }
 
 extension FolderContentRowData.Section {

@@ -339,7 +339,18 @@ public final class ResourceEditViewController: ViewController {
     do {
       self.viewState.update(\.isLoading, to: true)
       let resource: Resource = try await self.resourceEditForm.sendForm()
-
+      // Removing password from UI prevents displaying OS dialog for saving password.
+      if let passwordFieldModel: ResourceEditFieldViewModel = await self.viewState.current.mainForm.fields.first(
+        where: {
+          $0.isSecret
+        })
+      {
+        self.viewState
+          .update(
+            \.mainForm.fields[passwordFieldModel.path]!.validatedString,
+            to: .valid("")
+          )
+      }
       if let customOnSuccessNavigation {
         try await customOnSuccessNavigation()
       }
@@ -982,6 +993,15 @@ internal struct ResourceEditFieldViewModel {
       case .pinCode:
         self.value = .pinCode(newValue)
       }
+    }
+  }
+
+  internal var isSecret: Bool {
+    switch self.value {
+    case .password, .totpSecret:
+      return true
+    default:
+      return false
     }
   }
 }

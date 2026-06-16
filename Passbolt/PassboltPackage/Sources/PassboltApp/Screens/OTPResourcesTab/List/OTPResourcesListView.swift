@@ -127,6 +127,17 @@ private enum OTPResourcesListData: DynamicListItem {
       return false
     }
   }
+
+  var accessibilityIdentifier: String? {
+    switch self {
+    case .addResource:
+      return "totp_list_create_button"
+    case .resource(let resource):
+      return "totp_list_resource_\(resource.name)"
+    case .loadingIndicator:
+      return "totp_list_loading_indicator"
+    }
+  }
 }
 
 extension OTPResourcesListData: Hashable {

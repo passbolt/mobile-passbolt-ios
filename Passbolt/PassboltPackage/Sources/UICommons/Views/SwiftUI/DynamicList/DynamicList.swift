@@ -214,6 +214,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
             key: LayoutIndex.self,
             value: item.index
           )
+          .accessibilityIdentifier(item.value.accessibilityIdentifier)
       }
     }
   }
@@ -514,5 +515,18 @@ private struct OnChangeBackportModifier<V: Equatable>: ViewModifier {
         action(oldValue, newValue)
         oldValue = newValue
       }
+  }
+}
+
+extension View {
+
+  @ViewBuilder
+  public func accessibilityIdentifier(_ identifier: String?) -> some View {
+    if let identifier {
+      self.accessibilityIdentifier(identifier)
+    }
+    else {
+      self
+    }
   }
 }

@@ -259,6 +259,7 @@ private struct SnackBarContentView: View {
       .onTapGesture {
         onDismiss()
       }
+      .accessibilityIdentifier("snackbar.message.label")
   }
 
   private var backgroundColor: Color {

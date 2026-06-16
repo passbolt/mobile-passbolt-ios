@@ -58,6 +58,19 @@ public enum ResourcesListRowData: DynamicListItem {
       return 44
     }
   }
+
+  public var accessibilityIdentifier: String? {
+    switch self {
+    case .sectionHeader(let title):
+      return "resources_list_section_header_\(title)"
+    case .addResource:
+      return "resources_list_add_resource"
+    case .resource(let resource, _):
+      return "resources_list_resource_\(resource.name)"
+    case .loadingIndicator:
+      return "resources_list_loading_indicator"
+    }
+  }
 }
 
 extension ResourcesListRowData.Section {

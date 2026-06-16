@@ -52,6 +52,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       contentView: {
         self.contentView(with: state)
           .shadowTopEdgeOverlay()
+          .homeListRefreshState(source: self.controller.refreshIndicatorSource)
       }
     )
     .environment(\.hideLeadingItem, state.groupID == .none)

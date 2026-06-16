@@ -67,6 +67,17 @@
                ReferencedContainer = "container:Passbolt.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C093D96D2F4C51BD00560353"
+               BuildableName = "PassboltE2ETests.xctest"
+               BlueprintName = "PassboltE2ETests"
+               ReferencedContainer = "container:Passbolt.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

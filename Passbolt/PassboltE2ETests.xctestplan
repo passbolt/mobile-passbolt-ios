@@ -1,0 +1,30 @@
+{
+  "configurations" : [
+    {
+      "id" : "A8CCAE67-9BDB-4F0D-AECC-BB2692624A3D",
+      "name" : "Test Scheme Action",
+      "options" : {
+        "defaultTestExecutionTimeAllowance" : 90,
+        "maximumTestRepetitions" : 3
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "diagnosticCollectionPolicy" : "Always",
+    "language" : "en",
+    "performanceAntipatternCheckerEnabled" : true,
+    "region" : "LU",
+    "testRepetitionMode" : "retryOnFailure",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Passbolt.xcodeproj",
+        "identifier" : "C093D96D2F4C51BD00560353",
+        "name" : "PassboltE2ETests"
+      }
+    }
+  ],
+  "version" : 1
+}

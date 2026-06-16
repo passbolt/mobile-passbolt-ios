@@ -409,7 +409,9 @@ extension MetadataKeysService {
           try pgp.extractFingerprint(
             userPublicKeyDSV.publicKey
           )
-          .get().rawValue.uppercased()
+          .get()
+          .rawValue
+          .uppercased()
 
         for privateKey in privateKeys {
           guard let signature: PGP.Signature = privateKey.signature else {

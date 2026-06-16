@@ -99,5 +99,6 @@ internal struct FoldersExplorerView: ControlledView {
         await self.controller.presentResourceMenu(resourceID)
       }
     )
+    .homeListRefreshState(source: self.controller.refreshIndicatorSource)
   }
 }

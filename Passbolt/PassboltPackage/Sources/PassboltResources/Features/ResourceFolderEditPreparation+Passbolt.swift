@@ -41,7 +41,6 @@ extension ResourceFolderEditPreparation {
     @Sendable nonisolated func prepareNew(
       parentFolderID: ResourceFolder.ID?
     ) async throws -> FeaturesContainer {
-      try await sessionData.refreshIfNeeded()
       let resourceFolder: ResourceFolder
       if let parentFolderID {
         let parentFolder: ResourceFolder = try await resourceFolderDetailsFetchDatabaseOperation(

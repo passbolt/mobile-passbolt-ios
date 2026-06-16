@@ -27,6 +27,9 @@ import Features
 import Foundation
 import NFC
 import PassboltApp
+#if DEBUG
+import UIKit
+#endif
 
 @MainActor
 internal struct Application {
@@ -35,6 +38,11 @@ internal struct Application {
   private let features: Features
 
   internal init() {
+    #if DEBUG && targetEnvironment(simulator)
+    if ProcessInfo.processInfo.environment["XCODE_TEST_PLAN_NAME"] == "PassboltE2ETests" {
+      UIView.setAnimationsEnabled(false)
+    }
+    #endif
     let features: Features = FeaturesFactory { (registry: inout FeaturesRegistry) in
       registry.usePassboltFeatures()
     }

@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 
 public struct ResourcesListDisplayView: ControlledView {
@@ -48,7 +49,7 @@ public struct ResourcesListDisplayView: ControlledView {
         resourceTapAction: self.controller.selectResource,
         resourceMenuAction: self.controller.showResourceMenuCallback
       )
-      .accessibilityIdentifier("resource.list.collection.view")
+      .homeListRefreshState(source: self.controller.refreshIndicatorSource)
     }
   }
 }
