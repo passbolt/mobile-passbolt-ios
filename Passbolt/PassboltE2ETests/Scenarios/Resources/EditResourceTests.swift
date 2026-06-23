@@ -24,37 +24,8 @@
 @MainActor
 final internal class EditResourceTests: UITestCase {
 
-  /// https://passbolt.testrail.io/index.php?/cases/view/8135
-  func test_onTheEditPasswordPageICanEditElements() async throws {
-    await executeSteps {
-      SelectAllItemsFilter()
-      OpenResourceDetailsActionMenu(resourceName: ResourceTestData.editableResource.resourceName)
-      On(ResourceDetailsActionMenuScreen.self) { menu in
-        Tap(menu.editButton, "Edit")
-      }
-      On(ResourceEditScreen.self) { edit in
-        let editedName: String = ResourceTestData.editableResource.resourceName + "DeleteMe"
-        TypeText(editedName, into: edit.nameField, "Edit name")
-          .dismissKeyboardIfNeeded()
-        VerifyValue(element: edit.nameField, expectedValue: editedName)
-
-        ScrollUntilVisible(edit.mainURIField)
-        let editedURI: String = ResourceTestData.editableResource.mainURI + "DeleteMe"
-        TypeText(editedURI, into: edit.mainURIField, "Edit URI")
-          .dismissKeyboardIfNeeded()
-        VerifyValue(element: edit.mainURIField, expectedValue: editedURI)
-
-        ScrollUntilVisible(edit.usernameField)
-        let editedUsername: String = ResourceTestData.editableResource.username + "DeleteMe"
-        TypeText(editedUsername, into: edit.usernameField, "Edit username")
-          .dismissKeyboardIfNeeded()
-        VerifyValue(element: edit.usernameField, expectedValue: editedUsername)
-      }
-    }
-  }
-
-  /// https://passbolt.testrail.io/index.php?/cases/view/8136
-  func test_onTheEditPasswordPageICanSaveChangedResources() async throws {
+  /// https://passbolt.testrail.io/index.php?/cases/view/13112
+  func test_onTheEditPasswordPageICanSaveChangedResourceWhenV5ResourcesAreEnabled () async throws {
     let randomName: String = "iOSTestResource".withDateSuffix().withRandomSuffix()
     let updatedName: String = "Updated".withDateSuffix().withRandomSuffix()
     let application: XCUIApplication = await self.application
@@ -75,10 +46,13 @@ final internal class EditResourceTests: UITestCase {
       On(ResourceEditScreen.self) { edit in
         ReplaceText(updatedName, in: edit.nameField, "Edit name")
           .dismissKeyboardIfNeeded()
+        VerifyValue(element: edit.nameField, expectedValue: updatedName)
         ReplaceText("DeleteMe", in: edit.mainURIField, "Edit URI")
           .dismissKeyboardIfNeeded()
+        VerifyValue(element: edit.mainURIField, expectedValue: "DeleteMe")
         ReplaceText("DeleteMe", in: edit.usernameField, "Edit username")
           .dismissKeyboardIfNeeded()
+        VerifyValue(element: edit.usernameField, expectedValue: "DeleteMe")
         Tap(edit.saveButton, "Save")
       }
       WaitFor(application.staticTexts[updatedName], timeout: .slowNetworkCall, "Resource name updated")

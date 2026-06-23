@@ -123,7 +123,7 @@ final internal class TransferAccountTests: UITestCase {
     }
   }
 
-  /// https://passbolt.testrail.io/index.php?/cases/view/C8157
+  /// https://passbolt.testrail.io/index.php?/cases/view/8157
   func test_asAUserICouldGoBackFromAFailedFeedbackInCaseOfErrorDuringQrCodesSequence() async throws {
     await executeSteps {
       NavigateToTransferQRCode()

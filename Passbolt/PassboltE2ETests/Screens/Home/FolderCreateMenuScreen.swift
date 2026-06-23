@@ -32,5 +32,8 @@ final internal class FolderCreateMenuScreen: Screen {
 
   internal lazy var addFolderButton: XCUIElement = self.application.buttons["resource.folders.add.folder"]
   internal lazy var addPasswordButton: XCUIElement = self.application.buttons["resource.folders.add.v5-default"]
+  internal lazy var addTOTPButton: XCUIElement = self.application.buttons["resource.folders.add.v5-totp-standalone"]
+  internal lazy var addNoteButton: XCUIElement = self.application.buttons["resource.folders.add.v5-note"]
+  internal lazy var PINCodeButton: XCUIElement = self.application.buttons["resource.folders.add.v5-pin-code"]
   internal lazy var closeButton: XCUIElement = self.application.buttons["Close"]
 }

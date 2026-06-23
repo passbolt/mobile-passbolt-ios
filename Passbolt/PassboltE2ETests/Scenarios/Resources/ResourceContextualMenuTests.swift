@@ -22,6 +22,7 @@
 //
 
 @MainActor
+/// https://passbolt.testrail.io/index.php?/cases/view/2383
 final internal class ResourceContextualMenuTests: UITestCase {
 
   func test_resourceContextualMenu_ofSimplePassword() async throws {

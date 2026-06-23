@@ -42,7 +42,7 @@ internal struct CreateTOTP: CombinedUITestStep {
       On(TOTPCreateScreen.self) { form in
         TypeText(resourceName, into: form.nameField, "TOTP name")
           .dismissKeyboardIfNeeded()
-        TypeText("AAABBBCCC", into: form.secretField, "TOTP secret")
+        TypeText("ROBOTROB", into: form.secretField, "TOTP secret")
           .dismissKeyboardIfNeeded()
         Tap(form.createButton, "Create")
       }

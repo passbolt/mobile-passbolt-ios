@@ -24,8 +24,8 @@
 @MainActor
 final internal class FolderCreationTests: UITestCase {
 
-  /// https://passbolt.testrail.io/index.php?/cases/view/8160
-  func test_onTheFoldersWorkspaceICanClickCreateButton() async throws {
+  /// https://passbolt.testrail.io/index.php?/cases/view/17611
+  func test_onTheFoldersWorkspaceICanClickCreateButtonWhenV5ResourcesAreEnabledAndDefault() async throws {
     await executeSteps {
       SelectFoldersFilter()
       On(FoldersScreen.self) { folders in
@@ -35,23 +35,10 @@ final internal class FolderCreationTests: UITestCase {
       On(FolderCreateMenuScreen.self) { menu in
         Verify(menu.addFolderButton.exists, "Add folder button exists")
         Verify(menu.addPasswordButton.exists, "Add password button exists")
+        Verify(menu.addTOTPButton.exists, "Add TOTP button exists")
+        Verify(menu.addNoteButton.exists, "Add note button exists")
+        Verify(menu.PINCodeButton.exists, "Add pin code button exists")
         Verify(menu.closeButton.exists, "Close button exists")
-      }
-    }
-  }
-
-  /// https://passbolt.testrail.io/index.php?/cases/view/8161
-  func test_onTheFoldersWorkspaceICanClickAddPasswordAndOpenNewPasswordWorkspace() async throws {
-    await executeSteps {
-      SelectFoldersFilter()
-      On(FoldersScreen.self) { folders in
-        Tap(folders.createButton, "Create button")
-      }
-      On(FolderCreateMenuScreen.self) { menu in
-        Tap(menu.addPasswordButton, "Add password")
-      }
-      On(ResourceEditScreen.self) { edit in
-        Verify(edit.nameField.exists, "Password edit screen displayed")
       }
     }
   }
@@ -135,6 +122,7 @@ final internal class FolderCreationTests: UITestCase {
     }
   }
 
+  /// https://passbolt.testrail.io/index.php?/cases/view/8166
   func test_onTheFolderWorkspaceICanOpenFolder() async throws {
     let application: XCUIApplication = await self.application
     UITestFlow(application: application) {

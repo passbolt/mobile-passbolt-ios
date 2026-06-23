@@ -24,8 +24,8 @@
 @MainActor
 final internal class CreateTOTPTests: UITestCase {
 
-  /// https://passbolt.testrail.io/index.php?/cases/view/9179
-  func test_createManualStandaloneTOTP() async throws {
+  /// https://passbolt.testrail.io/index.php?/cases/view/19880
+  func test_CreateAStandaloneTOTPManually() async throws {
     let randomName: String = "TOTP ".withRandomSuffix()
     let application: XCUIApplication = await self.application
 
