@@ -67,11 +67,7 @@ internal final class AdvancedPasswordGenerationViewController: ViewController {
         saveEnabled: true,
         edited: false
       ),
-      updateFrom: ComputedVariable(
-        lazy: { @Sendable in
-          await passwordGenerationService.currentConfiguration()
-        }
-      ),
+      updateFrom: passwordGenerationService.configuration(),
       update: {
         @MainActor [secretGenerator] (updateState, update: Update<PasswordPoliciesDSV>) async throws -> Void in
         let configuration: PasswordPoliciesDSV = try update.value

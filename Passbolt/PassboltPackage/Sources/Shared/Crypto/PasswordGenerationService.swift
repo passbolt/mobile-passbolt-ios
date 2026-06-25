@@ -29,7 +29,7 @@ public struct PasswordGenerationService: Sendable {
   public typealias Configuration = PasswordPoliciesDSV
 
   public var generate: @Sendable () async throws -> String
-  public var currentConfiguration: @Sendable () async -> Configuration
+  public var configuration: @Sendable () -> AnyUpdatable<Configuration>
   public var updateConfiguration: @Sendable (Configuration) async -> Void
 }
 
@@ -39,7 +39,7 @@ extension PasswordGenerationService: LoadableFeature {
   nonisolated public static var placeholder: PasswordGenerationService {
     Self(
       generate: unimplemented0(),
-      currentConfiguration: unimplemented0(),
+      configuration: unimplemented0(),
       updateConfiguration: unimplemented1()
     )
   }
@@ -52,29 +52,27 @@ extension PasswordGenerationService: LoadableFeature {
     let passwordPoliciesLoader: PasswordPoliciesLoader = try features.instance()
     let secretGenerator: SecretGenerator = try features.instance()
 
-    // Per-edit override set via `updateConfiguration` (advanced generator).
-    // `nil` means defer to the session-scoped loader.
-    let override: CriticalState<Configuration?> = .init(.none)
-
-    @Sendable func currentConfiguration() async -> Configuration {
-      if let overridden: Configuration = override.get() {
+    let override: Variable<Configuration?> = .init(initial: .none)
+    let resolved: ComputedVariable<Configuration> = .init(transformed: override) {
+      (update: Update<Configuration?>) async throws -> Configuration in
+      if let overridden: Configuration = try update.value {
         return overridden
       }
       return await passwordPoliciesLoader.policies()
     }
 
     @Sendable func updateConfiguration(_ newConfiguration: Configuration) async {
-      override.set(newConfiguration)
+      override.assign(newConfiguration)
     }
 
     @Sendable func generate() async throws -> String {
-      let configuration: Configuration = await currentConfiguration()
+      let configuration: Configuration = try await resolved.value
       return try secretGenerator.generate(configuration)
     }
 
     return .init(
       generate: generate,
-      currentConfiguration: currentConfiguration,
+      configuration: { resolved.asAnyUpdatable() },
       updateConfiguration: updateConfiguration(_:)
     )
   }

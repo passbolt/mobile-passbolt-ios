@@ -67,24 +67,24 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
     )
   }
 
-  // MARK: - currentConfiguration
+  // MARK: - configuration
 
-  func test_currentConfiguration_returnsLoaderPolicy() async throws {
+  func test_configuration_returnsLoaderPolicy() async throws {
     let service: PasswordGenerationService = try testedInstance()
-    let configuration: PasswordPoliciesDSV = await service.currentConfiguration()
+    let configuration: PasswordPoliciesDSV = try await service.configuration().value
     XCTAssertEqual(configuration.passwordGeneratorSettings.length, 24)
   }
 
   // MARK: - updateConfiguration
 
-  func test_updateConfiguration_isReflectedInNextCurrentConfiguration() async throws {
+  func test_updateConfiguration_isReflectedInNextConfiguration() async throws {
     let service: PasswordGenerationService = try testedInstance()
-    _ = await service.currentConfiguration()
+    _ = try await service.configuration().value
 
     let updated: PasswordPoliciesDSV = Self.policy(length: 64)
     await service.updateConfiguration(updated)
 
-    let configuration: PasswordPoliciesDSV = await service.currentConfiguration()
+    let configuration: PasswordPoliciesDSV = try await service.configuration().value
     XCTAssertEqual(configuration.passwordGeneratorSettings.length, 64)
   }
 
@@ -101,8 +101,8 @@ final class PasswordGenerationServiceTests: LoadableFeatureTestCase<PasswordGene
     let service: PasswordGenerationService = try testedInstance()
     await service.updateConfiguration(Self.policy(length: 64))
 
-    _ = await service.currentConfiguration()
-    _ = await service.currentConfiguration()
+    _ = try await service.configuration().value
+    _ = try await service.configuration().value
 
     XCTAssertEqual(loaderCalls.get(), 0)
   }
