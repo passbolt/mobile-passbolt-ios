@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import DatabaseOperations
 import FeatureScopes
 import Session
@@ -44,6 +45,11 @@ extension ResourcesStoreDatabaseOperation {
       )
     )
     try connection.execute(.statement("DELETE FROM resourceSearchRebuildBatch;"))
+
+    // Collect tag data while iterating resources so it can be written in a few batched statements
+    // after the loop, instead of two row-by-row inserts per (resource, tag) pair.
+    var uniqueTags: Dictionary<ResourceTag.ID, ResourceTag> = .init()
+    var tagLinks: Array<(resourceID: Resource.ID, tagID: ResourceTag.ID)> = .init()
 
     // Insert or update all new resources. The same ~10 SQL statements run once per resource,
     // so reuse their compiled handles across the whole batch instead of recompiling each time.
@@ -243,69 +249,10 @@ extension ResourcesStoreDatabaseOperation {
           }
         }
 
-        let removeTagsStatement: SQLiteStatement = .statement(
-          "DELETE FROM resourcesTags WHERE resourceID = ?1",
-          arguments: resource.id
-        )
-        try prepared.execute(removeTagsStatement)
-
-        for resourceTag in resource.tags {
-          try prepared
-            .execute(
-              .statement(
-                """
-                INSERT INTO
-                  resourceTags(
-                    id,
-                    slug,
-                    shared
-                  )
-                VALUES
-                  (
-                    ?1,
-                    ?2,
-                    ?3
-                  )
-                ON CONFLICT
-                  (
-                    id
-                  )
-                DO UPDATE SET
-                  slug=?2,
-                  shared=?3
-                ;
-                """,
-                arguments: resourceTag.id,
-                resourceTag.slug,
-                resourceTag.shared
-              )
-            )
-
-          try prepared
-            .execute(
-              .statement(
-                """
-                INSERT INTO
-                  resourcesTags(
-                    resourceID,
-                    resourceTagID
-                  )
-                SELECT
-                  resources.id,
-                  resourceTags.id
-                FROM
-                  resources,
-                  resourceTags
-                WHERE
-                  resources.id == ?1
-                AND
-                  resourceTags.id == ?2
-                ;
-                """,
-                arguments: resource.id,
-                resourceTag.id
-              )
-            )
+        // Tag associations are stored in batched statements after this loop (see below).
+        for resourceTag: ResourceTag in resource.tags {
+          uniqueTags[resourceTag.id] = resourceTag
+          tagLinks.append((resourceID: resource.id, tagID: resourceTag.id))
         }
 
         for permission in resource.permissions {
@@ -314,6 +261,46 @@ extension ResourcesStoreDatabaseOperation {
           )
         }
       }
+    }
+
+    // Replace tag associations for the stored resources in a few batched statements (chunked to stay
+    // under SQLite's bound-parameter limit): clear existing links, upsert the unique tags, then insert
+    // the resource-tag links. Tags are upserted before links (FK), and links land before the FTS
+    // rebuild below reads them.
+    let tagBatchSize: Int = 256
+    let storedResourceIDs: Array<Resource.ID> = input.map(\.id)
+    for resourceIDsChunk: ArraySlice<Resource.ID> in storedResourceIDs.chunked(into: tagBatchSize) {
+      var deleteStatement: SQLiteStatement = "DELETE FROM resourcesTags WHERE resourceID"
+      deleteStatement.append(.in(Set(resourceIDsChunk)))
+      deleteStatement.append(";")
+      try connection.execute(deleteStatement)
+    }
+
+    let uniqueTagList: Array<ResourceTag> = Array(uniqueTags.values)
+    for tagsChunk: ArraySlice<ResourceTag> in uniqueTagList.chunked(into: tagBatchSize) {
+      var upsertStatement: SQLiteStatement = "INSERT INTO resourceTags( id, slug, shared ) VALUES "
+      for (offset, resourceTag): (Int, ResourceTag) in tagsChunk.enumerated() {
+        if offset > 0 { upsertStatement.append(", ") }
+        upsertStatement.append("( ?, ?, ? )")
+        upsertStatement.appendArguments(resourceTag.id, resourceTag.slug, resourceTag.shared)
+      }
+      upsertStatement.append("ON CONFLICT( id ) DO UPDATE SET slug = excluded.slug, shared = excluded.shared;")
+      try connection.execute(upsertStatement)
+    }
+
+    for tagLinksChunk: ArraySlice<(resourceID: Resource.ID, tagID: ResourceTag.ID)> in tagLinks
+      .chunked(into: tagBatchSize)
+    {
+      var linkStatement: SQLiteStatement = "INSERT INTO resourcesTags( resourceID, resourceTagID ) VALUES "
+      for (offset, tagLink): (Int, (resourceID: Resource.ID, tagID: ResourceTag.ID)) in tagLinksChunk
+        .enumerated()
+      {
+        if offset > 0 { linkStatement.append(", ") }
+        linkStatement.append("( ?, ? )")
+        linkStatement.appendArguments(tagLink.resourceID, tagLink.tagID)
+      }
+      linkStatement.append(";")
+      try connection.execute(linkStatement)
     }
 
     // Rebuild both FTS indexes once, for exactly the resources stored above, then re-enable the
