@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+
 final internal class CreateResourceDrawerScreen: Screen {
 
   override internal var requiredElements: Array<XCUIElement> {

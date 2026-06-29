@@ -167,7 +167,23 @@ extension SessionConfigurationLoader {
         }
       }  // else no RBAC
 
+      if configuration.passwordExpiry.enabled {
+        try await loadPasswordExpiryConfiguration(to: &configuration)
+      }
+
       return configuration
+    }
+
+    @Sendable nonisolated func loadPasswordExpiryConfiguration(
+      to configuration: inout SessionConfiguration
+    ) async throws {
+      Diagnostics.logger.info("Fetching password expiry settings...")
+      let fetchSettingsNetworkOperation: PasswordExpirySettingsFetchNetworkOperation = try await features.instance()
+      let settings: PasswordExpirySettings = try await fetchSettingsNetworkOperation()
+      Diagnostics.logger.info("...password expiry settings fetched!")
+      configuration.passwordExpiry.automaticExpiry = settings.automaticExpiry
+      configuration.passwordExpiry.automaticUpdate = settings.automaticUpdate
+      configuration.passwordExpiry.defaultExpiryPeriod = settings.defaultExpiryPeriod
     }
 
     @Sendable nonisolated func sessionConfiguration() async throws -> SessionConfiguration {

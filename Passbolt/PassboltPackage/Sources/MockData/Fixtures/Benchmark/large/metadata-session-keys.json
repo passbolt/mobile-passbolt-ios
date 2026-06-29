@@ -1,0 +1,12 @@
+{
+  "header": {
+    "id": "390d33e0-ebcb-4869-a397-747cd1a186a4",
+    "status": "success",
+    "servertime": 1781854358,
+    "action": "87579e41-ab61-5e59-922f-3048597d6fbe",
+    "message": "The operation was successful.",
+    "url": "/metadata/session-keys.json",
+    "code": 200
+  },
+  "body": []
+}

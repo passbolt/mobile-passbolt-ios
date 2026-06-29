@@ -32,5 +32,4 @@ extension DatabaseOperationsTestCase {
   internal var testResourceID: Resource.ID { .mock_1 }
   internal var testSecondResourceID: Resource.ID { .mock_2 }
   internal var testResourceType: ResourceType { .mock_default }
-
 }

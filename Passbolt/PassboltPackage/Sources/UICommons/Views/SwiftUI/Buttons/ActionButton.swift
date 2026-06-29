@@ -21,8 +21,8 @@
 // @since         v1.0
 //
 
-import Commons
-import SwiftUI
+import CommonModels
+import Features
 
 public struct ActionButton: View {
 

@@ -37,8 +37,8 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
   private var successCalledWithResource: Resource?
   private var formSendCalled: Bool = false
 
-  override func commonPrepare() {
-    super.commonPrepare()
+  override func commonPrepare() async throws {
+    try await super.commonPrepare()
     successCalledWithResource = nil
     formSendCalled = false
 

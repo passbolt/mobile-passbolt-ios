@@ -501,7 +501,9 @@ private struct RefreshActivityIndicator: UIViewRepresentable {
 // MARK: - Preference Keys
 
 private struct ScrollContentOffsetPreferenceKey: PreferenceKey {
+
   static let defaultValue: CGPoint? = nil
+
   static func reduce(value: inout CGPoint?, nextValue: () -> CGPoint?) {
     value = nextValue() ?? value
   }
@@ -515,6 +517,7 @@ private struct ViewportSizePreferenceKey: PreferenceKey {
 }
 
 extension View {
+
   @ViewBuilder
   fileprivate func onChangeBackport<V: Equatable>(
     of value: V,

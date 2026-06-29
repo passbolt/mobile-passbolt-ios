@@ -1,0 +1,2106 @@
+{
+  "header": {
+    "id": "38ea8e78-db31-4a52-a399-4ff2da7b9213",
+    "status": "success",
+    "servertime": 1781853391,
+    "action": "1cd53591-cb6b-5b03-b0be-05a54644263d",
+    "message": "The operation was successful.",
+    "url": "/folders.json?contain%5Bpermission%5D=1&contain%5Bpermissions%5D=1",
+    "code": 200,
+    "pagination": {
+      "limit": null,
+      "page": 1,
+      "count": 64
+    }
+  },
+  "body": [
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "e9d8d748-fa1d-3c88-addc-b1aa51061f1e",
+      "name": "Bench Folder 0",
+      "created": "2006-05-17T07:13:56+00:00",
+      "modified": "2008-12-18T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "7b2e33b1-392a-309d-b735-4027d803e5e7",
+          "aco": "Folder",
+          "aco_foreign_key": "e9d8d748-fa1d-3c88-addc-b1aa51061f1e",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "7b2e33b1-392a-309d-b735-4027d803e5e7",
+        "aco": "Folder",
+        "aco_foreign_key": "e9d8d748-fa1d-3c88-addc-b1aa51061f1e",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "9a5a86c8-0265-3d5e-b93c-8f6dad54b828",
+      "name": "Bench Folder 1",
+      "created": "2006-09-10T07:13:56+00:00",
+      "modified": "2014-01-24T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "ccc9fb11-3733-3eea-816e-2b8de2c929d9",
+          "aco": "Folder",
+          "aco_foreign_key": "9a5a86c8-0265-3d5e-b93c-8f6dad54b828",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "ccc9fb11-3733-3eea-816e-2b8de2c929d9",
+        "aco": "Folder",
+        "aco_foreign_key": "9a5a86c8-0265-3d5e-b93c-8f6dad54b828",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "dae14abe-1c92-3aab-a2cd-a716239247a3",
+      "name": "Bench Folder 10",
+      "created": "2009-10-18T07:13:56+00:00",
+      "modified": "2012-08-24T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "890d0e98-73bb-3a6b-8f30-452f72dc02d0",
+          "aco": "Folder",
+          "aco_foreign_key": "dae14abe-1c92-3aab-a2cd-a716239247a3",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "890d0e98-73bb-3a6b-8f30-452f72dc02d0",
+        "aco": "Folder",
+        "aco_foreign_key": "dae14abe-1c92-3aab-a2cd-a716239247a3",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "9a5a86c8-0265-3d5e-b93c-8f6dad54b828",
+      "personal": true,
+      "id": "45b2bd92-603c-39c9-b509-e8e943868f65",
+      "name": "Bench Folder 11",
+      "created": "2006-08-30T07:13:56+00:00",
+      "modified": "2026-05-25T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "423fbe8c-7ad2-383a-ae2a-1ade244c26bc",
+          "aco": "Folder",
+          "aco_foreign_key": "45b2bd92-603c-39c9-b509-e8e943868f65",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "423fbe8c-7ad2-383a-ae2a-1ade244c26bc",
+        "aco": "Folder",
+        "aco_foreign_key": "45b2bd92-603c-39c9-b509-e8e943868f65",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "fab242e3-954c-3d3a-bf3e-c1e122528aae",
+      "name": "Bench Folder 12",
+      "created": "2015-08-14T07:13:56+00:00",
+      "modified": "2023-05-10T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "067488ce-af6c-3a9e-aa71-5ec66509e92d",
+          "aco": "Folder",
+          "aco_foreign_key": "fab242e3-954c-3d3a-bf3e-c1e122528aae",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "067488ce-af6c-3a9e-aa71-5ec66509e92d",
+        "aco": "Folder",
+        "aco_foreign_key": "fab242e3-954c-3d3a-bf3e-c1e122528aae",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "73daa257-66b7-3db9-8d4e-348045af6783",
+      "name": "Bench Folder 13",
+      "created": "2019-02-15T07:13:56+00:00",
+      "modified": "2000-04-17T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "80b82ed3-7440-3df5-8a97-9e9e7133edd9",
+          "aco": "Folder",
+          "aco_foreign_key": "73daa257-66b7-3db9-8d4e-348045af6783",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "80b82ed3-7440-3df5-8a97-9e9e7133edd9",
+        "aco": "Folder",
+        "aco_foreign_key": "73daa257-66b7-3db9-8d4e-348045af6783",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "dae14abe-1c92-3aab-a2cd-a716239247a3",
+      "personal": true,
+      "id": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+      "name": "Bench Folder 14",
+      "created": "2017-08-19T07:13:56+00:00",
+      "modified": "2018-07-18T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "c08c96ca-ddb8-3102-8d48-e008c2ff3d89",
+          "aco": "Folder",
+          "aco_foreign_key": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "c08c96ca-ddb8-3102-8d48-e008c2ff3d89",
+        "aco": "Folder",
+        "aco_foreign_key": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "b57f48b9-c943-3e60-889f-13de128fdd19",
+      "name": "Bench Folder 15",
+      "created": "2007-07-06T07:13:56+00:00",
+      "modified": "2018-06-26T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "e57d1df2-4f6f-3036-8a34-dee307204c71",
+          "aco": "Folder",
+          "aco_foreign_key": "b57f48b9-c943-3e60-889f-13de128fdd19",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "e57d1df2-4f6f-3036-8a34-dee307204c71",
+        "aco": "Folder",
+        "aco_foreign_key": "b57f48b9-c943-3e60-889f-13de128fdd19",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+      "personal": true,
+      "id": "ae3952ff-afd0-3dca-af2d-14e5fa944e7d",
+      "name": "Bench Folder 16",
+      "created": "2008-05-05T07:13:56+00:00",
+      "modified": "2011-04-23T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "596c47fc-3cc5-39b1-99e6-89158535c746",
+          "aco": "Folder",
+          "aco_foreign_key": "ae3952ff-afd0-3dca-af2d-14e5fa944e7d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "596c47fc-3cc5-39b1-99e6-89158535c746",
+        "aco": "Folder",
+        "aco_foreign_key": "ae3952ff-afd0-3dca-af2d-14e5fa944e7d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "b57f48b9-c943-3e60-889f-13de128fdd19",
+      "personal": true,
+      "id": "6ab4968d-1c65-3dbc-b93d-3372bf11a093",
+      "name": "Bench Folder 17",
+      "created": "2009-11-30T07:13:56+00:00",
+      "modified": "2008-09-27T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "c3477ca2-20fb-3758-96f6-3630ad70634c",
+          "aco": "Folder",
+          "aco_foreign_key": "6ab4968d-1c65-3dbc-b93d-3372bf11a093",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "c3477ca2-20fb-3758-96f6-3630ad70634c",
+        "aco": "Folder",
+        "aco_foreign_key": "6ab4968d-1c65-3dbc-b93d-3372bf11a093",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "45b2bd92-603c-39c9-b509-e8e943868f65",
+      "personal": true,
+      "id": "72a883cb-a5ab-3720-93b8-23cf657a575f",
+      "name": "Bench Folder 18",
+      "created": "2013-07-25T07:13:56+00:00",
+      "modified": "2022-12-08T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "75980873-11c6-3ce9-ac00-13f562d399e5",
+          "aco": "Folder",
+          "aco_foreign_key": "72a883cb-a5ab-3720-93b8-23cf657a575f",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "75980873-11c6-3ce9-ac00-13f562d399e5",
+        "aco": "Folder",
+        "aco_foreign_key": "72a883cb-a5ab-3720-93b8-23cf657a575f",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "90ae39db-6460-39d2-9221-0196e530b231",
+      "personal": true,
+      "id": "a7e53c2f-7528-3d65-bf51-84451c5b2992",
+      "name": "Bench Folder 19",
+      "created": "2014-12-22T07:13:56+00:00",
+      "modified": "2026-06-12T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "f878ce08-caf9-3df8-8f90-0ccdf7c8a87c",
+          "aco": "Folder",
+          "aco_foreign_key": "a7e53c2f-7528-3d65-bf51-84451c5b2992",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "f878ce08-caf9-3df8-8f90-0ccdf7c8a87c",
+        "aco": "Folder",
+        "aco_foreign_key": "a7e53c2f-7528-3d65-bf51-84451c5b2992",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "e9d8d748-fa1d-3c88-addc-b1aa51061f1e",
+      "personal": true,
+      "id": "7694d68d-37a2-3167-8abe-bb6962e874f2",
+      "name": "Bench Folder 2",
+      "created": "2018-01-21T07:13:56+00:00",
+      "modified": "2010-05-17T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "d3ca4045-094a-321f-a011-842610ed72c9",
+          "aco": "Folder",
+          "aco_foreign_key": "7694d68d-37a2-3167-8abe-bb6962e874f2",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "d3ca4045-094a-321f-a011-842610ed72c9",
+        "aco": "Folder",
+        "aco_foreign_key": "7694d68d-37a2-3167-8abe-bb6962e874f2",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "e9d8d748-fa1d-3c88-addc-b1aa51061f1e",
+      "personal": true,
+      "id": "0aada89a-a93e-3ed6-9ce6-81ad93dedf1c",
+      "name": "Bench Folder 20",
+      "created": "2020-05-12T07:13:56+00:00",
+      "modified": "2009-06-18T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "8f60ab3a-1599-37ae-af6d-7b60cb93714b",
+          "aco": "Folder",
+          "aco_foreign_key": "0aada89a-a93e-3ed6-9ce6-81ad93dedf1c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "8f60ab3a-1599-37ae-af6d-7b60cb93714b",
+        "aco": "Folder",
+        "aco_foreign_key": "0aada89a-a93e-3ed6-9ce6-81ad93dedf1c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "b3a17ebc-a970-3660-b2cc-33cfb71862c7",
+      "name": "Bench Folder 21",
+      "created": "2011-07-10T07:13:56+00:00",
+      "modified": "2020-08-15T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "cf0ba26c-211f-3802-a3e3-f62e0bcb1ac6",
+          "aco": "Folder",
+          "aco_foreign_key": "b3a17ebc-a970-3660-b2cc-33cfb71862c7",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "cf0ba26c-211f-3802-a3e3-f62e0bcb1ac6",
+        "aco": "Folder",
+        "aco_foreign_key": "b3a17ebc-a970-3660-b2cc-33cfb71862c7",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "0aada89a-a93e-3ed6-9ce6-81ad93dedf1c",
+      "personal": true,
+      "id": "8c26dda4-ffd8-3ea2-a40d-33452e3033b5",
+      "name": "Bench Folder 22",
+      "created": "2023-11-20T07:13:56+00:00",
+      "modified": "2004-07-22T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "1f528e68-0711-3e37-86dc-782585b207e5",
+          "aco": "Folder",
+          "aco_foreign_key": "8c26dda4-ffd8-3ea2-a40d-33452e3033b5",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "1f528e68-0711-3e37-86dc-782585b207e5",
+        "aco": "Folder",
+        "aco_foreign_key": "8c26dda4-ffd8-3ea2-a40d-33452e3033b5",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "0aada89a-a93e-3ed6-9ce6-81ad93dedf1c",
+      "personal": true,
+      "id": "d7342eb6-2361-34f5-b9d4-621aa044b07e",
+      "name": "Bench Folder 23",
+      "created": "2020-02-08T07:13:56+00:00",
+      "modified": "2010-12-31T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "782bb09a-9c54-39ad-bfba-2a3ee8c169af",
+          "aco": "Folder",
+          "aco_foreign_key": "d7342eb6-2361-34f5-b9d4-621aa044b07e",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "782bb09a-9c54-39ad-bfba-2a3ee8c169af",
+        "aco": "Folder",
+        "aco_foreign_key": "d7342eb6-2361-34f5-b9d4-621aa044b07e",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "90ae39db-6460-39d2-9221-0196e530b231",
+      "personal": true,
+      "id": "a140e224-ee5a-3928-98f3-4c8ad54b6cc2",
+      "name": "Bench Folder 24",
+      "created": "2011-04-26T07:13:56+00:00",
+      "modified": "2021-01-26T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "5b20a7f9-ecfb-34df-b4b8-d4d217e35b42",
+          "aco": "Folder",
+          "aco_foreign_key": "a140e224-ee5a-3928-98f3-4c8ad54b6cc2",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "5b20a7f9-ecfb-34df-b4b8-d4d217e35b42",
+        "aco": "Folder",
+        "aco_foreign_key": "a140e224-ee5a-3928-98f3-4c8ad54b6cc2",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+      "personal": true,
+      "id": "dd8a47ef-2e41-3743-ab1b-ff611d28121e",
+      "name": "Bench Folder 25",
+      "created": "2011-03-14T07:13:56+00:00",
+      "modified": "2000-01-22T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "97b51313-0037-3982-b9d1-ff5df7b11ee0",
+          "aco": "Folder",
+          "aco_foreign_key": "dd8a47ef-2e41-3743-ab1b-ff611d28121e",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "97b51313-0037-3982-b9d1-ff5df7b11ee0",
+        "aco": "Folder",
+        "aco_foreign_key": "dd8a47ef-2e41-3743-ab1b-ff611d28121e",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "6ab4968d-1c65-3dbc-b93d-3372bf11a093",
+      "personal": true,
+      "id": "c68fc128-6fd4-39de-9502-c78e9be5815d",
+      "name": "Bench Folder 26",
+      "created": "2023-08-25T07:13:56+00:00",
+      "modified": "2013-01-11T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "3f2ab2ad-e99c-3e61-903f-2442671f2011",
+          "aco": "Folder",
+          "aco_foreign_key": "c68fc128-6fd4-39de-9502-c78e9be5815d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "3f2ab2ad-e99c-3e61-903f-2442671f2011",
+        "aco": "Folder",
+        "aco_foreign_key": "c68fc128-6fd4-39de-9502-c78e9be5815d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "7694d68d-37a2-3167-8abe-bb6962e874f2",
+      "personal": true,
+      "id": "5c2ccc64-892e-35f6-a054-9a7ded7a92cd",
+      "name": "Bench Folder 27",
+      "created": "2007-01-05T07:13:56+00:00",
+      "modified": "2019-02-23T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "1959c232-666a-3c2f-9e05-3932f5d5fe24",
+          "aco": "Folder",
+          "aco_foreign_key": "5c2ccc64-892e-35f6-a054-9a7ded7a92cd",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "1959c232-666a-3c2f-9e05-3932f5d5fe24",
+        "aco": "Folder",
+        "aco_foreign_key": "5c2ccc64-892e-35f6-a054-9a7ded7a92cd",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "e9d8d748-fa1d-3c88-addc-b1aa51061f1e",
+      "personal": true,
+      "id": "58278107-ab7b-38c2-9e7f-a3a4a2d689f1",
+      "name": "Bench Folder 28",
+      "created": "2002-10-29T07:13:56+00:00",
+      "modified": "2004-10-05T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "0bc981ec-e17b-37dd-850f-9c2bc925d087",
+          "aco": "Folder",
+          "aco_foreign_key": "58278107-ab7b-38c2-9e7f-a3a4a2d689f1",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "0bc981ec-e17b-37dd-850f-9c2bc925d087",
+        "aco": "Folder",
+        "aco_foreign_key": "58278107-ab7b-38c2-9e7f-a3a4a2d689f1",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "616f70f4-aeb8-37ec-acae-615351af57ed",
+      "name": "Bench Folder 29",
+      "created": "2025-05-03T07:13:56+00:00",
+      "modified": "2019-01-03T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "622b29bb-204e-3df3-8b29-7d7ba72c465e",
+          "aco": "Folder",
+          "aco_foreign_key": "616f70f4-aeb8-37ec-acae-615351af57ed",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "622b29bb-204e-3df3-8b29-7d7ba72c465e",
+        "aco": "Folder",
+        "aco_foreign_key": "616f70f4-aeb8-37ec-acae-615351af57ed",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "9a5a86c8-0265-3d5e-b93c-8f6dad54b828",
+      "personal": true,
+      "id": "ea7786d3-ea25-31ed-8a7b-815d97bb1ac5",
+      "name": "Bench Folder 3",
+      "created": "2023-12-29T07:13:56+00:00",
+      "modified": "1999-12-23T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "b29aecbd-d7d2-317a-b8c8-9684190a625a",
+          "aco": "Folder",
+          "aco_foreign_key": "ea7786d3-ea25-31ed-8a7b-815d97bb1ac5",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "b29aecbd-d7d2-317a-b8c8-9684190a625a",
+        "aco": "Folder",
+        "aco_foreign_key": "ea7786d3-ea25-31ed-8a7b-815d97bb1ac5",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "b57f48b9-c943-3e60-889f-13de128fdd19",
+      "personal": true,
+      "id": "cd7e77b9-501b-307d-bdfc-1f2445c9940c",
+      "name": "Bench Folder 30",
+      "created": "2018-08-05T07:13:56+00:00",
+      "modified": "2005-01-11T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "4db1ae04-6e0b-3539-aed4-eeb5d7b6c357",
+          "aco": "Folder",
+          "aco_foreign_key": "cd7e77b9-501b-307d-bdfc-1f2445c9940c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "4db1ae04-6e0b-3539-aed4-eeb5d7b6c357",
+        "aco": "Folder",
+        "aco_foreign_key": "cd7e77b9-501b-307d-bdfc-1f2445c9940c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "a7e53c2f-7528-3d65-bf51-84451c5b2992",
+      "personal": true,
+      "id": "89963870-5e93-328b-9fee-d8ebea93e68d",
+      "name": "Bench Folder 31",
+      "created": "2003-11-10T07:13:56+00:00",
+      "modified": "2006-02-18T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "968615c9-1f41-3cda-9f08-54a9f4dd34cd",
+          "aco": "Folder",
+          "aco_foreign_key": "89963870-5e93-328b-9fee-d8ebea93e68d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "968615c9-1f41-3cda-9f08-54a9f4dd34cd",
+        "aco": "Folder",
+        "aco_foreign_key": "89963870-5e93-328b-9fee-d8ebea93e68d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "dae14abe-1c92-3aab-a2cd-a716239247a3",
+      "personal": true,
+      "id": "027ff110-15fa-3d2f-8339-daa24eb8b308",
+      "name": "Bench Folder 32",
+      "created": "2015-10-02T07:13:56+00:00",
+      "modified": "2004-10-12T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "5f930182-b313-307b-9c77-1872addc96da",
+          "aco": "Folder",
+          "aco_foreign_key": "027ff110-15fa-3d2f-8339-daa24eb8b308",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "5f930182-b313-307b-9c77-1872addc96da",
+        "aco": "Folder",
+        "aco_foreign_key": "027ff110-15fa-3d2f-8339-daa24eb8b308",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "3dd44b50-a8c3-382f-b8d2-b80352f626ef",
+      "name": "Bench Folder 33",
+      "created": "2019-03-20T07:13:56+00:00",
+      "modified": "2023-09-08T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "a78c5d86-35cf-3506-891c-8d727d517762",
+          "aco": "Folder",
+          "aco_foreign_key": "3dd44b50-a8c3-382f-b8d2-b80352f626ef",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "a78c5d86-35cf-3506-891c-8d727d517762",
+        "aco": "Folder",
+        "aco_foreign_key": "3dd44b50-a8c3-382f-b8d2-b80352f626ef",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+      "personal": true,
+      "id": "f9a5bb4d-9b5c-31dd-8acf-0a3b6b649c52",
+      "name": "Bench Folder 34",
+      "created": "2013-04-12T07:13:56+00:00",
+      "modified": "2008-07-19T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "17147e13-90d0-3522-a611-be03c78d4851",
+          "aco": "Folder",
+          "aco_foreign_key": "f9a5bb4d-9b5c-31dd-8acf-0a3b6b649c52",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "17147e13-90d0-3522-a611-be03c78d4851",
+        "aco": "Folder",
+        "aco_foreign_key": "f9a5bb4d-9b5c-31dd-8acf-0a3b6b649c52",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "f9a5bb4d-9b5c-31dd-8acf-0a3b6b649c52",
+      "personal": true,
+      "id": "b0fa0a2f-6e45-3749-9edb-5801a81ea533",
+      "name": "Bench Folder 35",
+      "created": "1999-10-08T07:13:56+00:00",
+      "modified": "2016-02-12T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "3895f7f4-cd56-3fb7-a31a-7defad124324",
+          "aco": "Folder",
+          "aco_foreign_key": "b0fa0a2f-6e45-3749-9edb-5801a81ea533",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "3895f7f4-cd56-3fb7-a31a-7defad124324",
+        "aco": "Folder",
+        "aco_foreign_key": "b0fa0a2f-6e45-3749-9edb-5801a81ea533",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "73daa257-66b7-3db9-8d4e-348045af6783",
+      "personal": true,
+      "id": "9468a7d7-1e8f-32ad-9f4f-3bc7b43c4bee",
+      "name": "Bench Folder 36",
+      "created": "2022-04-03T07:13:56+00:00",
+      "modified": "2004-09-29T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "9fe8dbf1-3ad7-3858-b6a7-11184ee27329",
+          "aco": "Folder",
+          "aco_foreign_key": "9468a7d7-1e8f-32ad-9f4f-3bc7b43c4bee",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "9fe8dbf1-3ad7-3858-b6a7-11184ee27329",
+        "aco": "Folder",
+        "aco_foreign_key": "9468a7d7-1e8f-32ad-9f4f-3bc7b43c4bee",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "ae3952ff-afd0-3dca-af2d-14e5fa944e7d",
+      "personal": true,
+      "id": "b6b6afdc-3c9c-3360-8f52-c32ec0645466",
+      "name": "Bench Folder 37",
+      "created": "2019-03-27T07:13:56+00:00",
+      "modified": "2015-03-19T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "e6f1aa40-ba01-35fd-acf7-0c010bda4281",
+          "aco": "Folder",
+          "aco_foreign_key": "b6b6afdc-3c9c-3360-8f52-c32ec0645466",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "e6f1aa40-ba01-35fd-acf7-0c010bda4281",
+        "aco": "Folder",
+        "aco_foreign_key": "b6b6afdc-3c9c-3360-8f52-c32ec0645466",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "a7e53c2f-7528-3d65-bf51-84451c5b2992",
+      "personal": true,
+      "id": "f8da58c2-b794-332f-adda-f7c60da8e033",
+      "name": "Bench Folder 38",
+      "created": "2019-01-19T07:13:56+00:00",
+      "modified": "2020-07-02T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "05388277-7f40-304c-8f99-02f62e72c843",
+          "aco": "Folder",
+          "aco_foreign_key": "f8da58c2-b794-332f-adda-f7c60da8e033",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "05388277-7f40-304c-8f99-02f62e72c843",
+        "aco": "Folder",
+        "aco_foreign_key": "f8da58c2-b794-332f-adda-f7c60da8e033",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "45b2bd92-603c-39c9-b509-e8e943868f65",
+      "personal": true,
+      "id": "915afa3d-880a-3574-aa66-5176eab5ec5b",
+      "name": "Bench Folder 39",
+      "created": "2004-03-07T07:13:56+00:00",
+      "modified": "2024-08-28T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "ad4d9d38-c447-341d-b6fd-eaa05f144bbd",
+          "aco": "Folder",
+          "aco_foreign_key": "915afa3d-880a-3574-aa66-5176eab5ec5b",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "ad4d9d38-c447-341d-b6fd-eaa05f144bbd",
+        "aco": "Folder",
+        "aco_foreign_key": "915afa3d-880a-3574-aa66-5176eab5ec5b",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "7694d68d-37a2-3167-8abe-bb6962e874f2",
+      "personal": true,
+      "id": "2af07ef4-44c4-320f-96c8-a69395a7f6c1",
+      "name": "Bench Folder 4",
+      "created": "2024-09-09T07:13:56+00:00",
+      "modified": "2014-04-10T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "d5a47345-7a95-3089-99ab-986c6e6d87e0",
+          "aco": "Folder",
+          "aco_foreign_key": "2af07ef4-44c4-320f-96c8-a69395a7f6c1",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "d5a47345-7a95-3089-99ab-986c6e6d87e0",
+        "aco": "Folder",
+        "aco_foreign_key": "2af07ef4-44c4-320f-96c8-a69395a7f6c1",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "3dd44b50-a8c3-382f-b8d2-b80352f626ef",
+      "personal": true,
+      "id": "31efb603-f42e-33d5-bb11-3754bd8478c5",
+      "name": "Bench Folder 40",
+      "created": "2010-08-06T07:13:56+00:00",
+      "modified": "2008-12-17T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "6aa7592d-e408-31b0-89ad-d7807bc16bdb",
+          "aco": "Folder",
+          "aco_foreign_key": "31efb603-f42e-33d5-bb11-3754bd8478c5",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "6aa7592d-e408-31b0-89ad-d7807bc16bdb",
+        "aco": "Folder",
+        "aco_foreign_key": "31efb603-f42e-33d5-bb11-3754bd8478c5",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+      "personal": true,
+      "id": "d5fbe085-13d4-3f47-80ef-e993b8b89f42",
+      "name": "Bench Folder 41",
+      "created": "2002-06-25T07:13:56+00:00",
+      "modified": "2021-05-12T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "70fe6210-2b4c-35f7-9937-2e9183fb4fc7",
+          "aco": "Folder",
+          "aco_foreign_key": "d5fbe085-13d4-3f47-80ef-e993b8b89f42",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "70fe6210-2b4c-35f7-9937-2e9183fb4fc7",
+        "aco": "Folder",
+        "aco_foreign_key": "d5fbe085-13d4-3f47-80ef-e993b8b89f42",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "58278107-ab7b-38c2-9e7f-a3a4a2d689f1",
+      "personal": true,
+      "id": "78c5301c-5f37-3efb-9ba8-2993996960aa",
+      "name": "Bench Folder 42",
+      "created": "2010-02-02T07:13:56+00:00",
+      "modified": "2010-02-15T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "59f53ed3-955c-32b6-a16d-2b093f43f636",
+          "aco": "Folder",
+          "aco_foreign_key": "78c5301c-5f37-3efb-9ba8-2993996960aa",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "59f53ed3-955c-32b6-a16d-2b093f43f636",
+        "aco": "Folder",
+        "aco_foreign_key": "78c5301c-5f37-3efb-9ba8-2993996960aa",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "8c26dda4-ffd8-3ea2-a40d-33452e3033b5",
+      "personal": true,
+      "id": "4f78632d-5a5a-3f41-8da1-7810d3ced097",
+      "name": "Bench Folder 43",
+      "created": "2007-06-07T07:13:56+00:00",
+      "modified": "2017-06-02T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "b8fbc794-0f8a-3afe-a2f0-9ce60d58e202",
+          "aco": "Folder",
+          "aco_foreign_key": "4f78632d-5a5a-3f41-8da1-7810d3ced097",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "b8fbc794-0f8a-3afe-a2f0-9ce60d58e202",
+        "aco": "Folder",
+        "aco_foreign_key": "4f78632d-5a5a-3f41-8da1-7810d3ced097",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "6ab4968d-1c65-3dbc-b93d-3372bf11a093",
+      "personal": true,
+      "id": "c02bfe44-e84f-3009-b538-326ba66859ac",
+      "name": "Bench Folder 44",
+      "created": "2013-10-16T07:13:56+00:00",
+      "modified": "2014-06-26T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "43617a5a-c06e-3e92-98e5-3a9aa87e8579",
+          "aco": "Folder",
+          "aco_foreign_key": "c02bfe44-e84f-3009-b538-326ba66859ac",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "43617a5a-c06e-3e92-98e5-3a9aa87e8579",
+        "aco": "Folder",
+        "aco_foreign_key": "c02bfe44-e84f-3009-b538-326ba66859ac",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "dd8a47ef-2e41-3743-ab1b-ff611d28121e",
+      "personal": true,
+      "id": "739da0ae-03e2-3467-945b-8b49731cd595",
+      "name": "Bench Folder 45",
+      "created": "2003-04-26T07:13:56+00:00",
+      "modified": "2002-03-14T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "e567ab68-78df-390b-bc60-34df3e1c7814",
+          "aco": "Folder",
+          "aco_foreign_key": "739da0ae-03e2-3467-945b-8b49731cd595",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "e567ab68-78df-390b-bc60-34df3e1c7814",
+        "aco": "Folder",
+        "aco_foreign_key": "739da0ae-03e2-3467-945b-8b49731cd595",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "9a5a86c8-0265-3d5e-b93c-8f6dad54b828",
+      "personal": true,
+      "id": "abd9ddbd-6305-3e9a-a6fa-6c6763e75418",
+      "name": "Bench Folder 46",
+      "created": "2025-06-22T07:13:56+00:00",
+      "modified": "2018-07-23T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "78741835-77ed-3af9-a499-79012e8ea483",
+          "aco": "Folder",
+          "aco_foreign_key": "abd9ddbd-6305-3e9a-a6fa-6c6763e75418",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "78741835-77ed-3af9-a499-79012e8ea483",
+        "aco": "Folder",
+        "aco_foreign_key": "abd9ddbd-6305-3e9a-a6fa-6c6763e75418",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "027ff110-15fa-3d2f-8339-daa24eb8b308",
+      "personal": true,
+      "id": "1947e637-6418-3601-aa0e-a2b62b716aad",
+      "name": "Bench Folder 47",
+      "created": "2014-07-25T07:13:56+00:00",
+      "modified": "2004-04-18T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "63106d71-c8d4-37f4-ac67-be2fecefc429",
+          "aco": "Folder",
+          "aco_foreign_key": "1947e637-6418-3601-aa0e-a2b62b716aad",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "63106d71-c8d4-37f4-ac67-be2fecefc429",
+        "aco": "Folder",
+        "aco_foreign_key": "1947e637-6418-3601-aa0e-a2b62b716aad",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "fdc29046-e1b7-3057-bca9-a97dbfdac6f0",
+      "name": "Bench Folder 48",
+      "created": "2026-06-05T07:13:56+00:00",
+      "modified": "2023-07-16T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "6743f5e3-e694-3775-a76b-d0e26ec34326",
+          "aco": "Folder",
+          "aco_foreign_key": "fdc29046-e1b7-3057-bca9-a97dbfdac6f0",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "6743f5e3-e694-3775-a76b-d0e26ec34326",
+        "aco": "Folder",
+        "aco_foreign_key": "fdc29046-e1b7-3057-bca9-a97dbfdac6f0",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "941cd920-0c23-375e-84e1-ef2279a0ac05",
+      "name": "Bench Folder 49",
+      "created": "2012-02-22T07:13:56+00:00",
+      "modified": "2025-01-21T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "2def34a0-f5ee-3b8f-a63c-86f1aaebff7c",
+          "aco": "Folder",
+          "aco_foreign_key": "941cd920-0c23-375e-84e1-ef2279a0ac05",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "2def34a0-f5ee-3b8f-a63c-86f1aaebff7c",
+        "aco": "Folder",
+        "aco_foreign_key": "941cd920-0c23-375e-84e1-ef2279a0ac05",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "90ae39db-6460-39d2-9221-0196e530b231",
+      "name": "Bench Folder 5",
+      "created": "2026-03-14T07:13:56+00:00",
+      "modified": "2025-07-17T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "b2756356-7425-3c77-ae0e-cffbe019b891",
+          "aco": "Folder",
+          "aco_foreign_key": "90ae39db-6460-39d2-9221-0196e530b231",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "b2756356-7425-3c77-ae0e-cffbe019b891",
+        "aco": "Folder",
+        "aco_foreign_key": "90ae39db-6460-39d2-9221-0196e530b231",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "fdc29046-e1b7-3057-bca9-a97dbfdac6f0",
+      "personal": true,
+      "id": "c95f9f2d-d2a2-3b56-bc8c-d804d4330767",
+      "name": "Bench Folder 50",
+      "created": "2005-03-26T07:13:56+00:00",
+      "modified": "2001-09-28T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "9094d2d0-d1ee-39b2-ab97-4654f3f49f33",
+          "aco": "Folder",
+          "aco_foreign_key": "c95f9f2d-d2a2-3b56-bc8c-d804d4330767",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "9094d2d0-d1ee-39b2-ab97-4654f3f49f33",
+        "aco": "Folder",
+        "aco_foreign_key": "c95f9f2d-d2a2-3b56-bc8c-d804d4330767",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "ea7786d3-ea25-31ed-8a7b-815d97bb1ac5",
+      "personal": true,
+      "id": "296b21a5-bfa6-324d-bdc5-5834a5a89154",
+      "name": "Bench Folder 51",
+      "created": "2014-07-23T07:13:56+00:00",
+      "modified": "2026-03-06T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "5c131c36-a0ed-34fb-8193-ef45fc1c5924",
+          "aco": "Folder",
+          "aco_foreign_key": "296b21a5-bfa6-324d-bdc5-5834a5a89154",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "5c131c36-a0ed-34fb-8193-ef45fc1c5924",
+        "aco": "Folder",
+        "aco_foreign_key": "296b21a5-bfa6-324d-bdc5-5834a5a89154",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "d0c9c16e-898b-3ea3-8d4c-eeedcb0f0427",
+      "name": "Bench Folder 52",
+      "created": "2021-09-04T07:13:56+00:00",
+      "modified": "2012-05-04T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "d714ef56-d60e-391c-b7b9-fde39991ee9d",
+          "aco": "Folder",
+          "aco_foreign_key": "d0c9c16e-898b-3ea3-8d4c-eeedcb0f0427",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "d714ef56-d60e-391c-b7b9-fde39991ee9d",
+        "aco": "Folder",
+        "aco_foreign_key": "d0c9c16e-898b-3ea3-8d4c-eeedcb0f0427",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "58278107-ab7b-38c2-9e7f-a3a4a2d689f1",
+      "personal": true,
+      "id": "4cda312d-b321-3ce8-955a-9a0876d5a4a9",
+      "name": "Bench Folder 53",
+      "created": "2021-02-28T07:13:56+00:00",
+      "modified": "2017-11-02T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "f86abb96-19df-3a4d-a822-4fc31947cfca",
+          "aco": "Folder",
+          "aco_foreign_key": "4cda312d-b321-3ce8-955a-9a0876d5a4a9",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "f86abb96-19df-3a4d-a822-4fc31947cfca",
+        "aco": "Folder",
+        "aco_foreign_key": "4cda312d-b321-3ce8-955a-9a0876d5a4a9",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "01bedac0-6bd5-3cdc-9cd7-9575ef77fba9",
+      "personal": true,
+      "id": "ecea3c46-fdeb-3992-8a58-4953949de2e4",
+      "name": "Bench Folder 54",
+      "created": "2024-06-13T07:13:56+00:00",
+      "modified": "2002-10-14T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "f7f080a3-c763-3041-a44d-85f48f669818",
+          "aco": "Folder",
+          "aco_foreign_key": "ecea3c46-fdeb-3992-8a58-4953949de2e4",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "f7f080a3-c763-3041-a44d-85f48f669818",
+        "aco": "Folder",
+        "aco_foreign_key": "ecea3c46-fdeb-3992-8a58-4953949de2e4",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "2e29a72d-e31b-3e4e-b190-22f405a6f0d1",
+      "name": "Bench Folder 55",
+      "created": "2004-12-28T07:13:56+00:00",
+      "modified": "2001-08-18T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "0ffd0edd-bc3d-388b-877d-65be71f3b7d9",
+          "aco": "Folder",
+          "aco_foreign_key": "2e29a72d-e31b-3e4e-b190-22f405a6f0d1",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "0ffd0edd-bc3d-388b-877d-65be71f3b7d9",
+        "aco": "Folder",
+        "aco_foreign_key": "2e29a72d-e31b-3e4e-b190-22f405a6f0d1",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "a7e53c2f-7528-3d65-bf51-84451c5b2992",
+      "personal": true,
+      "id": "a2518850-12e1-3c36-8a89-057d12e1dbfe",
+      "name": "Bench Folder 56",
+      "created": "2023-02-11T07:13:56+00:00",
+      "modified": "2002-09-02T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "dfc16089-cbaf-347f-8ca8-3e29534d7e47",
+          "aco": "Folder",
+          "aco_foreign_key": "a2518850-12e1-3c36-8a89-057d12e1dbfe",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "dfc16089-cbaf-347f-8ca8-3e29534d7e47",
+        "aco": "Folder",
+        "aco_foreign_key": "a2518850-12e1-3c36-8a89-057d12e1dbfe",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "31efb603-f42e-33d5-bb11-3754bd8478c5",
+      "personal": true,
+      "id": "2c16f0ba-058e-3f7b-a983-92c08ba6c891",
+      "name": "Bench Folder 57",
+      "created": "2024-12-26T07:13:56+00:00",
+      "modified": "2017-12-20T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "d6cfb56e-0d00-3914-824a-3b6730b83ff6",
+          "aco": "Folder",
+          "aco_foreign_key": "2c16f0ba-058e-3f7b-a983-92c08ba6c891",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "d6cfb56e-0d00-3914-824a-3b6730b83ff6",
+        "aco": "Folder",
+        "aco_foreign_key": "2c16f0ba-058e-3f7b-a983-92c08ba6c891",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "c95f9f2d-d2a2-3b56-bc8c-d804d4330767",
+      "personal": true,
+      "id": "75fa27ee-0327-34dd-b9fc-465b9b81e213",
+      "name": "Bench Folder 58",
+      "created": "2012-07-24T07:13:56+00:00",
+      "modified": "2015-02-28T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "59e43cb6-7c09-3238-a42b-2958c8abb546",
+          "aco": "Folder",
+          "aco_foreign_key": "75fa27ee-0327-34dd-b9fc-465b9b81e213",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "59e43cb6-7c09-3238-a42b-2958c8abb546",
+        "aco": "Folder",
+        "aco_foreign_key": "75fa27ee-0327-34dd-b9fc-465b9b81e213",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "ae3952ff-afd0-3dca-af2d-14e5fa944e7d",
+      "personal": true,
+      "id": "1a739805-4117-30a7-9c1c-1d888ac35550",
+      "name": "Bench Folder 59",
+      "created": "2016-05-12T07:13:56+00:00",
+      "modified": "2005-05-05T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "af33456d-e0bb-3e7b-9c89-86e673efa744",
+          "aco": "Folder",
+          "aco_foreign_key": "1a739805-4117-30a7-9c1c-1d888ac35550",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "af33456d-e0bb-3e7b-9c89-86e673efa744",
+        "aco": "Folder",
+        "aco_foreign_key": "1a739805-4117-30a7-9c1c-1d888ac35550",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "90ae39db-6460-39d2-9221-0196e530b231",
+      "personal": true,
+      "id": "2436af26-e185-3173-b45f-0d9b37a283ee",
+      "name": "Bench Folder 6",
+      "created": "2000-09-04T07:13:56+00:00",
+      "modified": "2002-07-08T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "ea4a8df7-bb75-374c-b6d4-53293ed59d09",
+          "aco": "Folder",
+          "aco_foreign_key": "2436af26-e185-3173-b45f-0d9b37a283ee",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "ea4a8df7-bb75-374c-b6d4-53293ed59d09",
+        "aco": "Folder",
+        "aco_foreign_key": "2436af26-e185-3173-b45f-0d9b37a283ee",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "2af07ef4-44c4-320f-96c8-a69395a7f6c1",
+      "personal": true,
+      "id": "9ecec7ab-6249-33f0-83a4-c1b91da5cc35",
+      "name": "Bench Folder 7",
+      "created": "2008-02-08T07:13:56+00:00",
+      "modified": "2007-03-06T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "2c043242-b8c7-3743-8202-b7d3bf6a897d",
+          "aco": "Folder",
+          "aco_foreign_key": "9ecec7ab-6249-33f0-83a4-c1b91da5cc35",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "2c043242-b8c7-3743-8202-b7d3bf6a897d",
+        "aco": "Folder",
+        "aco_foreign_key": "9ecec7ab-6249-33f0-83a4-c1b91da5cc35",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": true,
+      "id": "a17b9ef1-9798-36f3-ba58-8458e4ddafe6",
+      "name": "Bench Folder 8",
+      "created": "2004-11-13T07:13:56+00:00",
+      "modified": "2002-12-24T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "77d8f7b9-d9e7-3ec5-847c-ae52d829654c",
+          "aco": "Folder",
+          "aco_foreign_key": "a17b9ef1-9798-36f3-ba58-8458e4ddafe6",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "77d8f7b9-d9e7-3ec5-847c-ae52d829654c",
+        "aco": "Folder",
+        "aco_foreign_key": "a17b9ef1-9798-36f3-ba58-8458e4ddafe6",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": "a17b9ef1-9798-36f3-ba58-8458e4ddafe6",
+      "personal": true,
+      "id": "9051b04e-5590-3d78-88c5-7d21b9a9ecd3",
+      "name": "Bench Folder 9",
+      "created": "1999-07-24T07:13:56+00:00",
+      "modified": "2019-01-23T07:13:56+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "permissions": [
+        {
+          "id": "3c48afa6-404a-31c5-836c-60086192a4a1",
+          "aco": "Folder",
+          "aco_foreign_key": "9051b04e-5590-3d78-88c5-7d21b9a9ecd3",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-19T07:13:56+00:00",
+          "modified": "2026-06-19T07:13:56+00:00"
+        }
+      ],
+      "permission": {
+        "id": "3c48afa6-404a-31c5-836c-60086192a4a1",
+        "aco": "Folder",
+        "aco_foreign_key": "9051b04e-5590-3d78-88c5-7d21b9a9ecd3",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-19T07:13:56+00:00",
+        "modified": "2026-06-19T07:13:56+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": false,
+      "id": "bdc7680c-3ade-32d6-baca-c17c2555a294",
+      "name": "Bench Shared Folder 0",
+      "created": "2001-10-29T07:14:00+00:00",
+      "modified": "2001-12-27T07:14:00+00:00",
+      "created_by": "14022c4e-ca74-5e39-b16f-c13ee68dfd27",
+      "modified_by": "14022c4e-ca74-5e39-b16f-c13ee68dfd27",
+      "permissions": [
+        {
+          "id": "0635042c-8d3b-3888-a5bf-4a7a43e22e7a",
+          "aco": "Folder",
+          "aco_foreign_key": "bdc7680c-3ade-32d6-baca-c17c2555a294",
+          "aro": "User",
+          "aro_foreign_key": "14022c4e-ca74-5e39-b16f-c13ee68dfd27",
+          "type": 15,
+          "created": "2026-06-19T07:14:00+00:00",
+          "modified": "2026-06-19T07:14:00+00:00"
+        },
+        {
+          "id": "4c60202e-4afc-3b72-8860-323501a401ab",
+          "aco": "Folder",
+          "aco_foreign_key": "bdc7680c-3ade-32d6-baca-c17c2555a294",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 7,
+          "created": "2026-06-19T07:14:00+00:00",
+          "modified": "2026-06-19T07:14:00+00:00"
+        }
+      ],
+      "permission": {
+        "id": "4c60202e-4afc-3b72-8860-323501a401ab",
+        "aco": "Folder",
+        "aco_foreign_key": "bdc7680c-3ade-32d6-baca-c17c2555a294",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 7,
+        "created": "2026-06-19T07:14:00+00:00",
+        "modified": "2026-06-19T07:14:00+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": false,
+      "id": "f56cde7b-69e6-3090-a2cd-6d6380d97ad3",
+      "name": "Bench Shared Folder 1",
+      "created": "2017-04-03T07:14:01+00:00",
+      "modified": "2001-03-16T07:14:01+00:00",
+      "created_by": "83985f8a-5eab-57dd-ad2c-7e2dd6fb9648",
+      "modified_by": "83985f8a-5eab-57dd-ad2c-7e2dd6fb9648",
+      "permissions": [
+        {
+          "id": "abfe9400-a151-3b97-8db7-26a626cd0f10",
+          "aco": "Folder",
+          "aco_foreign_key": "f56cde7b-69e6-3090-a2cd-6d6380d97ad3",
+          "aro": "User",
+          "aro_foreign_key": "83985f8a-5eab-57dd-ad2c-7e2dd6fb9648",
+          "type": 15,
+          "created": "2026-06-19T07:14:01+00:00",
+          "modified": "2026-06-19T07:14:01+00:00"
+        },
+        {
+          "id": "dc50f2dc-ec98-336c-951a-e2bf09056503",
+          "aco": "Folder",
+          "aco_foreign_key": "f56cde7b-69e6-3090-a2cd-6d6380d97ad3",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-19T07:14:01+00:00",
+          "modified": "2026-06-19T07:14:01+00:00"
+        }
+      ],
+      "permission": {
+        "id": "dc50f2dc-ec98-336c-951a-e2bf09056503",
+        "aco": "Folder",
+        "aco_foreign_key": "f56cde7b-69e6-3090-a2cd-6d6380d97ad3",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-19T07:14:01+00:00",
+        "modified": "2026-06-19T07:14:01+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": false,
+      "id": "946288ad-85a5-3239-8df4-9c2e1b002b2d",
+      "name": "Bench Shared Folder 2",
+      "created": "2013-07-01T07:14:01+00:00",
+      "modified": "2016-05-06T07:14:01+00:00",
+      "created_by": "f0169c7e-d156-5ffe-8083-1171c06db906",
+      "modified_by": "f0169c7e-d156-5ffe-8083-1171c06db906",
+      "permissions": [
+        {
+          "id": "12fca580-75a9-374d-85f7-c500589f0097",
+          "aco": "Folder",
+          "aco_foreign_key": "946288ad-85a5-3239-8df4-9c2e1b002b2d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-19T07:14:01+00:00",
+          "modified": "2026-06-19T07:14:01+00:00"
+        },
+        {
+          "id": "903fb24f-c7fa-312e-a438-93f3ae27341a",
+          "aco": "Folder",
+          "aco_foreign_key": "946288ad-85a5-3239-8df4-9c2e1b002b2d",
+          "aro": "User",
+          "aro_foreign_key": "f0169c7e-d156-5ffe-8083-1171c06db906",
+          "type": 15,
+          "created": "2026-06-19T07:14:01+00:00",
+          "modified": "2026-06-19T07:14:01+00:00"
+        }
+      ],
+      "permission": {
+        "id": "12fca580-75a9-374d-85f7-c500589f0097",
+        "aco": "Folder",
+        "aco_foreign_key": "946288ad-85a5-3239-8df4-9c2e1b002b2d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-19T07:14:01+00:00",
+        "modified": "2026-06-19T07:14:01+00:00"
+      }
+    },
+    {
+      "folder_parent_id": null,
+      "personal": false,
+      "id": "c724a4b7-f7d8-3105-a1d5-75af83b6251e",
+      "name": "Bench Shared Folder 3",
+      "created": "2025-02-23T07:14:01+00:00",
+      "modified": "2008-02-07T07:14:01+00:00",
+      "created_by": "6bdb061d-f593-519e-8119-014b01caa971",
+      "modified_by": "6bdb061d-f593-519e-8119-014b01caa971",
+      "permissions": [
+        {
+          "id": "2f38fff2-471c-388c-a0ad-8ffd9c1b5019",
+          "aco": "Folder",
+          "aco_foreign_key": "c724a4b7-f7d8-3105-a1d5-75af83b6251e",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-19T07:14:01+00:00",
+          "modified": "2026-06-19T07:14:01+00:00"
+        },
+        {
+          "id": "eb11c046-7c4f-3384-b65c-eba234f35f42",
+          "aco": "Folder",
+          "aco_foreign_key": "c724a4b7-f7d8-3105-a1d5-75af83b6251e",
+          "aro": "User",
+          "aro_foreign_key": "6bdb061d-f593-519e-8119-014b01caa971",
+          "type": 15,
+          "created": "2026-06-19T07:14:01+00:00",
+          "modified": "2026-06-19T07:14:01+00:00"
+        }
+      ],
+      "permission": {
+        "id": "2f38fff2-471c-388c-a0ad-8ffd9c1b5019",
+        "aco": "Folder",
+        "aco_foreign_key": "c724a4b7-f7d8-3105-a1d5-75af83b6251e",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-19T07:14:01+00:00",
+        "modified": "2026-06-19T07:14:01+00:00"
+      }
+    }
+  ]
+}

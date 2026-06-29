@@ -441,5 +441,4 @@ final class SessionConfigurationLoaderTests: FeaturesTestCase {
       isEqual: 2
     )
   }
-
 }

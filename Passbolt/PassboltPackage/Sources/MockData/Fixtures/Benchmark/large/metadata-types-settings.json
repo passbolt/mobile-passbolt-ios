@@ -1,0 +1,27 @@
+{
+  "header": {
+    "id": "ecf37d24-7772-4128-bc11-38686eeee1b9",
+    "status": "success",
+    "servertime": 1781854358,
+    "action": "12c1b158-0100-53d8-a979-83d3cc4a86bc",
+    "message": "The operation was successful.",
+    "url": "/metadata/types/settings.json",
+    "code": 200
+  },
+  "body": {
+    "default_resource_types": "v5",
+    "default_folder_type": "v5",
+    "default_tag_type": "v5",
+    "default_comment_type": "v5",
+    "allow_creation_of_v5_resources": true,
+    "allow_creation_of_v5_folders": true,
+    "allow_creation_of_v5_tags": true,
+    "allow_creation_of_v5_comments": true,
+    "allow_creation_of_v4_resources": true,
+    "allow_creation_of_v4_folders": true,
+    "allow_creation_of_v4_tags": true,
+    "allow_creation_of_v4_comments": true,
+    "allow_v5_v4_downgrade": false,
+    "allow_v4_v5_upgrade": true
+  }
+}

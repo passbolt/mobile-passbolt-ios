@@ -27,7 +27,6 @@ internal final class ShareResourceTests: UITestCase {
     try super.beforeEachTestCase()
     try signIn()
     homeScreen.ensureDisplayed()
-
     let resourceName = "TestiOS"
     homeScreen
       .search(for: resourceName)

@@ -85,6 +85,7 @@ internal struct HomeView: ControlledView {
               )
             )
           )
+          .tint(Color.passboltPrimaryText)
         }
       }
     }

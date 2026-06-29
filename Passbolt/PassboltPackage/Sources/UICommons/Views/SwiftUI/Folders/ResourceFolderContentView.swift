@@ -135,6 +135,7 @@ public struct ResourceFolderContentView: View {
   private let folderTapAction: @Sendable (ResourceFolder.ID) async throws -> Void
   private let resourceTapAction: @Sendable (Resource.ID) async throws -> Void
   private let resourceMenuAction: (@Sendable (Resource.ID) async throws -> Void)?
+
   public init(
     folderName: DisplayableString,
     isSearchResult: Bool,

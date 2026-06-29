@@ -1,0 +1,2844 @@
+{
+  "header": {
+    "id": "159cbc27-da33-4d38-8de4-5931a9cb5fd2",
+    "status": "success",
+    "servertime": 1781853390,
+    "action": "3cffe6ef-ea4c-5bc3-869b-945f26e2601a",
+    "message": "The operation was successful.",
+    "url": "/groups.json?contain%5Buser%5D=1",
+    "code": 200
+  },
+  "body": [
+    {
+      "id": "0526f8df-4940-3603-a137-c87b9449909f",
+      "name": "Bench Group 9",
+      "deleted": false,
+      "created": "2012-07-14T00:00:00+00:00",
+      "modified": "2014-07-02T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "97d66c3d-970a-572d-ace1-39bcd1d03cb1",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_93@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-09-15T07:13:56+00:00",
+          "created": "2009-05-14T07:13:56+00:00",
+          "modified": "2007-06-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "26bbd381-ee8b-3f47-a368-d6f8d1a449b2",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "97d66c3d-970a-572d-ace1-39bcd1d03cb1",
+            "is_admin": false,
+            "created": "2005-11-19T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f33612ef-acf7-5ecd-8715-2d9f9790cd91",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_110@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2010-01-23T07:13:56+00:00",
+          "created": "2021-01-07T07:13:56+00:00",
+          "modified": "2012-02-28T07:13:56+00:00",
+          "_joinData": {
+            "id": "3c8c554a-adc3-3f52-8843-736ce14dca22",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "f33612ef-acf7-5ecd-8715-2d9f9790cd91",
+            "is_admin": false,
+            "created": "2017-01-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "60a5400c-d398-509b-bb20-63dd7dab3019",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_44@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-12-10T07:13:56+00:00",
+          "created": "2005-08-04T07:13:56+00:00",
+          "modified": "2023-08-21T07:13:56+00:00",
+          "_joinData": {
+            "id": "4a6b6d95-86cf-3de9-81b9-374c6e6bfe08",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "60a5400c-d398-509b-bb20-63dd7dab3019",
+            "is_admin": true,
+            "created": "2024-12-27T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "d02a87fa-e060-5ef0-9a10-29a57109a88a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_58@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2015-02-21T07:13:56+00:00",
+          "created": "2026-04-01T07:13:56+00:00",
+          "modified": "2014-06-17T07:13:56+00:00",
+          "_joinData": {
+            "id": "502a988d-8d43-36f6-b3fe-ff69df9e13e0",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "d02a87fa-e060-5ef0-9a10-29a57109a88a",
+            "is_admin": false,
+            "created": "2011-06-25T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "a8b68fed-e9df-577c-b525-1f1fd208f3ed",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_52@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2010-02-07T07:13:56+00:00",
+          "created": "2017-08-23T07:13:56+00:00",
+          "modified": "2022-12-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "92366192-1e10-394a-9aa5-e7b3b35d8a95",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "a8b68fed-e9df-577c-b525-1f1fd208f3ed",
+            "is_admin": false,
+            "created": "2013-09-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "9771f8e9-33f1-5ce7-bc93-faa126d650dc",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_143@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2007-03-21T07:13:56+00:00",
+          "created": "2022-03-11T07:13:56+00:00",
+          "modified": "2022-08-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "b66fb3e0-1020-374b-ba6b-5a6f71a504a6",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "9771f8e9-33f1-5ce7-bc93-faa126d650dc",
+            "is_admin": false,
+            "created": "2003-03-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "9b4116c0-6dea-50a4-a51b-480439620dbe",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_100@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-11-23T07:13:56+00:00",
+          "created": "2001-01-31T07:13:56+00:00",
+          "modified": "2020-09-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "d8bdb320-b34a-3eb2-912b-e6c20ed2856e",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "9b4116c0-6dea-50a4-a51b-480439620dbe",
+            "is_admin": false,
+            "created": "2025-08-04T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b7c10404-be77-522a-8519-98696aea002e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_146@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-02-17T07:13:56+00:00",
+          "created": "2019-08-12T07:13:56+00:00",
+          "modified": "2011-03-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "e0f59c31-acf5-31a9-b3b5-fec6e88fcccc",
+            "group_id": "0526f8df-4940-3603-a137-c87b9449909f",
+            "user_id": "b7c10404-be77-522a-8519-98696aea002e",
+            "is_admin": false,
+            "created": "2017-01-13T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+      "name": "Bench Group 1",
+      "deleted": false,
+      "created": "2012-08-23T00:00:00+00:00",
+      "modified": "1999-07-05T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "a3328fdd-735d-5a01-a6fd-026141bd8313",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_30@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2006-12-23T07:13:56+00:00",
+          "created": "1999-11-09T07:13:56+00:00",
+          "modified": "2012-06-17T07:13:56+00:00",
+          "_joinData": {
+            "id": "01e0134e-7c9c-3294-abde-53286f93d2fb",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "a3328fdd-735d-5a01-a6fd-026141bd8313",
+            "is_admin": false,
+            "created": "2006-06-25T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "7d95ef29-b045-5c47-a8d2-e22f88951f49",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_134@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-07-23T07:13:56+00:00",
+          "created": "2002-08-24T07:13:56+00:00",
+          "modified": "2014-09-18T07:13:56+00:00",
+          "_joinData": {
+            "id": "0267e9b8-baa5-36f8-b8da-acc7ac72ae97",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "7d95ef29-b045-5c47-a8d2-e22f88951f49",
+            "is_admin": false,
+            "created": "2024-02-09T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "a3ab914c-e51e-5d48-af46-338960af77d0",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_82@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2022-04-16T07:13:56+00:00",
+          "created": "2001-03-30T07:13:56+00:00",
+          "modified": "2017-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "215c3b37-530f-3cfe-a27d-8eb25bf557ef",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "a3ab914c-e51e-5d48-af46-338960af77d0",
+            "is_admin": false,
+            "created": "2015-01-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "951b5182-36ab-59dd-8a24-adae5503309a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_76@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-09-18T07:13:56+00:00",
+          "created": "1999-04-18T07:13:56+00:00",
+          "modified": "2004-03-18T07:13:56+00:00",
+          "_joinData": {
+            "id": "24bd335e-8b08-3595-bf8c-aebd438367a8",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "951b5182-36ab-59dd-8a24-adae5503309a",
+            "is_admin": false,
+            "created": "2002-12-14T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1e28ef5d-bfdb-5583-af23-9ff32a88d3c2",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_10@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-10-28T07:13:56+00:00",
+          "created": "2013-11-26T07:13:56+00:00",
+          "modified": "2001-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "32690f52-ce90-36a3-a374-1dde6541b92d",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "1e28ef5d-bfdb-5583-af23-9ff32a88d3c2",
+            "is_admin": true,
+            "created": "2018-10-27T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "ada@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-06-19T07:16:29+00:00",
+          "created": "2017-11-23T07:13:56+00:00",
+          "modified": "2014-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "3b04231b-da8f-33e1-9f39-7dc153e4d639",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+            "is_admin": false,
+            "created": "2010-10-27T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "781a3f69-841b-5b7e-a09d-40c579b9cf1c",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_142@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-06-24T07:13:56+00:00",
+          "created": "2004-09-22T07:13:56+00:00",
+          "modified": "2003-02-24T07:13:56+00:00",
+          "_joinData": {
+            "id": "563fa09d-f410-3514-b26d-c610752019bc",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "781a3f69-841b-5b7e-a09d-40c579b9cf1c",
+            "is_admin": false,
+            "created": "2013-10-21T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e57b5926-202d-50ae-bc4f-d4da00e180d9",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_70@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-05-27T07:13:56+00:00",
+          "created": "2003-10-17T07:13:56+00:00",
+          "modified": "2014-01-26T07:13:56+00:00",
+          "_joinData": {
+            "id": "f227e105-c7c6-377e-b6f4-311d5fc5794c",
+            "group_id": "111c4083-8b7d-3787-9e99-f5b5933e3fa3",
+            "user_id": "e57b5926-202d-50ae-bc4f-d4da00e180d9",
+            "is_admin": false,
+            "created": "2015-08-12T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+      "name": "Bench Group 4",
+      "deleted": false,
+      "created": "2010-09-21T00:00:00+00:00",
+      "modified": "2012-02-21T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "31b09273-846a-543b-afaa-6f520fc046b4",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_127@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2006-11-15T07:13:56+00:00",
+          "created": "2022-10-10T07:13:56+00:00",
+          "modified": "2018-12-14T07:13:56+00:00",
+          "_joinData": {
+            "id": "1ad522b9-02cf-3ad3-bf14-8f26bdd19d59",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "31b09273-846a-543b-afaa-6f520fc046b4",
+            "is_admin": false,
+            "created": "2020-05-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "829422c0-f094-5ad4-aa75-fbb7e52e0cde",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_132@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-02-28T07:13:56+00:00",
+          "created": "2020-06-22T07:13:56+00:00",
+          "modified": "2012-10-30T07:13:56+00:00",
+          "_joinData": {
+            "id": "39146efc-6366-3df4-996f-efea4d8fd30d",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "829422c0-f094-5ad4-aa75-fbb7e52e0cde",
+            "is_admin": false,
+            "created": "2011-09-26T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_129@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-11-14T07:13:56+00:00",
+          "created": "2023-07-09T07:13:56+00:00",
+          "modified": "1999-11-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "45fc3208-b96c-3ca6-89c1-a51bf1c5b8d9",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+            "is_admin": false,
+            "created": "2017-08-20T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e1e9ec85-d0a2-581c-b106-da423738b041",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_145@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-06-10T07:13:56+00:00",
+          "created": "2013-08-03T07:13:56+00:00",
+          "modified": "2012-07-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "823977c9-5563-3476-b40b-2999cc6fd5eb",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "e1e9ec85-d0a2-581c-b106-da423738b041",
+            "is_admin": false,
+            "created": "2014-05-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "ad6d5080-5282-5cb9-b8b4-99d21cfbd8a5",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_88@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2006-09-22T07:13:56+00:00",
+          "created": "2025-03-15T07:13:56+00:00",
+          "modified": "2020-05-05T07:13:56+00:00",
+          "_joinData": {
+            "id": "836f985e-0ebb-3ca2-9aa8-177479d1ed59",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "ad6d5080-5282-5cb9-b8b4-99d21cfbd8a5",
+            "is_admin": false,
+            "created": "2022-11-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "ada@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-06-19T07:16:29+00:00",
+          "created": "2017-11-23T07:13:56+00:00",
+          "modified": "2014-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "83835972-f2ab-34c0-b2ec-2b92f5ff9902",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+            "is_admin": false,
+            "created": "2004-07-03T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "bc371301-2fb7-54fb-b6ce-37e781fbc0c5",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_36@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-06-07T07:13:56+00:00",
+          "created": "2019-07-06T07:13:56+00:00",
+          "modified": "2018-10-21T07:13:56+00:00",
+          "_joinData": {
+            "id": "939b635d-dec1-3656-8d36-fe617184b340",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "bc371301-2fb7-54fb-b6ce-37e781fbc0c5",
+            "is_admin": true,
+            "created": "2022-07-07T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "23356a3b-8441-51de-8620-d26b124b636e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_126@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2012-10-27T07:13:56+00:00",
+          "created": "2021-06-26T07:13:56+00:00",
+          "modified": "2011-06-30T07:13:56+00:00",
+          "_joinData": {
+            "id": "dfc59c15-d6db-3028-89b8-4bfd27725865",
+            "group_id": "143c66d3-af9e-3101-8d19-51a46f7eaf93",
+            "user_id": "23356a3b-8441-51de-8620-d26b124b636e",
+            "is_admin": false,
+            "created": "2003-01-24T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+      "name": "Bench Group 8",
+      "deleted": false,
+      "created": "2017-01-01T00:00:00+00:00",
+      "modified": "2008-10-04T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "bb6ae076-7bb8-5d65-a21b-7abc99b9f266",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_103@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-08-28T07:13:56+00:00",
+          "created": "2017-03-01T07:13:56+00:00",
+          "modified": "1999-03-04T07:13:56+00:00",
+          "_joinData": {
+            "id": "158449ad-5e6b-3ec4-b97d-2bfc01c26664",
+            "group_id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+            "user_id": "bb6ae076-7bb8-5d65-a21b-7abc99b9f266",
+            "is_admin": false,
+            "created": "2019-08-16T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "d55fb262-4276-59af-8e51-5601e7a74fef",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_50@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2007-12-06T07:13:56+00:00",
+          "created": "1999-04-02T07:13:56+00:00",
+          "modified": "2011-02-27T07:13:56+00:00",
+          "_joinData": {
+            "id": "27881b37-0fbf-3e5a-b0d9-9430539b0755",
+            "group_id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+            "user_id": "d55fb262-4276-59af-8e51-5601e7a74fef",
+            "is_admin": false,
+            "created": "2004-04-20T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "3d7010a3-5d5f-5b2c-be7a-28a0702264eb",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_40@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2010-12-24T07:13:56+00:00",
+          "created": "2003-03-28T07:13:56+00:00",
+          "modified": "2007-08-24T07:13:56+00:00",
+          "_joinData": {
+            "id": "376f5bef-2571-3e4e-ab3f-86d707168b08",
+            "group_id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+            "user_id": "3d7010a3-5d5f-5b2c-be7a-28a0702264eb",
+            "is_admin": false,
+            "created": "2012-01-05T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "43071479-43ce-54b7-b861-ee90fe3adc9f",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_43@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-06-04T07:13:56+00:00",
+          "created": "2016-11-19T07:13:56+00:00",
+          "modified": "2022-04-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "63f6d15a-1542-376c-abea-d7d46ce83a82",
+            "group_id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+            "user_id": "43071479-43ce-54b7-b861-ee90fe3adc9f",
+            "is_admin": false,
+            "created": "2006-11-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b56bbc7f-86bf-5625-959f-e02796530388",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_37@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2013-12-06T07:13:56+00:00",
+          "created": "2025-06-18T07:13:56+00:00",
+          "modified": "2016-03-27T07:13:56+00:00",
+          "_joinData": {
+            "id": "d6a0a602-b022-3db8-9cbd-8d4405dac91d",
+            "group_id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+            "user_id": "b56bbc7f-86bf-5625-959f-e02796530388",
+            "is_admin": true,
+            "created": "2013-01-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1c58da4b-aacc-525f-8ad2-cfd7a109886e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_83@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-02-20T07:13:56+00:00",
+          "created": "2011-04-29T07:13:56+00:00",
+          "modified": "2003-06-13T07:13:56+00:00",
+          "_joinData": {
+            "id": "da56d35b-3fcf-3593-b179-719d2ade4191",
+            "group_id": "147d179a-c9f5-37fb-997d-d56b87d6e81e",
+            "user_id": "1c58da4b-aacc-525f-8ad2-cfd7a109886e",
+            "is_admin": false,
+            "created": "2015-11-02T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+      "name": "Bench Group 3",
+      "deleted": false,
+      "created": "2014-11-04T00:00:00+00:00",
+      "modified": "2017-03-03T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "bd469136-6629-5cf4-bab9-d2dd409b3f77",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_99@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-05-06T07:13:56+00:00",
+          "created": "2011-10-29T07:13:56+00:00",
+          "modified": "2013-03-13T07:13:56+00:00",
+          "_joinData": {
+            "id": "022e915c-8a75-3064-9142-8ecd7a911022",
+            "group_id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+            "user_id": "bd469136-6629-5cf4-bab9-d2dd409b3f77",
+            "is_admin": false,
+            "created": "2014-01-13T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e180233c-98a7-5137-8d02-0ef94eccd8da",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_123@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-01-17T07:13:56+00:00",
+          "created": "2023-11-08T07:13:56+00:00",
+          "modified": "2014-06-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "b18ab487-ffdd-3306-93b5-58120696b038",
+            "group_id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+            "user_id": "e180233c-98a7-5137-8d02-0ef94eccd8da",
+            "is_admin": false,
+            "created": "2014-12-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "79ed479d-7c93-5f55-83de-f1b20c452c8a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_45@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-10-31T07:13:56+00:00",
+          "created": "2014-12-21T07:13:56+00:00",
+          "modified": "2011-11-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "c4e8261a-02c2-3135-8135-f7a536f14fc0",
+            "group_id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+            "user_id": "79ed479d-7c93-5f55-83de-f1b20c452c8a",
+            "is_admin": true,
+            "created": "2015-06-09T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "ada@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-06-19T07:16:29+00:00",
+          "created": "2017-11-23T07:13:56+00:00",
+          "modified": "2014-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "ce99f262-8d4b-3998-a265-f14aacc2ae67",
+            "group_id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+            "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+            "is_admin": false,
+            "created": "2004-02-10T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "ef94a678-294c-5df9-b2c7-74b68e2009d9",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_85@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2002-02-13T07:13:56+00:00",
+          "created": "2005-01-04T07:13:56+00:00",
+          "modified": "2000-09-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "cfc799e9-0a77-3870-883e-c0127ca94643",
+            "group_id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+            "user_id": "ef94a678-294c-5df9-b2c7-74b68e2009d9",
+            "is_admin": false,
+            "created": "2006-06-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e08bdd9d-f06b-571b-83a6-0b500eeb1bfd",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_92@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2013-08-23T07:13:56+00:00",
+          "created": "2000-06-21T07:13:56+00:00",
+          "modified": "2025-04-23T07:13:56+00:00",
+          "_joinData": {
+            "id": "e5382e50-ab31-3297-a375-644457166556",
+            "group_id": "17a85a48-fe56-3d01-a2a1-f1be6ddcb9ce",
+            "user_id": "e08bdd9d-f06b-571b-83a6-0b500eeb1bfd",
+            "is_admin": false,
+            "created": "2013-04-15T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "37050b21-51c8-3b9e-a005-c912023d8078",
+      "name": "Bench Group 18",
+      "deleted": false,
+      "created": "2008-01-12T00:00:00+00:00",
+      "modified": "2023-03-02T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "a34b5d40-fad7-58b4-bc0d-1a4a323e090e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_87@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2012-09-24T07:13:56+00:00",
+          "created": "2024-11-14T07:13:56+00:00",
+          "modified": "2007-06-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "0db02a0a-4d3b-33f2-b024-869b56db74ba",
+            "group_id": "37050b21-51c8-3b9e-a005-c912023d8078",
+            "user_id": "a34b5d40-fad7-58b4-bc0d-1a4a323e090e",
+            "is_admin": false,
+            "created": "2025-10-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "8f2aa976-2111-53b7-824d-52b09d929ad7",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_97@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-07-23T07:13:56+00:00",
+          "created": "2016-08-24T07:13:56+00:00",
+          "modified": "2019-03-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "4b152921-b25e-30b1-bbda-fc33bf9b9d9f",
+            "group_id": "37050b21-51c8-3b9e-a005-c912023d8078",
+            "user_id": "8f2aa976-2111-53b7-824d-52b09d929ad7",
+            "is_admin": false,
+            "created": "2005-04-07T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "bdb073a1-2e19-58f7-9f6d-ada5566be598",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_57@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-06-10T07:13:56+00:00",
+          "created": "2010-05-15T07:13:56+00:00",
+          "modified": "2013-05-05T07:13:56+00:00",
+          "_joinData": {
+            "id": "86e04270-657c-3ae5-a512-38e913458500",
+            "group_id": "37050b21-51c8-3b9e-a005-c912023d8078",
+            "user_id": "bdb073a1-2e19-58f7-9f6d-ada5566be598",
+            "is_admin": true,
+            "created": "2000-08-04T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+      "name": "Bench Group 14",
+      "deleted": false,
+      "created": "2015-03-22T00:00:00+00:00",
+      "modified": "2012-01-05T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "f0169c7e-d156-5ffe-8083-1171c06db906",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_17@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2000-01-19T07:13:56+00:00",
+          "created": "1999-02-16T07:13:56+00:00",
+          "modified": "2011-11-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "31457be5-a756-3050-b3bc-be22867c6224",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "f0169c7e-d156-5ffe-8083-1171c06db906",
+            "is_admin": false,
+            "created": "2013-09-10T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_0@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-10-24T07:13:56+00:00",
+          "created": "1999-07-05T07:13:56+00:00",
+          "modified": "2014-09-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "71f235f8-1463-3836-bff5-f491df1222ce",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+            "is_admin": true,
+            "created": "2002-06-10T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "935350a4-9958-52f1-9b93-b488fc1c6213",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_89@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-11-27T07:13:56+00:00",
+          "created": "2001-08-14T07:13:56+00:00",
+          "modified": "2002-05-01T07:13:56+00:00",
+          "_joinData": {
+            "id": "722c3e28-65ba-3bb2-bbc4-82dc79d2d4bb",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "935350a4-9958-52f1-9b93-b488fc1c6213",
+            "is_admin": false,
+            "created": "2025-05-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "95bc87d8-dbe0-57fa-b08a-990b2133994d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_130@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2014-06-23T07:13:56+00:00",
+          "created": "2019-08-17T07:13:56+00:00",
+          "modified": "2018-09-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "76bdb3e3-069a-3aca-9b49-50424a8a2e28",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "95bc87d8-dbe0-57fa-b08a-990b2133994d",
+            "is_admin": false,
+            "created": "2008-05-18T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "9771f8e9-33f1-5ce7-bc93-faa126d650dc",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_143@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2007-03-21T07:13:56+00:00",
+          "created": "2022-03-11T07:13:56+00:00",
+          "modified": "2022-08-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "778f5e2f-e3c9-3d30-ac3c-5173f43188c0",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "9771f8e9-33f1-5ce7-bc93-faa126d650dc",
+            "is_admin": false,
+            "created": "2025-04-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e53f8b32-7501-55ca-969d-00356495a857",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_72@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2014-05-28T07:13:56+00:00",
+          "created": "2001-03-17T07:13:56+00:00",
+          "modified": "2026-04-18T07:13:56+00:00",
+          "_joinData": {
+            "id": "a1a6802a-1aff-310a-b83c-40a6e5a38608",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "e53f8b32-7501-55ca-969d-00356495a857",
+            "is_admin": false,
+            "created": "2014-09-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "3bb82509-f408-5744-8163-64264680aaa4",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_84@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2002-10-24T07:13:56+00:00",
+          "created": "2011-06-19T07:13:56+00:00",
+          "modified": "2002-01-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "ace2ef21-1255-344a-a33d-4a545869760f",
+            "group_id": "3b71f146-0248-3f6f-b9ad-fa6b932f596b",
+            "user_id": "3bb82509-f408-5744-8163-64264680aaa4",
+            "is_admin": false,
+            "created": "2017-07-11T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "60f73480-55e2-3076-8437-6ebf29663a84",
+      "name": "Bench Group 19",
+      "deleted": false,
+      "created": "2004-09-17T00:00:00+00:00",
+      "modified": "2018-05-20T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "9b4116c0-6dea-50a4-a51b-480439620dbe",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_100@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-11-23T07:13:56+00:00",
+          "created": "2001-01-31T07:13:56+00:00",
+          "modified": "2020-09-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "0e6a41eb-fca9-3ad1-8570-02c5d2a4f481",
+            "group_id": "60f73480-55e2-3076-8437-6ebf29663a84",
+            "user_id": "9b4116c0-6dea-50a4-a51b-480439620dbe",
+            "is_admin": false,
+            "created": "2016-07-22T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "7c3920ae-cff4-506b-8f42-f2acf27f8306",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_31@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-06-18T07:13:56+00:00",
+          "created": "2002-02-18T07:13:56+00:00",
+          "modified": "2011-06-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "590e5e77-18e4-35d6-ba39-1bd940cd58f8",
+            "group_id": "60f73480-55e2-3076-8437-6ebf29663a84",
+            "user_id": "7c3920ae-cff4-506b-8f42-f2acf27f8306",
+            "is_admin": false,
+            "created": "2018-12-12T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1e28ef5d-bfdb-5583-af23-9ff32a88d3c2",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_10@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-10-28T07:13:56+00:00",
+          "created": "2013-11-26T07:13:56+00:00",
+          "modified": "2001-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "f0987bb3-3558-3564-9d93-bf00bbaa7d6b",
+            "group_id": "60f73480-55e2-3076-8437-6ebf29663a84",
+            "user_id": "1e28ef5d-bfdb-5583-af23-9ff32a88d3c2",
+            "is_admin": true,
+            "created": "2022-04-18T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "7bda5347-bbeb-38c0-93a0-fa5671b5ce32",
+      "name": "Bench Group 23",
+      "deleted": false,
+      "created": "2002-06-14T00:00:00+00:00",
+      "modified": "2023-01-15T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "11b31806-5f84-5d12-af83-b288ebde2bd4",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_115@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-07-24T07:13:56+00:00",
+          "created": "2012-01-02T07:13:56+00:00",
+          "modified": "2018-10-11T07:13:56+00:00",
+          "_joinData": {
+            "id": "18e3ef54-5894-3f5f-b923-5cf1a34b88f6",
+            "group_id": "7bda5347-bbeb-38c0-93a0-fa5671b5ce32",
+            "user_id": "11b31806-5f84-5d12-af83-b288ebde2bd4",
+            "is_admin": false,
+            "created": "2023-01-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "97d66c3d-970a-572d-ace1-39bcd1d03cb1",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_93@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-09-15T07:13:56+00:00",
+          "created": "2009-05-14T07:13:56+00:00",
+          "modified": "2007-06-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "a4b50fb6-b713-3c9f-8145-dc1f434a9570",
+            "group_id": "7bda5347-bbeb-38c0-93a0-fa5671b5ce32",
+            "user_id": "97d66c3d-970a-572d-ace1-39bcd1d03cb1",
+            "is_admin": true,
+            "created": "2004-01-06T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f7be8aaf-bc10-51fc-8bae-f38c085d7bab",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_139@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-12-24T07:13:56+00:00",
+          "created": "2009-01-17T07:13:56+00:00",
+          "modified": "2011-03-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "f50c16df-64e7-382d-a41f-5817c80018db",
+            "group_id": "7bda5347-bbeb-38c0-93a0-fa5671b5ce32",
+            "user_id": "f7be8aaf-bc10-51fc-8bae-f38c085d7bab",
+            "is_admin": false,
+            "created": "2006-05-08T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+      "name": "Bench Group 2",
+      "deleted": false,
+      "created": "2011-11-06T00:00:00+00:00",
+      "modified": "2004-02-04T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "c00c6fcc-8447-5960-921f-481349a7a777",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_23@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2006-06-13T07:13:56+00:00",
+          "created": "2018-07-16T07:13:56+00:00",
+          "modified": "2011-01-23T07:13:56+00:00",
+          "_joinData": {
+            "id": "50491c1c-f70c-34cc-8ecd-c11941b7ded1",
+            "group_id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+            "user_id": "c00c6fcc-8447-5960-921f-481349a7a777",
+            "is_admin": false,
+            "created": "2022-08-31T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "7b6d2b29-3cf9-561d-82da-2c2882fb8116",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_26@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-01-02T07:13:56+00:00",
+          "created": "2025-05-20T07:13:56+00:00",
+          "modified": "2021-06-28T07:13:56+00:00",
+          "_joinData": {
+            "id": "6a08b2dc-e3a0-3f23-9af8-6ab60cec1aed",
+            "group_id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+            "user_id": "7b6d2b29-3cf9-561d-82da-2c2882fb8116",
+            "is_admin": false,
+            "created": "2008-12-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "cc0b6a50-b69a-59eb-9cb2-9593c6508761",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_41@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2015-02-22T07:13:56+00:00",
+          "created": "2005-05-31T07:13:56+00:00",
+          "modified": "2015-11-14T07:13:56+00:00",
+          "_joinData": {
+            "id": "7e6b5d59-bdfd-3720-b7c4-ce5c5eb1b1f4",
+            "group_id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+            "user_id": "cc0b6a50-b69a-59eb-9cb2-9593c6508761",
+            "is_admin": false,
+            "created": "2005-01-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_3@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2015-08-17T07:13:56+00:00",
+          "created": "2002-10-14T07:13:56+00:00",
+          "modified": "2018-02-11T07:13:56+00:00",
+          "_joinData": {
+            "id": "b33eecd2-ee8c-3dc0-ba59-4b5de9a7fa63",
+            "group_id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+            "user_id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+            "is_admin": true,
+            "created": "2003-08-22T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "11b31806-5f84-5d12-af83-b288ebde2bd4",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_115@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-07-24T07:13:56+00:00",
+          "created": "2012-01-02T07:13:56+00:00",
+          "modified": "2018-10-11T07:13:56+00:00",
+          "_joinData": {
+            "id": "e59eb89d-fb42-39f7-8d40-49defd23d06e",
+            "group_id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+            "user_id": "11b31806-5f84-5d12-af83-b288ebde2bd4",
+            "is_admin": false,
+            "created": "2016-01-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "ada@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-06-19T07:16:29+00:00",
+          "created": "2017-11-23T07:13:56+00:00",
+          "modified": "2014-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "e88d8090-65ef-3b67-aea3-211cdad22cdd",
+            "group_id": "7dc6adec-7c0a-3f81-a44f-b7e6f53e19e8",
+            "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+            "is_admin": false,
+            "created": "2009-12-21T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "8628e107-5982-302d-8414-bdd952161f20",
+      "name": "Bench Group 7",
+      "deleted": false,
+      "created": "2011-10-17T00:00:00+00:00",
+      "modified": "2020-05-07T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_0@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-10-24T07:13:56+00:00",
+          "created": "1999-07-05T07:13:56+00:00",
+          "modified": "2014-09-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "1df56c2c-268f-3448-bd44-474fc02396a0",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+            "is_admin": true,
+            "created": "2002-12-16T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "9b4116c0-6dea-50a4-a51b-480439620dbe",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_100@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-11-23T07:13:56+00:00",
+          "created": "2001-01-31T07:13:56+00:00",
+          "modified": "2020-09-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "7b27025b-83cf-32c8-9f46-a0693d7386de",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "9b4116c0-6dea-50a4-a51b-480439620dbe",
+            "is_admin": false,
+            "created": "2022-09-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "ccbde67c-b68b-5f42-809e-69d856dbfad8",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_90@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-01-14T07:13:56+00:00",
+          "created": "2014-07-01T07:13:56+00:00",
+          "modified": "2002-05-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "a5938a40-43a6-3048-94f1-84879116072f",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "ccbde67c-b68b-5f42-809e-69d856dbfad8",
+            "is_admin": false,
+            "created": "2013-03-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "401914f7-a44e-512b-87a9-0951c708160c",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_39@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-04-18T07:13:56+00:00",
+          "created": "2023-01-03T07:13:56+00:00",
+          "modified": "2008-10-08T07:13:56+00:00",
+          "_joinData": {
+            "id": "ae53de22-a909-3732-8835-1a3f0ff8c937",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "401914f7-a44e-512b-87a9-0951c708160c",
+            "is_admin": false,
+            "created": "2018-05-04T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "15aa9e26-23b8-59b4-ac7d-38a3490623a5",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_94@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2012-06-01T07:13:56+00:00",
+          "created": "2003-10-19T07:13:56+00:00",
+          "modified": "2016-09-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "d36ff052-210e-3623-83fd-6e2b138fbfed",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "15aa9e26-23b8-59b4-ac7d-38a3490623a5",
+            "is_admin": false,
+            "created": "2024-08-04T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "829422c0-f094-5ad4-aa75-fbb7e52e0cde",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_132@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-02-28T07:13:56+00:00",
+          "created": "2020-06-22T07:13:56+00:00",
+          "modified": "2012-10-30T07:13:56+00:00",
+          "_joinData": {
+            "id": "f66005a4-4c8e-3b46-bd4e-6a7dfe8b1984",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "829422c0-f094-5ad4-aa75-fbb7e52e0cde",
+            "is_admin": false,
+            "created": "2003-05-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "79ed479d-7c93-5f55-83de-f1b20c452c8a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_45@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-10-31T07:13:56+00:00",
+          "created": "2014-12-21T07:13:56+00:00",
+          "modified": "2011-11-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "fa43fb54-edf6-3039-8cdd-31c21b0cb827",
+            "group_id": "8628e107-5982-302d-8414-bdd952161f20",
+            "user_id": "79ed479d-7c93-5f55-83de-f1b20c452c8a",
+            "is_admin": false,
+            "created": "2014-03-21T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "89fba2cf-4f2a-3dc8-9b34-aa9a935e2aec",
+      "name": "Bench Group 6",
+      "deleted": false,
+      "created": "2017-04-03T00:00:00+00:00",
+      "modified": "2002-10-29T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "bdb073a1-2e19-58f7-9f6d-ada5566be598",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_57@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-06-10T07:13:56+00:00",
+          "created": "2010-05-15T07:13:56+00:00",
+          "modified": "2013-05-05T07:13:56+00:00",
+          "_joinData": {
+            "id": "3089cc4b-6e83-337a-99a2-5904a9309657",
+            "group_id": "89fba2cf-4f2a-3dc8-9b34-aa9a935e2aec",
+            "user_id": "bdb073a1-2e19-58f7-9f6d-ada5566be598",
+            "is_admin": true,
+            "created": "2009-05-12T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "3bb82509-f408-5744-8163-64264680aaa4",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_84@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2002-10-24T07:13:56+00:00",
+          "created": "2011-06-19T07:13:56+00:00",
+          "modified": "2002-01-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "6f38bff3-bc51-3ad5-b636-8e8dc150b593",
+            "group_id": "89fba2cf-4f2a-3dc8-9b34-aa9a935e2aec",
+            "user_id": "3bb82509-f408-5744-8163-64264680aaa4",
+            "is_admin": false,
+            "created": "2007-05-31T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "ca5deac7-c301-5790-85de-6eeb0a787e43",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_111@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2010-04-04T07:13:56+00:00",
+          "created": "2011-01-10T07:13:56+00:00",
+          "modified": "2000-09-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "84b87019-dbf5-3169-ae6e-2aa5f04c9048",
+            "group_id": "89fba2cf-4f2a-3dc8-9b34-aa9a935e2aec",
+            "user_id": "ca5deac7-c301-5790-85de-6eeb0a787e43",
+            "is_admin": false,
+            "created": "2007-12-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e57b5926-202d-50ae-bc4f-d4da00e180d9",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_70@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-05-27T07:13:56+00:00",
+          "created": "2003-10-17T07:13:56+00:00",
+          "modified": "2014-01-26T07:13:56+00:00",
+          "_joinData": {
+            "id": "8caea659-61ad-3c98-83c0-278f464ea39c",
+            "group_id": "89fba2cf-4f2a-3dc8-9b34-aa9a935e2aec",
+            "user_id": "e57b5926-202d-50ae-bc4f-d4da00e180d9",
+            "is_admin": false,
+            "created": "2006-01-24T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+      "name": "Bench Group 22",
+      "deleted": false,
+      "created": "2000-12-14T00:00:00+00:00",
+      "modified": "2023-08-26T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "1c58da4b-aacc-525f-8ad2-cfd7a109886e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_83@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-02-20T07:13:56+00:00",
+          "created": "2011-04-29T07:13:56+00:00",
+          "modified": "2003-06-13T07:13:56+00:00",
+          "_joinData": {
+            "id": "1e0c3f64-f3c0-3962-8f9f-f0b98443bc1c",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "1c58da4b-aacc-525f-8ad2-cfd7a109886e",
+            "is_admin": false,
+            "created": "2010-01-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "8161b929-88f1-5bae-9337-40c900b01456",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_33@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-05-27T07:13:56+00:00",
+          "created": "2015-07-10T07:13:56+00:00",
+          "modified": "2013-12-19T07:13:56+00:00",
+          "_joinData": {
+            "id": "3335b61c-81f8-37dd-8e3f-13c672016b9d",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "8161b929-88f1-5bae-9337-40c900b01456",
+            "is_admin": false,
+            "created": "2000-04-22T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "ccbde67c-b68b-5f42-809e-69d856dbfad8",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_90@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-01-14T07:13:56+00:00",
+          "created": "2014-07-01T07:13:56+00:00",
+          "modified": "2002-05-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "45d945dc-ef8a-3cf8-8c8b-271cfbc21b1d",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "ccbde67c-b68b-5f42-809e-69d856dbfad8",
+            "is_admin": false,
+            "created": "2024-03-20T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_129@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-11-14T07:13:56+00:00",
+          "created": "2023-07-09T07:13:56+00:00",
+          "modified": "1999-11-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "5cc23736-b1e5-363e-9de6-192f29fa0667",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+            "is_admin": false,
+            "created": "2004-12-09T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "3cf4958e-bd36-503f-aa8e-9bdff54cb121",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_32@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2022-07-03T07:13:56+00:00",
+          "created": "2009-09-14T07:13:56+00:00",
+          "modified": "2009-05-09T07:13:56+00:00",
+          "_joinData": {
+            "id": "b7d52226-4c9d-303b-8228-957f8c5380a7",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "3cf4958e-bd36-503f-aa8e-9bdff54cb121",
+            "is_admin": true,
+            "created": "2003-01-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "926e2e02-abc3-5525-b3ca-44b6effec21d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_71@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-06-22T07:13:56+00:00",
+          "created": "2002-05-07T07:13:56+00:00",
+          "modified": "2014-08-14T07:13:56+00:00",
+          "_joinData": {
+            "id": "cdb303d6-a6c4-3524-b09f-f9a432e61048",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "926e2e02-abc3-5525-b3ca-44b6effec21d",
+            "is_admin": false,
+            "created": "2025-02-16T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "a1ad575f-0d96-5b9b-a1a3-f325f01922df",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_128@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-12-22T07:13:56+00:00",
+          "created": "2015-08-05T07:13:56+00:00",
+          "modified": "2025-06-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "ec1a6d54-7da7-3171-8b7f-2f4453101da1",
+            "group_id": "8b359a5a-4b10-3d6a-9867-b36baa3cf47f",
+            "user_id": "a1ad575f-0d96-5b9b-a1a3-f325f01922df",
+            "is_admin": false,
+            "created": "2017-07-11T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "97f18121-403e-33cb-a62b-95be01574721",
+      "name": "Bench Group 20",
+      "deleted": false,
+      "created": "2023-02-17T00:00:00+00:00",
+      "modified": "1999-10-20T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "7c3920ae-cff4-506b-8f42-f2acf27f8306",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_31@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-06-18T07:13:56+00:00",
+          "created": "2002-02-18T07:13:56+00:00",
+          "modified": "2011-06-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "1c934c53-9a90-3a4d-b7e7-3602daa44f92",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "7c3920ae-cff4-506b-8f42-f2acf27f8306",
+            "is_admin": false,
+            "created": "2026-04-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "6a77b4a3-c425-52d0-b978-6e462724930e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_56@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2013-06-23T07:13:56+00:00",
+          "created": "2010-10-19T07:13:56+00:00",
+          "modified": "2012-07-31T07:13:56+00:00",
+          "_joinData": {
+            "id": "304dc40f-8c4b-3d2f-999a-27da7776d2f1",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "6a77b4a3-c425-52d0-b978-6e462724930e",
+            "is_admin": false,
+            "created": "2016-09-13T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "926e2e02-abc3-5525-b3ca-44b6effec21d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_71@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-06-22T07:13:56+00:00",
+          "created": "2002-05-07T07:13:56+00:00",
+          "modified": "2014-08-14T07:13:56+00:00",
+          "_joinData": {
+            "id": "309dcf83-7c28-367f-be16-a78460e06ed4",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "926e2e02-abc3-5525-b3ca-44b6effec21d",
+            "is_admin": false,
+            "created": "2006-10-22T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "243e7179-f090-5e21-8cc4-b25712082848",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_25@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2006-06-03T07:13:56+00:00",
+          "created": "2012-04-15T07:13:56+00:00",
+          "modified": "2013-04-19T07:13:56+00:00",
+          "_joinData": {
+            "id": "60ec031d-84b6-32b2-a01b-a55f5dc4efeb",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "243e7179-f090-5e21-8cc4-b25712082848",
+            "is_admin": true,
+            "created": "2024-09-06T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "14722caa-4343-55e6-bbbe-685698ee1465",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_49@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2022-04-21T07:13:56+00:00",
+          "created": "2010-09-09T07:13:56+00:00",
+          "modified": "2016-11-17T07:13:56+00:00",
+          "_joinData": {
+            "id": "97501a25-0620-33b8-a9fc-f3d279e29367",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "14722caa-4343-55e6-bbbe-685698ee1465",
+            "is_admin": false,
+            "created": "2020-08-31T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "93a48935-7e00-58a3-a271-f23a6a0ca1c8",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_53@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2016-11-28T07:13:56+00:00",
+          "created": "2001-01-05T07:13:56+00:00",
+          "modified": "2001-06-26T07:13:56+00:00",
+          "_joinData": {
+            "id": "a955f369-5ed7-3c1c-bc9e-d44b12e471a7",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "93a48935-7e00-58a3-a271-f23a6a0ca1c8",
+            "is_admin": false,
+            "created": "2002-09-10T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1a048ae5-d533-5e8f-99a1-11f4aaef8908",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_119@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-11-16T07:13:56+00:00",
+          "created": "2007-11-11T07:13:56+00:00",
+          "modified": "2011-04-20T07:13:56+00:00",
+          "_joinData": {
+            "id": "bc90bbb7-a569-3e3b-aa82-a3ddd3ed48fd",
+            "group_id": "97f18121-403e-33cb-a62b-95be01574721",
+            "user_id": "1a048ae5-d533-5e8f-99a1-11f4aaef8908",
+            "is_admin": false,
+            "created": "2002-05-28T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "9b84ab3d-6909-3af0-aa81-4d66b1f181eb",
+      "name": "Bench Group 16",
+      "deleted": false,
+      "created": "2006-02-19T00:00:00+00:00",
+      "modified": "2010-04-13T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "1964a1e6-1c05-5f5c-b1fd-d8b3e2bfa2df",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_112@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-02-25T07:13:56+00:00",
+          "created": "2016-06-12T07:13:56+00:00",
+          "modified": "2001-04-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "0f638133-4294-3e76-b203-373e81045f42",
+            "group_id": "9b84ab3d-6909-3af0-aa81-4d66b1f181eb",
+            "user_id": "1964a1e6-1c05-5f5c-b1fd-d8b3e2bfa2df",
+            "is_admin": false,
+            "created": "2009-12-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "be23fe6f-2742-5213-b03a-9d183999c0bc",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_78@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2012-08-05T07:13:56+00:00",
+          "created": "2013-05-10T07:13:56+00:00",
+          "modified": "2003-09-21T07:13:56+00:00",
+          "_joinData": {
+            "id": "530d4ad2-ffc8-36bb-bf6c-20fec7d14738",
+            "group_id": "9b84ab3d-6909-3af0-aa81-4d66b1f181eb",
+            "user_id": "be23fe6f-2742-5213-b03a-9d183999c0bc",
+            "is_admin": false,
+            "created": "2024-12-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "59692fb4-2fbd-572c-a5fc-a8b48780d42b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_13@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2007-01-24T07:13:56+00:00",
+          "created": "2020-11-10T07:13:56+00:00",
+          "modified": "2010-10-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "7777c840-cbc2-3009-8009-6693d8f8db3c",
+            "group_id": "9b84ab3d-6909-3af0-aa81-4d66b1f181eb",
+            "user_id": "59692fb4-2fbd-572c-a5fc-a8b48780d42b",
+            "is_admin": true,
+            "created": "2016-02-12T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "c32d5522-10e0-582c-b3e6-604942502f51",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_66@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2010-07-13T07:13:56+00:00",
+          "created": "2011-08-24T07:13:56+00:00",
+          "modified": "1999-08-21T07:13:56+00:00",
+          "_joinData": {
+            "id": "79a937d1-4ff0-3aa8-8120-e3c3cf361052",
+            "group_id": "9b84ab3d-6909-3af0-aa81-4d66b1f181eb",
+            "user_id": "c32d5522-10e0-582c-b3e6-604942502f51",
+            "is_admin": false,
+            "created": "2017-04-30T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "a1ec9224-f353-3598-a3dd-9c0ca061ab41",
+      "name": "Bench Group 24",
+      "deleted": false,
+      "created": "2020-01-06T00:00:00+00:00",
+      "modified": "2012-09-20T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "7377fe66-9a0e-5d28-a39b-98f6493cb881",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_12@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-02-10T07:13:56+00:00",
+          "created": "2017-03-01T07:13:56+00:00",
+          "modified": "2008-01-06T07:13:56+00:00",
+          "_joinData": {
+            "id": "18776cc6-7497-3d2d-86dc-52187ec05f73",
+            "group_id": "a1ec9224-f353-3598-a3dd-9c0ca061ab41",
+            "user_id": "7377fe66-9a0e-5d28-a39b-98f6493cb881",
+            "is_admin": true,
+            "created": "2017-02-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "9771f8e9-33f1-5ce7-bc93-faa126d650dc",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_143@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2007-03-21T07:13:56+00:00",
+          "created": "2022-03-11T07:13:56+00:00",
+          "modified": "2022-08-29T07:13:56+00:00",
+          "_joinData": {
+            "id": "2fc7ebfe-53c8-3418-9420-5bd2a5003fad",
+            "group_id": "a1ec9224-f353-3598-a3dd-9c0ca061ab41",
+            "user_id": "9771f8e9-33f1-5ce7-bc93-faa126d650dc",
+            "is_admin": false,
+            "created": "2013-02-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "5cf4a281-bc18-53d3-b447-1e575a90f681",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_48@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-08-04T07:13:56+00:00",
+          "created": "2016-08-21T07:13:56+00:00",
+          "modified": "2016-08-08T07:13:56+00:00",
+          "_joinData": {
+            "id": "d807dc3f-4fa8-3188-a2f6-7705cc1465aa",
+            "group_id": "a1ec9224-f353-3598-a3dd-9c0ca061ab41",
+            "user_id": "5cf4a281-bc18-53d3-b447-1e575a90f681",
+            "is_admin": false,
+            "created": "2003-04-22T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "a3e09660-478d-3b44-b878-f89adaccddae",
+      "name": "Bench Group 5",
+      "deleted": false,
+      "created": "2010-05-28T00:00:00+00:00",
+      "modified": "2023-01-17T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "2a4665ac-e975-5449-994d-07f41a64a2b9",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_14@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-03-18T07:13:56+00:00",
+          "created": "2020-12-25T07:13:56+00:00",
+          "modified": "2016-09-23T07:13:56+00:00",
+          "_joinData": {
+            "id": "018b6084-7b06-3233-aafa-9408af3f3fea",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "2a4665ac-e975-5449-994d-07f41a64a2b9",
+            "is_admin": true,
+            "created": "2000-09-28T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "ada@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-06-19T07:16:29+00:00",
+          "created": "2017-11-23T07:13:56+00:00",
+          "modified": "2014-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "0abe7ea6-7b4c-3721-8895-c309f65aca20",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+            "is_admin": false,
+            "created": "2011-09-24T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "a34b5d40-fad7-58b4-bc0d-1a4a323e090e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_87@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2012-09-24T07:13:56+00:00",
+          "created": "2024-11-14T07:13:56+00:00",
+          "modified": "2007-06-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "1e0838d5-286c-3b95-94bf-302bff4c7d6c",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "a34b5d40-fad7-58b4-bc0d-1a4a323e090e",
+            "is_admin": false,
+            "created": "2000-09-19T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1a048ae5-d533-5e8f-99a1-11f4aaef8908",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_119@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-11-16T07:13:56+00:00",
+          "created": "2007-11-11T07:13:56+00:00",
+          "modified": "2011-04-20T07:13:56+00:00",
+          "_joinData": {
+            "id": "73718088-1cd3-366a-9c5d-a8c52fa4428b",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "1a048ae5-d533-5e8f-99a1-11f4aaef8908",
+            "is_admin": false,
+            "created": "2005-03-25T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "0ad84c7e-7547-524c-9e63-eeca6941cf1f",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_117@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2004-03-16T07:13:56+00:00",
+          "created": "2023-11-16T07:13:56+00:00",
+          "modified": "1999-11-23T07:13:56+00:00",
+          "_joinData": {
+            "id": "a6f29b3d-8d03-3c98-93d6-176190418089",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "0ad84c7e-7547-524c-9e63-eeca6941cf1f",
+            "is_admin": false,
+            "created": "2007-08-01T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "28775b20-2456-5ebe-9be1-047f848d574f",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_62@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-04-23T07:13:56+00:00",
+          "created": "2017-01-18T07:13:56+00:00",
+          "modified": "2008-08-18T07:13:56+00:00",
+          "_joinData": {
+            "id": "d8c5739c-94a2-3edf-958b-ac7fa3622a70",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "28775b20-2456-5ebe-9be1-047f848d574f",
+            "is_admin": false,
+            "created": "2021-05-12T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "668b430a-e3c9-509a-ae53-606b12a0a4f3",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_68@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-09-01T07:13:56+00:00",
+          "created": "2013-10-16T07:13:56+00:00",
+          "modified": "1999-03-09T07:13:56+00:00",
+          "_joinData": {
+            "id": "e070736a-1abd-32e2-9ec3-963dd0aa23bf",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "668b430a-e3c9-509a-ae53-606b12a0a4f3",
+            "is_admin": false,
+            "created": "2024-08-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "2e21a0c2-65fb-5d3e-b973-3021bcb52a5e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_105@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-11-11T07:13:56+00:00",
+          "created": "2000-08-14T07:13:56+00:00",
+          "modified": "2016-08-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "e8427fe4-08ac-3b09-8311-8dc17b99021e",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "2e21a0c2-65fb-5d3e-b973-3021bcb52a5e",
+            "is_admin": false,
+            "created": "2023-09-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "250602b6-adbf-536d-bce2-f66bd4663e68",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_106@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-03-15T07:13:56+00:00",
+          "created": "2019-04-29T07:13:56+00:00",
+          "modified": "2004-10-03T07:13:56+00:00",
+          "_joinData": {
+            "id": "eef8dca1-3881-3283-8aba-8c7ce7c4548a",
+            "group_id": "a3e09660-478d-3b44-b878-f89adaccddae",
+            "user_id": "250602b6-adbf-536d-bce2-f66bd4663e68",
+            "is_admin": false,
+            "created": "2001-06-19T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+      "name": "Bench Group 13",
+      "deleted": false,
+      "created": "2017-02-16T00:00:00+00:00",
+      "modified": "2003-12-25T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "6bdb061d-f593-519e-8119-014b01caa971",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_18@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2014-08-01T07:13:56+00:00",
+          "created": "2017-08-31T07:13:56+00:00",
+          "modified": "2006-04-08T07:13:56+00:00",
+          "_joinData": {
+            "id": "1146e075-03e3-3649-82dc-f3ddf5e4f466",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "6bdb061d-f593-519e-8119-014b01caa971",
+            "is_admin": true,
+            "created": "2004-04-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_129@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-11-14T07:13:56+00:00",
+          "created": "2023-07-09T07:13:56+00:00",
+          "modified": "1999-11-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "27ac88a0-c279-3ed6-ad76-1b9ac643e372",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+            "is_admin": false,
+            "created": "2011-09-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b866f8ea-9c26-557e-8e1e-568dc0f943c7",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_91@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-01-29T07:13:56+00:00",
+          "created": "2022-07-10T07:13:56+00:00",
+          "modified": "2004-03-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "2a6d2738-c403-339e-8af4-be0a11e3dc3f",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "b866f8ea-9c26-557e-8e1e-568dc0f943c7",
+            "is_admin": false,
+            "created": "2001-04-03T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "97d66c3d-970a-572d-ace1-39bcd1d03cb1",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_93@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-09-15T07:13:56+00:00",
+          "created": "2009-05-14T07:13:56+00:00",
+          "modified": "2007-06-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "47932ec2-83a8-3ef0-94c1-f443883f4543",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "97d66c3d-970a-572d-ace1-39bcd1d03cb1",
+            "is_admin": false,
+            "created": "2007-06-05T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e9277710-f94d-50fe-a512-134470a81b43",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_144@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2019-02-10T07:13:56+00:00",
+          "created": "2023-04-14T07:13:56+00:00",
+          "modified": "2021-11-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "671201fd-b68f-3fd7-a562-15516df77c1f",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "e9277710-f94d-50fe-a512-134470a81b43",
+            "is_admin": false,
+            "created": "2026-02-05T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "43071479-43ce-54b7-b861-ee90fe3adc9f",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_43@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-06-04T07:13:56+00:00",
+          "created": "2016-11-19T07:13:56+00:00",
+          "modified": "2022-04-12T07:13:56+00:00",
+          "_joinData": {
+            "id": "6c3112b7-923d-3228-b2f3-d728440641d3",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "43071479-43ce-54b7-b861-ee90fe3adc9f",
+            "is_admin": false,
+            "created": "2023-02-25T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "28775b20-2456-5ebe-9be1-047f848d574f",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_62@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-04-23T07:13:56+00:00",
+          "created": "2017-01-18T07:13:56+00:00",
+          "modified": "2008-08-18T07:13:56+00:00",
+          "_joinData": {
+            "id": "f0706b12-0572-3a04-b020-ea63b8502b35",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "28775b20-2456-5ebe-9be1-047f848d574f",
+            "is_admin": false,
+            "created": "2022-02-02T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "951b5182-36ab-59dd-8a24-adae5503309a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_76@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-09-18T07:13:56+00:00",
+          "created": "1999-04-18T07:13:56+00:00",
+          "modified": "2004-03-18T07:13:56+00:00",
+          "_joinData": {
+            "id": "fda9a9e6-2d21-3c38-93d8-fc9615d0718b",
+            "group_id": "adf777c8-c2ca-3dbe-8d77-b40b37f27e21",
+            "user_id": "951b5182-36ab-59dd-8a24-adae5503309a",
+            "is_admin": false,
+            "created": "2022-02-09T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+      "name": "Bench Group 11",
+      "deleted": false,
+      "created": "2003-08-09T00:00:00+00:00",
+      "modified": "2008-04-03T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "2a4665ac-e975-5449-994d-07f41a64a2b9",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_14@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-03-18T07:13:56+00:00",
+          "created": "2020-12-25T07:13:56+00:00",
+          "modified": "2016-09-23T07:13:56+00:00",
+          "_joinData": {
+            "id": "11d2e299-5106-36cc-80b1-eaed8f9cad61",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "2a4665ac-e975-5449-994d-07f41a64a2b9",
+            "is_admin": false,
+            "created": "2000-06-04T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_0@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2023-10-24T07:13:56+00:00",
+          "created": "1999-07-05T07:13:56+00:00",
+          "modified": "2014-09-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "34a1ac4d-c177-3723-ac72-c398e085eecc",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+            "is_admin": true,
+            "created": "2021-03-26T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "131efa41-5518-5552-9c04-e3d5d00b28ab",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_27@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2017-09-24T07:13:56+00:00",
+          "created": "2012-03-03T07:13:56+00:00",
+          "modified": "2006-12-31T07:13:56+00:00",
+          "_joinData": {
+            "id": "367773d1-9e25-3798-917a-37020616104a",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "131efa41-5518-5552-9c04-e3d5d00b28ab",
+            "is_admin": false,
+            "created": "2007-12-25T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "707d9500-6882-5f80-95cf-b5edff2bc154",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_131@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-01-14T07:13:56+00:00",
+          "created": "2019-10-04T07:13:56+00:00",
+          "modified": "2015-06-19T07:13:56+00:00",
+          "_joinData": {
+            "id": "62dcdee2-fd52-3f14-92f7-596cdc059f63",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "707d9500-6882-5f80-95cf-b5edff2bc154",
+            "is_admin": false,
+            "created": "2012-10-09T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "3f4c7ea1-4925-5748-9367-13944c2f6a4b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_60@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2022-01-28T07:13:56+00:00",
+          "created": "2004-04-02T07:13:56+00:00",
+          "modified": "2025-06-27T07:13:56+00:00",
+          "_joinData": {
+            "id": "a0e498e3-9db9-3ae4-8139-3436824ae47f",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "3f4c7ea1-4925-5748-9367-13944c2f6a4b",
+            "is_admin": false,
+            "created": "2007-08-13T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1e28ef5d-bfdb-5583-af23-9ff32a88d3c2",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_10@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-10-28T07:13:56+00:00",
+          "created": "2013-11-26T07:13:56+00:00",
+          "modified": "2001-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "fd486757-7e27-3c7f-aeb2-c919971c43a8",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "1e28ef5d-bfdb-5583-af23-9ff32a88d3c2",
+            "is_admin": false,
+            "created": "2007-01-31T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_129@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-11-14T07:13:56+00:00",
+          "created": "2023-07-09T07:13:56+00:00",
+          "modified": "1999-11-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "fff789aa-547d-3f55-9b73-0ddfa9b4e2c6",
+            "group_id": "b1932022-6cee-3bb1-9951-cc1dffe3161d",
+            "user_id": "b293df57-f856-5c3a-b3ed-c59c652f9f4b",
+            "is_admin": false,
+            "created": "2014-02-07T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "b671554b-c01b-33b5-9b87-b0747267c254",
+      "name": "Bench Group 15",
+      "deleted": false,
+      "created": "2011-11-09T00:00:00+00:00",
+      "modified": "2011-01-17T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "022cd7e5-41df-5f80-964b-abaa336dce8d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_107@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-05-13T07:13:56+00:00",
+          "created": "2023-08-25T07:13:56+00:00",
+          "modified": "2015-08-20T07:13:56+00:00",
+          "_joinData": {
+            "id": "3037271e-4f90-328c-b45a-b9e3fb2c6af1",
+            "group_id": "b671554b-c01b-33b5-9b87-b0747267c254",
+            "user_id": "022cd7e5-41df-5f80-964b-abaa336dce8d",
+            "is_admin": false,
+            "created": "2025-08-15T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "cd0e2984-5966-5aed-b9a6-e92956ab517b",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_55@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-08-12T07:13:56+00:00",
+          "created": "2023-10-22T07:13:56+00:00",
+          "modified": "2022-05-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "7be17254-cbcd-3411-91d1-cffada99f271",
+            "group_id": "b671554b-c01b-33b5-9b87-b0747267c254",
+            "user_id": "cd0e2984-5966-5aed-b9a6-e92956ab517b",
+            "is_admin": false,
+            "created": "2026-01-30T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "46f752cd-4564-5f71-857b-cdbeed509232",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_140@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-01-08T07:13:56+00:00",
+          "created": "2025-06-16T07:13:56+00:00",
+          "modified": "2017-12-01T07:13:56+00:00",
+          "_joinData": {
+            "id": "a5b0ca54-e18f-3434-a90f-b5127d358c25",
+            "group_id": "b671554b-c01b-33b5-9b87-b0747267c254",
+            "user_id": "46f752cd-4564-5f71-857b-cdbeed509232",
+            "is_admin": false,
+            "created": "2020-03-31T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "8f2aa976-2111-53b7-824d-52b09d929ad7",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_97@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-07-23T07:13:56+00:00",
+          "created": "2016-08-24T07:13:56+00:00",
+          "modified": "2019-03-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "abddb780-9c5a-30e3-b7fe-cdd3cb318fef",
+            "group_id": "b671554b-c01b-33b5-9b87-b0747267c254",
+            "user_id": "8f2aa976-2111-53b7-824d-52b09d929ad7",
+            "is_admin": false,
+            "created": "2021-02-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "5cf4a281-bc18-53d3-b447-1e575a90f681",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_48@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-08-04T07:13:56+00:00",
+          "created": "2016-08-21T07:13:56+00:00",
+          "modified": "2016-08-08T07:13:56+00:00",
+          "_joinData": {
+            "id": "aca6325d-225c-39f9-a723-cc74b2c34596",
+            "group_id": "b671554b-c01b-33b5-9b87-b0747267c254",
+            "user_id": "5cf4a281-bc18-53d3-b447-1e575a90f681",
+            "is_admin": true,
+            "created": "1999-11-23T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e1e9ec85-d0a2-581c-b106-da423738b041",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_145@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-06-10T07:13:56+00:00",
+          "created": "2013-08-03T07:13:56+00:00",
+          "modified": "2012-07-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "bb4563ae-076a-380b-a878-fb4f10b839a1",
+            "group_id": "b671554b-c01b-33b5-9b87-b0747267c254",
+            "user_id": "e1e9ec85-d0a2-581c-b106-da423738b041",
+            "is_admin": false,
+            "created": "2016-09-13T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bf5d85fb-045e-3bbd-8bc4-69b408caa4e3",
+      "name": "Bench Group 12",
+      "deleted": false,
+      "created": "2019-04-15T00:00:00+00:00",
+      "modified": "2011-12-26T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "1c58da4b-aacc-525f-8ad2-cfd7a109886e",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_83@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-02-20T07:13:56+00:00",
+          "created": "2011-04-29T07:13:56+00:00",
+          "modified": "2003-06-13T07:13:56+00:00",
+          "_joinData": {
+            "id": "c25dcbc6-9884-3802-841a-3cf0738983bc",
+            "group_id": "bf5d85fb-045e-3bbd-8bc4-69b408caa4e3",
+            "user_id": "1c58da4b-aacc-525f-8ad2-cfd7a109886e",
+            "is_admin": true,
+            "created": "2007-06-24T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "e9277710-f94d-50fe-a512-134470a81b43",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_144@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2019-02-10T07:13:56+00:00",
+          "created": "2023-04-14T07:13:56+00:00",
+          "modified": "2021-11-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "cd959639-83eb-3760-9203-46cbe35bfd5a",
+            "group_id": "bf5d85fb-045e-3bbd-8bc4-69b408caa4e3",
+            "user_id": "e9277710-f94d-50fe-a512-134470a81b43",
+            "is_admin": false,
+            "created": "2018-12-20T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+      "name": "Bench Group 0",
+      "deleted": false,
+      "created": "2007-10-01T00:00:00+00:00",
+      "modified": "2004-11-29T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "ada@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2026-06-19T07:16:29+00:00",
+          "created": "2017-11-23T07:13:56+00:00",
+          "modified": "2014-01-10T07:13:56+00:00",
+          "_joinData": {
+            "id": "0227e8c5-6e24-3103-a60d-559bf13770f3",
+            "group_id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+            "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+            "is_admin": false,
+            "created": "2002-06-02T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "1e5fee25-7906-56f8-baa8-fdf52ffc0d6c",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_69@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-12-12T07:13:56+00:00",
+          "created": "2019-04-14T07:13:56+00:00",
+          "modified": "2023-03-26T07:13:56+00:00",
+          "_joinData": {
+            "id": "072d61cc-2a0a-396b-bfc2-c826742a9f0e",
+            "group_id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+            "user_id": "1e5fee25-7906-56f8-baa8-fdf52ffc0d6c",
+            "is_admin": false,
+            "created": "2014-10-10T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "11b31806-5f84-5d12-af83-b288ebde2bd4",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_115@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-07-24T07:13:56+00:00",
+          "created": "2012-01-02T07:13:56+00:00",
+          "modified": "2018-10-11T07:13:56+00:00",
+          "_joinData": {
+            "id": "2293cf2a-0fea-3ed5-95d9-ae3b38ce7a21",
+            "group_id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+            "user_id": "11b31806-5f84-5d12-af83-b288ebde2bd4",
+            "is_admin": false,
+            "created": "2012-05-19T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "8161b929-88f1-5bae-9337-40c900b01456",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_33@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-05-27T07:13:56+00:00",
+          "created": "2015-07-10T07:13:56+00:00",
+          "modified": "2013-12-19T07:13:56+00:00",
+          "_joinData": {
+            "id": "79665553-4c2c-3af6-973b-8524171c68ef",
+            "group_id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+            "user_id": "8161b929-88f1-5bae-9337-40c900b01456",
+            "is_admin": true,
+            "created": "2010-01-04T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "79ed479d-7c93-5f55-83de-f1b20c452c8a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_45@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2020-10-31T07:13:56+00:00",
+          "created": "2014-12-21T07:13:56+00:00",
+          "modified": "2011-11-07T07:13:56+00:00",
+          "_joinData": {
+            "id": "a3a8dae3-9b2b-3287-b9ea-d500a4f211be",
+            "group_id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+            "user_id": "79ed479d-7c93-5f55-83de-f1b20c452c8a",
+            "is_admin": false,
+            "created": "2011-02-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f2ea16ce-c13d-54e3-82ed-fae3166b9125",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_38@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-08-13T07:13:56+00:00",
+          "created": "2007-12-07T07:13:56+00:00",
+          "modified": "2011-03-27T07:13:56+00:00",
+          "_joinData": {
+            "id": "c39f5607-9fe6-37db-ba70-9d21ece235bd",
+            "group_id": "c2a9fa21-1c2a-3455-9130-7f723fa6ee8b",
+            "user_id": "f2ea16ce-c13d-54e3-82ed-fae3166b9125",
+            "is_admin": false,
+            "created": "2010-01-02T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e2b5ce3a-4232-3764-b912-da384ff8449c",
+      "name": "Bench Group 21",
+      "deleted": false,
+      "created": "2014-11-30T00:00:00+00:00",
+      "modified": "2011-09-03T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "57a36f76-3a27-53f3-8ac6-e5848e44e24a",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_8@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2025-05-29T07:13:56+00:00",
+          "created": "2002-05-26T07:13:56+00:00",
+          "modified": "2021-04-06T07:13:56+00:00",
+          "_joinData": {
+            "id": "1d10ec5a-4d54-32e5-9c67-22db188b6822",
+            "group_id": "e2b5ce3a-4232-3764-b912-da384ff8449c",
+            "user_id": "57a36f76-3a27-53f3-8ac6-e5848e44e24a",
+            "is_admin": true,
+            "created": "2016-12-15T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "047f4025-2501-5598-83b4-b7d87e083a42",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_11@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2004-08-23T07:13:56+00:00",
+          "created": "2026-01-11T07:13:56+00:00",
+          "modified": "2024-05-31T07:13:56+00:00",
+          "_joinData": {
+            "id": "7936dfd3-be76-3b98-9d90-654defdfcc35",
+            "group_id": "e2b5ce3a-4232-3764-b912-da384ff8449c",
+            "user_id": "047f4025-2501-5598-83b4-b7d87e083a42",
+            "is_admin": false,
+            "created": "2019-08-24T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "14722caa-4343-55e6-bbbe-685698ee1465",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_49@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2022-04-21T07:13:56+00:00",
+          "created": "2010-09-09T07:13:56+00:00",
+          "modified": "2016-11-17T07:13:56+00:00",
+          "_joinData": {
+            "id": "b958535e-8b21-3a4a-aac5-27f60bad1c98",
+            "group_id": "e2b5ce3a-4232-3764-b912-da384ff8449c",
+            "user_id": "14722caa-4343-55e6-bbbe-685698ee1465",
+            "is_admin": false,
+            "created": "2005-01-17T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "bdb073a1-2e19-58f7-9f6d-ada5566be598",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_57@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2001-06-10T07:13:56+00:00",
+          "created": "2010-05-15T07:13:56+00:00",
+          "modified": "2013-05-05T07:13:56+00:00",
+          "_joinData": {
+            "id": "d74f34ad-71a0-3fdb-b280-d3d15b307dfc",
+            "group_id": "e2b5ce3a-4232-3764-b912-da384ff8449c",
+            "user_id": "bdb073a1-2e19-58f7-9f6d-ada5566be598",
+            "is_admin": false,
+            "created": "2017-09-27T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "f1d4ce15-a5b3-3ca0-9558-a8ac6d3a69cb",
+      "name": "Bench Group 17",
+      "deleted": false,
+      "created": "2016-04-04T00:00:00+00:00",
+      "modified": "2001-06-01T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "4b9bd2ec-b249-5fa3-b911-34d53528a45d",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_120@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2003-12-04T07:13:56+00:00",
+          "created": "2000-03-25T07:13:56+00:00",
+          "modified": "1999-03-16T07:13:56+00:00",
+          "_joinData": {
+            "id": "0add6547-a989-345d-b477-f6fda77428ea",
+            "group_id": "f1d4ce15-a5b3-3ca0-9558-a8ac6d3a69cb",
+            "user_id": "4b9bd2ec-b249-5fa3-b911-34d53528a45d",
+            "is_admin": false,
+            "created": "2021-01-11T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "f2ea16ce-c13d-54e3-82ed-fae3166b9125",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_38@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-08-13T07:13:56+00:00",
+          "created": "2007-12-07T07:13:56+00:00",
+          "modified": "2011-03-27T07:13:56+00:00",
+          "_joinData": {
+            "id": "565f0118-e56b-3bb8-8699-12e0e5627a91",
+            "group_id": "f1d4ce15-a5b3-3ca0-9558-a8ac6d3a69cb",
+            "user_id": "f2ea16ce-c13d-54e3-82ed-fae3166b9125",
+            "is_admin": false,
+            "created": "2008-10-06T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "a1ef925f-06ad-5276-9420-471652aaa241",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_5@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-04-09T07:13:56+00:00",
+          "created": "2004-04-23T07:13:56+00:00",
+          "modified": "2005-01-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "a067dab9-c05d-343e-9765-6911d3a8db9b",
+            "group_id": "f1d4ce15-a5b3-3ca0-9558-a8ac6d3a69cb",
+            "user_id": "a1ef925f-06ad-5276-9420-471652aaa241",
+            "is_admin": true,
+            "created": "2011-12-12T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "2d4b00ff-8dbd-56b1-b0cb-7d81bba82cbe",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_42@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2024-01-05T07:13:56+00:00",
+          "created": "2023-08-23T07:13:56+00:00",
+          "modified": "2018-12-31T07:13:56+00:00",
+          "_joinData": {
+            "id": "e098fcce-09ed-3e85-ab6b-590524cc28a5",
+            "group_id": "f1d4ce15-a5b3-3ca0-9558-a8ac6d3a69cb",
+            "user_id": "2d4b00ff-8dbd-56b1-b0cb-7d81bba82cbe",
+            "is_admin": false,
+            "created": "2004-11-14T07:13:56+00:00"
+          }
+        }
+      ]
+    },
+    {
+      "id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+      "name": "Bench Group 10",
+      "deleted": false,
+      "created": "2007-04-26T00:00:00+00:00",
+      "modified": "2000-07-03T00:00:00+00:00",
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "users": [
+        {
+          "id": "186413fa-6b3c-50da-a86b-e40bbe583d19",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_102@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2005-10-20T07:13:56+00:00",
+          "created": "2015-07-11T07:13:56+00:00",
+          "modified": "2003-02-23T07:13:56+00:00",
+          "_joinData": {
+            "id": "53cae6c0-35d8-35a8-99bd-16e3527cfe6e",
+            "group_id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+            "user_id": "186413fa-6b3c-50da-a86b-e40bbe583d19",
+            "is_admin": false,
+            "created": "2020-06-09T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "7b6d2b29-3cf9-561d-82da-2c2882fb8116",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_26@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2009-01-02T07:13:56+00:00",
+          "created": "2025-05-20T07:13:56+00:00",
+          "modified": "2021-06-28T07:13:56+00:00",
+          "_joinData": {
+            "id": "5542ee62-74f3-3928-aa6c-ecbd613718ef",
+            "group_id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+            "user_id": "7b6d2b29-3cf9-561d-82da-2c2882fb8116",
+            "is_admin": false,
+            "created": "2013-08-10T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "a1ef925f-06ad-5276-9420-471652aaa241",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_5@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2011-04-09T07:13:56+00:00",
+          "created": "2004-04-23T07:13:56+00:00",
+          "modified": "2005-01-15T07:13:56+00:00",
+          "_joinData": {
+            "id": "a31b56ef-2609-3c41-bb8b-0ca615081910",
+            "group_id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+            "user_id": "a1ef925f-06ad-5276-9420-471652aaa241",
+            "is_admin": true,
+            "created": "2023-02-12T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_7@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2008-02-09T07:13:56+00:00",
+          "created": "2013-02-24T07:13:56+00:00",
+          "modified": "2004-11-21T07:13:56+00:00",
+          "_joinData": {
+            "id": "c02d5fca-0531-3262-aa63-4ef67b1926a8",
+            "group_id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+            "user_id": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+            "is_admin": false,
+            "created": "2010-11-20T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "bc371301-2fb7-54fb-b6ce-37e781fbc0c5",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_36@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2018-06-07T07:13:56+00:00",
+          "created": "2019-07-06T07:13:56+00:00",
+          "modified": "2018-10-21T07:13:56+00:00",
+          "_joinData": {
+            "id": "df2d8db7-af4f-359b-84e6-42d3b3b7fbc3",
+            "group_id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+            "user_id": "bc371301-2fb7-54fb-b6ce-37e781fbc0c5",
+            "is_admin": false,
+            "created": "2022-05-08T07:13:56+00:00"
+          }
+        },
+        {
+          "id": "6a48f2e7-cf41-5883-bfab-14bb4f056547",
+          "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+          "username": "bench_user_20@passbolt.com",
+          "active": true,
+          "deleted": false,
+          "disabled": null,
+          "last_logged_in": "2004-01-31T07:13:56+00:00",
+          "created": "2003-03-23T07:13:56+00:00",
+          "modified": "2008-07-11T07:13:56+00:00",
+          "_joinData": {
+            "id": "e54c409c-7356-322c-87ba-683d810e9fc8",
+            "group_id": "f378b683-fcc3-3370-bae5-3d2ccdc9ed63",
+            "user_id": "6a48f2e7-cf41-5883-bfab-14bb4f056547",
+            "is_admin": false,
+            "created": "2017-08-18T07:13:56+00:00"
+          }
+        }
+      ]
+    }
+  ]
+}

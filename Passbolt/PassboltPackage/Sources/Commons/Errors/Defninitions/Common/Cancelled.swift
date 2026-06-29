@@ -22,6 +22,7 @@
 //
 
 import Localization
+import protocol Foundation.LocalizedError
 
 import protocol Foundation.LocalizedError
 

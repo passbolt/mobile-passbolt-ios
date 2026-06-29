@@ -351,6 +351,7 @@ public final class ResourceEditViewController: ViewController {
             to: .valid("")
           )
       }
+
       if let customOnSuccessNavigation {
         try await customOnSuccessNavigation()
       }

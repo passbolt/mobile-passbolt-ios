@@ -195,6 +195,7 @@ internal struct ResourceDetailsView: ControlledView {
         .padding(8)
         .background(Color.passboltBackgroundGray)
         .cornerRadius(4)
+        .accessibilityIdentifier("resource.detail.section.\(section.accessibilityIdenitifier).content")
       }
       CommonListSpacer(minHeight: 8)
     }

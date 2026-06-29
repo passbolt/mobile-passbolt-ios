@@ -21,7 +21,7 @@
 // @since         v1.0
 //
 
-import FeatureScopes
+@preconcurrency import FeatureScopes
 
 @testable import Features
 

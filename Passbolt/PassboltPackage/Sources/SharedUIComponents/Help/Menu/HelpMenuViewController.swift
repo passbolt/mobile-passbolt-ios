@@ -45,6 +45,7 @@ public final class HelpMenuViewController: ViewController {
     let navigationToAccountKitPicker: NavigationToAccountKitPicker = try transferFeatures.instance()
     let accountKitImport: AccountKitImport = try transferFeatures.instance()
     let navigationToLogsViewer: NavigationToLogsViewer = try features.instance()
+
     self.resolvedActions =
       context
       + [
@@ -81,6 +82,7 @@ public final class HelpMenuViewController: ViewController {
       )
     )
   }
+
 
   // Populate the menu with options async - otherwise it breaks height calculation on iOS 16
   @MainActor internal func activate() async {
@@ -127,5 +129,4 @@ public final class HelpMenuViewController: ViewController {
 }
 
 extension ImageNameConstant: @retroactive @unchecked Sendable {
-
 }

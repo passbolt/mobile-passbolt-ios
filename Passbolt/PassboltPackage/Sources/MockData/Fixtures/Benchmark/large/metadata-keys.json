@@ -1,0 +1,36 @@
+{
+  "header": {
+    "id": "9601a302-6479-4477-919e-ba4c20449a1f",
+    "status": "success",
+    "servertime": 1781854358,
+    "action": "e38db0b5-838d-5f43-8609-92a25843e9d3",
+    "message": "The operation was successful.",
+    "url": "/metadata/keys.json?contain%5Bmetadata_private_keys%5D=1",
+    "code": 200
+  },
+  "body": [
+    {
+      "id": "407ed78a-21ca-3ad1-8b82-981b2b114bc7",
+      "fingerprint": "75E953F48EC5C1FCFFE575BB1BD05459D565666B",
+      "armored_key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\nComment: 75E953F48EC5C1FCFFE575BB1BD05459D565666B\n\nmDMEZtXbahYJKwYBBAHaRw8BAQdAgsF7oiI4napsPbhAQ9mrWY6vPLI5PHvqF53n\nPVVdHIa0NlBhc3Nib2x0IFNoYXJlZCBNZXRhZGF0YSBLZXkgPHVuaXQtdGVzdHNA\ncGFzc2JvbHQuY29tPoiTBBMWCgA7FiEEdelT9I7Fwfz/5XW7G9BUWdVlZmsFAmbV\n22oCGyMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQG9BUWdVlZmsHSgEA\nm6TQYz48+QVb8QyxPsJN9sw8fD6Ng/znTVF+PDQM4SwA/iMs+MartRO8k6gd91Z8\nKx0YoCBPphzHYJQaCZeMYSULuDgEZtXbahIKKwYBBAGXVQEFAQEHQDGEzMQb5El6\nugXTYotfm4SamyW86ilPV+KtEnaPba0TAwEIB4h4BBgWCgAgFiEEdelT9I7Fwfz/\n5XW7G9BUWdVlZmsFAmbV22oCGwwACgkQG9BUWdVlZmtp5wD7B558n87FXTCz976Q\nXIxBwneMhbX+ro/xLYgRGBxNkLwBAKtYPxZtF6oAZHxtslJtwx9pr9DBRvKJBFtW\nFoXCyTEN\n=zZuC\n-----END PGP PUBLIC KEY BLOCK-----\n",
+      "created": "2025-02-20T07:30:28+00:00",
+      "modified": "2025-05-08T07:30:28+00:00",
+      "expired": null,
+      "deleted": null,
+      "created_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "modified_by": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "metadata_private_keys": [
+        {
+          "id": "c33c0853-f56c-3708-b295-e37d23c8338b",
+          "metadata_key_id": "407ed78a-21ca-3ad1-8b82-981b2b114bc7",
+          "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "data": "-----BEGIN PGP MESSAGE-----\n\nhQIMA1P90Qk1JHA+ARAAs2vbq8oEUo/8JjpM8eQTdHePCd2cadjzX7brTBvlsbQp\nx4sT7wIeHupkvwC9gLAjGNtd7OBqMZNqdHNo9Iycpi85MWWqYcgNjKNeKZMI3AHC\nGCrX9AWidaAJDTxX0BgZqF6OMq+BAMy8tJCEtTnBvGPCWzgUV8cmRfYO2BOIvA/o\nkaTdxBL5ljGQ+Rwv3CGyNHO3nFRGCZ/AJD6G/anOiOmikLcS0wM7HR4VO9lJANGT\nYUP5H7gAQRTicRZuBfZ0xPMa4eu9WEssmOPsCLNDwE1eNqY7+I489Q01YJpGucsH\nSH4mc4t/8/CSxWka+tbnEuaqvhUEa1EGcUQteqBNiYArHU9a/FhhNX20btUKqdvA\nBk6/h9DWAziaeZ8/ylqDAUCz8sQGvxXFVlKoKcN7AP+hVKaSO4N6Ykpy6Nf0+xQy\nLlHjCmTF2cluA3uHHqWx92w7U5Zj28zMvNHmaTj/CmXz2N6UBbAiF6/yFVu/zYAV\nIhGvZyKymscSrlvQn7H8UvcoAn13jZIXjUuU7hcLBjpIO85gGkigD5KgTpv2et/o\naZzekW78gZ2RcGRaF5v1rrm++8oAD5XQAAQ0/+FwfPA50nPgM4p4McO9pyf03zBw\nOQZ8Sw1aS60rneMUEZom404J9xRmug/x1bkSDm+X5lKQRQXOcoQpgn/WLDlWClbS\n6QE3o1nKJWJtuN2Y54xOhU0fpdGue1liVBpNX5lNOxJzDidl2zsaudSuQVRNcQvN\nkaT91SIlE/IF6ih3MKCkBP7kmYRGyxru0xmQPlN5sECUHdodk7qyuY5TQZgLSDjI\n30f5yZTEvO9AGWQXpCnzn/UMglnbEGAwoHnuCIw3MgRMscaR4np5DsVANpv2vF2V\nvWyxVO4fbCKtfQKDdZpcYEX0VQb9wpr3QwVVDJyil9E+BbFmj53Wl0LGZDTEUpFZ\ndd68RjjrkQ7DerVnB7R0KXpGpl2rLgX4tNYgwIncbJHUQp0jCp1rxWsPNTVEpqMe\n/MIJvP5fk4+WjEcRPitoITlSkvWOpzL7sjJ+0NDsPEbhVX6Ra1fxuM+4gxtYGCEC\ntdz1rHHYSg5kwfjVoJOVrS9rs7TVWZ+wMoNM9c9kPceAKRaQ81lPsWfyA3c5f27B\nXpZCAvmTsqqPjiAkDfXdowouE+2ug3rigs3uPsfkqnzXLNB4GCbBZXLsd1dA11Mg\n3pJN2c85/3f761CDjfyWi/+chmHKTmLmbGnAQUvpN/UQqG2/VcRgsegbXIw2nief\nJveYE7rnJpQDCNMx2xnF81MrSJ85tncti3y5nAG84iwDUYvNoR5H0ZqBORuzJ0fB\nmuu4JCCRJbQNG/TupGU066NdAFhps0fBngUN0Ehy3ntbwHs73S3EM4hGbZiwva4R\nDfvYMBHvCo2yU6ZnJTv8/LOojsiDuDS5FyI4CSJF6sj2GDFtkmlpTAs5noPKJEyw\n6vzpskJbLMRZYTroxnzegxAqrY4rSP7hKRz9QBrXvFRAFjUyO5kHXnBtzBS1OYCo\nHP/0w9uenQBdrztHPuv9M/vlYxNQwD5d5vPw8hP5xNyqWNcBAHpNoWeSoMpSj6vf\ns/FsDa/D0qM2cqCpHutFtchsCE9PWc/53O2odLayr+b2mvQCO3iVT2ROqJvByJrh\n9UePV0NYTekWAeeZClNZpaJlE2kb19yca+jn7so+f22EguF3JCfEKsd0vVmGz2W1\nYg66+J/ciIXjaOj5G95NZh8mhLmpax784paH39kdes4eemgsBzQcWgfUTfQABhwB\nQwuOKjxmujiTP6reSOo=\n=NdYL\n-----END PGP MESSAGE-----\n",
+          "created": "2025-10-10T07:30:28+00:00",
+          "modified": "2026-05-01T07:30:28+00:00",
+          "created_by": null,
+          "modified_by": null
+        }
+      ]
+    }
+  ]
+}

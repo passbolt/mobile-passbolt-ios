@@ -66,7 +66,7 @@ extension AccountImportResultHandler {
           return
         }
         if let title {
-          let context = createFailureViewContext(title: title, icon: icon)
+          let context: GenericResultViewController.Context = createFailureViewContext(title: title, icon: icon)
           try await navigationToResultView.perform(context: context)
         }
       }

@@ -32,6 +32,17 @@ internal struct UnsupportedMFAView: ControlledView {
   }
 
   internal var body: some View {
+    ScreenView(
+      title: "settings.expert.title",
+      contentView: {
+        self.content
+      }
+    )
+    .navigationBarBackButtonHidden(true)
+    .toolbar(.hidden, for: .tabBar)
+  }
+
+  @ViewBuilder @MainActor private var content: some View {
     VStack(spacing: 0) {
       GeometryReader { reader in
         VStack(spacing: 0) {

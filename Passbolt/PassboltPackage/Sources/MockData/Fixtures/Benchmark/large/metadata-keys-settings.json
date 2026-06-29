@@ -1,0 +1,15 @@
+{
+  "header": {
+    "id": "2727b8e6-a39b-4089-8321-a6d9466782e5",
+    "status": "success",
+    "servertime": 1781854358,
+    "action": "b20e3cc2-e4ea-5b42-804b-7edc9878ef3d",
+    "message": "The operation was successful.",
+    "url": "/metadata/keys/settings.json",
+    "code": 200
+  },
+  "body": {
+    "allow_usage_of_personal_keys": false,
+    "zero_knowledge_key_share": false
+  }
+}
