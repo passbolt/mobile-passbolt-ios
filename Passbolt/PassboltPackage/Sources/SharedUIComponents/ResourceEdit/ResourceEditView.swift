@@ -36,8 +36,15 @@ public struct ResourceEditView: ControlledView {
 
   public var body: some View {
     withAlert(\.alert) {
-      self.contentView
-        .backgroundColor(.passboltBackground)
+      self.with(\.isPreparingForm) { (isPreparingForm: Bool) in
+        if isPreparingForm {
+          LoaderView.instance()
+        }
+        else {
+          self.contentView
+        }
+      }
+      .backgroundColor(.passboltBackground)
     }
     .navigationBarBackButtonHidden()
     .toolbar {  // replace back button

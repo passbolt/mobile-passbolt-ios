@@ -76,6 +76,9 @@ public final class ResourceEditViewController: ViewController {
     internal var alert: AlertViewModel?
     // Flag driving loader overlay
     internal var isLoading: Bool = false
+    // True until the first form state is built; the initial build awaits the lazily
+    // fetched password policies (entropy), so the form would otherwise render empty.
+    internal var isPreparingForm: Bool = true
   }
 
   public nonisolated let viewState: ViewStateSource<ViewState>
@@ -221,6 +224,7 @@ public final class ResourceEditViewController: ViewController {
           viewState.showsV4UpgradeBanner =
             v4UpgradeFeatureEnabled
             && update.resource.type.isV4ResourceType
+          viewState.isPreparingForm = false
         }
       }
     )
