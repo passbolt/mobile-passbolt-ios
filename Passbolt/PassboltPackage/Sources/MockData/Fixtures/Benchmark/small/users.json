@@ -1,0 +1,644 @@
+{
+  "header": {
+    "id": "dcfb5712-d500-4632-b46a-22a6ca302d21",
+    "status": "success",
+    "servertime": 1781781201,
+    "action": "d7bc9044-a64e-5421-a4d7-7a94eaa39d37",
+    "message": "The operation was successful.",
+    "url": "/users.json?api-version=v2",
+    "code": 200,
+    "pagination": {
+      "limit": null,
+      "page": 1,
+      "count": 10
+    }
+  },
+  "body": [
+    {
+      "id": "f848277c-5398-58f8-a82a-72397af2d450",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "ada@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2026-06-18T11:13:21+00:00",
+      "created": "2017-11-22T11:11:45+00:00",
+      "modified": "2014-01-09T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "01c6b3a5-755d-33ba-ab63-51bda9862764",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+          "is_admin": false,
+          "created": "2000-04-18T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "d12ce0ec-f109-3580-97e9-6b0917f36a6c",
+        "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+        "first_name": "Ada",
+        "last_name": "Lovelace",
+        "created": "2022-06-17T11:11:45+00:00",
+        "modified": "1999-11-27T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "7d00405e-14cf-303e-88e4-067f8352013b",
+        "user_id": "f848277c-5398-58f8-a82a-72397af2d450",
+        "armored_key": "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n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\n=Kwft\n-----END PGP PUBLIC KEY BLOCK-----\n",
+        "bits": 4096,
+        "uid": "Ada Lovelace <ada@passbolt.com>",
+        "key_id": "1353B5B15D9B054F",
+        "fingerprint": "03F60E958F4CB29723ACDF761353B5B15D9B054F",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2015-08-09T12:48:31+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+      "role_id": "0d51c3a8-5e67-5e3d-882f-e1868966d817",
+      "username": "admin@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2025-01-25T11:11:45+00:00",
+      "created": "2018-06-04T11:11:45+00:00",
+      "modified": "2025-12-24T11:11:45+00:00",
+      "groups_users": [],
+      "profile": {
+        "id": "e85a5a45-a527-303f-8324-8eab70c06dc2",
+        "user_id": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+        "first_name": "Admin",
+        "last_name": "User",
+        "created": "2024-02-28T11:11:45+00:00",
+        "modified": "2011-07-31T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "c4b3eb09-54b5-3a65-bdaf-d241cfea7d14",
+        "user_id": "d57c10f5-639d-5160-9c81-8a0c6c4ec856",
+        "armored_key": "Cupiditate earum labore quae. Ut in quos omnis quis. Aut quia voluptatem quasi voluptas.",
+        "bits": 3072,
+        "uid": "Voluptate laborum ea ab. Quae praesentium autem libero quos aut quos. Ab quia dolore omnis doloribus.",
+        "key_id": "476290FBDC85A3E1",
+        "fingerprint": "ED31C51D2D4C4CB33352B4A152AEB1BA5E2AC4DE",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "0d51c3a8-5e67-5e3d-882f-e1868966d817",
+        "name": "admin",
+        "description": "Organization administrator",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_0@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2023-10-23T11:11:45+00:00",
+      "created": "1999-07-04T11:11:45+00:00",
+      "modified": "2014-09-15T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "9183001f-7b26-3da4-abbb-061badc4bc17",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "is_admin": true,
+          "created": "2005-11-20T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "2dbc5268-08c5-380d-84e2-fa8f8a449202",
+        "user_id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+        "first_name": "Kamille",
+        "last_name": "Reynolds",
+        "created": "2018-01-30T11:11:45+00:00",
+        "modified": "2005-10-02T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "3d64c2af-5e66-3515-8d70-4eb4530a7df0",
+        "user_id": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+        "armored_key": "Porro velit mollitia quo qui ad eum. Exercitationem sequi quas accusantium harum voluptatem. Qui quos accusamus itaque dicta consequatur. Rerum quo delectus consequatur.",
+        "bits": 3072,
+        "uid": "Aut ex quo iure eos explicabo accusamus. Et qui ipsa itaque autem mollitia.",
+        "key_id": "F07E98AC526B14D3",
+        "fingerprint": "C35234A23413E251EDCAECD4DB1B2C1D4A5BB5AE",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_1@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2019-06-12T11:11:45+00:00",
+      "created": "2000-09-17T11:11:45+00:00",
+      "modified": "2003-10-25T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "7260288a-181a-30dc-9995-5040f3214560",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+          "is_admin": false,
+          "created": "2006-10-07T11:11:46+00:00"
+        },
+        {
+          "id": "c97d9329-48a4-32b3-8cb5-961694f3ea07",
+          "group_id": "32b88d8d-a454-31cc-a834-79228fe4dea6",
+          "user_id": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+          "is_admin": true,
+          "created": "2010-02-23T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "15e47c4a-d0c3-47b7-bce3-2eaab85ef5b8",
+        "user_id": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+        "first_name": "Anna",
+        "last_name": "Sanford",
+        "created": "2009-09-08T11:11:45+00:00",
+        "modified": "2006-08-19T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "a6ff65a8-575a-4b8e-8bc0-856ebc46e9b8",
+        "user_id": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+        "armored_key": "Delectus fugit culpa id debitis qui. Sunt incidunt et aut. Hic occaecati dolor exercitationem dolorem eius consequuntur.",
+        "bits": 3072,
+        "uid": "Et ducimus dignissimos molestiae vel. Ut voluptatem quasi consectetur. Voluptate alias perspiciatis qui.",
+        "key_id": "975BD3F286041ACE",
+        "fingerprint": "A31CE2CBDDBB545E33C52E54BA422DEAC3D141A1",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_2@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2004-10-04T11:11:45+00:00",
+      "created": "2022-06-14T11:11:45+00:00",
+      "modified": "2009-07-26T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "85a32728-56b4-3bce-b76e-6dce02adbe8b",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "is_admin": false,
+          "created": "2015-04-11T11:11:46+00:00"
+        },
+        {
+          "id": "9cfd4a3a-a2eb-3991-94d1-33031aca3eec",
+          "group_id": "87e49f49-ef06-3b1b-93bb-871121ad80c6",
+          "user_id": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "is_admin": true,
+          "created": "2017-02-27T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "c76d4e09-1ec9-46b7-b117-99c525a98e07",
+        "user_id": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+        "first_name": "Ettie",
+        "last_name": "Marvin",
+        "created": "2003-01-18T11:11:45+00:00",
+        "modified": "2006-09-03T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "dbb99969-2571-4970-b57b-d2cf28b1a8f0",
+        "user_id": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+        "armored_key": "Quia est illum et laudantium blanditiis cum nam tempora. Et enim non molestias voluptas illum. Doloremque exercitationem sit autem sapiente. Ut suscipit reprehenderit vel ab et.",
+        "bits": 3072,
+        "uid": "Et quia et aut labore aut. Dicta dolores iste recusandae.",
+        "key_id": "94628B3DA0715FEC",
+        "fingerprint": "2DAB25343542E12C34BD4B15ACBA11EDECAC5DE3",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_3@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2015-08-16T11:11:45+00:00",
+      "created": "2002-10-13T11:11:45+00:00",
+      "modified": "2018-02-10T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "270f901a-996b-3779-ba2c-a5c30b11fb3b",
+          "group_id": "87e49f49-ef06-3b1b-93bb-871121ad80c6",
+          "user_id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "is_admin": false,
+          "created": "2020-07-23T11:11:46+00:00"
+        },
+        {
+          "id": "8e5ff784-afdd-34d6-a0d5-b12b8ea3af3b",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "is_admin": false,
+          "created": "2014-02-26T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "08a3b59b-cbca-4ef8-b90d-90c5a38f30b6",
+        "user_id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+        "first_name": "Elouise",
+        "last_name": "Hintz",
+        "created": "2015-06-26T11:11:45+00:00",
+        "modified": "2001-03-28T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "75298bd7-9788-46cb-b404-b7581139f969",
+        "user_id": "116c6380-4c6c-5e30-884d-4b09aba62094",
+        "armored_key": "Et consequatur ipsam et amet illo repudiandae. Voluptatem deleniti officia qui rem et facere aspernatur ipsam. Autem corrupti tenetur omnis enim. Ut distinctio nihil maiores asperiores.",
+        "bits": 3072,
+        "uid": "Nihil molestiae tenetur quisquam culpa eos qui voluptatem laudantium. Non est ad cupiditate non autem exercitationem vero.",
+        "key_id": "81420A9EFDCB5763",
+        "fingerprint": "AC4253A1C1E3D155DED4CA13C5BBBE42DE43BA22",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "a8280ed2-f67e-5483-90cc-304caf434d77",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_4@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "1999-09-30T11:11:45+00:00",
+      "created": "2021-04-16T11:11:45+00:00",
+      "modified": "2016-12-24T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "715f232f-19eb-3b37-95b8-b087ccb89fba",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "a8280ed2-f67e-5483-90cc-304caf434d77",
+          "is_admin": false,
+          "created": "2024-07-07T11:11:46+00:00"
+        },
+        {
+          "id": "a4164d20-1956-36f9-8371-23e7155fd0a5",
+          "group_id": "32b88d8d-a454-31cc-a834-79228fe4dea6",
+          "user_id": "a8280ed2-f67e-5483-90cc-304caf434d77",
+          "is_admin": false,
+          "created": "2010-01-31T11:11:46+00:00"
+        },
+        {
+          "id": "bc3d9089-d656-3802-a105-b5c23f4812c1",
+          "group_id": "87e49f49-ef06-3b1b-93bb-871121ad80c6",
+          "user_id": "a8280ed2-f67e-5483-90cc-304caf434d77",
+          "is_admin": false,
+          "created": "2013-09-25T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "107b8a33-dbbc-4a6e-b285-0bfff0fb9f30",
+        "user_id": "a8280ed2-f67e-5483-90cc-304caf434d77",
+        "first_name": "Janie",
+        "last_name": "Shanahan",
+        "created": "2017-10-22T11:11:45+00:00",
+        "modified": "2018-12-20T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "d99a498f-ff62-42e0-a801-cd588b22d02b",
+        "user_id": "a8280ed2-f67e-5483-90cc-304caf434d77",
+        "armored_key": "Ad nostrum expedita earum a eius id. Et totam et rerum commodi nisi distinctio corrupti. Rerum repudiandae possimus repudiandae dolorem. Praesentium natus molestiae voluptas nesciunt.",
+        "bits": 3072,
+        "uid": "Omnis voluptatibus dolor aut tenetur sint rerum libero eum. Similique eum sed enim est est dolor.",
+        "key_id": "52637EFA0B1D98C4",
+        "fingerprint": "DB4E5E41CA52C24DB1CEC332A1D35E243DBA5AB1",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "a1ef925f-06ad-5276-9420-471652aaa241",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_5@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2011-04-08T11:11:45+00:00",
+      "created": "2004-04-22T11:11:45+00:00",
+      "modified": "2005-01-14T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "1375f5ec-1156-3bc6-94c6-6f0321b34618",
+          "group_id": "32b88d8d-a454-31cc-a834-79228fe4dea6",
+          "user_id": "a1ef925f-06ad-5276-9420-471652aaa241",
+          "is_admin": false,
+          "created": "2018-04-03T11:11:46+00:00"
+        },
+        {
+          "id": "2639c982-8c17-3f03-b85d-a62461eb2f48",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "a1ef925f-06ad-5276-9420-471652aaa241",
+          "is_admin": false,
+          "created": "2015-12-13T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "e6b9e715-eeb2-4735-ac0a-221926b767fc",
+        "user_id": "a1ef925f-06ad-5276-9420-471652aaa241",
+        "first_name": "Felicity",
+        "last_name": "Upton",
+        "created": "2016-10-06T11:11:45+00:00",
+        "modified": "2000-11-06T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "1ef8b4c4-7f35-4e84-9747-5b952cb05566",
+        "user_id": "a1ef925f-06ad-5276-9420-471652aaa241",
+        "armored_key": "Id quas reiciendis amet id sint nihil doloremque sit. Quos doloremque pariatur aliquid ipsam.",
+        "bits": 3072,
+        "uid": "Harum nostrum ab minima rem. Ut aut dolor voluptatem qui sint. Eius dolores est in sunt tempora.",
+        "key_id": "0F4E7C8D32B1659A",
+        "fingerprint": "23E52D13AACECAEB31ABBDD4B551424C1ED25C43",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_6@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2006-03-14T11:11:45+00:00",
+      "created": "2010-07-26T11:11:45+00:00",
+      "modified": "2024-02-06T11:11:45+00:00",
+      "groups_users": [
+        {
+          "id": "55328264-29ce-3851-89b1-c20e684c83b5",
+          "group_id": "9f411045-a001-3454-9974-253c6fa845cb",
+          "user_id": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "is_admin": false,
+          "created": "2024-08-12T11:11:46+00:00"
+        }
+      ],
+      "profile": {
+        "id": "d5d0b13a-3d78-4918-a0f5-fe717c733d48",
+        "user_id": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+        "first_name": "Kaylah",
+        "last_name": "Stracke",
+        "created": "2000-12-05T11:11:45+00:00",
+        "modified": "1999-04-12T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "9c8a5759-6847-4f82-b31b-45ccfabd736e",
+        "user_id": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+        "armored_key": "Porro vitae et qui deserunt inventore rerum natus. Consequatur nisi natus officia quia. Possimus sequi distinctio veniam.",
+        "bits": 3072,
+        "uid": "Dolor minima repellat a. Ad est incidunt corporis praesentium adipisci inventore et.",
+        "key_id": "41BC56AF7D820E39",
+        "fingerprint": "151EDEBE123ABCDCB4AB23A2C53D5E3AD12C4544",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    },
+    {
+      "id": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "role_id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+      "username": "bench_user_7@passbolt.com",
+      "active": true,
+      "deleted": false,
+      "disabled": null,
+      "last_logged_in": "2008-02-08T11:11:45+00:00",
+      "created": "2013-02-23T11:11:45+00:00",
+      "modified": "2004-11-20T11:11:45+00:00",
+      "groups_users": [],
+      "profile": {
+        "id": "dbb459c5-e4de-4771-9343-257515343e34",
+        "user_id": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+        "first_name": "Gerda",
+        "last_name": "Leuschke",
+        "created": "2013-05-20T11:11:45+00:00",
+        "modified": "2017-12-20T11:11:45+00:00",
+        "avatar": {
+          "url": {
+            "medium": "https://www.passbolt.local/img/avatar/user_medium.png",
+            "small": "https://www.passbolt.local/img/avatar/user.png"
+          }
+        }
+      },
+      "gpgkey": {
+        "id": "49b4ed16-5739-4db9-bee8-19d493fe8bf0",
+        "user_id": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+        "armored_key": "Qui qui commodi voluptatem voluptatem tempora delectus exercitationem. Iste ex qui doloremque cupiditate. Quas sed voluptatibus perferendis id ducimus. Fuga voluptatum quia dicta et.",
+        "bits": 3072,
+        "uid": "Reiciendis libero et quam ea. Nihil praesentium iure culpa quisquam aliquid. Illum porro quis est sed.",
+        "key_id": "367FDA1E290CB458",
+        "fingerprint": "EEBAE3B42AEDA42C1323C541125BAB4C51DDDC53",
+        "type": "RSA",
+        "expires": null,
+        "key_created": "2020-01-01T00:00:00+00:00",
+        "deleted": false,
+        "created": "2026-06-18T11:11:45+00:00",
+        "modified": "2026-06-18T11:11:45+00:00"
+      },
+      "role": {
+        "id": "a58de6d3-f52c-5080-b79b-a601a647ac85",
+        "name": "user",
+        "description": "Logged in user",
+        "deleted": null,
+        "created_by": null,
+        "modified_by": null,
+        "deleted_by": null,
+        "created": "2012-07-04T13:39:25+00:00",
+        "modified": "2012-07-04T13:39:25+00:00"
+      }
+    }
+  ]
+}

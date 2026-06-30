@@ -15,7 +15,7 @@
   "defaultOptions" : {
     "defaultTestExecutionTimeAllowance" : 60,
     "mainThreadCheckerEnabled" : false,
-    "maximumTestExecutionTimeAllowance" : 60,
+    "maximumTestExecutionTimeAllowance" : 2400,
     "testExecutionOrdering" : "random",
     "testTimeoutsEnabled" : true
   },
@@ -30,6 +30,15 @@
     },
     {
       "parallelizable" : true,
+      "skippedTests" : [
+        "SessionDataRefreshIntegrationBenchmarkTests",
+        "SessionDataRefreshIntegrationBenchmarkTests\/test_benchmark_updateResources_withRealDecryption_large()",
+        "SessionDataRefreshIntegrationBenchmarkTests\/test_benchmark_updateResources_withRealDecryption_medium()",
+        "SessionDataRefreshIntegrationBenchmarkTests\/test_benchmark_updateResources_withRealDecryption_small()",
+        "SessionDataRefreshIntegrationBenchmarkTests\/test_fullRefreshTiming_large()",
+        "SessionDataRefreshIntegrationBenchmarkTests\/test_fullRefreshTiming_medium()",
+        "SessionDataRefreshIntegrationBenchmarkTests\/test_fullRefreshTiming_small()"
+      ],
       "target" : {
         "containerPath" : "container:PassboltPackage",
         "identifier" : "PassboltSessionDataTests",

@@ -720,6 +720,13 @@ let package = Package(
         "PassboltSession",
         "PassboltSessionData",
         "PassboltUsers",
+      ],
+      resources: [
+        // Standardized JSON network-response dumps used to drive realistic
+        // fixture-based mocking and benchmarks. `.copy` preserves the directory
+        // tree so fixtures are addressable by relative path. Large datasets are
+        // expected to be provided under `Fixtures/` via a git-lfs submodule.
+        .copy("Fixtures")
       ]
     ),
     .target(
@@ -820,8 +827,24 @@ let package = Package(
       name: "PassboltSessionDataTests",
       dependencies: [
         "PassboltSessionData",
+        "PassboltNetworkOperations",
+        // Integration benchmark: real-container bootstrap of the full refresh stack.
+        "Features",
+        "Database",
+        "Crypto",
+        "OSFeatures",
+        "PassboltAccounts",
+        "PassboltDatabaseOperations",
+        "PassboltMetadata",
+        "PassboltResources",
+        "PassboltSession",
+        "PassboltUsers",
         "CoreTest",
         "TestExtensions",
+        .product(
+          name: "Aegithalos",
+          package: "Aegithalos"
+        ),
       ]
     ),
     .testTarget(

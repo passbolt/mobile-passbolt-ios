@@ -96,7 +96,7 @@ extension ResourceSpecification.Slug {
   }
 
   /// V5 resource types
-  public static var v5Types: [Self] {
+  public static var v5Types: Set<Self> {
     [.v5StandaloneTOTP, .v5DefaultWithTOTP, .v5Password, .v5Default, .v5CustomFields, .v5StandaloneNote, .v5PinCode]
   }
 

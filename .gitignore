@@ -81,3 +81,27 @@ lint-report
 .idea
 
 # End of https://www.toptal.com/developers/gitignore/api/swiftpm,macos,xcode
+
+### Passbolt benchmark key material — NEVER commit private keys ###
+Passbolt/PassboltPackage/Sources/MockData/Fixtures/keys/*
+!Passbolt/PassboltPackage/Sources/MockData/Fixtures/keys/README.md
+
+### Passbolt benchmark run artifacts (keep baseline.json + history.jsonl) ###
+Tools/benchmark/results/
+
+### Passbolt benchmark fixtures — only `small` is committed.
+### medium/large are large captures kept locally (regenerate from a capture).
+Passbolt/PassboltPackage/Sources/MockData/Fixtures/Benchmark/medium/*
+!Passbolt/PassboltPackage/Sources/MockData/Fixtures/Benchmark/medium/.gitkeep
+Passbolt/PassboltPackage/Sources/MockData/Fixtures/Benchmark/large/*
+!Passbolt/PassboltPackage/Sources/MockData/Fixtures/Benchmark/large/.gitkeep
+
+### Python bytecode
+__pycache__/
+*.pyc
+
+### Passbolt benchmark baseline + history — machine-specific (CPU/clock/memory and
+### even instruction counts differ across hardware/arch). Regenerate locally with
+### `make benchmark_baseline`; do not commit a shared reference.
+Tools/benchmark/baseline.json
+Tools/benchmark/history.jsonl

@@ -1,0 +1,3691 @@
+{
+  "header": {
+    "id": "05b7fa76-4f1d-4358-9078-ee15e8b03997",
+    "status": "success",
+    "servertime": 1781781202,
+    "action": "c506210f-7866-5691-8fc1-58772e8f49f1",
+    "message": "The operation was successful.",
+    "url": "/resources.json?contain%5Bpermission%5D=1&contain%5Bfavorite%5D=1&contain%5Btag%5D=1&contain%5Bpermissions%5D=1&limit=5000&page=1&sort=Resources.modified&direction=desc",
+    "code": 200,
+    "pagination": {
+      "limit": 5000,
+      "page": 1,
+      "count": 75
+    }
+  },
+  "body": [
+    {
+      "folder_parent_id": "4521145c-1491-3925-84b3-9fc96ec144e3",
+      "personal": true,
+      "id": "934b8034-1380-4714-abb2-72f270cbe154",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2011-03-27T11:11:46+00:00",
+      "modified": "2024-09-20T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "04583088-882e-4ca6-a6df-b0f880f49c92",
+          "aco": "Resource",
+          "aco_foreign_key": "934b8034-1380-4714-abb2-72f270cbe154",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "04583088-882e-4ca6-a6df-b0f880f49c92",
+        "aco": "Resource",
+        "aco_foreign_key": "934b8034-1380-4714-abb2-72f270cbe154",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "0257d581-23cf-39f6-b25c-31b7b4b58a15",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2009-06-19T11:11:46+00:00",
+      "modified": "2024-07-02T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "aadb62ec-b1fc-30ec-8db6-b1a8d7bc126e",
+          "aco": "Resource",
+          "aco_foreign_key": "0257d581-23cf-39f6-b25c-31b7b4b58a15",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ebd27466-fcd7-3a53-abd7-78b086958f52",
+          "aco": "Resource",
+          "aco_foreign_key": "0257d581-23cf-39f6-b25c-31b7b4b58a15",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "aadb62ec-b1fc-30ec-8db6-b1a8d7bc126e",
+        "aco": "Resource",
+        "aco_foreign_key": "0257d581-23cf-39f6-b25c-31b7b4b58a15",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "490f532f-eef5-425c-ad90-bf3fe747a04c",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2019-10-08T11:11:46+00:00",
+      "modified": "2024-05-04T11:11:46+00:00",
+      "created_by": "a8280ed2-f67e-5483-90cc-304caf434d77",
+      "modified_by": "a8280ed2-f67e-5483-90cc-304caf434d77",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "9b50a642-4e9e-4ca5-b531-5318dfff9e0e",
+          "aco": "Resource",
+          "aco_foreign_key": "490f532f-eef5-425c-ad90-bf3fe747a04c",
+          "aro": "User",
+          "aro_foreign_key": "a8280ed2-f67e-5483-90cc-304caf434d77",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "c81f91ed-fe84-4024-b33b-2c6d79552da7",
+          "aco": "Resource",
+          "aco_foreign_key": "490f532f-eef5-425c-ad90-bf3fe747a04c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "c81f91ed-fe84-4024-b33b-2c6d79552da7",
+        "aco": "Resource",
+        "aco_foreign_key": "490f532f-eef5-425c-ad90-bf3fe747a04c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "9e302154-2461-48a7-8b38-fd8505e0e2b1",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2022-07-11T11:11:46+00:00",
+      "modified": "2024-03-20T11:11:46+00:00",
+      "created_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "modified_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "a5da6733-ceb6-4803-bd5f-829017416ac0",
+          "aco": "Resource",
+          "aco_foreign_key": "9e302154-2461-48a7-8b38-fd8505e0e2b1",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "b9ba5974-7ed0-48e3-b30a-5297bae1f3f3",
+          "aco": "Resource",
+          "aco_foreign_key": "9e302154-2461-48a7-8b38-fd8505e0e2b1",
+          "aro": "User",
+          "aro_foreign_key": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "a5da6733-ceb6-4803-bd5f-829017416ac0",
+        "aco": "Resource",
+        "aco_foreign_key": "9e302154-2461-48a7-8b38-fd8505e0e2b1",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "926ce4ed-efd0-3fdd-bfeb-2fd7527856a7",
+      "personal": true,
+      "id": "f8fcd427-4e1d-3c43-abf1-35c9c025fb34",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2025-03-30T11:11:46+00:00",
+      "modified": "2024-01-04T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "67a9c67d-23f1-3249-a560-808adb368a8c",
+          "aco": "Resource",
+          "aco_foreign_key": "f8fcd427-4e1d-3c43-abf1-35c9c025fb34",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "67a9c67d-23f1-3249-a560-808adb368a8c",
+        "aco": "Resource",
+        "aco_foreign_key": "f8fcd427-4e1d-3c43-abf1-35c9c025fb34",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "0c628365-5385-34b0-99d1-894183423607",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2002-08-24T11:11:46+00:00",
+      "modified": "2023-11-15T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "4ccd4be0-abac-32fa-a9ef-aab2612aa4eb",
+          "aco": "Resource",
+          "aco_foreign_key": "0c628365-5385-34b0-99d1-894183423607",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "673974b5-53f4-3b12-92b4-b80d5d94a15a",
+          "aco": "Resource",
+          "aco_foreign_key": "0c628365-5385-34b0-99d1-894183423607",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "673974b5-53f4-3b12-92b4-b80d5d94a15a",
+        "aco": "Resource",
+        "aco_foreign_key": "0c628365-5385-34b0-99d1-894183423607",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "5e5ab10e-7a03-343d-bf93-9be1929f4a65",
+          "slug": "ada-bench-0",
+          "is_shared": false
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "4521145c-1491-3925-84b3-9fc96ec144e3",
+      "personal": true,
+      "id": "0672ba1b-d302-4135-8f57-3ef846894d2a",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2009-08-01T11:11:46+00:00",
+      "modified": "2023-07-15T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "9cc84187-549f-4ac7-95a0-6b91f6fcfce4",
+          "aco": "Resource",
+          "aco_foreign_key": "0672ba1b-d302-4135-8f57-3ef846894d2a",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "9cc84187-549f-4ac7-95a0-6b91f6fcfce4",
+        "aco": "Resource",
+        "aco_foreign_key": "0672ba1b-d302-4135-8f57-3ef846894d2a",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "f1bf5323-db8f-3c05-bd3a-0327fde0447f",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2020-12-28T11:11:46+00:00",
+      "modified": "2023-01-08T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "21c07216-c635-3c39-8544-03518d4670cb",
+          "aco": "Resource",
+          "aco_foreign_key": "f1bf5323-db8f-3c05-bd3a-0327fde0447f",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "643d4d05-42cf-32c3-8484-4878a5dcfad9",
+          "aco": "Resource",
+          "aco_foreign_key": "f1bf5323-db8f-3c05-bd3a-0327fde0447f",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "643d4d05-42cf-32c3-8484-4878a5dcfad9",
+        "aco": "Resource",
+        "aco_foreign_key": "f1bf5323-db8f-3c05-bd3a-0327fde0447f",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "ed03c76e-5aa4-4edf-9338-2bf6965dd9a4",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2016-11-28T11:11:46+00:00",
+      "modified": "2022-12-19T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "ded8d650-c909-47cc-840e-a43bff0bb5ff",
+          "aco": "Resource",
+          "aco_foreign_key": "ed03c76e-5aa4-4edf-9338-2bf6965dd9a4",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "e1225847-1347-4a4c-a7a0-5c16619c0128",
+          "aco": "Resource",
+          "aco_foreign_key": "ed03c76e-5aa4-4edf-9338-2bf6965dd9a4",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "e1225847-1347-4a4c-a7a0-5c16619c0128",
+        "aco": "Resource",
+        "aco_foreign_key": "ed03c76e-5aa4-4edf-9338-2bf6965dd9a4",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "59d506b8-bf15-3282-a246-25c869abe4c6",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAPzwQ+IMTmy9r6wckKAIsCerEgxDjiDmKNQmQVOSTcjIw\nUJQ9sfAaWW9asq1SlRAWN9aRMXyp7dsSGEU7Jk1aNNDJ6D+uwDNSMlRJ56jK6Tp3\n0sD2AV8ZLhU3NH0Tm/a8B62Dw9YmaNwRIJ6qV/s+ux+s5ESHkTINxOIgXfFgHRvS\n3jW+i7NBpG81fcdd2XMm2BN94SF9bl/q+RXaCCSjm8DtDD/8CwUY29O0iUenu9BV\nvVU9Ynv99vtB52BMVcMf6TH0pyp8ZMAZHmntdTrNxjbY4wJwLmJjzEMu5wPEiWiK\n6Zm90df4eWRfPSZpy4FNOPE3ON2amf/SJyCol1xIiDnNaZj+v807kE4C3/it/I3d\nMc4Acju8VyvdOjvlLbCe3/YtFypK/bQgeWg7kqa/DwV3ta0Hm2Fj9f9ulw5zlHGY\nmJU+Cuiw8A+bEsTttbdgDinYJ35sHN5piE6EQ1buDnJJoljhJmVk6PjmjU4cP7OA\nHirkRuWzq5Vvh4WiqC2PVLzeyk6L1iZVViIWfYX7isZhGpA2VW6GQTzE5uWIrq3I\ngDQ0Oe+IPJIlR/XMe0+HzJxvqv0475Gh0BG7/49LgNhM7F0uSegbP8hXw3AeXEMm\nhpDF9uvamCMd6ajVFNEY93i57blZ+4RMNpLWYRI/9bz2aN3ZeuwM5KhiEDXQdqOK\n7xQegZiUDgfb\n=4UZW\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2004-09-04T11:11:46+00:00",
+      "modified": "2022-10-04T11:11:46+00:00",
+      "created_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "modified_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "resource_type_id": "bb2280b5-c4d9-569c-9337-62b307f1139c",
+      "permissions": [
+        {
+          "id": "a1b2136b-9e2d-3af5-b23f-17db9d98d342",
+          "aco": "Resource",
+          "aco_foreign_key": "59d506b8-bf15-3282-a246-25c869abe4c6",
+          "aro": "User",
+          "aro_foreign_key": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "b6e39369-18a4-3545-a864-bd3da0a4f81d",
+          "aco": "Resource",
+          "aco_foreign_key": "59d506b8-bf15-3282-a246-25c869abe4c6",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "b6e39369-18a4-3545-a864-bd3da0a4f81d",
+        "aco": "Resource",
+        "aco_foreign_key": "59d506b8-bf15-3282-a246-25c869abe4c6",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "ecd8dd25-b1c9-3d7a-9122-2c222cb02dcc",
+      "personal": true,
+      "id": "84aa5106-440e-3df3-9295-838d172faff6",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAwJHb6DVKs9gTxw1ifoKZ1SY9Fbhv3WaXRDPZHsp8y2ow\n4OCbQOpuaySDXlyUt38Uy6WGjA/WCWMqMSbluipZ5uDqnftbCriTsM7SDHCFsJk1\n0ukBKAIM8p1zgVpySiLVXZCOaG5H/O7Mpo7onJP58b5rshkeN1BSk2K8ur7PsCtx\nXIa7bRMJZ0XIveVubAEotVNOgohDjQ8cmLf+KtQmCM+DURLWmDGDOPKAv8LSAFYp\nqT1pnq09/YZJb6P5tEVqliLoo1EobFJCxENmwjp5iOm8Xo/c1uW3r9meuqCJxm4i\n9CO/KZg+L8UBftqUJtNCgmcSOWeyYcIU35IsFZWoJ7iCe1bIqS5UuFuVo/J90/b1\n28zuc+tjT+qi7zoIK7N8wbW+jAHhQD8HqrjErsl4WgG2Y2um2GTJpeog53BnezuV\nuKyWK5bpGOYt+PNWo97XaHpqKvHw9kFOckmnTbf054onVdyAGyc5gYtK98mL3jCv\npEgxu30Kq14XQeJvvZtawDyt5AnA2GiwL5UxDhAF+45rVc9bTOI/0otrj2w9ro7V\nwbitCLOENKkR83SukF129ENhqinTviR2zA2gPj+Xr5FIDwgIvarHYtXaO0XR//es\nhIBarpsfZsaBNZEuc+ZOEGwj5jZdD81WtbRpEi3bwmUYejGfwZwir/UtnYw8thZV\nvF7quzXquo0ma8w4VBnhcskv6pKC9SR5PUT5MmNbQd1JSaNjFBUDKQcZfoSsnu/V\npyaZ2orcjt6k6gzrfgdl/pj1U3b2jkkSoxmstdbaTnUtEQriNRb6aVns7k+y\n=YEZ7\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2015-05-29T11:11:46+00:00",
+      "modified": "2022-08-14T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "0551544e-2ccd-5ce8-95cf-86f0aab0f827",
+      "permissions": [
+        {
+          "id": "7e690543-9507-33ef-9ec1-a7088de5d907",
+          "aco": "Resource",
+          "aco_foreign_key": "84aa5106-440e-3df3-9295-838d172faff6",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "7e690543-9507-33ef-9ec1-a7088de5d907",
+        "aco": "Resource",
+        "aco_foreign_key": "84aa5106-440e-3df3-9295-838d172faff6",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        },
+        {
+          "id": "903c5893-fb2f-4f92-a2fc-b75fde796242",
+          "slug": "ada-bench-1",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "bb12cb34-d3c2-443d-8b2e-95c9ad56ad73",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2012-05-24T11:11:46+00:00",
+      "modified": "2022-06-20T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "046b5d89-0ac2-4447-b811-c6b611320442",
+          "aco": "Resource",
+          "aco_foreign_key": "bb12cb34-d3c2-443d-8b2e-95c9ad56ad73",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "70af3bb1-52ca-442a-be48-47d73990b890",
+          "aco": "Resource",
+          "aco_foreign_key": "bb12cb34-d3c2-443d-8b2e-95c9ad56ad73",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "70af3bb1-52ca-442a-be48-47d73990b890",
+        "aco": "Resource",
+        "aco_foreign_key": "bb12cb34-d3c2-443d-8b2e-95c9ad56ad73",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "ba324821-d9f5-4330-8d18-9ddcc7e7ad3d",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2004-04-16T11:11:46+00:00",
+      "modified": "2022-01-22T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "bbcda118-038a-4ad1-afc3-aa505d906db9",
+          "aco": "Resource",
+          "aco_foreign_key": "ba324821-d9f5-4330-8d18-9ddcc7e7ad3d",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "caca918e-a8dc-49ab-ba2d-6c7b1986c009",
+          "aco": "Resource",
+          "aco_foreign_key": "ba324821-d9f5-4330-8d18-9ddcc7e7ad3d",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "bbcda118-038a-4ad1-afc3-aa505d906db9",
+        "aco": "Resource",
+        "aco_foreign_key": "ba324821-d9f5-4330-8d18-9ddcc7e7ad3d",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "5e5ab10e-7a03-343d-bf93-9be1929f4a65",
+          "slug": "ada-bench-0",
+          "is_shared": false
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "3c0b5372-fc48-319b-9820-7e39de3fed64",
+      "personal": true,
+      "id": "4a97781f-cd3e-3023-a9a9-dae5fdf08ba3",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAPzwQ+IMTmy9r6wckKAIsCerEgxDjiDmKNQmQVOSTcjIw\nUJQ9sfAaWW9asq1SlRAWN9aRMXyp7dsSGEU7Jk1aNNDJ6D+uwDNSMlRJ56jK6Tp3\n0sD2AV8ZLhU3NH0Tm/a8B62Dw9YmaNwRIJ6qV/s+ux+s5ESHkTINxOIgXfFgHRvS\n3jW+i7NBpG81fcdd2XMm2BN94SF9bl/q+RXaCCSjm8DtDD/8CwUY29O0iUenu9BV\nvVU9Ynv99vtB52BMVcMf6TH0pyp8ZMAZHmntdTrNxjbY4wJwLmJjzEMu5wPEiWiK\n6Zm90df4eWRfPSZpy4FNOPE3ON2amf/SJyCol1xIiDnNaZj+v807kE4C3/it/I3d\nMc4Acju8VyvdOjvlLbCe3/YtFypK/bQgeWg7kqa/DwV3ta0Hm2Fj9f9ulw5zlHGY\nmJU+Cuiw8A+bEsTttbdgDinYJ35sHN5piE6EQ1buDnJJoljhJmVk6PjmjU4cP7OA\nHirkRuWzq5Vvh4WiqC2PVLzeyk6L1iZVViIWfYX7isZhGpA2VW6GQTzE5uWIrq3I\ngDQ0Oe+IPJIlR/XMe0+HzJxvqv0475Gh0BG7/49LgNhM7F0uSegbP8hXw3AeXEMm\nhpDF9uvamCMd6ajVFNEY93i57blZ+4RMNpLWYRI/9bz2aN3ZeuwM5KhiEDXQdqOK\n7xQegZiUDgfb\n=4UZW\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2000-09-05T11:11:46+00:00",
+      "modified": "2021-11-25T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "bb2280b5-c4d9-569c-9337-62b307f1139c",
+      "permissions": [
+        {
+          "id": "72495823-8ffe-319d-9508-226acecf28a3",
+          "aco": "Resource",
+          "aco_foreign_key": "4a97781f-cd3e-3023-a9a9-dae5fdf08ba3",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "72495823-8ffe-319d-9508-226acecf28a3",
+        "aco": "Resource",
+        "aco_foreign_key": "4a97781f-cd3e-3023-a9a9-dae5fdf08ba3",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "d3e208cc-6e8c-3068-b7e5-8d7d68626c2a",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2018-08-19T11:11:46+00:00",
+      "modified": "2021-11-25T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "3e36a27b-78db-3816-94f4-0e58b6c06b3c",
+          "aco": "Resource",
+          "aco_foreign_key": "d3e208cc-6e8c-3068-b7e5-8d7d68626c2a",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ba0eb4c4-eb9e-30f2-944f-39ed7a6451ba",
+          "aco": "Resource",
+          "aco_foreign_key": "d3e208cc-6e8c-3068-b7e5-8d7d68626c2a",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "ba0eb4c4-eb9e-30f2-944f-39ed7a6451ba",
+        "aco": "Resource",
+        "aco_foreign_key": "d3e208cc-6e8c-3068-b7e5-8d7d68626c2a",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "2c22acdb-1894-45b2-a7b6-b0663e31bdeb",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2019-11-01T11:11:46+00:00",
+      "modified": "2021-07-16T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "6ae9d945-867d-4752-ad03-2ab98eb59ae8",
+          "aco": "Resource",
+          "aco_foreign_key": "2c22acdb-1894-45b2-a7b6-b0663e31bdeb",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "be2b0ef0-632d-4d32-a132-5c451312692e",
+          "aco": "Resource",
+          "aco_foreign_key": "2c22acdb-1894-45b2-a7b6-b0663e31bdeb",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "6ae9d945-867d-4752-ad03-2ab98eb59ae8",
+        "aco": "Resource",
+        "aco_foreign_key": "2c22acdb-1894-45b2-a7b6-b0663e31bdeb",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "ecd8dd25-b1c9-3d7a-9122-2c222cb02dcc",
+      "personal": true,
+      "id": "35df343d-a90c-42f0-a755-11e957c6833d",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAPzwQ+IMTmy9r6wckKAIsCerEgxDjiDmKNQmQVOSTcjIw\nUJQ9sfAaWW9asq1SlRAWN9aRMXyp7dsSGEU7Jk1aNNDJ6D+uwDNSMlRJ56jK6Tp3\n0sD2AV8ZLhU3NH0Tm/a8B62Dw9YmaNwRIJ6qV/s+ux+s5ESHkTINxOIgXfFgHRvS\n3jW+i7NBpG81fcdd2XMm2BN94SF9bl/q+RXaCCSjm8DtDD/8CwUY29O0iUenu9BV\nvVU9Ynv99vtB52BMVcMf6TH0pyp8ZMAZHmntdTrNxjbY4wJwLmJjzEMu5wPEiWiK\n6Zm90df4eWRfPSZpy4FNOPE3ON2amf/SJyCol1xIiDnNaZj+v807kE4C3/it/I3d\nMc4Acju8VyvdOjvlLbCe3/YtFypK/bQgeWg7kqa/DwV3ta0Hm2Fj9f9ulw5zlHGY\nmJU+Cuiw8A+bEsTttbdgDinYJ35sHN5piE6EQ1buDnJJoljhJmVk6PjmjU4cP7OA\nHirkRuWzq5Vvh4WiqC2PVLzeyk6L1iZVViIWfYX7isZhGpA2VW6GQTzE5uWIrq3I\ngDQ0Oe+IPJIlR/XMe0+HzJxvqv0475Gh0BG7/49LgNhM7F0uSegbP8hXw3AeXEMm\nhpDF9uvamCMd6ajVFNEY93i57blZ+4RMNpLWYRI/9bz2aN3ZeuwM5KhiEDXQdqOK\n7xQegZiUDgfb\n=4UZW\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2012-11-10T11:11:46+00:00",
+      "modified": "2021-02-23T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "bb2280b5-c4d9-569c-9337-62b307f1139c",
+      "permissions": [
+        {
+          "id": "75da1110-d73b-4fd8-8607-60d4cbe83150",
+          "aco": "Resource",
+          "aco_foreign_key": "35df343d-a90c-42f0-a755-11e957c6833d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "75da1110-d73b-4fd8-8607-60d4cbe83150",
+        "aco": "Resource",
+        "aco_foreign_key": "35df343d-a90c-42f0-a755-11e957c6833d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "8c5d6f9c-cfa1-3b1c-bacc-53474b824dc1",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2006-06-06T11:11:46+00:00",
+      "modified": "2020-11-22T11:11:46+00:00",
+      "created_by": "a1ef925f-06ad-5276-9420-471652aaa241",
+      "modified_by": "a1ef925f-06ad-5276-9420-471652aaa241",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "539d10f5-afc9-31f1-ac24-e4dd67da3caa",
+          "aco": "Resource",
+          "aco_foreign_key": "8c5d6f9c-cfa1-3b1c-bacc-53474b824dc1",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "c852ba5e-d3ce-3124-b064-8988bef22e06",
+          "aco": "Resource",
+          "aco_foreign_key": "8c5d6f9c-cfa1-3b1c-bacc-53474b824dc1",
+          "aro": "User",
+          "aro_foreign_key": "a1ef925f-06ad-5276-9420-471652aaa241",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "539d10f5-afc9-31f1-ac24-e4dd67da3caa",
+        "aco": "Resource",
+        "aco_foreign_key": "8c5d6f9c-cfa1-3b1c-bacc-53474b824dc1",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "32de1d12-6e4c-4857-a403-541ef72d9280",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "1999-02-27T11:11:46+00:00",
+      "modified": "2020-03-05T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "5d21a088-f9c8-4dbb-9bd2-96b3c0b29d01",
+          "aco": "Resource",
+          "aco_foreign_key": "32de1d12-6e4c-4857-a403-541ef72d9280",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "fd56e79c-0968-427e-a776-0f008da08392",
+          "aco": "Resource",
+          "aco_foreign_key": "32de1d12-6e4c-4857-a403-541ef72d9280",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "5d21a088-f9c8-4dbb-9bd2-96b3c0b29d01",
+        "aco": "Resource",
+        "aco_foreign_key": "32de1d12-6e4c-4857-a403-541ef72d9280",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "5e5ab10e-7a03-343d-bf93-9be1929f4a65",
+          "slug": "ada-bench-0",
+          "is_shared": false
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "115e6a4a-4557-36a0-b4c5-c9902bfabc43",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2000-01-14T11:11:46+00:00",
+      "modified": "2019-12-03T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "3d749041-3d8f-3778-9876-60a410e4b8c5",
+          "aco": "Resource",
+          "aco_foreign_key": "115e6a4a-4557-36a0-b4c5-c9902bfabc43",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "e1ae773a-c037-3fd0-96e0-c96cc7866126",
+          "aco": "Resource",
+          "aco_foreign_key": "115e6a4a-4557-36a0-b4c5-c9902bfabc43",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "3d749041-3d8f-3778-9876-60a410e4b8c5",
+        "aco": "Resource",
+        "aco_foreign_key": "115e6a4a-4557-36a0-b4c5-c9902bfabc43",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "496c9060-09dd-44bf-bcff-aa667c9e2ddf",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2021-12-19T11:11:46+00:00",
+      "modified": "2019-11-17T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "020fee60-03ed-4a06-ab89-5b097eb1aef7",
+          "aco": "Resource",
+          "aco_foreign_key": "496c9060-09dd-44bf-bcff-aa667c9e2ddf",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "e9154cfc-3c22-4239-8f26-434c6850420d",
+          "aco": "Resource",
+          "aco_foreign_key": "496c9060-09dd-44bf-bcff-aa667c9e2ddf",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "e9154cfc-3c22-4239-8f26-434c6850420d",
+        "aco": "Resource",
+        "aco_foreign_key": "496c9060-09dd-44bf-bcff-aa667c9e2ddf",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "7e9513b9-e32d-4c43-815d-3b7d31685c78",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2025-04-10T11:11:46+00:00",
+      "modified": "2019-08-12T11:11:46+00:00",
+      "created_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "modified_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "00539989-30d5-46e8-b21a-aef3dc97fc52",
+          "aco": "Resource",
+          "aco_foreign_key": "7e9513b9-e32d-4c43-815d-3b7d31685c78",
+          "aro": "User",
+          "aro_foreign_key": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "9cbd31d5-ad17-46cb-8304-11329b1439c4",
+          "aco": "Resource",
+          "aco_foreign_key": "7e9513b9-e32d-4c43-815d-3b7d31685c78",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "9cbd31d5-ad17-46cb-8304-11329b1439c4",
+        "aco": "Resource",
+        "aco_foreign_key": "7e9513b9-e32d-4c43-815d-3b7d31685c78",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "d434c5a7-4322-31e2-ab5b-2b5f716eadc4",
+          "slug": "#bench-shared-0",
+          "is_shared": true
+        },
+        {
+          "id": "a79e9beb-ce6b-458e-82b5-5727d9ce2802",
+          "slug": "ada-bench-3",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "ecd8dd25-b1c9-3d7a-9122-2c222cb02dcc",
+      "personal": true,
+      "id": "2382168d-9340-490d-b9ae-9ff16c759d14",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2003-09-22T11:11:46+00:00",
+      "modified": "2019-07-06T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "2726044b-9502-4c3a-9b5f-a73c948d35ec",
+          "aco": "Resource",
+          "aco_foreign_key": "2382168d-9340-490d-b9ae-9ff16c759d14",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "2726044b-9502-4c3a-9b5f-a73c948d35ec",
+        "aco": "Resource",
+        "aco_foreign_key": "2382168d-9340-490d-b9ae-9ff16c759d14",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "ecd8dd25-b1c9-3d7a-9122-2c222cb02dcc",
+      "personal": true,
+      "id": "1935663d-e160-4560-aecd-833307a33e3c",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "1999-08-12T11:11:46+00:00",
+      "modified": "2018-12-10T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "5109a01b-acc7-4fb9-8726-543488634534",
+          "aco": "Resource",
+          "aco_foreign_key": "1935663d-e160-4560-aecd-833307a33e3c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "5109a01b-acc7-4fb9-8726-543488634534",
+        "aco": "Resource",
+        "aco_foreign_key": "1935663d-e160-4560-aecd-833307a33e3c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "e3c4f08f-722f-37cd-82dc-6129e22f046b",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAwJHb6DVKs9gTxw1ifoKZ1SY9Fbhv3WaXRDPZHsp8y2ow\n4OCbQOpuaySDXlyUt38Uy6WGjA/WCWMqMSbluipZ5uDqnftbCriTsM7SDHCFsJk1\n0ukBKAIM8p1zgVpySiLVXZCOaG5H/O7Mpo7onJP58b5rshkeN1BSk2K8ur7PsCtx\nXIa7bRMJZ0XIveVubAEotVNOgohDjQ8cmLf+KtQmCM+DURLWmDGDOPKAv8LSAFYp\nqT1pnq09/YZJb6P5tEVqliLoo1EobFJCxENmwjp5iOm8Xo/c1uW3r9meuqCJxm4i\n9CO/KZg+L8UBftqUJtNCgmcSOWeyYcIU35IsFZWoJ7iCe1bIqS5UuFuVo/J90/b1\n28zuc+tjT+qi7zoIK7N8wbW+jAHhQD8HqrjErsl4WgG2Y2um2GTJpeog53BnezuV\nuKyWK5bpGOYt+PNWo97XaHpqKvHw9kFOckmnTbf054onVdyAGyc5gYtK98mL3jCv\npEgxu30Kq14XQeJvvZtawDyt5AnA2GiwL5UxDhAF+45rVc9bTOI/0otrj2w9ro7V\nwbitCLOENKkR83SukF129ENhqinTviR2zA2gPj+Xr5FIDwgIvarHYtXaO0XR//es\nhIBarpsfZsaBNZEuc+ZOEGwj5jZdD81WtbRpEi3bwmUYejGfwZwir/UtnYw8thZV\nvF7quzXquo0ma8w4VBnhcskv6pKC9SR5PUT5MmNbQd1JSaNjFBUDKQcZfoSsnu/V\npyaZ2orcjt6k6gzrfgdl/pj1U3b2jkkSoxmstdbaTnUtEQriNRb6aVns7k+y\n=YEZ7\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2011-06-16T11:11:46+00:00",
+      "modified": "2018-07-04T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "0551544e-2ccd-5ce8-95cf-86f0aab0f827",
+      "permissions": [
+        {
+          "id": "97a5e62c-eb79-3f83-9fc0-37b511205574",
+          "aco": "Resource",
+          "aco_foreign_key": "e3c4f08f-722f-37cd-82dc-6129e22f046b",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ff890f2d-8487-36ac-9687-327a430d9946",
+          "aco": "Resource",
+          "aco_foreign_key": "e3c4f08f-722f-37cd-82dc-6129e22f046b",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "97a5e62c-eb79-3f83-9fc0-37b511205574",
+        "aco": "Resource",
+        "aco_foreign_key": "e3c4f08f-722f-37cd-82dc-6129e22f046b",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "fad9abee-ceb4-4944-9b5d-30438b85fe9a",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2006-10-03T11:11:46+00:00",
+      "modified": "2017-04-14T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "18ba68d7-d2d5-480e-8ff5-ed1c86e2d4c5",
+          "aco": "Resource",
+          "aco_foreign_key": "fad9abee-ceb4-4944-9b5d-30438b85fe9a",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "e9d71a03-d426-4881-8d3b-2089be956814",
+          "aco": "Resource",
+          "aco_foreign_key": "fad9abee-ceb4-4944-9b5d-30438b85fe9a",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "18ba68d7-d2d5-480e-8ff5-ed1c86e2d4c5",
+        "aco": "Resource",
+        "aco_foreign_key": "fad9abee-ceb4-4944-9b5d-30438b85fe9a",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "502f4f5b-2b59-46fb-906a-6534f28b1a56",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2012-03-29T11:11:46+00:00",
+      "modified": "2017-02-14T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "002640f4-9399-4d9e-a4ef-b2704a1d8bd9",
+          "aco": "Resource",
+          "aco_foreign_key": "502f4f5b-2b59-46fb-906a-6534f28b1a56",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ec006700-017e-456e-9d0a-aa47f6fbe5cf",
+          "aco": "Resource",
+          "aco_foreign_key": "502f4f5b-2b59-46fb-906a-6534f28b1a56",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "002640f4-9399-4d9e-a4ef-b2704a1d8bd9",
+        "aco": "Resource",
+        "aco_foreign_key": "502f4f5b-2b59-46fb-906a-6534f28b1a56",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "f396c12b-c33e-4743-8ab5-67eed793d7a8",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2016-05-22T11:11:46+00:00",
+      "modified": "2017-01-07T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "d28cd8ba-6ec2-4607-a80a-742a297adc2a",
+          "aco": "Resource",
+          "aco_foreign_key": "f396c12b-c33e-4743-8ab5-67eed793d7a8",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "d39aa9c0-b368-4aad-8b89-acf5a97114a6",
+          "aco": "Resource",
+          "aco_foreign_key": "f396c12b-c33e-4743-8ab5-67eed793d7a8",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "d28cd8ba-6ec2-4607-a80a-742a297adc2a",
+        "aco": "Resource",
+        "aco_foreign_key": "f396c12b-c33e-4743-8ab5-67eed793d7a8",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "aaf3940e-1184-3dec-abef-887e0cfdeeac",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAwJHb6DVKs9gTxw1ifoKZ1SY9Fbhv3WaXRDPZHsp8y2ow\n4OCbQOpuaySDXlyUt38Uy6WGjA/WCWMqMSbluipZ5uDqnftbCriTsM7SDHCFsJk1\n0ukBKAIM8p1zgVpySiLVXZCOaG5H/O7Mpo7onJP58b5rshkeN1BSk2K8ur7PsCtx\nXIa7bRMJZ0XIveVubAEotVNOgohDjQ8cmLf+KtQmCM+DURLWmDGDOPKAv8LSAFYp\nqT1pnq09/YZJb6P5tEVqliLoo1EobFJCxENmwjp5iOm8Xo/c1uW3r9meuqCJxm4i\n9CO/KZg+L8UBftqUJtNCgmcSOWeyYcIU35IsFZWoJ7iCe1bIqS5UuFuVo/J90/b1\n28zuc+tjT+qi7zoIK7N8wbW+jAHhQD8HqrjErsl4WgG2Y2um2GTJpeog53BnezuV\nuKyWK5bpGOYt+PNWo97XaHpqKvHw9kFOckmnTbf054onVdyAGyc5gYtK98mL3jCv\npEgxu30Kq14XQeJvvZtawDyt5AnA2GiwL5UxDhAF+45rVc9bTOI/0otrj2w9ro7V\nwbitCLOENKkR83SukF129ENhqinTviR2zA2gPj+Xr5FIDwgIvarHYtXaO0XR//es\nhIBarpsfZsaBNZEuc+ZOEGwj5jZdD81WtbRpEi3bwmUYejGfwZwir/UtnYw8thZV\nvF7quzXquo0ma8w4VBnhcskv6pKC9SR5PUT5MmNbQd1JSaNjFBUDKQcZfoSsnu/V\npyaZ2orcjt6k6gzrfgdl/pj1U3b2jkkSoxmstdbaTnUtEQriNRb6aVns7k+y\n=YEZ7\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2008-09-03T11:11:46+00:00",
+      "modified": "2015-05-10T11:11:46+00:00",
+      "created_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "modified_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "resource_type_id": "0551544e-2ccd-5ce8-95cf-86f0aab0f827",
+      "permissions": [
+        {
+          "id": "2ae097db-938a-3927-912e-6d02f4a52469",
+          "aco": "Resource",
+          "aco_foreign_key": "aaf3940e-1184-3dec-abef-887e0cfdeeac",
+          "aro": "User",
+          "aro_foreign_key": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "801d125d-f524-310e-988f-ab009c2ecf3e",
+          "aco": "Resource",
+          "aco_foreign_key": "aaf3940e-1184-3dec-abef-887e0cfdeeac",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "801d125d-f524-310e-988f-ab009c2ecf3e",
+        "aco": "Resource",
+        "aco_foreign_key": "aaf3940e-1184-3dec-abef-887e0cfdeeac",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "444b5e45-27e4-3255-8f6c-fca0130ed6dc",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2023-05-22T11:11:46+00:00",
+      "modified": "2015-02-17T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "1ea1679c-a868-395d-83e2-a57dd994767a",
+          "aco": "Resource",
+          "aco_foreign_key": "444b5e45-27e4-3255-8f6c-fca0130ed6dc",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "4bfe8b1a-829c-31a6-aebd-bfd3448bbea7",
+          "aco": "Resource",
+          "aco_foreign_key": "444b5e45-27e4-3255-8f6c-fca0130ed6dc",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "1ea1679c-a868-395d-83e2-a57dd994767a",
+        "aco": "Resource",
+        "aco_foreign_key": "444b5e45-27e4-3255-8f6c-fca0130ed6dc",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "3c0b5372-fc48-319b-9820-7e39de3fed64",
+      "personal": true,
+      "id": "5a836153-3b2e-41e4-897d-e1bd41e60986",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2018-09-01T11:11:46+00:00",
+      "modified": "2014-06-09T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "8763f06c-de65-4bce-8125-b0283f7e26de",
+          "aco": "Resource",
+          "aco_foreign_key": "5a836153-3b2e-41e4-897d-e1bd41e60986",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "8763f06c-de65-4bce-8125-b0283f7e26de",
+        "aco": "Resource",
+        "aco_foreign_key": "5a836153-3b2e-41e4-897d-e1bd41e60986",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "d434c5a7-4322-31e2-ab5b-2b5f716eadc4",
+          "slug": "#bench-shared-0",
+          "is_shared": true
+        },
+        {
+          "id": "06015e46-dc1f-4226-ae2d-19a8bbc55048",
+          "slug": "ada-bench-4",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "ce2bb699-7ff7-4824-894f-155af5197c51",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2016-11-28T11:11:46+00:00",
+      "modified": "2014-05-18T11:11:46+00:00",
+      "created_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "modified_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "cc56cf42-843a-4785-8096-032a6e58fd87",
+          "aco": "Resource",
+          "aco_foreign_key": "ce2bb699-7ff7-4824-894f-155af5197c51",
+          "aro": "User",
+          "aro_foreign_key": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "d9583f62-cf39-4e7c-8af7-6c01c7fc31d9",
+          "aco": "Resource",
+          "aco_foreign_key": "ce2bb699-7ff7-4824-894f-155af5197c51",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "d9583f62-cf39-4e7c-8af7-6c01c7fc31d9",
+        "aco": "Resource",
+        "aco_foreign_key": "ce2bb699-7ff7-4824-894f-155af5197c51",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "d434c5a7-4322-31e2-ab5b-2b5f716eadc4",
+          "slug": "#bench-shared-0",
+          "is_shared": true
+        },
+        {
+          "id": "5e5ab10e-7a03-343d-bf93-9be1929f4a65",
+          "slug": "ada-bench-0",
+          "is_shared": false
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "2230756c-520c-4393-a75d-227625cad4fb",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2001-04-16T11:11:46+00:00",
+      "modified": "2012-11-23T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "38cc5c65-b539-4b98-bf6b-22263a7e302e",
+          "aco": "Resource",
+          "aco_foreign_key": "2230756c-520c-4393-a75d-227625cad4fb",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "47d96566-1cdf-4f2f-8277-87fb4e2ddaa9",
+          "aco": "Resource",
+          "aco_foreign_key": "2230756c-520c-4393-a75d-227625cad4fb",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "38cc5c65-b539-4b98-bf6b-22263a7e302e",
+        "aco": "Resource",
+        "aco_foreign_key": "2230756c-520c-4393-a75d-227625cad4fb",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "0eee2df2-62d3-4690-adf9-21972d22f6a8",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2001-01-07T11:11:46+00:00",
+      "modified": "2012-09-19T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "4fccf85a-b769-4e1a-b1a3-60f69ca34f49",
+          "aco": "Resource",
+          "aco_foreign_key": "0eee2df2-62d3-4690-adf9-21972d22f6a8",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "4fccf85a-b769-4e1a-b1a3-60f69ca34f49",
+        "aco": "Resource",
+        "aco_foreign_key": "0eee2df2-62d3-4690-adf9-21972d22f6a8",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "926ce4ed-efd0-3fdd-bfeb-2fd7527856a7",
+      "personal": true,
+      "id": "a5506cc8-3e51-4f61-a487-8cdb3f96769d",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2017-06-17T11:11:46+00:00",
+      "modified": "2012-08-15T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "99acbf6d-c9c6-4179-a172-498ce7734b7f",
+          "aco": "Resource",
+          "aco_foreign_key": "a5506cc8-3e51-4f61-a487-8cdb3f96769d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "99acbf6d-c9c6-4179-a172-498ce7734b7f",
+        "aco": "Resource",
+        "aco_foreign_key": "a5506cc8-3e51-4f61-a487-8cdb3f96769d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        },
+        {
+          "id": "a79e9beb-ce6b-458e-82b5-5727d9ce2802",
+          "slug": "ada-bench-3",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "fcd6023b-9176-44c4-a2ee-7b2501a50b1b",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "1999-10-08T11:11:46+00:00",
+      "modified": "2012-07-17T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "a6bbb2b4-9430-495b-ac85-5077ea9105a0",
+          "aco": "Resource",
+          "aco_foreign_key": "fcd6023b-9176-44c4-a2ee-7b2501a50b1b",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "d6a59a8c-59b0-4689-bde1-737fa67c1495",
+          "aco": "Resource",
+          "aco_foreign_key": "fcd6023b-9176-44c4-a2ee-7b2501a50b1b",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "a6bbb2b4-9430-495b-ac85-5077ea9105a0",
+        "aco": "Resource",
+        "aco_foreign_key": "fcd6023b-9176-44c4-a2ee-7b2501a50b1b",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "16ecf0f0-7823-493e-b6de-d042e8d3522b",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2022-04-26T11:11:46+00:00",
+      "modified": "2012-02-18T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "c5a69385-05ed-4a36-b41f-6ddf907a896f",
+          "aco": "Resource",
+          "aco_foreign_key": "16ecf0f0-7823-493e-b6de-d042e8d3522b",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "f05a19f6-9fc2-49f7-95d4-a6df3f16de11",
+          "aco": "Resource",
+          "aco_foreign_key": "16ecf0f0-7823-493e-b6de-d042e8d3522b",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "f05a19f6-9fc2-49f7-95d4-a6df3f16de11",
+        "aco": "Resource",
+        "aco_foreign_key": "16ecf0f0-7823-493e-b6de-d042e8d3522b",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "bbf94486-a2f6-3372-b6c8-2936b85ff26b",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2022-11-12T11:11:46+00:00",
+      "modified": "2011-08-26T11:11:46+00:00",
+      "created_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "modified_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "2d16d97d-5401-3eab-9181-525bddd0eb85",
+          "aco": "Resource",
+          "aco_foreign_key": "bbf94486-a2f6-3372-b6c8-2936b85ff26b",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "7f9f5a22-471f-32ce-ba73-72f27d7760e7",
+          "aco": "Resource",
+          "aco_foreign_key": "bbf94486-a2f6-3372-b6c8-2936b85ff26b",
+          "aro": "User",
+          "aro_foreign_key": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "2d16d97d-5401-3eab-9181-525bddd0eb85",
+        "aco": "Resource",
+        "aco_foreign_key": "bbf94486-a2f6-3372-b6c8-2936b85ff26b",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "704bce72-dcb4-46bd-891d-728437f45860",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2011-02-18T11:11:46+00:00",
+      "modified": "2011-06-19T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "2f9bb488-34ee-4404-82bb-98a8d8157796",
+          "aco": "Resource",
+          "aco_foreign_key": "704bce72-dcb4-46bd-891d-728437f45860",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "fdb3b857-a823-4d15-8527-06893b4ba7aa",
+          "aco": "Resource",
+          "aco_foreign_key": "704bce72-dcb4-46bd-891d-728437f45860",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "2f9bb488-34ee-4404-82bb-98a8d8157796",
+        "aco": "Resource",
+        "aco_foreign_key": "704bce72-dcb4-46bd-891d-728437f45860",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "5e5ab10e-7a03-343d-bf93-9be1929f4a65",
+          "slug": "ada-bench-0",
+          "is_shared": false
+        },
+        {
+          "id": "a79e9beb-ce6b-458e-82b5-5727d9ce2802",
+          "slug": "ada-bench-3",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "926ce4ed-efd0-3fdd-bfeb-2fd7527856a7",
+      "personal": true,
+      "id": "90d207e0-c1cf-4685-9b1f-abf3e5d91caf",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2001-10-26T11:11:46+00:00",
+      "modified": "2011-02-18T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "84f88a94-b479-4267-8de5-4841d02dbec3",
+          "aco": "Resource",
+          "aco_foreign_key": "90d207e0-c1cf-4685-9b1f-abf3e5d91caf",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "84f88a94-b479-4267-8de5-4841d02dbec3",
+        "aco": "Resource",
+        "aco_foreign_key": "90d207e0-c1cf-4685-9b1f-abf3e5d91caf",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "f8f5917e-ce85-3211-b9fe-832c06f6cca7",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2002-05-19T11:11:46+00:00",
+      "modified": "2010-09-15T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "4ec4d373-2dc0-33da-9d8f-5670f0913007",
+          "aco": "Resource",
+          "aco_foreign_key": "f8f5917e-ce85-3211-b9fe-832c06f6cca7",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "65231452-431b-353a-ac03-2650e0e48e1c",
+          "aco": "Resource",
+          "aco_foreign_key": "f8f5917e-ce85-3211-b9fe-832c06f6cca7",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "65231452-431b-353a-ac03-2650e0e48e1c",
+        "aco": "Resource",
+        "aco_foreign_key": "f8f5917e-ce85-3211-b9fe-832c06f6cca7",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "35931f41-48a1-3966-8a24-11c88de9850f",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2000-05-17T11:11:46+00:00",
+      "modified": "2010-08-29T11:11:46+00:00",
+      "created_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "modified_by": "116c6380-4c6c-5e30-884d-4b09aba62094",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "16accc6f-0908-3afc-8f22-5938abb0afee",
+          "aco": "Resource",
+          "aco_foreign_key": "35931f41-48a1-3966-8a24-11c88de9850f",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "82beab85-712f-388c-b53d-5a83607d5b7d",
+          "aco": "Resource",
+          "aco_foreign_key": "35931f41-48a1-3966-8a24-11c88de9850f",
+          "aro": "User",
+          "aro_foreign_key": "116c6380-4c6c-5e30-884d-4b09aba62094",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "16accc6f-0908-3afc-8f22-5938abb0afee",
+        "aco": "Resource",
+        "aco_foreign_key": "35931f41-48a1-3966-8a24-11c88de9850f",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "2cf32511-7387-4153-92a1-d39197206039",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2022-09-11T11:11:46+00:00",
+      "modified": "2010-07-27T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "71dda487-0059-4262-894e-4463470f1cb6",
+          "aco": "Resource",
+          "aco_foreign_key": "2cf32511-7387-4153-92a1-d39197206039",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "7c2bc455-7f0d-4cb2-929a-d7ac07837d69",
+          "aco": "Resource",
+          "aco_foreign_key": "2cf32511-7387-4153-92a1-d39197206039",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "71dda487-0059-4262-894e-4463470f1cb6",
+        "aco": "Resource",
+        "aco_foreign_key": "2cf32511-7387-4153-92a1-d39197206039",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "6603794f-7cf9-4b85-babc-9ad6a77c3972",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2020-10-06T11:11:46+00:00",
+      "modified": "2010-07-12T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "9bf2142f-0126-4473-a444-4a9358af5be1",
+          "aco": "Resource",
+          "aco_foreign_key": "6603794f-7cf9-4b85-babc-9ad6a77c3972",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "9cf92a95-53f8-4116-a382-8d10f6baef9c",
+          "aco": "Resource",
+          "aco_foreign_key": "6603794f-7cf9-4b85-babc-9ad6a77c3972",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "9bf2142f-0126-4473-a444-4a9358af5be1",
+        "aco": "Resource",
+        "aco_foreign_key": "6603794f-7cf9-4b85-babc-9ad6a77c3972",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "d36e3977-a137-44b4-9db7-f443d78c46cb",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2015-02-19T11:11:46+00:00",
+      "modified": "2010-01-07T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "5ebcb1d4-4d82-4a76-b83f-c5c43ed10e1d",
+          "aco": "Resource",
+          "aco_foreign_key": "d36e3977-a137-44b4-9db7-f443d78c46cb",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "df6efc38-c3c8-4a22-bf32-a3f0d83d2ff9",
+          "aco": "Resource",
+          "aco_foreign_key": "d36e3977-a137-44b4-9db7-f443d78c46cb",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "df6efc38-c3c8-4a22-bf32-a3f0d83d2ff9",
+        "aco": "Resource",
+        "aco_foreign_key": "d36e3977-a137-44b4-9db7-f443d78c46cb",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        },
+        {
+          "id": "a79e9beb-ce6b-458e-82b5-5727d9ce2802",
+          "slug": "ada-bench-3",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "ad5eb291-3f5c-4e9b-a700-ff8a0852114c",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2025-10-14T11:11:46+00:00",
+      "modified": "2009-09-08T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "52268f54-5357-4d11-ad16-3e9ffeaf2122",
+          "aco": "Resource",
+          "aco_foreign_key": "ad5eb291-3f5c-4e9b-a700-ff8a0852114c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "9fe358b8-0eb7-4b90-a10f-27729575d3a5",
+          "aco": "Resource",
+          "aco_foreign_key": "ad5eb291-3f5c-4e9b-a700-ff8a0852114c",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "52268f54-5357-4d11-ad16-3e9ffeaf2122",
+        "aco": "Resource",
+        "aco_foreign_key": "ad5eb291-3f5c-4e9b-a700-ff8a0852114c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "0fc4297c-f422-4b4c-a3fb-845f73db3571",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2004-09-12T11:11:46+00:00",
+      "modified": "2008-12-17T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "233ab83a-8388-4f01-b9e1-04481f8da1b6",
+          "aco": "Resource",
+          "aco_foreign_key": "0fc4297c-f422-4b4c-a3fb-845f73db3571",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ddccf83b-681f-45c0-bba6-42cea27f62f3",
+          "aco": "Resource",
+          "aco_foreign_key": "0fc4297c-f422-4b4c-a3fb-845f73db3571",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "ddccf83b-681f-45c0-bba6-42cea27f62f3",
+        "aco": "Resource",
+        "aco_foreign_key": "0fc4297c-f422-4b4c-a3fb-845f73db3571",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "903c5893-fb2f-4f92-a2fc-b75fde796242",
+          "slug": "ada-bench-1",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "ff424e2a-571b-346b-9c7d-3d5e2a962133",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2020-03-08T11:11:46+00:00",
+      "modified": "2008-12-03T11:11:46+00:00",
+      "created_by": "a8280ed2-f67e-5483-90cc-304caf434d77",
+      "modified_by": "a8280ed2-f67e-5483-90cc-304caf434d77",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "0aa2ebb4-2fc5-3f2f-adec-e928d2270870",
+          "aco": "Resource",
+          "aco_foreign_key": "ff424e2a-571b-346b-9c7d-3d5e2a962133",
+          "aro": "User",
+          "aro_foreign_key": "a8280ed2-f67e-5483-90cc-304caf434d77",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "728852d8-9ca4-3e18-a7e1-ac602d1e1da6",
+          "aco": "Resource",
+          "aco_foreign_key": "ff424e2a-571b-346b-9c7d-3d5e2a962133",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "728852d8-9ca4-3e18-a7e1-ac602d1e1da6",
+        "aco": "Resource",
+        "aco_foreign_key": "ff424e2a-571b-346b-9c7d-3d5e2a962133",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "903c5893-fb2f-4f92-a2fc-b75fde796242",
+          "slug": "ada-bench-1",
+          "is_shared": false
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "4521145c-1491-3925-84b3-9fc96ec144e3",
+      "personal": true,
+      "id": "40385994-bcbf-4e14-b61c-837751d98078",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2021-03-05T11:11:46+00:00",
+      "modified": "2008-11-16T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "8be82586-3a20-479e-8844-dd32e7c0f733",
+          "aco": "Resource",
+          "aco_foreign_key": "40385994-bcbf-4e14-b61c-837751d98078",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "8be82586-3a20-479e-8844-dd32e7c0f733",
+        "aco": "Resource",
+        "aco_foreign_key": "40385994-bcbf-4e14-b61c-837751d98078",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "113810ba-7673-3bbd-af32-87c95090023e",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAPzwQ+IMTmy9r6wckKAIsCerEgxDjiDmKNQmQVOSTcjIw\nUJQ9sfAaWW9asq1SlRAWN9aRMXyp7dsSGEU7Jk1aNNDJ6D+uwDNSMlRJ56jK6Tp3\n0sD2AV8ZLhU3NH0Tm/a8B62Dw9YmaNwRIJ6qV/s+ux+s5ESHkTINxOIgXfFgHRvS\n3jW+i7NBpG81fcdd2XMm2BN94SF9bl/q+RXaCCSjm8DtDD/8CwUY29O0iUenu9BV\nvVU9Ynv99vtB52BMVcMf6TH0pyp8ZMAZHmntdTrNxjbY4wJwLmJjzEMu5wPEiWiK\n6Zm90df4eWRfPSZpy4FNOPE3ON2amf/SJyCol1xIiDnNaZj+v807kE4C3/it/I3d\nMc4Acju8VyvdOjvlLbCe3/YtFypK/bQgeWg7kqa/DwV3ta0Hm2Fj9f9ulw5zlHGY\nmJU+Cuiw8A+bEsTttbdgDinYJ35sHN5piE6EQ1buDnJJoljhJmVk6PjmjU4cP7OA\nHirkRuWzq5Vvh4WiqC2PVLzeyk6L1iZVViIWfYX7isZhGpA2VW6GQTzE5uWIrq3I\ngDQ0Oe+IPJIlR/XMe0+HzJxvqv0475Gh0BG7/49LgNhM7F0uSegbP8hXw3AeXEMm\nhpDF9uvamCMd6ajVFNEY93i57blZ+4RMNpLWYRI/9bz2aN3ZeuwM5KhiEDXQdqOK\n7xQegZiUDgfb\n=4UZW\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2001-05-27T11:11:46+00:00",
+      "modified": "2008-09-30T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "bb2280b5-c4d9-569c-9337-62b307f1139c",
+      "permissions": [
+        {
+          "id": "169dc828-e6aa-318c-9a0d-121764d9d940",
+          "aco": "Resource",
+          "aco_foreign_key": "113810ba-7673-3bbd-af32-87c95090023e",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "5c417ccc-44e6-389a-8109-c5d3490ef519",
+          "aco": "Resource",
+          "aco_foreign_key": "113810ba-7673-3bbd-af32-87c95090023e",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "169dc828-e6aa-318c-9a0d-121764d9d940",
+        "aco": "Resource",
+        "aco_foreign_key": "113810ba-7673-3bbd-af32-87c95090023e",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        },
+        {
+          "id": "903c5893-fb2f-4f92-a2fc-b75fde796242",
+          "slug": "ada-bench-1",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "944d12cd-e36f-33ef-81df-e2d34d602d0c",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2011-04-02T11:11:46+00:00",
+      "modified": "2008-08-12T11:11:46+00:00",
+      "created_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "modified_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "5e0fa6e8-9651-3b91-8b15-5d816aa44fcd",
+          "aco": "Resource",
+          "aco_foreign_key": "944d12cd-e36f-33ef-81df-e2d34d602d0c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "a908d604-c2ce-3711-a66b-1cb9b237a4ef",
+          "aco": "Resource",
+          "aco_foreign_key": "944d12cd-e36f-33ef-81df-e2d34d602d0c",
+          "aro": "User",
+          "aro_foreign_key": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "5e0fa6e8-9651-3b91-8b15-5d816aa44fcd",
+        "aco": "Resource",
+        "aco_foreign_key": "944d12cd-e36f-33ef-81df-e2d34d602d0c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "5e5ab10e-7a03-343d-bf93-9be1929f4a65",
+          "slug": "ada-bench-0",
+          "is_shared": false
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "b746d671-72e6-44f5-b64e-e62990c4b274",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2002-02-08T11:11:46+00:00",
+      "modified": "2008-03-18T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "72ae0a34-0dca-4dd3-bfe3-55e2b02b9ae8",
+          "aco": "Resource",
+          "aco_foreign_key": "b746d671-72e6-44f5-b64e-e62990c4b274",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "f36e921b-7003-4eac-b3c2-b541723e03e1",
+          "aco": "Resource",
+          "aco_foreign_key": "b746d671-72e6-44f5-b64e-e62990c4b274",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "f36e921b-7003-4eac-b3c2-b541723e03e1",
+        "aco": "Resource",
+        "aco_foreign_key": "b746d671-72e6-44f5-b64e-e62990c4b274",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "78507237-a073-4436-a69a-16f4c73f2397",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2019-12-09T11:11:46+00:00",
+      "modified": "2008-03-05T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "017cfaab-5463-41f7-acba-a1b41a586127",
+          "aco": "Resource",
+          "aco_foreign_key": "78507237-a073-4436-a69a-16f4c73f2397",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "f5ae3b8f-92a4-4041-8e41-720042247a78",
+          "aco": "Resource",
+          "aco_foreign_key": "78507237-a073-4436-a69a-16f4c73f2397",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "017cfaab-5463-41f7-acba-a1b41a586127",
+        "aco": "Resource",
+        "aco_foreign_key": "78507237-a073-4436-a69a-16f4c73f2397",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "5f08ef35-d84c-482d-8834-dd2bcf0c9b0c",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2014-11-28T11:11:46+00:00",
+      "modified": "2007-07-28T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "e4e3f8b2-47ec-449f-8906-e01e0cc40131",
+          "aco": "Resource",
+          "aco_foreign_key": "5f08ef35-d84c-482d-8834-dd2bcf0c9b0c",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "f066bd3d-c5b5-4557-bda1-1f5e8c25c05e",
+          "aco": "Resource",
+          "aco_foreign_key": "5f08ef35-d84c-482d-8834-dd2bcf0c9b0c",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "f066bd3d-c5b5-4557-bda1-1f5e8c25c05e",
+        "aco": "Resource",
+        "aco_foreign_key": "5f08ef35-d84c-482d-8834-dd2bcf0c9b0c",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f58540e8-b95a-3ffe-92e0-c3dd2cd5dd57",
+      "personal": true,
+      "id": "57aadb81-fa38-4734-8d31-810b2258cc11",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2007-07-08T11:11:46+00:00",
+      "modified": "2007-07-21T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "88d1b1bf-a6e4-493b-8c82-3770e40ff4f8",
+          "aco": "Resource",
+          "aco_foreign_key": "57aadb81-fa38-4734-8d31-810b2258cc11",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "88d1b1bf-a6e4-493b-8c82-3770e40ff4f8",
+        "aco": "Resource",
+        "aco_foreign_key": "57aadb81-fa38-4734-8d31-810b2258cc11",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "d434c5a7-4322-31e2-ab5b-2b5f716eadc4",
+          "slug": "#bench-shared-0",
+          "is_shared": true
+        },
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "07beea49-2075-321d-833a-9f9570cdf713",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdA2ue885IMtJJR13rBefQerZprXWPWRlWY94NGNhV1IgIw\nlhyhIHLc7TXXRZYDZmkZgd7fxn3EbOrrB+le8Y129oKOuvchn6DTEM/jbPc23jFb\n0sDrAfIKNbQP86BeG7dUlqvC+E3QGjfYwALMuhddH9HlSMU3JgnPQwpHXmsfl5OQ\nZ78nFMHzRUmpUJa/CXSSC3UjjbJBNd6GXyccEt3Zmu5YteeWnWrxQXuhKSssXYTj\nHsOGfoxGyVA4S00ZnMScQeyEl7VqDlqR342IjIU70icqcxZWx+/SW7teKwTaF9M/\nAPoPlhCeXzHq3jMnP4HuwK7tLd6jXaw0ztil7C43fTxcnUNvxFZyIf1ftJhhfnaw\nV7O6Q28d5+gxGDZ5bWIFJZrIGwA7TSTOo0xU0U/hU7p/kHXLF+MUnyBOTWyW0hVA\n4y8em+RMlV7ZJDJpQnF3DfB8WdVmg2hRhhaUUKUIGAF8rsMkuysCLk/YjSJVxL/J\nAJesDxY4LjcyEGJ0cFSA4udo3cu68kt/O2isaGSWDWzOXAu0dPZLjWAMtZ6qMk1w\n5nUyNV54tHy0uSn2nyHEEZ/MGyaqa27pI/kPPIsYJg+PT3lLnROk0qqZDDsqqUEn\nPtcizNkxJQIfXJeNKpQLhxciXz12ZaCJU84SPcaCzTvOPmYn0wZKL2rZQrbufQ==\n=v8oM\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2019-10-13T11:11:46+00:00",
+      "modified": "2006-08-08T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "0a72c76b-b8e6-53f0-8bef-0a8ca6b5c764",
+      "permissions": [
+        {
+          "id": "688a3e16-cdb1-332b-b724-848f5cb5198f",
+          "aco": "Resource",
+          "aco_foreign_key": "07beea49-2075-321d-833a-9f9570cdf713",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "fc14b7af-94d5-31cb-a5d6-0d81fc43c01d",
+          "aco": "Resource",
+          "aco_foreign_key": "07beea49-2075-321d-833a-9f9570cdf713",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "fc14b7af-94d5-31cb-a5d6-0d81fc43c01d",
+        "aco": "Resource",
+        "aco_foreign_key": "07beea49-2075-321d-833a-9f9570cdf713",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "3c0b5372-fc48-319b-9820-7e39de3fed64",
+      "personal": true,
+      "id": "d93d2755-1b15-45aa-bf95-a352d0236558",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAwJHb6DVKs9gTxw1ifoKZ1SY9Fbhv3WaXRDPZHsp8y2ow\n4OCbQOpuaySDXlyUt38Uy6WGjA/WCWMqMSbluipZ5uDqnftbCriTsM7SDHCFsJk1\n0ukBKAIM8p1zgVpySiLVXZCOaG5H/O7Mpo7onJP58b5rshkeN1BSk2K8ur7PsCtx\nXIa7bRMJZ0XIveVubAEotVNOgohDjQ8cmLf+KtQmCM+DURLWmDGDOPKAv8LSAFYp\nqT1pnq09/YZJb6P5tEVqliLoo1EobFJCxENmwjp5iOm8Xo/c1uW3r9meuqCJxm4i\n9CO/KZg+L8UBftqUJtNCgmcSOWeyYcIU35IsFZWoJ7iCe1bIqS5UuFuVo/J90/b1\n28zuc+tjT+qi7zoIK7N8wbW+jAHhQD8HqrjErsl4WgG2Y2um2GTJpeog53BnezuV\nuKyWK5bpGOYt+PNWo97XaHpqKvHw9kFOckmnTbf054onVdyAGyc5gYtK98mL3jCv\npEgxu30Kq14XQeJvvZtawDyt5AnA2GiwL5UxDhAF+45rVc9bTOI/0otrj2w9ro7V\nwbitCLOENKkR83SukF129ENhqinTviR2zA2gPj+Xr5FIDwgIvarHYtXaO0XR//es\nhIBarpsfZsaBNZEuc+ZOEGwj5jZdD81WtbRpEi3bwmUYejGfwZwir/UtnYw8thZV\nvF7quzXquo0ma8w4VBnhcskv6pKC9SR5PUT5MmNbQd1JSaNjFBUDKQcZfoSsnu/V\npyaZ2orcjt6k6gzrfgdl/pj1U3b2jkkSoxmstdbaTnUtEQriNRb6aVns7k+y\n=YEZ7\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2025-10-13T11:11:46+00:00",
+      "modified": "2006-05-13T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "0551544e-2ccd-5ce8-95cf-86f0aab0f827",
+      "permissions": [
+        {
+          "id": "2cfdfbb2-f253-4de2-bc15-a8f789d1ca3c",
+          "aco": "Resource",
+          "aco_foreign_key": "d93d2755-1b15-45aa-bf95-a352d0236558",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "2cfdfbb2-f253-4de2-bc15-a8f789d1ca3c",
+        "aco": "Resource",
+        "aco_foreign_key": "d93d2755-1b15-45aa-bf95-a352d0236558",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "abc769eb-478e-3119-be82-cbb89a9255be",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2006-01-20T11:11:46+00:00",
+      "modified": "2006-03-17T11:11:46+00:00",
+      "created_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "modified_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "bddd43f1-d2bf-36a8-a3ff-12b9cd4a2654",
+          "aco": "Resource",
+          "aco_foreign_key": "abc769eb-478e-3119-be82-cbb89a9255be",
+          "aro": "User",
+          "aro_foreign_key": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "e4098861-6cc6-3404-a94a-a606616958a8",
+          "aco": "Resource",
+          "aco_foreign_key": "abc769eb-478e-3119-be82-cbb89a9255be",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "e4098861-6cc6-3404-a94a-a606616958a8",
+        "aco": "Resource",
+        "aco_foreign_key": "abc769eb-478e-3119-be82-cbb89a9255be",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "4a51766b-e1b9-3ddb-ac3b-a8ffa496822d",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2005-08-16T11:11:46+00:00",
+      "modified": "2006-01-13T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "2b7dd44d-613b-3880-be37-f1293c2ab2ed",
+          "aco": "Resource",
+          "aco_foreign_key": "4a51766b-e1b9-3ddb-ac3b-a8ffa496822d",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ba020342-5df4-3583-876f-6bdbd5606556",
+          "aco": "Resource",
+          "aco_foreign_key": "4a51766b-e1b9-3ddb-ac3b-a8ffa496822d",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "2b7dd44d-613b-3880-be37-f1293c2ab2ed",
+        "aco": "Resource",
+        "aco_foreign_key": "4a51766b-e1b9-3ddb-ac3b-a8ffa496822d",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "d434c5a7-4322-31e2-ab5b-2b5f716eadc4",
+          "slug": "#bench-shared-0",
+          "is_shared": true
+        },
+        {
+          "id": "359ecef0-a14b-47fb-87d9-eca12acefee0",
+          "slug": "ada-bench-2",
+          "is_shared": false
+        },
+        {
+          "id": "a79e9beb-ce6b-458e-82b5-5727d9ce2802",
+          "slug": "ada-bench-3",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "6af844e3-8dbb-3e02-a5e5-83be17dedf23",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2023-05-11T11:11:46+00:00",
+      "modified": "2005-09-24T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "68ebed6f-34b8-34ad-9544-0f007551796e",
+          "aco": "Resource",
+          "aco_foreign_key": "6af844e3-8dbb-3e02-a5e5-83be17dedf23",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "7d772989-3853-362c-9482-7d10731e2b92",
+          "aco": "Resource",
+          "aco_foreign_key": "6af844e3-8dbb-3e02-a5e5-83be17dedf23",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "68ebed6f-34b8-34ad-9544-0f007551796e",
+        "aco": "Resource",
+        "aco_foreign_key": "6af844e3-8dbb-3e02-a5e5-83be17dedf23",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        },
+        {
+          "id": "903c5893-fb2f-4f92-a2fc-b75fde796242",
+          "slug": "ada-bench-1",
+          "is_shared": false
+        },
+        {
+          "id": "06015e46-dc1f-4226-ae2d-19a8bbc55048",
+          "slug": "ada-bench-4",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "3b2ef080-4df1-4bf1-861d-471e5d9a9b6f",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2007-11-28T11:11:46+00:00",
+      "modified": "2005-01-28T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "b2897546-4bec-4f3b-bbbd-47ebf3d63597",
+          "aco": "Resource",
+          "aco_foreign_key": "3b2ef080-4df1-4bf1-861d-471e5d9a9b6f",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "d66e0080-a1ea-4525-92b3-36c36a20bc53",
+          "aco": "Resource",
+          "aco_foreign_key": "3b2ef080-4df1-4bf1-861d-471e5d9a9b6f",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "b2897546-4bec-4f3b-bbbd-47ebf3d63597",
+        "aco": "Resource",
+        "aco_foreign_key": "3b2ef080-4df1-4bf1-861d-471e5d9a9b6f",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "ecd8dd25-b1c9-3d7a-9122-2c222cb02dcc",
+      "personal": true,
+      "id": "b970ef15-ae02-32dc-b020-cd0ff363cabf",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2001-06-06T11:11:46+00:00",
+      "modified": "2004-10-17T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "69b1efec-e88e-3ab2-863a-b3f8d70f65c2",
+          "aco": "Resource",
+          "aco_foreign_key": "b970ef15-ae02-32dc-b020-cd0ff363cabf",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "69b1efec-e88e-3ab2-863a-b3f8d70f65c2",
+        "aco": "Resource",
+        "aco_foreign_key": "b970ef15-ae02-32dc-b020-cd0ff363cabf",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "8b206bc8-a9ae-4414-9d1b-159d54d5a75d",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2009-02-11T11:11:46+00:00",
+      "modified": "2004-05-14T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "259844cd-5ae8-4591-b564-366c6036b469",
+          "aco": "Resource",
+          "aco_foreign_key": "8b206bc8-a9ae-4414-9d1b-159d54d5a75d",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "883dc02d-d143-4d7d-ae24-46a5036861f9",
+          "aco": "Resource",
+          "aco_foreign_key": "8b206bc8-a9ae-4414-9d1b-159d54d5a75d",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "259844cd-5ae8-4591-b564-366c6036b469",
+        "aco": "Resource",
+        "aco_foreign_key": "8b206bc8-a9ae-4414-9d1b-159d54d5a75d",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "4c23ed8f-02bb-4b3c-b3f5-a17e3d88953d",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2014-02-20T11:11:46+00:00",
+      "modified": "2004-01-12T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "8e195e8a-05e4-40b3-82fc-65a2c1c883b2",
+          "aco": "Resource",
+          "aco_foreign_key": "4c23ed8f-02bb-4b3c-b3f5-a17e3d88953d",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "976eca12-1b1b-4993-a383-a46c73cf7677",
+          "aco": "Resource",
+          "aco_foreign_key": "4c23ed8f-02bb-4b3c-b3f5-a17e3d88953d",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "976eca12-1b1b-4993-a383-a46c73cf7677",
+        "aco": "Resource",
+        "aco_foreign_key": "4c23ed8f-02bb-4b3c-b3f5-a17e3d88953d",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a9aa4fcb-6c84-4318-a152-be729dcfbd81",
+          "slug": "#bench-shared-1",
+          "is_shared": true
+        }
+      ]
+    },
+    {
+      "folder_parent_id": "f06daa9c-70e7-3373-b3ad-d9b5acce594a",
+      "personal": false,
+      "id": "a3ada835-550e-4513-88ed-e83adbbdcefa",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2019-07-13T11:11:46+00:00",
+      "modified": "2003-11-13T11:11:46+00:00",
+      "created_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "modified_by": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "943d5c4d-7022-4b02-be7f-a364610eb3f1",
+          "aco": "Resource",
+          "aco_foreign_key": "a3ada835-550e-4513-88ed-e83adbbdcefa",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "c3611af7-313f-4cb4-8d30-7b76c84150e2",
+          "aco": "Resource",
+          "aco_foreign_key": "a3ada835-550e-4513-88ed-e83adbbdcefa",
+          "aro": "User",
+          "aro_foreign_key": "2b0e6f66-52e4-57f8-81a4-0eb2c5ab6796",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "943d5c4d-7022-4b02-be7f-a364610eb3f1",
+        "aco": "Resource",
+        "aco_foreign_key": "a3ada835-550e-4513-88ed-e83adbbdcefa",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "d86fab9a-22b9-42fa-a80b-14c2581a66be",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "1999-07-15T11:11:46+00:00",
+      "modified": "2003-07-24T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "037f4727-6c92-496a-921f-281a46e1ac0d",
+          "aco": "Resource",
+          "aco_foreign_key": "d86fab9a-22b9-42fa-a80b-14c2581a66be",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "0cdbb5d3-6fab-4609-a3b7-8398d3138818",
+          "aco": "Resource",
+          "aco_foreign_key": "d86fab9a-22b9-42fa-a80b-14c2581a66be",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "037f4727-6c92-496a-921f-281a46e1ac0d",
+        "aco": "Resource",
+        "aco_foreign_key": "d86fab9a-22b9-42fa-a80b-14c2581a66be",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "3c0b5372-fc48-319b-9820-7e39de3fed64",
+      "personal": true,
+      "id": "e2e8cc00-ce57-3c9b-9c52-685441fb0d0e",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2004-01-30T11:11:46+00:00",
+      "modified": "2003-03-22T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "c7961cde-855f-3295-bb82-894112d40009",
+          "aco": "Resource",
+          "aco_foreign_key": "e2e8cc00-ce57-3c9b-9c52-685441fb0d0e",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "c7961cde-855f-3295-bb82-894112d40009",
+        "aco": "Resource",
+        "aco_foreign_key": "e2e8cc00-ce57-3c9b-9c52-685441fb0d0e",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "a79e9beb-ce6b-458e-82b5-5727d9ce2802",
+          "slug": "ada-bench-3",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "5a6b6e9e-e042-3715-aaa9-6341a4962dd3",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2006-08-31T11:11:46+00:00",
+      "modified": "2003-03-10T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "1d47ca96-54b9-3ad9-acb4-5cefebf0a1e7",
+          "aco": "Resource",
+          "aco_foreign_key": "5a6b6e9e-e042-3715-aaa9-6341a4962dd3",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "d44919f8-018c-3c8c-a1d7-0201758d2c55",
+          "aco": "Resource",
+          "aco_foreign_key": "5a6b6e9e-e042-3715-aaa9-6341a4962dd3",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "d44919f8-018c-3c8c-a1d7-0201758d2c55",
+        "aco": "Resource",
+        "aco_foreign_key": "5a6b6e9e-e042-3715-aaa9-6341a4962dd3",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "f58540e8-b95a-3ffe-92e0-c3dd2cd5dd57",
+      "personal": true,
+      "id": "8bfb9102-3aab-4776-9ed5-d3ae6ccff7c1",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2025-12-17T11:11:46+00:00",
+      "modified": "2002-10-18T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "d793e61c-03e4-49ef-b12b-5453e0e3b3a8",
+          "aco": "Resource",
+          "aco_foreign_key": "8bfb9102-3aab-4776-9ed5-d3ae6ccff7c1",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "d793e61c-03e4-49ef-b12b-5453e0e3b3a8",
+        "aco": "Resource",
+        "aco_foreign_key": "8bfb9102-3aab-4776-9ed5-d3ae6ccff7c1",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "7f3b7ba1-c31e-417a-abff-c8078b06bbfe",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAFKZBd4o9RM6DglDkCx39XGbRQqjEJAHdoxjdL+CNVmcw\nL7WMjBrUosVOKFGuGMIh3/Km2whqAbgseVYdhl1rvnj+wlUGuWM/4ikvlLj66ZDY\n0sD+AcftrSkb14Vm151pv1EEms4ZGBSQ0eeTIHx7sobHdvsipwptlUEp0OBdSGq1\n3r6QTOm5wW6I7RDpXpnraNmD7HW+AZiDoQzHpZah6px5WOjPubTSBAlmrrXBoiDr\n9IxEhDhXhtDdfE/AGJs5RUN3CPPpWXxcwJC2p37YcwaaXNG7c6wZDOR54LUQ5x/m\noAS41QUWLaFxRugRU4/Ltp/POIbr1NcGF084kxU5NMeOqrWq6AWKSuPl7TJyPYLI\ny6aSEpq/yJOKKLs97F14G+vhXb/Rw7Giphfe4WB+L1mDbLgjQgBeTVvJh4rMMCrZ\n8WOT8hsv1OnPsttfUX2v1rieZL+TnPq600phDvGgBnUbmGMG3DvX1mfz9bTRrMPR\nKl3HMJh7N6fcD0lWrWzmpLFbpdCp1tDCoB18XecXwBkfXGXhPtGF7WZige9mYwRB\nEPVswQkulfIeHpY98d2gvLzPHzPA68ATa/px9thT9xfCPUsa1ZZYOKPXiahWT9O4\ngFBh1Tt1EaJrBUKfAOrXNtE67BbrgcHiO5gGLsD4pFw92Mligj/lyColGkZyRWHJ\nwEYGSCoYKd28IIil2UnwVWU=\n=WnKd\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "1999-11-06T11:11:46+00:00",
+      "modified": "2001-12-25T11:11:46+00:00",
+      "created_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "modified_by": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+      "resource_type_id": "7438294d-f71c-5164-ba95-d9e60e295564",
+      "permissions": [
+        {
+          "id": "e96d266e-ba8d-4248-91da-5af85b1d1c88",
+          "aco": "Resource",
+          "aco_foreign_key": "7f3b7ba1-c31e-417a-abff-c8078b06bbfe",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "ee043a99-9dbf-4d43-8498-03b0a78b1b56",
+          "aco": "Resource",
+          "aco_foreign_key": "7f3b7ba1-c31e-417a-abff-c8078b06bbfe",
+          "aro": "User",
+          "aro_foreign_key": "bec3fe05-001a-53d4-a922-c8ed28d80f23",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "e96d266e-ba8d-4248-91da-5af85b1d1c88",
+        "aco": "Resource",
+        "aco_foreign_key": "7f3b7ba1-c31e-417a-abff-c8078b06bbfe",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": [
+        {
+          "id": "903c5893-fb2f-4f92-a2fc-b75fde796242",
+          "slug": "ada-bench-1",
+          "is_shared": false
+        }
+      ]
+    },
+    {
+      "folder_parent_id": null,
+      "id": "ed1d037e-9127-4072-a841-d3a6286b00e5",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2000-06-14T11:11:46+00:00",
+      "modified": "2001-04-30T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "658f39cf-871f-453f-b5aa-7d868110c5fa",
+          "aco": "Resource",
+          "aco_foreign_key": "ed1d037e-9127-4072-a841-d3a6286b00e5",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "658f39cf-871f-453f-b5aa-7d868110c5fa",
+        "aco": "Resource",
+        "aco_foreign_key": "ed1d037e-9127-4072-a841-d3a6286b00e5",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "c20509e7-ce3e-4876-9076-b16c522ef4d3",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2025-05-08T11:11:46+00:00",
+      "modified": "2001-02-22T11:11:46+00:00",
+      "created_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "modified_by": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "1543a8ba-890b-4afb-a400-a652476bedc0",
+          "aco": "Resource",
+          "aco_foreign_key": "c20509e7-ce3e-4876-9076-b16c522ef4d3",
+          "aro": "User",
+          "aro_foreign_key": "eb98fb9e-4bdb-53a7-800b-0ee27977b308",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "1a1c9e8a-91c2-42e1-be0e-e2c8b6b80d16",
+          "aco": "Resource",
+          "aco_foreign_key": "c20509e7-ce3e-4876-9076-b16c522ef4d3",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 7,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "1a1c9e8a-91c2-42e1-be0e-e2c8b6b80d16",
+        "aco": "Resource",
+        "aco_foreign_key": "c20509e7-ce3e-4876-9076-b16c522ef4d3",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 7,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "0e31e4a5-e406-4cf8-827e-dcd76c6422d0",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2004-03-19T11:11:46+00:00",
+      "modified": "1999-08-13T11:11:46+00:00",
+      "created_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "modified_by": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "84807a02-28bf-4c39-9497-d53a85f631d3",
+          "aco": "Resource",
+          "aco_foreign_key": "0e31e4a5-e406-4cf8-827e-dcd76c6422d0",
+          "aro": "User",
+          "aro_foreign_key": "aee752fb-f96f-59bb-a636-0799c39bffcf",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "b4cdef45-43d2-4e64-85da-f4199cd9adb1",
+          "aco": "Resource",
+          "aco_foreign_key": "0e31e4a5-e406-4cf8-827e-dcd76c6422d0",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 1,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "b4cdef45-43d2-4e64-85da-f4199cd9adb1",
+        "aco": "Resource",
+        "aco_foreign_key": "0e31e4a5-e406-4cf8-827e-dcd76c6422d0",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 1,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": "ecd8dd25-b1c9-3d7a-9122-2c222cb02dcc",
+      "personal": true,
+      "id": "38e9b3f6-9f31-41d7-a3ea-bbb961495615",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2002-02-10T11:11:46+00:00",
+      "modified": "1999-04-14T11:11:46+00:00",
+      "created_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "modified_by": "f848277c-5398-58f8-a82a-72397af2d450",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "b5bbe677-5385-4318-bbcf-11089b4b5afa",
+          "aco": "Resource",
+          "aco_foreign_key": "38e9b3f6-9f31-41d7-a3ea-bbb961495615",
+          "aro": "User",
+          "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "b5bbe677-5385-4318-bbcf-11089b4b5afa",
+        "aco": "Resource",
+        "aco_foreign_key": "38e9b3f6-9f31-41d7-a3ea-bbb961495615",
+        "aro": "User",
+        "aro_foreign_key": "f848277c-5398-58f8-a82a-72397af2d450",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    },
+    {
+      "folder_parent_id": null,
+      "id": "f3b8c562-dba0-46f7-8165-da685c584a62",
+      "metadata": "-----BEGIN PGP MESSAGE-----\n\nhF4D014H/GXdZcISAQdAJaEc4EsRDttkMAQSrKBxABO0N8jUCEgP7jSo3Ppl7Dww\ndsdEIwtTmXnSmOyZ8fO3WmId0ZvJq2byZUTW1iRHq1La4ripa9/F/S3lzTn23/br\n0sDzASFi9ZPBpxDeZZsUwgv7MXQ9LZDA7Ch1oA0oqnn2bXit64djvhx2VUeMZ870\nfP4BnsfZbqg38WuCERw7Gz0Q8NxDRNV6wAVFGX1WrJyBcjv/HGtCPizLEFPwut0H\n4brfuWCPOlhd9OpOaOFpdNdcV6BNYMBmh/xXBnFLb064t0sjFhJTfC6IEk2XJBIF\nKXS7OSVaBGgeDodNOx3qeko3e0nOLEObfTqCbmtC96O7i9VRqwaSLMKWnbPb8+l0\n1Y5IdCdN9AYPMUEbJUSie4XYDLbt4+W4ZCIxZNoK6LoCHkEhXGBq7x1Bkg0jMWsX\ncJ/NXygAGomrLwtA09Pt5YwBv6vhHL9IKdT6OEYp7kVCGogSDEpvZSI6w5hI3Xdi\nncFvr99qFq6/hdgYLn6U05erL5dlzASCSeyfKc8s4Hx5zC5I2rMLtvGMoP+jU9Jv\nWYqlGTbfLv0SzqrEQRGbPRwWa/Vik/3oBIaqD8jP012U7vKKtyZv+hRwLtfT30Oq\nP0WOnzMquSKGO0FfO7bLTtTyn0vvuLk2nPOSlWfQrg5KuALdgx9UBCsx4bwAiPWG\ngbSZyrtQ\n=u8Va\n-----END PGP MESSAGE-----\n",
+      "metadata_key_id": "dfe977f4-d2af-32ec-bb14-6870de6a8074",
+      "metadata_key_type": "shared_key",
+      "deleted": false,
+      "expired": null,
+      "created": "2011-12-21T11:11:46+00:00",
+      "modified": "1999-02-23T11:11:46+00:00",
+      "created_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "modified_by": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+      "resource_type_id": "dd1f723d-0d1e-513f-8218-4055dc0530d0",
+      "permissions": [
+        {
+          "id": "42077299-af48-4a28-bbe2-4dc03c3ba739",
+          "aco": "Resource",
+          "aco_foreign_key": "f3b8c562-dba0-46f7-8165-da685c584a62",
+          "aro": "Group",
+          "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        },
+        {
+          "id": "b54b557d-8242-4c71-a0c1-09de6d7d15b5",
+          "aco": "Resource",
+          "aco_foreign_key": "f3b8c562-dba0-46f7-8165-da685c584a62",
+          "aro": "User",
+          "aro_foreign_key": "65796b71-6220-585d-b6ca-a456ffb0e57d",
+          "type": 15,
+          "created": "2026-06-18T11:11:46+00:00",
+          "modified": "2026-06-18T11:11:46+00:00"
+        }
+      ],
+      "favorite": null,
+      "permission": {
+        "id": "42077299-af48-4a28-bbe2-4dc03c3ba739",
+        "aco": "Resource",
+        "aco_foreign_key": "f3b8c562-dba0-46f7-8165-da685c584a62",
+        "aro": "Group",
+        "aro_foreign_key": "9f411045-a001-3454-9974-253c6fa845cb",
+        "type": 15,
+        "created": "2026-06-18T11:11:46+00:00",
+        "modified": "2026-06-18T11:11:46+00:00"
+      },
+      "tags": []
+    }
+  ]
+}

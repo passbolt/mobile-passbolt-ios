@@ -9,7 +9,26 @@ ARCHIVE_PATH=Passbolt.xcarchive
 IPA_PATH=Passbolt.ipa
 EXPORT_OPTIONS=Tools/export-options.plist
 
-TEST_PLATFORM = iOS Simulator,name=iPhone 15
+TEST_PLATFORM = iOS Simulator,name=iPhone 17 Pro Max
+
+BENCHMARK_DIR = Tools/benchmark
+BENCHMARK_RESULTS = $(BENCHMARK_DIR)/results
+BENCHMARK_LOG = $(BENCHMARK_RESULTS)/last-run.log
+BENCHMARK_RESULT_BUNDLE = $(BENCHMARK_RESULTS)/last.xcresult
+BENCHMARK_TOLERANCE ?= 10
+BENCHMARK_NOISE_SIGMA ?= 2
+# Only these metrics can fail the build (others are informational). Comma-separated
+# name substrings, or "all".
+#  - CPU Instructions Retired: deterministic "how much work" signal (catches CPU regressions).
+#  - Clock Monotonic Time: wall time (catches sleeps / I/O waits / lock contention).
+# Clock's high variance is absorbed by the noise band, so it only trips on LARGE time
+# regressions. Memory/CPU-Time stay informational (process-wide / exclude sleep).
+BENCHMARK_GATE_METRICS ?= CPU Instructions Retired,Clock Monotonic Time
+# Performance/benchmark test classes to run (extend as more are added).
+# Only the end-to-end integration benchmark (real ResourceUpdater: fetch + PGP
+# decryption + DB store). Requires the ada key (Fixtures/keys/) or it skips.
+BENCHMARK_ONLY = \
+	-only-testing:PassboltSessionDataTests/SessionDataRefreshIntegrationBenchmarkTests
 
 E2E_DEVICE = iPhone 17 Pro
 E2E_SIM_1 = iPhone 17 Pro
@@ -17,7 +36,7 @@ E2E_SIM_2 = iPhone Air
 E2E_SIM_3 = iPhone SE
 E2E_PARALLEL = true
 
-.PHONY: clean clean_build test ui_test e2e_test e2e_test_multi archive build_publish lint format licenses_plist
+.PHONY: clean clean_build test benchmark benchmark_baseline ui_test e2e_test e2e_test_multi archive build_publish lint format licenses_plist
 
 clean:
 	rm -rf *.ipa
@@ -39,6 +58,21 @@ clean_build:
 test:
 	xcodebuild -project $(PROJECT_PATH) -scheme Passbolt -destination platform="$(TEST_PLATFORM)" -resultBundlePath TestResults.xcresult -derivedDataPath $(DERIVED_DATA) test -enableCodeCoverage YES || exit -1
 	xcrun xccov view --report TestResults.xcresult --only-targets > test-coverage-report.txt
+
+# Run ONLY the performance/benchmark tests, then parse + compare against the saved baseline.
+# Override the regression threshold with: make benchmark BENCHMARK_TOLERANCE=15
+benchmark:
+	mkdir -p $(BENCHMARK_RESULTS)
+	rm -rf $(BENCHMARK_RESULT_BUNDLE)
+	xcodebuild -project $(PROJECT_PATH) -scheme Passbolt -destination platform="$(TEST_PLATFORM)" -derivedDataPath $(DERIVED_DATA) -resultBundlePath $(BENCHMARK_RESULT_BUNDLE) $(BENCHMARK_ONLY) test 2>&1 | tee $(BENCHMARK_LOG) || true
+	python3 $(BENCHMARK_DIR)/benchmark.py compare --xcresult $(BENCHMARK_RESULT_BUNDLE) --log $(BENCHMARK_LOG) --tolerance $(BENCHMARK_TOLERANCE) --noise-sigma $(BENCHMARK_NOISE_SIGMA) --gate-metrics "$(BENCHMARK_GATE_METRICS)"
+
+# Run the benchmark tests and save the results as the new baseline.
+benchmark_baseline:
+	mkdir -p $(BENCHMARK_RESULTS)
+	rm -rf $(BENCHMARK_RESULT_BUNDLE)
+	xcodebuild -project $(PROJECT_PATH) -scheme Passbolt -destination platform="$(TEST_PLATFORM)" -derivedDataPath $(DERIVED_DATA) -resultBundlePath $(BENCHMARK_RESULT_BUNDLE) $(BENCHMARK_ONLY) test 2>&1 | tee $(BENCHMARK_LOG) || true
+	python3 $(BENCHMARK_DIR)/benchmark.py baseline --xcresult $(BENCHMARK_RESULT_BUNDLE) --log $(BENCHMARK_LOG) --noise-sigma $(BENCHMARK_NOISE_SIGMA) --gate-metrics "$(BENCHMARK_GATE_METRICS)"
 
 ui_test: clean_build
 	defaults write com.apple.iphonesimulator ConnectHardwareKeyboard 0
