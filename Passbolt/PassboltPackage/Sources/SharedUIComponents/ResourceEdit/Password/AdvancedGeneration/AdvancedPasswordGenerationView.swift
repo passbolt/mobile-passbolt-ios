@@ -35,24 +35,29 @@ internal struct AdvancedPasswordGenerationView: ControlledView {
 
   internal var body: some View {
     self.with(\.configuration.defaultGenerator) { (generator: PasswordGeneratorType) in
-      ScrollView {
-        VStack(alignment: .leading, spacing: 16) {
-          self.previewView(for: generator)
-          self.tabRow(activeTab: generator)
-          self.tabContent(for: generator)
+      ScreenView(
+        title: Self.navigationTitleKey(for: generator),
+        contentView: {
+          VStack(spacing: 0) {
+            CommonList {
+              CommonListSection {
+                VStack(alignment: .leading, spacing: 16) {
+                  self.previewView(for: generator)
+                  self.tabRow(activeTab: generator)
+                  self.tabContent(for: generator)
+                }
+                .padding(.top, 16)
+              }
+              .backgroundColor(.passboltBackground)
+            }
+
+            self.saveButton
+              .padding(16)
+          }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
-        .padding(.bottom, 88)
-      }
-      .overlay(alignment: .bottom) {
-        self.saveButton
-          .padding(.horizontal, 16)
-          .padding(.bottom, 16)
-      }
-      .navigationTitle(displayable: Self.navigationTitleKey(for: generator))
-      .useCustomBackButton()
-      .navigationBarTitleDisplayMode(.inline)
+      )
+      .backgroundColor(.passboltBackground)
+      .foregroundColor(.passboltPrimaryText)
     }
   }
 
