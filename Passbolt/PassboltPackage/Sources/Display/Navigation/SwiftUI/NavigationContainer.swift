@@ -46,14 +46,20 @@ public struct NavigationContainer<Content: View>: View {
             .environment(\.navigationState, navigationState)
         }
     }
-    .sheet(item: sheetBinding) { item in
+    .sheet(
+      item: sheetBinding,
+      onDismiss: { navigationState.sheetDidFinishDismissing() }
+    ) { item in
       item.makeView()
 
         .interactiveDismissDisabled()
         .presentationDragIndicator(.hidden)
         .solidPresentationBackground()
     }
-    .sheet(item: partialSheetBinding) { item in
+    .sheet(
+      item: partialSheetBinding,
+      onDismiss: { navigationState.partialSheetDidFinishDismissing() }
+    ) { item in
       item.makeView()
 
         .dynamicDetent()

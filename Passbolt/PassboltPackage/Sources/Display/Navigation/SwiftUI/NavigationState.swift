@@ -41,6 +41,15 @@ public final class NavigationState: ObservableObject {
   /// Tracks the order of items in the path for index-based operations.
   private var pathItems: [AnyNavigationItem] = []
 
+  /// Continuations awaiting the full dismissal transition of a sheet, keyed by destination id.
+  private var dismissalContinuations: [NavigationDestinationIdentifier: [CheckedContinuation<Void, Never>]] = [:]
+
+  /// Id of the full sheet currently performing its dismissal transition, if any.
+  private var dismissingSheetID: NavigationDestinationIdentifier? = nil
+
+  /// Id of the partial sheet currently performing its dismissal transition, if any.
+  private var dismissingPartialSheetID: NavigationDestinationIdentifier? = nil
+
   public init() {}
 
   /// Checks if a destination with the given identifier currently exists in the navigation state.
@@ -135,6 +144,58 @@ public final class NavigationState: ObservableObject {
       for item in pathItems {
         path.append(item)
       }
+    }
+  }
+
+  /// Dismisses the sheet or partial sheet with the given identifier and suspends until its
+  /// dismissal transition has fully completed (the sheet's `onDismiss` has fired).
+  ///
+  /// This lets callers safely present something else (e.g. an alert) only once the sheet is
+  /// actually gone - presenting while a sheet is still mid-dismiss is silently dropped by UIKit
+  /// on iOS 16/17. Falls back to a plain `dismiss(with:)` (returning immediately) for non-sheet
+  /// destinations or when no matching sheet is presented.
+  internal func dismissAndWaitForCompletion(id: NavigationDestinationIdentifier) async {
+    let dismissesFullSheet: Bool = presentedSheet?.id == id
+    let dismissesPartialSheet: Bool = presentedPartialSheet?.id == id
+    guard dismissesFullSheet || dismissesPartialSheet
+    else {
+      dismiss(with: id)
+      return
+    }
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      // Register the awaiter before triggering dismissal so `onDismiss` can never
+      // fire before the continuation has been stored.
+      dismissalContinuations[id, default: []].append(continuation)
+      unregister(id)
+      if dismissesFullSheet {
+        dismissingSheetID = id
+        presentedSheet = nil
+      }
+      else {
+        dismissingPartialSheetID = id
+        presentedPartialSheet = nil
+      }
+    }
+  }
+
+  /// Called by the container once a full sheet has finished its dismissal transition.
+  internal func sheetDidFinishDismissing() {
+    guard let id = dismissingSheetID else { return }
+    dismissingSheetID = nil
+    resumeDismissalAwaiters(of: id)
+  }
+
+  /// Called by the container once a partial sheet has finished its dismissal transition.
+  internal func partialSheetDidFinishDismissing() {
+    guard let id = dismissingPartialSheetID else { return }
+    dismissingPartialSheetID = nil
+    resumeDismissalAwaiters(of: id)
+  }
+
+  private func resumeDismissalAwaiters(of id: NavigationDestinationIdentifier) {
+    guard let continuations = dismissalContinuations.removeValue(forKey: id) else { return }
+    for continuation in continuations {
+      continuation.resume()
     }
   }
 

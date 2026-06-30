@@ -386,7 +386,7 @@ extension NavigationTo {
         ) async throws {
           guard let navigationState: NavigationState = registry.activeState()
           else { return }
-          navigationState.dismiss(with: Destination.identifier)
+          await navigationState.dismissAndWaitForCompletion(id: Destination.identifier)
         }
 
         @MainActor func canPerform(
@@ -473,7 +473,7 @@ extension NavigationTo {
         ) async throws {
           guard let navigationState: NavigationState = registry.activeState()
           else { return }
-          navigationState.dismiss(with: Destination.identifier)
+          await navigationState.dismissAndWaitForCompletion(id: Destination.identifier)
         }
 
         @MainActor func canPerform(
