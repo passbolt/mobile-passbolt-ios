@@ -77,14 +77,6 @@ final class ResourceUpdaterTests: FeaturesTestCase {
       \ResourcesFetchModificationDateDatabaseOperation.execute,
       with: always(.init())
     )
-    patch(
-      \ResourceSetFavoriteDatabaseOperation.execute,
-      with: always(())
-    )
-    patch(
-      \ResourceUpdateFolderDatabaseOperation.execute,
-      with: always(())
-    )
   }
 
   // MARK: Preparation & update logic
@@ -330,9 +322,9 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,
-      with: { resourceDTOs async throws in
-        XCTAssertEqual(resourceDTOs.count, 1, "Only supported resource types should be saved.")
-        XCTAssertEqual(resourceDTOs.first?.typeID, supportedType.id)
+      with: { input async throws in
+        XCTAssertEqual(input.changed.count, 1, "Only supported resource types should be saved.")
+        XCTAssertEqual(input.changed.first?.typeID, supportedType.id)
         expectation.fulfill()
       }
     )
@@ -368,8 +360,8 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,
-      with: { resourceDTOs async throws in
-        XCTAssertEqual(resourceDTOs.count, 1, "Resources without name should be ignored.")
+      with: { input async throws in
+        XCTAssertEqual(input.changed.count, 1, "Resources without name should be ignored.")
         expectation.fulfill()
       }
     )
@@ -461,10 +453,10 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     patch(
       \ResourcesStoreDatabaseOperation.execute,
-      with: { resources async throws in
-        XCTAssertEqual(resources.count, 1, "Resource should be saved after metadata decryption.")
-        XCTAssertEqual(resources.first?.id, resource.id, "Saved resource should match the original one.")
-        XCTAssertNotNil(resources.first?.metadata)
+      with: { input async throws in
+        XCTAssertEqual(input.changed.count, 1, "Resource should be saved after metadata decryption.")
+        XCTAssertEqual(input.changed.first?.id, resource.id, "Saved resource should match the original one.")
+        XCTAssertNotNil(input.changed.first?.metadata)
         expectation.fulfill()
       }
     )
@@ -507,9 +499,9 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,
-      with: { resources async throws in
-        XCTAssertEqual(resources.count, 1, "Resource should be saved after metadata decryption.")
-        XCTAssertEqual(resources.first?.id, resource.id, "Saved resource should match the original one.")
+      with: { input async throws in
+        XCTAssertEqual(input.changed.count, 1, "Resource should be saved after metadata decryption.")
+        XCTAssertEqual(input.changed.first?.id, resource.id, "Saved resource should match the original one.")
         resourceStored.fulfill()
       }
     )
@@ -528,9 +520,9 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     let storeExpectation: XCTestExpectation = .init(description: "Resource should be stored.")
     patch(
       \ResourcesStoreDatabaseOperation.execute,
-      with: { resourceDTOs async throws in
-        XCTAssertEqual(resourceDTOs.count, 1, "Exactly one resource should be stored.")
-        XCTAssertEqual(resourceDTOs.first?.id, .mock_1)
+      with: { input async throws in
+        XCTAssertEqual(input.changed.count, 1, "Exactly one resource should be stored.")
+        XCTAssertEqual(input.changed.first?.id, .mock_1)
         storeExpectation.fulfill()
       }
     )
@@ -606,13 +598,15 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     }
   }
 
-  func test_resourceUpdate_whenIncomingResourceIsOlder_shouldNotUpdateIt() async throws {
+  func test_resourceUpdate_whenIncomingResourceIsOlder_shouldReconcileInsteadOfDecrypting() async throws {
     let referenceDate: Date = .now
-    let resourceStored: XCTestExpectation = .init(description: "Resource should not be stored.")
-    resourceStored.isInverted = true
+    // The unchanged resource must be reconciled through the store's `unchanged` set (access / folder /
+    // favorite can change without bumping `modified`) — never decrypted into the `changed` set.
+    let resourceReconciled: XCTestExpectation = .init(description: "Unchanged resource should be reconciled.")
+    // Only the refresh-level state updates remain: initial `waitingForUpdate` and the final reset. The
+    // per-resource state clear is now applied inside the store, not via a separate operation.
     let resourceStateShouldUpdate: XCTestExpectation = .init(description: "Resource state should be updated.")
-    resourceStateShouldUpdate.expectedFulfillmentCount = 3
-    let resourcePermissionsStored: XCTestExpectation = .init(description: "Resource permissions should be stored.")
+    resourceStateShouldUpdate.expectedFulfillmentCount = 2
 
     self.set(
       SessionScope.self,
@@ -643,39 +637,23 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     patch(
       \ResourceUpdateStateDatabaseOperation.execute,
       with: { input in
-        if input.state == .waitingForUpdate {
-          XCTAssertNil(input.filter)  // Initial state update
-          resourceStateShouldUpdate.fulfill()
-        }
-        else {
-          XCTAssertNil(input.state)
-          if input.filter == nil {
-            // State reset after processing
-            resourceStateShouldUpdate.fulfill()
-          }
-          else {
-            XCTAssertEqual(input.filter?.first, resource.id)
-            resourceStateShouldUpdate.fulfill()
-          }
-        }
+        // Both remaining calls operate on the whole table (no per-resource filter).
+        XCTAssertNil(input.filter, "Per-resource state clear is now handled inside the store.")
+        resourceStateShouldUpdate.fulfill()
       }
     )
     patch(
       \ResourcesStoreDatabaseOperation.execute,
-      with: { resources async throws in
-        XCTAssertEqual(resources.count, 0, "Resource should be saved after metadata decryption.")
-        resourceStored.fulfill()
-      }
-    )
-    patch(
-      \ResourceStorePermissionsDatabaseOperation.execute,
-      with: { _ in
-        resourcePermissionsStored.fulfill()
+      with: { input async throws in
+        XCTAssertEqual(input.changed.count, 0, "Unchanged resource must not be decrypted / re-stored.")
+        XCTAssertEqual(input.unchanged.count, 1, "Unchanged resource must be reconciled.")
+        XCTAssertEqual(input.unchanged.first?.id, resource.id)
+        resourceReconciled.fulfill()
       }
     )
     let feature: ResourceUpdater = try self.testedInstance()
     try await feature.updateResources(.serial)
-    await fulfillment(of: [resourceStored, resourceStateShouldUpdate, resourcePermissionsStored], timeout: 1.0)
+    await fulfillment(of: [resourceReconciled, resourceStateShouldUpdate], timeout: 1.0)
   }
 }
 

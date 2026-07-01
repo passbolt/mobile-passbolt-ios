@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import DatabaseOperations
 import FeatureScopes
 import Session
@@ -33,19 +34,36 @@ extension UserGroupsStoreDatabaseOperation {
     _ input: Array<UserGroupDSO>,
     connection: SQLiteConnection
   ) throws {
-    // We have to remove all previously stored data before updating
-    // due to lack of ability to get information about deleted parts.
-    // Until data diffing endpoint becomes implemented we are replacing
-    // whole data set with the new one as an update.
-    // We are getting all possible results anyway until diffing becomes implemented.
-    // Please remove later on when diffing becomes available or other method of
-    // deleting records selecively becomes implemented.
-    //
-    // Delete currently stored userGroups
-    // associations are removed by cascade triggers
-    try connection.execute("DELETE FROM userGroups;")
+    // Delete only vanished groups, then upsert the rest; truncating would cascade-wipe every surviving
+    // group's permissions and memberships. Incoming ids go via a temp table so "NOT IN" stays a sub-select.
+    try connection.execute(
+      .statement("CREATE TEMP TABLE IF NOT EXISTS incomingGroupIDs ( id BLOB NOT NULL PRIMARY KEY );")
+    )
+    try connection.execute(.statement("DELETE FROM incomingGroupIDs;"))
+    let idBatchSize: Int = 256
+    for idsChunk: ArraySlice<UserGroup.ID> in input.map(\.id).chunked(into: idBatchSize) {
+      var insertIDsStatement: SQLiteStatement = "INSERT OR IGNORE INTO incomingGroupIDs ( id ) VALUES "
+      for (offset, groupID): (Int, UserGroup.ID) in idsChunk.enumerated() {
+        if offset > 0 { insertIDsStatement.append(", ") }
+        insertIDsStatement.append("( ? )")
+        insertIDsStatement.appendArgument(groupID)
+      }
+      insertIDsStatement.append(";")
+      try connection.execute(insertIDsStatement)
+    }
+    // Cascades remove vanished groups' memberships and permissions; surviving groups keep theirs.
+    try connection.execute(
+      .statement("DELETE FROM userGroups WHERE id NOT IN ( SELECT id FROM incomingGroupIDs );")
+    )
 
-    for userGroup in input {
+    // Memberships never bump any resource's `modified`, so reconcile every refresh: clear the incoming
+    // groups' memberships here, re-insert them below.
+    try connection.execute(
+      .statement("DELETE FROM usersGroups WHERE userGroupID IN ( SELECT id FROM incomingGroupIDs );")
+    )
+    try connection.execute(.statement("DELETE FROM incomingGroupIDs;"))
+
+    for userGroup: UserGroupDSO in input {
       try connection.execute(
         .statement(
           """
@@ -72,7 +90,8 @@ extension UserGroupsStoreDatabaseOperation {
         )
       )
 
-      for userReference in userGroup.userReferences {
+      // Dedup member references defensively; the ON CONFLICT below also guards the unique index.
+      for userID: User.ID in Set(userGroup.userReferences.map(\.id)) {
         try connection.execute(
           .statement(
             """
@@ -86,9 +105,15 @@ extension UserGroupsStoreDatabaseOperation {
                 ?1,
                 ?2
               )
+            ON CONFLICT
+              (
+                userGroupID,
+                userID
+              )
+            DO NOTHING
             ;
             """,
-            arguments: userReference.id,
+            arguments: userID,
             userGroup.id
           )
         )

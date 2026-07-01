@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import DatabaseOperations
 import FeatureScopes
 import Session
@@ -33,19 +34,33 @@ extension UsersStoreDatabaseOperation {
     _ input: Array<UserDSO>,
     connection: SQLiteConnection
   ) throws {
-    // We have to remove all previously stored data before updating
-    // due to lack of ability to get information about deleted parts.
-    // Until data diffing endpoint becomes implemented we are replacing
-    // whole data set with the new one as an update.
-    // We are getting all possible results anyway until diffing becomes implemented.
-    // Please remove later on when diffing becomes available or other method of
-    // deleting records selecively becomes implemented.
-    //
-    // Delete currently stored userGroups
-    // associations are removed by cascade triggers
-    try connection.execute("DELETE FROM users;")
+    // The current (active, keyed) user always survives `asFilteredDSO`, so an empty input is a fetch
+    // anomaly, not "no users" — skip rather than cascade-wipe every permission and membership.
+    guard input.isEmpty == false
+    else { return }
 
-    for user in input {
+    // Delete only vanished users, then upsert the rest; truncating would cascade-drop every surviving
+    // user's permissions and memberships. Incoming ids go via a temp table so "NOT IN" stays a sub-select.
+    try connection.execute(
+      .statement("CREATE TEMP TABLE IF NOT EXISTS incomingUserIDs ( id BLOB NOT NULL PRIMARY KEY );")
+    )
+    try connection.execute(.statement("DELETE FROM incomingUserIDs;"))
+    let idBatchSize: Int = 256
+    for idsChunk: ArraySlice<User.ID> in input.map(\.id).chunked(into: idBatchSize) {
+      var insertIDsStatement: SQLiteStatement = "INSERT OR IGNORE INTO incomingUserIDs ( id ) VALUES "
+      for (offset, userID): (Int, User.ID) in idsChunk.enumerated() {
+        if offset > 0 { insertIDsStatement.append(", ") }
+        insertIDsStatement.append("( ? )")
+        insertIDsStatement.appendArgument(userID)
+      }
+      insertIDsStatement.append(";")
+      try connection.execute(insertIDsStatement)
+    }
+    // Cascades remove vanished users' permissions and memberships; surviving users keep theirs.
+    try connection.execute(.statement("DELETE FROM users WHERE id NOT IN ( SELECT id FROM incomingUserIDs );"))
+    try connection.execute(.statement("DELETE FROM incomingUserIDs;"))
+
+    for user: UserDSO in input {
       try connection.execute(
         .statement(
           """

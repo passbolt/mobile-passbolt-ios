@@ -31,9 +31,14 @@ import Session
 extension ResourcesStoreDatabaseOperation {
 
   @Sendable fileprivate static func execute(
-    _ input: Array<ResourceDTO>,
+    _ input: ResourcesStoreDatabaseOperationDescription.Input,
     connection: SQLiteConnection
   ) throws {
+
+    // `changed` were decrypted → full metadata/tag/FTS store; `unchanged` keep `modified` → only
+    // access/folder/favorite/state reconciled at the end.
+    let changedResources: Array<ResourceDTO> = input.changed
+    let unchangedResources: Array<ResourceDTO> = input.unchanged
 
     // Suppress the (expensive) resourceSearchIndex FTS triggers for the whole batch; we rebuild the
     // affected rows once at the end instead of letting every child insert re-index the resource.
@@ -46,6 +51,22 @@ extension ResourcesStoreDatabaseOperation {
     )
     try connection.execute(.statement("DELETE FROM resourceSearchRebuildBatch;"))
 
+    // Permissions can change without bumping `modified`, so reconcile every seen resource: clear all
+    // seen ids here, then re-insert current grants below (storeStatement's ON CONFLICT is only a guard).
+    let allSeenResourceIDs: Array<Resource.ID> = changedResources.map(\.id) + unchangedResources.map(\.id)
+    let permissionBatchSize: Int = 256
+    for idsChunk: ArraySlice<Resource.ID> in allSeenResourceIDs.chunked(into: permissionBatchSize) {
+      var removeUserPermissions: SQLiteStatement = "DELETE FROM usersResources WHERE resourceID"
+      removeUserPermissions.append(.in(Set(idsChunk)))
+      removeUserPermissions.append(";")
+      try connection.execute(removeUserPermissions)
+
+      var removeUserGroupPermissions: SQLiteStatement = "DELETE FROM userGroupsResources WHERE resourceID"
+      removeUserGroupPermissions.append(.in(Set(idsChunk)))
+      removeUserGroupPermissions.append(";")
+      try connection.execute(removeUserGroupPermissions)
+    }
+
     // Collect tag data while iterating resources so it can be written in a few batched statements
     // after the loop, instead of two row-by-row inserts per (resource, tag) pair.
     var uniqueTags: Dictionary<ResourceTag.ID, ResourceTag> = .init()
@@ -54,7 +75,7 @@ extension ResourcesStoreDatabaseOperation {
     // Insert or update all new resources. The same ~10 SQL statements run once per resource,
     // so reuse their compiled handles across the whole batch instead of recompiling each time.
     try connection.withPreparedStatements { prepared in
-      for resource in input {
+      for resource: ResourceDTO in changedResources {
         // Remember this resource for the single post-batch FTS rebuild (temp table has no triggers).
         try prepared.execute(
           .statement(
@@ -268,7 +289,7 @@ extension ResourcesStoreDatabaseOperation {
     // the resource-tag links. Tags are upserted before links (FK), and links land before the FTS
     // rebuild below reads them.
     let tagBatchSize: Int = 256
-    let storedResourceIDs: Array<Resource.ID> = input.map(\.id)
+    let storedResourceIDs: Array<Resource.ID> = changedResources.map(\.id)
     for resourceIDsChunk: ArraySlice<Resource.ID> in storedResourceIDs.chunked(into: tagBatchSize) {
       var deleteStatement: SQLiteStatement = "DELETE FROM resourcesTags WHERE resourceID"
       deleteStatement.append(.in(Set(resourceIDsChunk)))
@@ -390,6 +411,74 @@ extension ResourcesStoreDatabaseOperation {
     )
     try connection.execute(.statement("DELETE FROM resourceSearchRebuildBatch;"))
     try connection.execute(.statement("UPDATE resourceSearchIndexSync SET enabled = 1;"))
+
+    // Reconcile unchanged resources' access/folder/favorite (all mutable without bumping `modified`).
+    // No FTS work — none of these columns are indexed.
+    guard unchangedResources.isEmpty == false
+    else { return }
+
+    // Re-insert current grants (cleared for these ids above). Reuse compiled handles across the batch.
+    try connection.withPreparedStatements { prepared in
+      for resource: ResourceDTO in unchangedResources {
+        for permission: GenericPermissionDTO in resource.permissions {
+          try prepared.execute(permission.storeStatement)
+        }
+      }
+    }
+
+    // Apply folder + favorite + state as one set-based UPDATE via a temp table; the parentFolderID
+    // existence guard mirrors the resource upsert so a deleted folder resolves to NULL.
+    try connection.execute(
+      .statement(
+        """
+        CREATE TEMP TABLE IF NOT EXISTS unchangedResourceReconcile (
+          resourceID BLOB NOT NULL PRIMARY KEY,
+          parentFolderID BLOB,
+          favoriteID BLOB
+        );
+        """
+      )
+    )
+    try connection.execute(.statement("DELETE FROM unchangedResourceReconcile;"))
+    let reconcileBatchSize: Int = 256
+    for resourcesChunk: ArraySlice<ResourceDTO> in unchangedResources.chunked(into: reconcileBatchSize) {
+      var reconcileStatement: SQLiteStatement =
+        "INSERT OR REPLACE INTO unchangedResourceReconcile ( resourceID, parentFolderID, favoriteID ) VALUES "
+      for (offset, resource): (Int, ResourceDTO) in resourcesChunk.enumerated() {
+        if offset > 0 { reconcileStatement.append(", ") }
+        reconcileStatement.append("( ?, ?, ? )")
+        reconcileStatement.appendArgument(resource.id)
+        reconcileStatement.appendArgument(resource.parentFolderID)
+        reconcileStatement.appendArgument(resource.favoriteID)
+      }
+      reconcileStatement.append(";")
+      try connection.execute(reconcileStatement)
+    }
+    try connection.execute(
+      .statement(
+        """
+        UPDATE resources
+        SET
+          parentFolderID = (
+            SELECT resourceFolders.id
+            FROM resourceFolders
+            WHERE resourceFolders.id = (
+              SELECT unchangedResourceReconcile.parentFolderID
+              FROM unchangedResourceReconcile
+              WHERE unchangedResourceReconcile.resourceID = resources.id
+            )
+          ),
+          favoriteID = (
+            SELECT unchangedResourceReconcile.favoriteID
+            FROM unchangedResourceReconcile
+            WHERE unchangedResourceReconcile.resourceID = resources.id
+          ),
+          state = NULL
+        WHERE id IN ( SELECT resourceID FROM unchangedResourceReconcile );
+        """
+      )
+    )
+    try connection.execute(.statement("DELETE FROM unchangedResourceReconcile;"))
   }
 }
 

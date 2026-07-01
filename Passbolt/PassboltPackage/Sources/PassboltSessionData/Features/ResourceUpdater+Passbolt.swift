@@ -30,6 +30,13 @@ import SessionData
 
 import struct Foundation.Data
 
+/// Outcome of inspecting a fetched resource: `changed` was decrypted for a full store, `unchanged` only
+/// needs access/folder/favorite reconciled. Droppable resources map to `nil` instead.
+private enum ResourceProcessingOutcome: Sendable {
+  case changed(ResourceDTO)
+  case unchanged(ResourceDTO)
+}
+
 extension ResourceUpdater {
 
   @MainActor fileprivate static func load(
@@ -41,13 +48,10 @@ extension ResourceUpdater {
     let resourceStateUpdateOperation: ResourceUpdateStateDatabaseOperation = try features.instance()
     let resourcesStoreDatabaseOperation: ResourcesStoreDatabaseOperation = try features.instance()
     let resourceFetchOperation: ResourcesFetchNetworkOperation = try features.instance()
-    let resourceStorePermissionsOperation: ResourceStorePermissionsDatabaseOperation = try features.instance()
     let resourceTagsRemoveUnusedDatabaseOperation: ResourceTagsRemoveUnusedDatabaseOperation = try features.instance()
     let resourcesRemoveDatabaseOperation: ResourceRemoveWithStateDatabaseOperation = try features.instance()
-    let resourceUpdateFolderDatabaseOperation: ResourceUpdateFolderDatabaseOperation = try features.instance()
     let resourcesModificationDatesDatabaseOperation: ResourcesFetchModificationDateDatabaseOperation =
       try features.instance()
-    let resourceSetFavoriteDatabaseOperation: ResourceSetFavoriteDatabaseOperation = try features.instance()
     let configuration: SessionConfiguration = try features.sessionConfiguration()
     let metadataKeysService: MetadataKeysService = try features.instance()
 
@@ -103,11 +107,12 @@ extension ResourceUpdater {
         uniqueKeysWithValues: modificationDates.map { ($0.resourceId, $0) }
       )
 
-      let processedResources: Array<ResourceDTO> = try await supportedResources.asyncConcurrentCompactMap(
+      // Decrypt only resources whose `modified` advanced; the rest are reconcile-only. One with an
+      // unavailable shared metadata key is dropped (left `waitingForUpdate` for post-refresh cleanup).
+      let outcomes: Array<ResourceProcessingOutcome> = try await supportedResources.asyncConcurrentCompactMap(
         maximumConcurrentTasks: concurrency
       ) {
-        resource in
-        // verify if shared metadata key is required and is available - otherwise resource has to be dropped
+        resource -> ResourceProcessingOutcome? in
         if resource.metadataKeyType == .shared,
           let keyId: MetadataKeyDTO.ID = resource.metadataKeyId,
           try await metadataKeysService.hasAccessToSharedKey(keyId) == false
@@ -117,40 +122,31 @@ extension ResourceUpdater {
         if let existingModificationDate: ResourceModificationDate = modificationDatesById[resource.id],
           existingModificationDate.modificationDate >= resource.modified
         {
-          do {
-            try await resourceStateUpdateOperation.execute(.init(state: .none, filter: resource.id))
-            // users table is truncated before resources are updated, so permissions must be re-stored
-            try await resourceStorePermissionsOperation.execute(resource.permissions)
-            // similarly, folder relation and favorite status must be re-applied
-            try await resourceUpdateFolderDatabaseOperation.execute(
-              .init(resourceID: resource.id, folderID: resource.parentFolderID)
-            )
-            try await resourceSetFavoriteDatabaseOperation.execute(
-              .init(resourceID: resource.id, favoriteID: resource.favoriteID)
-            )
-          }
-          catch {
-            ResourceUpdateFailed
-              .error()
-              .recording(
-                values: [
-                  "resource_id": resource.id.rawValue,
-                  "underlying_error": error.asTheError().diagnosticsDescription,
-                ]
-              )
-              .logged()
-          }
-          return nil
+          return .unchanged(resource)
         }
-        return await process(resource: resource)
+        guard let processed: ResourceDTO = await process(resource: resource)
+        else { return nil }
+        return .changed(processed)
       }
 
+      var decryptedResources: Array<ResourceDTO> = .init()
+      var unchangedResources: Array<ResourceDTO> = .init()
+      for outcome: ResourceProcessingOutcome in outcomes {
+        switch outcome {
+        case .changed(let resource):
+          decryptedResources.append(resource)
+        case .unchanged(let resource):
+          unchangedResources.append(resource)
+        }
+      }
       let validatedResources: Array<ResourceDTO> =
-        try processedResources
+        try decryptedResources
         .compactMap { try $0.validate(resourceTypes: resourceTypes.get()) }
 
-      if validatedResources.isEmpty == false {
-        try await serialOperationExecutor.execute(validatedResources)
+      if validatedResources.isEmpty == false || unchangedResources.isEmpty == false {
+        try await serialOperationExecutor.execute(
+          .init(changed: validatedResources, unchanged: unchangedResources)
+        )
       }
     }
 
@@ -206,7 +202,7 @@ extension ResourceUpdater {
       }
 
       let validated: ResourceDTO = try processed.validate(resourceTypes: supportedResourceTypes)
-      try await serialOperationExecutor.execute([validated])
+      try await serialOperationExecutor.execute(.init(changed: [validated]))
     }
 
     @Sendable func updateResources(_ configuration: Configuration) async throws {

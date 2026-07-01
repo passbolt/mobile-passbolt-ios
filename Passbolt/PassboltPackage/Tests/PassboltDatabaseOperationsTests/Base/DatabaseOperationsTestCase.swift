@@ -118,8 +118,11 @@ internal class DatabaseOperationsTestCase: FeaturesTestCase {
     try await operation(types)
   }
 
-  final internal func storeResources(_ resources: Array<ResourceDTO>) async throws {
+  final internal func storeResources(
+    _ resources: Array<ResourceDTO>,
+    unchanged: Array<ResourceDTO> = .init()
+  ) async throws {
     let operation: ResourcesStoreDatabaseOperation = try testedInstance()
-    try await operation(resources)
+    try await operation(.init(changed: resources, unchanged: unchanged))
   }
 }

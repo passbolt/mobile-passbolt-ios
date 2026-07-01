@@ -27,5 +27,21 @@ public typealias ResourcesStoreDatabaseOperation = DatabaseOperation<ResourcesSt
 
 public enum ResourcesStoreDatabaseOperationDescription: DatabaseOperationDescription {
 
-  public typealias Input = Array<ResourceDTO>
+  public struct Input: Sendable {
+
+    /// Resources that were (re)fetched and decrypted this refresh: full metadata/permission/tag store,
+    /// marked `state = updated`.
+    public var changed: Array<ResourceDTO>
+    /// Resources whose `modified` was unchanged, so decryption was skipped. Only access (permissions),
+    /// folder, favorite and refresh-state are reconciled — those can change without bumping `modified`.
+    public var unchanged: Array<ResourceDTO>
+
+    public init(
+      changed: Array<ResourceDTO>,
+      unchanged: Array<ResourceDTO> = .init()
+    ) {
+      self.changed = changed
+      self.unchanged = unchanged
+    }
+  }
 }
