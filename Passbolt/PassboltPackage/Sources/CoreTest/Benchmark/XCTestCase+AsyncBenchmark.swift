@@ -23,6 +23,7 @@
 
 import Dispatch
 import XCTest
+
 import class Foundation.NSLock
 
 /// Standard metric set captured by Passbolt async benchmarks.

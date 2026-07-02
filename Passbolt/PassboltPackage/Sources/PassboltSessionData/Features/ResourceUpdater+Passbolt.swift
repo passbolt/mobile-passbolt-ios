@@ -91,7 +91,7 @@ extension ResourceUpdater {
       return nil
     }
 
-    @Sendable func process(resources: Array<ResourceDTO>) async throws {
+    @Sendable func process(resources: Array<ResourceDTO>, concurrency: Int) async throws {
       let supportedResources: Array<ResourceDTO> = resources.filter { resource in
         resourceTypes.get().contains { $0.id == resource.typeID }
       }
@@ -103,7 +103,9 @@ extension ResourceUpdater {
         uniqueKeysWithValues: modificationDates.map { ($0.resourceId, $0) }
       )
 
-      let processedResources: Array<ResourceDTO> = try await supportedResources.asyncCompactMap {
+      let processedResources: Array<ResourceDTO> = try await supportedResources.asyncConcurrentCompactMap(
+        maximumConcurrentTasks: concurrency
+      ) {
         resource in
         // verify if shared metadata key is required and is available - otherwise resource has to be dropped
         if resource.metadataKeyType == .shared,
@@ -152,7 +154,7 @@ extension ResourceUpdater {
       }
     }
 
-    @Sendable func fetchAndProcess(limit: Int, page: Int) async throws {
+    @Sendable func fetchAndProcess(limit: Int, page: Int, concurrency: Int) async throws {
       let page: PaginatedResponse<Array<ResourceDTO>> =
         try await resourceFetchOperation
         .execute(
@@ -161,7 +163,7 @@ extension ResourceUpdater {
             limit: limit
           )
         )
-      try await process(resources: page.items)
+      try await process(resources: page.items, concurrency: concurrency)
     }
 
     @Sendable func ensureResourceTypesLoaded() async throws -> Array<ResourceTypeDTO> {
@@ -224,12 +226,16 @@ extension ResourceUpdater {
       let totalPages: Int = firstPage.totalPages
 
       await batchExecutor.addOperation {
-        try await process(resources: firstPage.items)
+        try await process(resources: firstPage.items, concurrency: configuration.maximumConcurrentDecryptions)
       }
       if totalPages > 1 {
         for page in 2 ... totalPages {
           await batchExecutor.addOperation {
-            try await fetchAndProcess(limit: configuration.maximumChunkSize, page: page)
+            try await fetchAndProcess(
+              limit: configuration.maximumChunkSize,
+              page: page,
+              concurrency: configuration.maximumConcurrentDecryptions
+            )
           }
         }
       }

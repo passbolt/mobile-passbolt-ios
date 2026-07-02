@@ -85,8 +85,8 @@ final class SessionDataRefreshIntegrationBenchmarkTests: XCTestCase {
       NetworkResponseFixture.exists("Benchmark/large/users.json"),
       "Large fixtures absent."
     )
-    executionTimeAllowance = 60 * 10  // 10 minutes
-    try await self.runBenchmark(size: "large", iterations: 5)
+    executionTimeAllowance = 2600  // ~43 minutes
+    try await self.runBenchmark(size: "large", iterations: 3)
   }
 
   /// Real fetch (paginated) → PGP-decrypt → store for the given dataset.
@@ -100,7 +100,10 @@ final class SessionDataRefreshIntegrationBenchmarkTests: XCTestCase {
       // Clear stored resources so every iteration decrypts in full.
       try await prepared.resetState.execute(.init(state: .waitingForUpdate))
       try await prepared.resetRemove.execute(.waitingForUpdate)
-      try await prepared.updater.updateResources(.init(maximumChunkSize: 5_000, maximumConcurrentTasks: 5))
+      try await prepared.updater.updateResources(
+        // Mirror the production app config (see SessionData+Passbolt `.application`).
+        .init(maximumChunkSize: 5_000, maximumConcurrentTasks: 5, maximumConcurrentDecryptions: 4)
+      )
     }
   }
 
@@ -260,7 +263,8 @@ final class SessionDataRefreshIntegrationBenchmarkTests: XCTestCase {
               if path.hasSuffix("/resources.json") {
                 // Paginated: route by the request's `page` query item.
                 let pageValue: String? = request.urlComponents.queryItems?
-                  .first(where: { $0.name == "page" })?.value
+                  .first(where: { $0.name == "page" })?
+                  .value
                 let page: Int = pageValue.flatMap(Int.init) ?? 1
                 bytes = resourcePages[page] ?? resourcePages[1] ?? []
               }

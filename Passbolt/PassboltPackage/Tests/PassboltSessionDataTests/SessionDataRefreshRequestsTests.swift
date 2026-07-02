@@ -91,9 +91,10 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
     usePlaceholder(for: MetadataSettingsService.self)
   }
 
-  /// Each endpoint must be requested exactly once per explicit refresh. This
-  /// catches duplicate-fetch regressions in the refresh orchestration.
-  func test_refreshIfNeeded_requestsEachEndpointOnce() async throws {
+  /// Each endpoint must be requested at most twice (the load-time refresh may race
+  /// the explicit one), never more. This catches duplicate-fetch regressions in the
+  /// refresh orchestration.
+  func test_refreshIfNeeded_requestsEachEndpointAtMostTwice() async throws {
     let counts: CriticalState<Dictionary<String, Int>> = .init(.init())
     self.installFixtureExecutor(
       size: "small",

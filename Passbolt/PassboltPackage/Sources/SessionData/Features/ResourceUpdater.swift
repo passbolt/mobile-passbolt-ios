@@ -43,10 +43,17 @@ extension ResourceUpdater {
   public struct Configuration: Sendable {
     public let maximumChunkSize: Int
     public let maximumConcurrentTasks: Int
+    /// Maximum number of resources decrypted in parallel within a single page.
+    public let maximumConcurrentDecryptions: Int
 
-    public init(maximumChunkSize: Int, maximumConcurrentTasks: Int) {
+    public init(
+      maximumChunkSize: Int,
+      maximumConcurrentTasks: Int,
+      maximumConcurrentDecryptions: Int = 1
+    ) {
       self.maximumChunkSize = maximumChunkSize
       self.maximumConcurrentTasks = maximumConcurrentTasks
+      self.maximumConcurrentDecryptions = maximumConcurrentDecryptions
     }
   }
 }

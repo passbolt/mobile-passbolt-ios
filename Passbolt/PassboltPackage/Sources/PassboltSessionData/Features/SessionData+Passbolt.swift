@@ -218,11 +218,13 @@ extension ResourceUpdater.Configuration {
 
   fileprivate static let application: Self = .init(
     maximumChunkSize: 5_000,
-    maximumConcurrentTasks: 5
+    maximumConcurrentTasks: 5,
+    maximumConcurrentDecryptions: 4
   )
 
   fileprivate static let `extension`: Self = .init(
     maximumChunkSize: 1_000,
-    maximumConcurrentTasks: 1
+    maximumConcurrentTasks: 1,
+    maximumConcurrentDecryptions: 2
   )
 }

@@ -509,13 +509,20 @@ extension MetadataKeysService {
       case .userKey:
         decryptor = try await sessionCryptography.sessionDecryptor()
       }
-      if let decryptor {
-        configuredDecryptors.access { decryptors in
+      guard let decryptor else { return .none }
+      // With parallel decryption several callers can build a decryptor before any is cached.
+      // In a single atomic step keep the first one, or discard this extra and return the cached
+      // one — so we never leak Gopenpgp decryptors nor race a separate cache read.
+      return configuredDecryptors.access { decryptors in
+        if let cached: ConfiguredDecryptor = decryptors[encryptionType] {
+          decryptor.deinitialize()
+          return cached
+        }
+        else {
           decryptors[encryptionType] = decryptor
+          return decryptor
         }
       }
-
-      return decryptor
     }
 
     @Sendable nonisolated func batchDecrypt(
