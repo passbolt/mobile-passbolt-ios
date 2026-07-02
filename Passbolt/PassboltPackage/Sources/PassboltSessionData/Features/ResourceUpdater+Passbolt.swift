@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import DatabaseOperations
 import FeatureScopes
 import Metadata
@@ -28,7 +29,6 @@ import NetworkOperations
 import SessionData
 
 import struct Foundation.Data
-import class Foundation.NSLock
 
 extension ResourceUpdater {
 
@@ -142,12 +142,14 @@ extension ResourceUpdater {
         }
         return await process(resource: resource)
       }
+
       let validatedResources: Array<ResourceDTO> =
         try processedResources
         .compactMap { try $0.validate(resourceTypes: resourceTypes.get()) }
 
-      guard validatedResources.isEmpty == false else { return }
-      try await serialOperationExecutor.execute(validatedResources)
+      if validatedResources.isEmpty == false {
+        try await serialOperationExecutor.execute(validatedResources)
+      }
     }
 
     @Sendable func fetchAndProcess(limit: Int, page: Int) async throws {
@@ -209,6 +211,7 @@ extension ResourceUpdater {
       _ = try await ensureResourceTypesLoaded()
 
       try await resourceStateUpdateOperation.execute(.init(state: .waitingForUpdate))
+
       let batchExecutor: BatchExecutor = .init(maxConcurrentTasks: configuration.maximumConcurrentTasks)
       let firstPage: PaginatedResponse<Array<ResourceDTO>> =
         try await resourceFetchOperation
@@ -219,6 +222,7 @@ extension ResourceUpdater {
           )
         )
       let totalPages: Int = firstPage.totalPages
+
       await batchExecutor.addOperation {
         try await process(resources: firstPage.items)
       }

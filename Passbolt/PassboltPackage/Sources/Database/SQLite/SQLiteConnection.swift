@@ -33,6 +33,16 @@ public struct SQLiteConnection: Sendable {
   public var beginTransaction: @Sendable () throws -> Void
   public var rollbackTransaction: @Sendable () throws -> Void
   public var endTransaction: @Sendable () throws -> Void
+  // Reuses a compiled statement held by the cache; used by `withPreparedStatements`.
+  internal var executeReusing: @Sendable (SQLiteStatement, PreparedStatementCache) throws -> Void
+}
+
+/// Executes statements while reusing their compiled `sqlite3_stmt` handles. Obtained from
+/// `SQLiteConnection.withPreparedStatements`; valid only within that call's body.
+public struct PreparedStatements {
+
+  /// Execute a statement, reusing a compiled handle for its SQL across calls.
+  public var execute: (SQLiteStatement) throws -> Void
 }
 
 extension SQLiteConnection {
@@ -81,12 +91,24 @@ extension SQLiteConnection {
       try connectionHandle.execute("END TRANSACTION;")
     }
 
+    @Sendable func executeReusing(
+      statement: SQLiteStatement,
+      cache: PreparedStatementCache
+    ) throws {
+      try connectionHandle.executeReusing(
+        statement.rawString,
+        with: statement.arguments.arguments,
+        cache: cache
+      )
+    }
+
     let connection: SQLiteConnection = .init(
       execute: execute(statement:),
       fetch: fetch(statement:),
       beginTransaction: beginTransaction,
       rollbackTransaction: rollbackTransaction,
-      endTransaction: endTransaction
+      endTransaction: endTransaction,
+      executeReusing: executeReusing(statement:cache:)
     )
 
     try Self.performMigrations(
@@ -152,6 +174,25 @@ extension SQLiteConnection {
       try rollbackTransaction()
       throw error
     }
+  }
+
+  /// Runs `body` with a `PreparedStatements` executor that reuses each statement's compiled
+  /// `sqlite3_stmt` across executions, eliminating repeated `sqlite3_prepare_v2` for the same SQL.
+  /// All cached statements are finalized when `body` returns or throws. Intended for bulk writes
+  /// inside a transaction; `body` must run synchronously on a single thread (which a transaction
+  /// body does). Does not begin a transaction itself — wrap in `withTransaction` if atomicity is
+  /// required (as the resource store does).
+  public func withPreparedStatements<Value>(
+    _ body: (PreparedStatements) throws -> Value
+  ) throws -> Value {
+    let cache: PreparedStatementCache = .init()
+    defer { cache.finalizeAll() }
+    let prepared: PreparedStatements = .init(
+      execute: { (statement: SQLiteStatement) throws -> Void in
+        try self.executeReusing(statement, cache)
+      }
+    )
+    return try body(prepared)
   }
 
   private static func performMigrations(
@@ -231,7 +272,8 @@ extension SQLiteConnection {
       fetch: unimplemented1(),
       beginTransaction: unimplemented0(),
       rollbackTransaction: unimplemented0(),
-      endTransaction: unimplemented0()
+      endTransaction: unimplemented0(),
+      executeReusing: unimplemented2()
     )
   }
 }

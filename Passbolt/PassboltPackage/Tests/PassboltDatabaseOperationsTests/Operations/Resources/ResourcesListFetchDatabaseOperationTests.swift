@@ -253,6 +253,35 @@ final internal class ResourcesListFetchDatabaseOperationTests: DatabaseOperation
     XCTAssertEqual(results.count, 0)
   }
 
+  internal func test_whenMetadataEditedDirectly_thenSearchIndexUpdatesViaTriggers() async throws {
+    // The bulk store suppresses the FTS triggers and rebuilds once; a direct single-row edit must
+    // still update the index via the (guarded, enabled-by-default) triggers — simulating a manual edit.
+    let resource: ResourceDTO = .create(resourceTypeId: testResourceType.id, name: "Original Name")
+    try await self.storeResources([resource])
+
+    guard let connection: SQLiteConnection = self.databaseConnection
+    else { return XCTFail("Missing test connection") }
+    try connection.execute(
+      .statement(
+        "UPDATE resourceMetadata SET name = ?2 WHERE resource_id = ?1;",
+        arguments: resource.id,
+        "Renamed Afterwards"
+      )
+    )
+
+    let operation: ResourcesListFetchDatabaseOperation = try self.testedInstance()
+    let renamedResults: Array<ResourceListItemDSV> = try await operation.execute(
+      .init(sorting: .nameAlphabetically, text: "Renamed")
+    )
+    XCTAssertEqual(renamedResults.count, 1)
+    XCTAssertEqual(renamedResults[0].id, resource.id)
+
+    let staleResults: Array<ResourceListItemDSV> = try await operation.execute(
+      .init(sorting: .nameAlphabetically, text: "Original")
+    )
+    XCTAssertEqual(staleResults.count, 0)
+  }
+
   internal func test_whenSearchingWithSpecialCharacters_thenDoesNotCrash() async throws {
     let resource: ResourceDTO = .create(resourceTypeId: testResourceType.id, name: "Test Resource")
     try await self.storeResources([resource])

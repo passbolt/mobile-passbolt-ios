@@ -191,10 +191,64 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
     return rows
   }
 
+  /// Execute a non-row-returning statement reusing a compiled `sqlite3_stmt` held by `cache`.
+  /// The first call for a given SQL string compiles and stores it; subsequent calls reset and
+  /// rebind it, avoiding repeated `sqlite3_prepare_v2`. The cache must be finalized by its owner
+  /// (see `SQLiteConnection.withPreparedStatements`); statements are never finalized here.
+  /// Safe only when the cache is used by a single thread (e.g. inside one synchronous transaction).
+  @usableFromInline
+  internal func executeReusing(
+    _ statement: String,
+    with parameters: Array<SQLiteValue> = .init(),
+    cache: PreparedStatementCache
+  ) throws {
+    let statementHandle: OpaquePointer?
+    if let cached: OpaquePointer = cache.handle(for: statement) {
+      statementHandle = cached
+      sqlite3_reset(statementHandle)
+      sqlite3_clear_bindings(statementHandle)
+    }
+    else {
+      statementHandle = try compileStatement(statement)
+      cache.store(statementHandle, for: statement)
+    }
+
+    try bindParameters(parameters, to: statementHandle, statement: statement)
+
+    var stepResult: Int32 = sqlite3_step(statementHandle)
+    while stepResult == SQLITE_ROW {
+      stepResult = sqlite3_step(statementHandle)
+    }
+
+    guard stepResult == SQLITE_DONE
+    else {
+      sqlite3_reset(statementHandle)
+      throw
+        DatabaseIssue
+        .error(
+          underlyingError:
+            DatabaseStatementExecutionFailure
+            .error()
+            .recording(lastErrorMessage(), for: "errorMessage")
+            .recording(statement, for: "statement")
+            .recording(parameters, for: "parameters")
+        )
+    }
+  }
+
   @inline(__always)
   private func prepareStatement(
     _ statement: String,
     with parameters: Array<SQLiteValue>
+  ) throws -> OpaquePointer? {
+    let statementHandle: OpaquePointer? = try compileStatement(statement)
+    try bindParameters(parameters, to: statementHandle, statement: statement)
+    return statementHandle
+  }
+
+  @inline(__always)
+  private func compileStatement(
+    _ statement: String
   ) throws -> OpaquePointer? {
     var statementHandle: OpaquePointer?
 
@@ -216,10 +270,18 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
             .error()
             .recording(lastErrorMessage(), for: "errorMessage")
             .recording(statement, for: "statement")
-            .recording(parameters, for: "parameters")
         )
     }
 
+    return statementHandle
+  }
+
+  @inline(__always)
+  private func bindParameters(
+    _ parameters: Array<SQLiteValue>,
+    to statementHandle: OpaquePointer?,
+    statement: String
+  ) throws {
     guard sqlite3_bind_parameter_count(statementHandle) == parameters.count
     else {
       throw
@@ -256,8 +318,6 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
           )
       }
     }
-
-    return statementHandle
   }
 
   @usableFromInline
@@ -281,5 +341,37 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
     sqlite3_errmsg(handle)
       .map(String.init(cString:))
       ?? "Unknown failure reason"
+  }
+}
+
+/// Holds compiled `sqlite3_stmt` handles keyed by their SQL text so they can be reused across
+/// many executions (avoiding repeated compilation). Intended to live for the duration of a single
+/// synchronous transaction and be finalized at its end via `finalizeAll()`. Not safe for concurrent
+/// use across threads — it is owned by the single thread running the transaction body.
+@usableFromInline
+internal final class PreparedStatementCache: @unchecked Sendable {
+
+  private var handles: Dictionary<String, OpaquePointer> = .init()
+
+  @usableFromInline
+  internal init() {}
+
+  @inline(__always)
+  internal func handle(for statement: String) -> OpaquePointer? {
+    self.handles[statement]
+  }
+
+  @inline(__always)
+  internal func store(_ handle: OpaquePointer?, for statement: String) {
+    guard let handle: OpaquePointer = handle else { return }
+    self.handles[statement] = handle
+  }
+
+  @usableFromInline
+  internal func finalizeAll() {
+    for handle: OpaquePointer in self.handles.values {
+      sqlite3_finalize(handle)
+    }
+    self.handles.removeAll()
   }
 }

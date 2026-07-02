@@ -34,29 +34,72 @@ extension ResourcesStoreDatabaseOperation {
     connection: SQLiteConnection
   ) throws {
 
-    // Insert or update all new resource
-    for resource in input {
-      try connection.execute(
-        .statement(
-          """
-          INSERT INTO
-            resources(
-              id,
-              typeID,
-              parentFolderID,
-              favoriteID,
-              permission,
-              modified,
-              expired,
-              metadata_key_id,
-              metadata_key_type,
-              state
-            )
-          VALUES
-            (
-              ?1,
-              ?2,
+    // Suppress the (expensive) resourceSearchIndex FTS triggers for the whole batch; we rebuild the
+    // affected rows once at the end instead of letting every child insert re-index the resource.
+    // (See Migration_30 for the guard flag and Migration_27 for the canonical FTS build query.)
+    try connection.execute(.statement("UPDATE resourceSearchIndexSync SET enabled = 0;"))
+    try connection.execute(
+      .statement(
+        "CREATE TEMP TABLE IF NOT EXISTS resourceSearchRebuildBatch (resourceID BLOB NOT NULL PRIMARY KEY);"
+      )
+    )
+    try connection.execute(.statement("DELETE FROM resourceSearchRebuildBatch;"))
+
+    // Insert or update all new resources. The same ~10 SQL statements run once per resource,
+    // so reuse their compiled handles across the whole batch instead of recompiling each time.
+    try connection.withPreparedStatements { prepared in
+      for resource in input {
+        // Remember this resource for the single post-batch FTS rebuild (temp table has no triggers).
+        try prepared.execute(
+          .statement(
+            "INSERT OR IGNORE INTO resourceSearchRebuildBatch (resourceID) VALUES (?1);",
+            arguments: resource.id
+          )
+        )
+        try prepared.execute(
+          .statement(
+            """
+            INSERT INTO
+              resources(
+                id,
+                typeID,
+                parentFolderID,
+                favoriteID,
+                permission,
+                modified,
+                expired,
+                metadata_key_id,
+                metadata_key_type,
+                state
+              )
+            VALUES
               (
+                ?1,
+                ?2,
+                (
+                  SELECT
+                    id
+                  FROM
+                    resourceFolders
+                  WHERE
+                    id == ?3
+                  LIMIT 1
+                ),
+                ?4,
+                ?5,
+                ?6,
+                ?7,
+                ?8,
+                ?9,
+                ?10
+              )
+            ON CONFLICT
+              (
+                id
+              )
+            DO UPDATE SET
+              typeID=?2,
+              parentFolderID=(
                 SELECT
                   id
                 FROM
@@ -65,235 +108,301 @@ extension ResourcesStoreDatabaseOperation {
                   id == ?3
                 LIMIT 1
               ),
-              ?4,
-              ?5,
-              ?6,
-              ?7,
-              ?8,
-              ?9,
-              ?10
-            )
-          ON CONFLICT
-            (
-              id
-            )
-          DO UPDATE SET
-            typeID=?2,
-            parentFolderID=(
-              SELECT
-                id
-              FROM
-                resourceFolders
-              WHERE
-                id == ?3
-              LIMIT 1
-            ),
-            favoriteID=?4,
-            permission=?5,
-            modified=?6,
-            expired=?7,
-            metadata_key_id=?8,
-            metadata_key_type=?9,
-            state = ?10
-          ;
-          """,
-          arguments: resource.id,
-          resource.typeID,
-          resource.parentFolderID,
-          resource.favoriteID,
-          resource.permission.rawValue,
-          resource.modified,
-          resource.expired,
-          resource.metadataKeyId,
-          resource.metadataKeyType?.rawValue,
-          ResourceState.updated.rawValue
-        )
-      )
-      if let metadata = resource.metadata {
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              resourceMetadata(
-                resource_id,
-                data,
-                name,
-                username,
-                description,
-                icon_type,
-                icon_value,
-                icon_background_color
-              )
-            VALUES
-              (
-                ?1,
-                ?2,
-                ?3,
-                ?4,
-                ?5,
-                ?6,
-                ?7,
-                ?8
-              )
-            ON CONFLICT
-              (
-                resource_id
-              )
-            DO UPDATE SET
-              data=?2,
-              name=?3,
-              username=?4,
-              description=?5,
-              icon_type=?6,
-              icon_value=?7,
-              icon_background_color=?8
+              favoriteID=?4,
+              permission=?5,
+              modified=?6,
+              expired=?7,
+              metadata_key_id=?8,
+              metadata_key_type=?9,
+              state = ?10
             ;
             """,
-            arguments:
-              metadata.resourceId,
-            metadata.data,
-            metadata.name,
-            metadata.username,
-            metadata.description,
-            metadata.icon?.type.rawValue,
-            metadata.icon?.value?.rawValue,
-            metadata.icon?.backgroundColor
+            arguments: resource.id,
+            resource.typeID,
+            resource.parentFolderID,
+            resource.favoriteID,
+            resource.permission.rawValue,
+            resource.modified,
+            resource.expired,
+            resource.metadataKeyId,
+            resource.metadataKeyType?.rawValue,
+            ResourceState.updated.rawValue
           )
         )
-        let removeURIsStatement: SQLiteStatement = .statement(
-          "DELETE FROM resourceURI WHERE resource_id = ?1",
-          arguments: resource.id
-        )
-        try connection.execute(removeURIsStatement)
-
-        for uri in metadata.uris {
-          try connection.execute(
-            .statement(
-              """
-                INSERT INTO
-                  resourceURI(
-                    resource_id,
-                    uri
-                  )
-                VALUES (
-                  ?1,
-                  ?2
-                )
-                ON CONFLICT
-                  (
-                    resource_id,
-                    uri
-                  )
-                DO NOTHING
-              """,
-              arguments:
-                uri.resourceId,
-              uri.uri
-            )
-          )
-        }
-
-        for customField in metadata.customFields {
-          try connection.execute(
-            .statement(
-              """
-                INSERT INTO
-                  resourceCustomFields(
-                    id,
-                    resourceID,
-                    key
-                  )
-                VALUES (
-                  ?1,
-                  ?2,
-                  ?3
-                )
-                ON CONFLICT
-                  (
-                    id
-                  )
-                DO NOTHING
-              """,
-              arguments:
-                customField.id.rawValue.uuidString,
-              resource.id,
-              customField.metadataKey
-            )
-          )
-        }
-      }
-
-      let removeTagsStatement: SQLiteStatement = .statement(
-        "DELETE FROM resourcesTags WHERE resourceID = ?1",
-        arguments: resource.id
-      )
-      try connection.execute(removeTagsStatement)
-
-      for resourceTag in resource.tags {
-        try connection
-          .execute(
+        if let metadata = resource.metadata {
+          try prepared.execute(
             .statement(
               """
               INSERT INTO
-                resourceTags(
-                  id,
-                  slug,
-                  shared
+                resourceMetadata(
+                  resource_id,
+                  data,
+                  name,
+                  username,
+                  description,
+                  icon_type,
+                  icon_value,
+                  icon_background_color
                 )
               VALUES
                 (
                   ?1,
                   ?2,
-                  ?3
+                  ?3,
+                  ?4,
+                  ?5,
+                  ?6,
+                  ?7,
+                  ?8
                 )
               ON CONFLICT
                 (
-                  id
+                  resource_id
                 )
               DO UPDATE SET
-                slug=?2,
-                shared=?3
+                data=?2,
+                name=?3,
+                username=?4,
+                description=?5,
+                icon_type=?6,
+                icon_value=?7,
+                icon_background_color=?8
               ;
               """,
-              arguments: resourceTag.id,
-              resourceTag.slug,
-              resourceTag.shared
+              arguments:
+                metadata.resourceId,
+              metadata.data,
+              metadata.name,
+              metadata.username,
+              metadata.description,
+              metadata.icon?.type.rawValue,
+              metadata.icon?.value?.rawValue,
+              metadata.icon?.backgroundColor
             )
           )
-
-        try connection
-          .execute(
-            .statement(
-              """
-              INSERT INTO
-                resourcesTags(
-                  resourceID,
-                  resourceTagID
-                )
-              SELECT
-                resources.id,
-                resourceTags.id
-              FROM
-                resources,
-                resourceTags
-              WHERE
-                resources.id == ?1
-              AND
-                resourceTags.id == ?2
-              ;
-              """,
-              arguments: resource.id,
-              resourceTag.id
-            )
+          let removeURIsStatement: SQLiteStatement = .statement(
+            "DELETE FROM resourceURI WHERE resource_id = ?1",
+            arguments: resource.id
           )
-      }
+          try prepared.execute(removeURIsStatement)
 
-      for permission in resource.permissions {
-        try connection.execute(
-          permission.storeStatement
+          for uri in metadata.uris {
+            try prepared.execute(
+              .statement(
+                """
+                  INSERT INTO
+                    resourceURI(
+                      resource_id,
+                      uri
+                    )
+                  VALUES (
+                    ?1,
+                    ?2
+                  )
+                  ON CONFLICT
+                    (
+                      resource_id,
+                      uri
+                    )
+                  DO NOTHING
+                """,
+                arguments:
+                  uri.resourceId,
+                uri.uri
+              )
+            )
+          }
+
+          for customField in metadata.customFields {
+            try prepared.execute(
+              .statement(
+                """
+                  INSERT INTO
+                    resourceCustomFields(
+                      id,
+                      resourceID,
+                      key
+                    )
+                  VALUES (
+                    ?1,
+                    ?2,
+                    ?3
+                  )
+                  ON CONFLICT
+                    (
+                      id
+                    )
+                  DO NOTHING
+                """,
+                arguments:
+                  customField.id.rawValue.uuidString,
+                resource.id,
+                customField.metadataKey
+              )
+            )
+          }
+        }
+
+        let removeTagsStatement: SQLiteStatement = .statement(
+          "DELETE FROM resourcesTags WHERE resourceID = ?1",
+          arguments: resource.id
         )
+        try prepared.execute(removeTagsStatement)
+
+        for resourceTag in resource.tags {
+          try prepared
+            .execute(
+              .statement(
+                """
+                INSERT INTO
+                  resourceTags(
+                    id,
+                    slug,
+                    shared
+                  )
+                VALUES
+                  (
+                    ?1,
+                    ?2,
+                    ?3
+                  )
+                ON CONFLICT
+                  (
+                    id
+                  )
+                DO UPDATE SET
+                  slug=?2,
+                  shared=?3
+                ;
+                """,
+                arguments: resourceTag.id,
+                resourceTag.slug,
+                resourceTag.shared
+              )
+            )
+
+          try prepared
+            .execute(
+              .statement(
+                """
+                INSERT INTO
+                  resourcesTags(
+                    resourceID,
+                    resourceTagID
+                  )
+                SELECT
+                  resources.id,
+                  resourceTags.id
+                FROM
+                  resources,
+                  resourceTags
+                WHERE
+                  resources.id == ?1
+                AND
+                  resourceTags.id == ?2
+                ;
+                """,
+                arguments: resource.id,
+                resourceTag.id
+              )
+            )
+        }
+
+        for permission in resource.permissions {
+          try prepared.execute(
+            permission.storeStatement
+          )
+        }
       }
     }
+
+    // Rebuild both FTS indexes once, for exactly the resources stored above, then re-enable the
+    // triggers. The SELECT mirrors Migration_27's populate query, scoped to this batch. All of this
+    // runs inside the operation's transaction, so a failure rolls the flag and index back together.
+    try connection.execute(
+      .statement(
+        """
+        DELETE FROM resourceSearchIndex
+        WHERE resourceID IN (SELECT resourceID FROM resourceSearchRebuildBatch);
+        """
+      )
+    )
+    try connection.execute(
+      .statement(
+        """
+        INSERT INTO resourceSearchIndex(resourceID, name, username, uris, tags, customFieldKeys)
+        SELECT
+          resources.id,
+          COALESCE(resourceMetadata.name, ''),
+          COALESCE(resourceMetadata.username, ''),
+          COALESCE(
+            (SELECT group_concat(resourceURI.uri, ' ')
+             FROM resourceURI
+             WHERE resourceURI.resource_id = resources.id),
+            ''
+          ),
+          COALESCE(
+            (SELECT group_concat(resourceTags.slug, ' ')
+             FROM resourcesTags
+             JOIN resourceTags ON resourcesTags.resourceTagID = resourceTags.id
+             WHERE resourcesTags.resourceID = resources.id),
+            ''
+          ),
+          COALESCE(
+            (SELECT group_concat(resourceCustomFields.key, ' ')
+             FROM resourceCustomFields
+             WHERE resourceCustomFields.resourceID = resources.id),
+            ''
+          )
+        FROM resources
+        LEFT JOIN resourceMetadata ON resources.id = resourceMetadata.resource_id
+        WHERE resources.id IN (SELECT resourceID FROM resourceSearchRebuildBatch);
+        """
+      )
+    )
+    try connection.execute(
+      .statement(
+        """
+        DELETE FROM resourceSearchIndexSubstring
+        WHERE resourceID IN (SELECT resourceID FROM resourceSearchRebuildBatch);
+        """
+      )
+    )
+    try connection.execute(
+      .statement(
+        """
+        INSERT INTO resourceSearchIndexSubstring(resourceID, name, username, uris, tags, customFieldKeys)
+        SELECT
+          resources.id,
+          COALESCE(resourceMetadata.name, ''),
+          COALESCE(resourceMetadata.username, ''),
+          COALESCE(
+            (SELECT group_concat(resourceURI.uri, ' ')
+             FROM resourceURI
+             WHERE resourceURI.resource_id = resources.id),
+            ''
+          ),
+          COALESCE(
+            (SELECT group_concat(resourceTags.slug, ' ')
+             FROM resourcesTags
+             JOIN resourceTags ON resourcesTags.resourceTagID = resourceTags.id
+             WHERE resourcesTags.resourceID = resources.id),
+            ''
+          ),
+          COALESCE(
+            (SELECT group_concat(resourceCustomFields.key, ' ')
+             FROM resourceCustomFields
+             WHERE resourceCustomFields.resourceID = resources.id),
+            ''
+          )
+        FROM resources
+        LEFT JOIN resourceMetadata ON resources.id = resourceMetadata.resource_id
+        WHERE resources.id IN (SELECT resourceID FROM resourceSearchRebuildBatch);
+        """
+      )
+    )
+    try connection.execute(.statement("DELETE FROM resourceSearchRebuildBatch;"))
+    try connection.execute(.statement("UPDATE resourceSearchIndexSync SET enabled = 1;"))
   }
 }
 

@@ -21,10 +21,8 @@
 // @since         v1.0
 //
 
-import XCTest
-
 import Dispatch
-
+import XCTest
 import class Foundation.NSLock
 
 /// Standard metric set captured by Passbolt async benchmarks.
@@ -38,7 +36,7 @@ public func benchmarkMetrics() -> Array<XCTMetric> {
     XCTClockMetric(),
     XCTMemoryMetric(),
     XCTCPUMetric(),
-    XCTStorageMetric()
+    XCTStorageMetric(),
   ]
 }
 

@@ -36,6 +36,10 @@ import XCTest
 /// Subclasses should override `registerOperations()` to register additional operations under test.
 internal class DatabaseOperationsTestCase: FeaturesTestCase {
 
+  /// The in-memory connection backing the test database. Exposed so tests can run raw SQL
+  /// (e.g. to exercise the FTS triggers directly, simulating a manual single-row edit).
+  internal private(set) var databaseConnection: SQLiteConnection?
+
   /// Override in subclasses to register additional database operations under test.
   internal func registerOperations() {
     // to override
@@ -48,6 +52,7 @@ internal class DatabaseOperationsTestCase: FeaturesTestCase {
     let connection: SQLiteConnection = try SQLiteConnection.open(
       migrations: SQLiteMigration.allCases
     )
+    self.databaseConnection = connection
 
     register(
       { $0.usePassboltUsersStoreDatabaseOperation() },
