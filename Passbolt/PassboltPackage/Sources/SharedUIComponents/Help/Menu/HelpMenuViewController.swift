@@ -41,7 +41,8 @@ public final class HelpMenuViewController: ViewController {
     let navigationToSelf: NavigationToHelpMenu = try features.instance()
     self.navigationToSelf = navigationToSelf
 
-    self.transferFeatures = try features.branch(scope: AccountTransferScope.self)
+    let transferFeatures: Features = try features.branch(scope: AccountTransferScope.self)
+    self.transferFeatures = transferFeatures
     let navigationToAccountKitPicker: NavigationToAccountKitPicker = try transferFeatures.instance()
     let accountKitImport: AccountKitImport = try transferFeatures.instance()
     let navigationToLogsViewer: NavigationToLogsViewer = try features.instance()
@@ -63,6 +64,9 @@ public final class HelpMenuViewController: ViewController {
             action: { @MainActor in
               try await navigationToSelf.revert()
               try await navigationToAccountKitPicker.perform()
+              // Strong capture: reverting the help menu deallocates this view controller and would
+              // release the AccountTransferScope branch. Keep it alive until the picker takes ownership.
+              withExtendedLifetime(transferFeatures) {}
             }
           )
           : nil,
