@@ -163,6 +163,52 @@ final class SessionDataRefreshIntegrationBenchmarkTests: XCTestCase {
     self.add(attachment)
   }
 
+  // MARK: - Warm refresh (populate once, then re-refresh an already-populated DB)
+
+  func test_benchmark_warmRefresh_small() async throws {
+    executionTimeAllowance = 60 * 10  // 10 minutes
+    try await self.runWarmRefreshBenchmark(size: "small")
+  }
+
+  func test_benchmark_warmRefresh_medium() async throws {
+    try XCTSkipUnless(
+      NetworkResponseFixture.exists("Benchmark/medium/users.json"),
+      "Medium fixtures absent (kept locally — see Fixtures README)."
+    )
+    executionTimeAllowance = 60 * 10  // 10 minutes
+    try await self.runWarmRefreshBenchmark(size: "medium")
+  }
+
+  func test_benchmark_warmRefresh_large() async throws {
+    try XCTSkipUnless(
+      NetworkResponseFixture.exists("Benchmark/large/users.json"),
+      "Large fixtures absent."
+    )
+    executionTimeAllowance = 2600  // 40 minutes
+    try await self.runWarmRefreshBenchmark(size: "large", iterations: 3)
+  }
+
+  /// Measures `SessionData.refreshIfNeeded()` against an ALREADY-POPULATED database — the warm path,
+  /// where every resource's `modified` is unchanged so no decryption happens and the cost is the
+  /// per-resource access/folder/favorite reconciliation plus the users/groups/folders store. This is
+  /// the scenario the cold benchmarks above (fresh DB per iteration) cannot see.
+  ///
+  /// Drives only the public `refreshIfNeeded()` API, so it compiles and runs identically against the
+  /// pre- and post-change builds (run it on a stashed baseline, then on the popped changes, and diff).
+  private func runWarmRefreshBenchmark(size: String, iterations: Int = 20) async throws {
+    let key: AdaKeyMaterial = try Self.loadKeyMaterial()
+    let sessionData: SessionData = try await Self.makeSessionData(key: key, size: size)
+    // Unmeasured warm-up: the first refresh fully populates the DB (decrypt + store everything). The
+    // same in-memory connection is reused across measured iterations, so the rows persist.
+    try await sessionData.refreshIfNeeded()
+
+    self.measureAsync(iterations: iterations) {
+      // Every measured refresh re-fetches the same fixtures: identical `modified` timestamps mean all
+      // resources take the unchanged/reconcile path rather than being decrypted and fully re-stored.
+      try await sessionData.refreshIfNeeded()
+    }
+  }
+
   /// Builds a fresh real session and resolves `SessionData`.
   @MainActor
   private static func makeSessionData(key: AdaKeyMaterial, size: String) throws -> SessionData {

@@ -187,7 +187,51 @@ final internal class ResourcesStoreDatabaseOperationTests: DatabaseOperationsTes
     XCTAssertTrue(try self.resourceHasNoState(resource.id), "Reconcile must clear the pending refresh state.")
   }
 
+  internal func test_store_resourceWithUnknownParentFolder_storesNullParent() async throws {
+    // .mock_1 folder is never stored, so the parent reference must resolve to NULL.
+    let resource: ResourceDTO = .create(resourceTypeId: testResourceType.id, name: "Orphan") { resource in
+      resource.parentFolderID = .mock_1
+    }
+    try await self.storeResources([resource])
+
+    XCTAssertNil(try self.parentFolderID(for: resource.id), "Unknown parent folder must be stored as NULL.")
+  }
+
+  internal func test_store_uriRemovedServerSide_clearsStaleURI() async throws {
+    let withURI: ResourceDTO = .create(resourceTypeId: testResourceType.id, name: "Site") { resource in
+      resource.uri = "https://example.com"
+    }
+    try await self.storeResources([withURI])
+    XCTAssertEqual(try self.uriCount(for: withURI.id), 1)
+
+    // Same resource re-fetched with no URI: the replace-all must drop the stale row.
+    let withoutURI: ResourceDTO = .create(id: withURI.id, resourceTypeId: testResourceType.id, name: "Site")
+    try await self.storeResources([withoutURI])
+
+    XCTAssertEqual(try self.uriCount(for: withURI.id), 0, "URIs removed server-side must be cleared.")
+  }
+
   // MARK: - Helpers
+
+  private func parentFolderID(for resourceID: Resource.ID) throws -> Data? {
+    guard let connection: SQLiteConnection = self.databaseConnection
+    else { XCTFail("Missing test connection"); return nil }
+    let rows: Array<SQLiteRow> = try connection.fetch(
+      .statement("SELECT parentFolderID FROM resources WHERE id = ?1;", arguments: resourceID)
+    )
+    guard let row: SQLiteRow = rows.first
+    else { return nil }
+    return row.parentFolderID as Data?
+  }
+
+  private func uriCount(for resourceID: Resource.ID) throws -> Int {
+    guard let connection: SQLiteConnection = self.databaseConnection
+    else { XCTFail("Missing test connection"); return -1 }
+    return try connection.fetch(
+      .statement("SELECT uri FROM resourceURI WHERE resource_id = ?1;", arguments: resourceID)
+    )
+    .count
+  }
 
   private func groupPermissionCount(for resourceID: Resource.ID) throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection

@@ -63,61 +63,32 @@ extension UserGroupsStoreDatabaseOperation {
     )
     try connection.execute(.statement("DELETE FROM incomingGroupIDs;"))
 
-    for userGroup: UserGroupDSO in input {
-      try connection.execute(
-        .statement(
-          """
-          INSERT INTO
-            userGroups(
-              id,
-              name
-            )
-          VALUES
-            (
-              ?1,
-              ?2
-            )
-          ON CONFLICT
-            (
-              id
-            )
-          DO UPDATE SET
-            name=?2
-          ;
-          """,
-          arguments: userGroup.id,
-          userGroup.name
-        )
-      )
-
-      // Dedup member references defensively; the ON CONFLICT below also guards the unique index.
-      for userID: User.ID in Set(userGroup.userReferences.map(\.id)) {
-        try connection.execute(
-          .statement(
-            """
-            INSERT INTO
-              usersGroups(
-                userID,
-                userGroupID
-              )
-            VALUES
-              (
-                ?1,
-                ?2
-              )
-            ON CONFLICT
-              (
-                userGroupID,
-                userID
-              )
-            DO NOTHING
-            ;
-            """,
-            arguments: userID,
-            userGroup.id
-          )
-        )
+    // Upsert the groups in multi-row batches (2 columns/row).
+    for groupsChunk: ArraySlice<UserGroupDSO> in input.chunked(into: 256) {
+      var upsertStatement: SQLiteStatement = "INSERT INTO userGroups( id, name ) VALUES "
+      for (offset, userGroup): (Int, UserGroupDSO) in groupsChunk.enumerated() {
+        if offset > 0 { upsertStatement.append(", ") }
+        upsertStatement.append("( ?, ? )")
+        upsertStatement.appendArguments(userGroup.id, userGroup.name)
       }
+      upsertStatement.append("ON CONFLICT( id ) DO UPDATE SET name = excluded.name;")
+      try connection.execute(upsertStatement)
+    }
+
+    // Re-insert memberships (cleared for the incoming groups above), deduped, in multi-row batches.
+    let memberships: Array<(userID: User.ID, groupID: UserGroup.ID)> =
+      input.flatMap { (userGroup: UserGroupDSO) in
+        Set(userGroup.userReferences.map(\.id)).map { (userID: $0, groupID: userGroup.id) }
+      }
+    for membershipsChunk: ArraySlice<(userID: User.ID, groupID: UserGroup.ID)> in memberships.chunked(into: 256) {
+      var membershipStatement: SQLiteStatement = "INSERT INTO usersGroups( userID, userGroupID ) VALUES "
+      for (offset, membership): (Int, (userID: User.ID, groupID: UserGroup.ID)) in membershipsChunk.enumerated() {
+        if offset > 0 { membershipStatement.append(", ") }
+        membershipStatement.append("( ?, ? )")
+        membershipStatement.appendArguments(membership.userID, membership.groupID)
+      }
+      membershipStatement.append("ON CONFLICT( userGroupID, userID ) DO NOTHING;")
+      try connection.execute(membershipStatement)
     }
   }
 }

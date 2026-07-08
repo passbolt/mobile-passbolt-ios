@@ -67,219 +67,168 @@ extension ResourcesStoreDatabaseOperation {
       try connection.execute(removeUserGroupPermissions)
     }
 
-    // Collect tag data while iterating resources so it can be written in a few batched statements
-    // after the loop, instead of two row-by-row inserts per (resource, tag) pair.
+    // Snapshot the stored folder ids so the resources upsert can null unknown parents in Swift instead
+    // of a per-row correlated subquery. Folders are stored + committed by the earlier folder-store op
+    // and are not mutated within this transaction, so a one-shot snapshot is correct.
+    let validFolderIDs: Set<ResourceFolder.ID> = Set(
+      try connection.fetch(.statement("SELECT id FROM resourceFolders;"))
+        .compactMap { $0.id.flatMap(ResourceFolder.ID.init(rawValue:)) }
+    )
+
+    // Collect tag data so it can be written in a few batched statements below.
     var uniqueTags: Dictionary<ResourceTag.ID, ResourceTag> = .init()
     var tagLinks: Array<(resourceID: Resource.ID, tagID: ResourceTag.ID)> = .init()
+    for resource: ResourceDTO in changedResources {
+      for resourceTag: ResourceTag in resource.tags {
+        uniqueTags[resourceTag.id] = resourceTag
+        tagLinks.append((resourceID: resource.id, tagID: resourceTag.id))
+      }
+    }
 
-    // Insert or update all new resources. The same ~10 SQL statements run once per resource,
-    // so reuse their compiled handles across the whole batch instead of recompiling each time.
+    // Record the stored resources for the single post-batch FTS rebuild (temp table has no triggers).
+    for idsChunk: ArraySlice<Resource.ID> in changedResources.map(\.id).chunked(into: 256) {
+      var rebuildStatement: SQLiteStatement = "INSERT OR IGNORE INTO resourceSearchRebuildBatch ( resourceID ) VALUES "
+      for (offset, resourceID): (Int, Resource.ID) in idsChunk.enumerated() {
+        if offset > 0 { rebuildStatement.append(", ") }
+        rebuildStatement.append("( ? )")
+        rebuildStatement.appendArgument(resourceID)
+      }
+      rebuildStatement.append(";")
+      try connection.execute(rebuildStatement)
+    }
+
+    // Upsert resources in multi-row batches (chunk kept small: 10 columns/row under the ~999 bound
+    // limit). parentFolderID is resolved against the snapshot above — NULL when the parent isn't stored.
+    for resourcesChunk: ArraySlice<ResourceDTO> in changedResources.chunked(into: 80) {
+      var upsertStatement: SQLiteStatement = """
+        INSERT INTO resources(
+          id, typeID, parentFolderID, favoriteID, permission,
+          modified, expired, metadata_key_id, metadata_key_type, state
+        ) VALUES
+        """
+      for (offset, resource): (Int, ResourceDTO) in resourcesChunk.enumerated() {
+        if offset > 0 { upsertStatement.append(", ") }
+        upsertStatement.append("( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )")
+        let parentFolderID: ResourceFolder.ID? =
+          resource.parentFolderID.flatMap { validFolderIDs.contains($0) ? $0 : .none }
+        upsertStatement.appendArguments(
+          resource.id,
+          resource.typeID,
+          parentFolderID,
+          resource.favoriteID,
+          resource.permission.rawValue,
+          resource.modified,
+          resource.expired,
+          resource.metadataKeyId,
+          resource.metadataKeyType?.rawValue,
+          ResourceState.updated.rawValue
+        )
+      }
+      upsertStatement.append(
+        """
+         ON CONFLICT( id ) DO UPDATE SET
+          typeID = excluded.typeID,
+          parentFolderID = excluded.parentFolderID,
+          favoriteID = excluded.favoriteID,
+          permission = excluded.permission,
+          modified = excluded.modified,
+          expired = excluded.expired,
+          metadata_key_id = excluded.metadata_key_id,
+          metadata_key_type = excluded.metadata_key_type,
+          state = excluded.state;
+        """
+      )
+      try connection.execute(upsertStatement)
+    }
+
+    // Metadata / URIs / custom fields exist only for resources that carry decrypted metadata.
+    let metadatas: Array<ResourceMetadataDTO> = changedResources.compactMap(\.metadata)
+
+    for metadataChunk: ArraySlice<ResourceMetadataDTO> in metadatas.chunked(into: 100) {
+      var metadataStatement: SQLiteStatement = """
+        INSERT INTO resourceMetadata(
+          resource_id, data, name, username, description, icon_type, icon_value, icon_background_color
+        ) VALUES
+        """
+      for (offset, metadata): (Int, ResourceMetadataDTO) in metadataChunk.enumerated() {
+        if offset > 0 { metadataStatement.append(", ") }
+        metadataStatement.append("( ?, ?, ?, ?, ?, ?, ?, ? )")
+        metadataStatement.appendArguments(
+          metadata.resourceId,
+          metadata.data,
+          metadata.name,
+          metadata.username,
+          metadata.description,
+          metadata.icon?.type.rawValue,
+          metadata.icon?.value?.rawValue,
+          metadata.icon?.backgroundColor
+        )
+      }
+      metadataStatement.append(
+        """
+         ON CONFLICT( resource_id ) DO UPDATE SET
+          data = excluded.data,
+          name = excluded.name,
+          username = excluded.username,
+          description = excluded.description,
+          icon_type = excluded.icon_type,
+          icon_value = excluded.icon_value,
+          icon_background_color = excluded.icon_background_color;
+        """
+      )
+      try connection.execute(metadataStatement)
+    }
+
+    // Replace all URIs of the affected resources: clear (every resource with metadata, so a shrink to
+    // zero URIs is honoured) then re-insert the current set.
+    let metadataResourceIDs: Array<Resource.ID> = metadatas.map(\.resourceId)
+    for resourceIDsChunk: ArraySlice<Resource.ID> in metadataResourceIDs.chunked(into: 256) {
+      var removeURIsStatement: SQLiteStatement = "DELETE FROM resourceURI WHERE resource_id"
+      removeURIsStatement.append(.in(Set(resourceIDsChunk)))
+      removeURIsStatement.append(";")
+      try connection.execute(removeURIsStatement)
+    }
+
+    let uris: Array<ResourceURIDTO> = metadatas.flatMap(\.uris)
+    for urisChunk: ArraySlice<ResourceURIDTO> in uris.chunked(into: 256) {
+      var uriStatement: SQLiteStatement = "INSERT INTO resourceURI( resource_id, uri ) VALUES "
+      for (offset, uri): (Int, ResourceURIDTO) in urisChunk.enumerated() {
+        if offset > 0 { uriStatement.append(", ") }
+        uriStatement.append("( ?, ? )")
+        uriStatement.appendArguments(uri.resourceId, uri.uri)
+      }
+      uriStatement.append("ON CONFLICT( resource_id, uri ) DO NOTHING;")
+      try connection.execute(uriStatement)
+    }
+
+    let customFields: Array<(resourceID: Resource.ID, field: ResourceCustomFieldDTO)> =
+      metadatas.flatMap { (metadata: ResourceMetadataDTO) in
+        metadata.customFields.map { (resourceID: metadata.resourceId, field: $0) }
+      }
+    for customFieldsChunk: ArraySlice<(resourceID: Resource.ID, field: ResourceCustomFieldDTO)> in customFields
+      .chunked(into: 256)
+    {
+      var customFieldStatement: SQLiteStatement = "INSERT INTO resourceCustomFields( id, resourceID, key ) VALUES "
+      for (offset, entry): (Int, (resourceID: Resource.ID, field: ResourceCustomFieldDTO)) in customFieldsChunk
+        .enumerated()
+      {
+        if offset > 0 { customFieldStatement.append(", ") }
+        customFieldStatement.append("( ?, ?, ? )")
+        customFieldStatement.appendArguments(
+          entry.field.id.rawValue.uuidString,
+          entry.resourceID,
+          entry.field.metadataKey
+        )
+      }
+      customFieldStatement.append("ON CONFLICT( id ) DO NOTHING;")
+      try connection.execute(customFieldStatement)
+    }
+
+    // Re-insert permissions (cleared for these ids above); reuse compiled handles across the batch.
     try connection.withPreparedStatements { prepared in
       for resource: ResourceDTO in changedResources {
-        // Remember this resource for the single post-batch FTS rebuild (temp table has no triggers).
-        try prepared.execute(
-          .statement(
-            "INSERT OR IGNORE INTO resourceSearchRebuildBatch (resourceID) VALUES (?1);",
-            arguments: resource.id
-          )
-        )
-        try prepared.execute(
-          .statement(
-            """
-            INSERT INTO
-              resources(
-                id,
-                typeID,
-                parentFolderID,
-                favoriteID,
-                permission,
-                modified,
-                expired,
-                metadata_key_id,
-                metadata_key_type,
-                state
-              )
-            VALUES
-              (
-                ?1,
-                ?2,
-                (
-                  SELECT
-                    id
-                  FROM
-                    resourceFolders
-                  WHERE
-                    id == ?3
-                  LIMIT 1
-                ),
-                ?4,
-                ?5,
-                ?6,
-                ?7,
-                ?8,
-                ?9,
-                ?10
-              )
-            ON CONFLICT
-              (
-                id
-              )
-            DO UPDATE SET
-              typeID=?2,
-              parentFolderID=(
-                SELECT
-                  id
-                FROM
-                  resourceFolders
-                WHERE
-                  id == ?3
-                LIMIT 1
-              ),
-              favoriteID=?4,
-              permission=?5,
-              modified=?6,
-              expired=?7,
-              metadata_key_id=?8,
-              metadata_key_type=?9,
-              state = ?10
-            ;
-            """,
-            arguments: resource.id,
-            resource.typeID,
-            resource.parentFolderID,
-            resource.favoriteID,
-            resource.permission.rawValue,
-            resource.modified,
-            resource.expired,
-            resource.metadataKeyId,
-            resource.metadataKeyType?.rawValue,
-            ResourceState.updated.rawValue
-          )
-        )
-        if let metadata = resource.metadata {
-          try prepared.execute(
-            .statement(
-              """
-              INSERT INTO
-                resourceMetadata(
-                  resource_id,
-                  data,
-                  name,
-                  username,
-                  description,
-                  icon_type,
-                  icon_value,
-                  icon_background_color
-                )
-              VALUES
-                (
-                  ?1,
-                  ?2,
-                  ?3,
-                  ?4,
-                  ?5,
-                  ?6,
-                  ?7,
-                  ?8
-                )
-              ON CONFLICT
-                (
-                  resource_id
-                )
-              DO UPDATE SET
-                data=?2,
-                name=?3,
-                username=?4,
-                description=?5,
-                icon_type=?6,
-                icon_value=?7,
-                icon_background_color=?8
-              ;
-              """,
-              arguments:
-                metadata.resourceId,
-              metadata.data,
-              metadata.name,
-              metadata.username,
-              metadata.description,
-              metadata.icon?.type.rawValue,
-              metadata.icon?.value?.rawValue,
-              metadata.icon?.backgroundColor
-            )
-          )
-          let removeURIsStatement: SQLiteStatement = .statement(
-            "DELETE FROM resourceURI WHERE resource_id = ?1",
-            arguments: resource.id
-          )
-          try prepared.execute(removeURIsStatement)
-
-          for uri in metadata.uris {
-            try prepared.execute(
-              .statement(
-                """
-                  INSERT INTO
-                    resourceURI(
-                      resource_id,
-                      uri
-                    )
-                  VALUES (
-                    ?1,
-                    ?2
-                  )
-                  ON CONFLICT
-                    (
-                      resource_id,
-                      uri
-                    )
-                  DO NOTHING
-                """,
-                arguments:
-                  uri.resourceId,
-                uri.uri
-              )
-            )
-          }
-
-          for customField in metadata.customFields {
-            try prepared.execute(
-              .statement(
-                """
-                  INSERT INTO
-                    resourceCustomFields(
-                      id,
-                      resourceID,
-                      key
-                    )
-                  VALUES (
-                    ?1,
-                    ?2,
-                    ?3
-                  )
-                  ON CONFLICT
-                    (
-                      id
-                    )
-                  DO NOTHING
-                """,
-                arguments:
-                  customField.id.rawValue.uuidString,
-                resource.id,
-                customField.metadataKey
-              )
-            )
-          }
-        }
-
-        // Tag associations are stored in batched statements after this loop (see below).
-        for resourceTag: ResourceTag in resource.tags {
-          uniqueTags[resourceTag.id] = resourceTag
-          tagLinks.append((resourceID: resource.id, tagID: resourceTag.id))
-        }
-
-        for permission in resource.permissions {
-          try prepared.execute(
-            permission.storeStatement
-          )
+        for permission: GenericPermissionDTO in resource.permissions {
+          try prepared.execute(permission.storeStatement)
         }
       }
     }

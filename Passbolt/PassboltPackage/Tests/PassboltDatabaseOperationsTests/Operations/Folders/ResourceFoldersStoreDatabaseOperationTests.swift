@@ -68,6 +68,28 @@ final internal class ResourceFoldersStoreDatabaseOperationTests: DatabaseOperati
     XCTAssertEqual(try self.folderPermissionCount(.mock_1), 1)
   }
 
+  internal func test_store_storesGroupFolderPermission() async throws {
+    try await self.storeUserGroups([.init(id: .mock_2, name: "Team", userReferences: [.init(id: currentUser.id)])])
+    let folder: ResourceFolderDTO = .init(
+      id: .mock_1,
+      parentID: nil,
+      name: "Group Folder",
+      permission: .owner,
+      permissions: [.userGroupToFolder(id: .init(), userGroupID: .mock_2, folderID: .mock_1, permission: .read)]
+    )
+    try await self.storeFolders([folder])
+
+    XCTAssertEqual(try self.groupFolderPermissionCount(.mock_1), 1, "Group folder permission must be stored.")
+  }
+
+  internal func test_store_dropsFolderPermissionForUnknownUser() async throws {
+    // otherUser (.mock_1) is not stored in commonPrepare, so its grant must be filtered out (matching
+    // the existence check the previous per-row `storeStatement` join enforced).
+    try await self.storeFolders([self.folder(.mock_1, users: [otherUser.id])])
+
+    XCTAssertEqual(try self.folderPermissionCount(.mock_1), 0, "Grant for an unstored user must be dropped.")
+  }
+
   // MARK: - Helpers
 
   private func folder(_ id: ResourceFolder.ID, users: Array<User.ID> = []) -> ResourceFolderDTO {
@@ -84,6 +106,10 @@ final internal class ResourceFoldersStoreDatabaseOperationTests: DatabaseOperati
 
   private func folderPermissionCount(_ folderID: ResourceFolder.ID) throws -> Int {
     try self.count("SELECT userID FROM usersResourceFolders WHERE resourceFolderID = ?1", folderID)
+  }
+
+  private func groupFolderPermissionCount(_ folderID: ResourceFolder.ID) throws -> Int {
+    try self.count("SELECT userGroupID FROM userGroupsResourceFolders WHERE resourceFolderID = ?1", folderID)
   }
 
   private func count(_ sql: StaticString, _ argument: SQLiteValueConvertible? = nil) throws -> Int {

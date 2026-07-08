@@ -70,49 +70,38 @@ extension ResourceFoldersStoreDatabaseOperation {
     )
     try connection.execute(.statement("DELETE FROM incomingFolderIDs;"))
 
-    // Since Folders make tree like structure and
-    // tree integrity is verified by database foreign
-    // key constraints it has to be inserted in a valid
-    // order for operation to succeed (from root to leaf)
+    // Folders form a tree whose integrity is enforced by the self-referential parentFolderID FK, so
+    // they must be inserted root→leaf. topoSort gives that order and chunked() preserves it, so within
+    // a multi-row batch (and across chunks) a parent is always inserted before its children.
     let sortedFolders: Array<ResourceFolderDTO> = input.topoSort(idPath: \.id, parentIdPath: \.parentID)
-
-    for folder: ResourceFolderDTO in sortedFolders {
-      try connection.execute(
-        .statement(
-          """
-          INSERT INTO
-            resourceFolders(
-              id,
-              name,
-              permission,
-              parentFolderID
-            )
-          VALUES
-            (
-              ?1,
-              ?2,
-              ?3,
-              ?4
-            )
-          ON CONFLICT
-            (
-              id
-            )
-          DO UPDATE SET
-            name=?2,
-            permission=?3,
-            parentFolderID=?4
-          ;
-          """,
-          arguments: folder.id,
-          folder.name,
-          folder.permission.rawValue,
-          folder.parentID
-        )
+    for foldersChunk: ArraySlice<ResourceFolderDTO> in sortedFolders.chunked(into: 200) {
+      var upsertStatement: SQLiteStatement =
+        "INSERT INTO resourceFolders( id, name, permission, parentFolderID ) VALUES "
+      for (offset, folder): (Int, ResourceFolderDTO) in foldersChunk.enumerated() {
+        if offset > 0 { upsertStatement.append(", ") }
+        upsertStatement.append("( ?, ?, ?, ? )")
+        upsertStatement.appendArguments(folder.id, folder.name, folder.permission.rawValue, folder.parentID)
+      }
+      upsertStatement.append(
+        """
+         ON CONFLICT( id ) DO UPDATE SET
+          name = excluded.name,
+          permission = excluded.permission,
+          parentFolderID = excluded.parentFolderID;
+        """
       )
+      try connection.execute(upsertStatement)
+    }
 
-      for permission: GenericPermissionDTO in folder.permissions {
-        try connection.execute(permission.storeStatement)
+    // Folder permissions stay per-row: `storeStatement` skips a grant for a missing user/group via an
+    // indexed existence join, cheaper here than pre-fetching the whole users table (folders carry far
+    // fewer permissions than there are users). Reuse the two compiled handles across the batch — the
+    // only real per-row cost was recompilation. Rows were cleared for the incoming folders above.
+    try connection.withPreparedStatements { prepared in
+      for folder: ResourceFolderDTO in input {
+        for permission: GenericPermissionDTO in folder.permissions {
+          try prepared.execute(permission.storeStatement)
+        }
       }
     }
   }

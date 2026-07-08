@@ -87,6 +87,10 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
     try connectionHandle.execute("PRAGMA key;")
     try connectionHandle.execute("PRAGMA foreign_keys = ON;")
     try connectionHandle.execute("PRAGMA journal_mode = WAL;")
+    // NORMAL fsyncs at checkpoint instead of every commit — safe under WAL for a re-fetchable cache.
+    try connectionHandle.execute("PRAGMA synchronous = NORMAL;")
+    // Keep temp tables / transient indexes (bulk-store temp tables, FTS rebuild) in memory.
+    try connectionHandle.execute("PRAGMA temp_store = MEMORY;")
     try connectionHandle.execute("PRAGMA recursive_triggers = ON;")
     try connectionHandle.execute("PRAGMA quick_check;")
     try connectionHandle.execute("PRAGMA SQLITE_DBCONFIG_DEFENSIVE = ON;")

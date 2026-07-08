@@ -60,47 +60,19 @@ extension UsersStoreDatabaseOperation {
     try connection.execute(.statement("DELETE FROM users WHERE id NOT IN ( SELECT id FROM incomingUserIDs );"))
     try connection.execute(.statement("DELETE FROM incomingUserIDs;"))
 
-    for user: UserDSO in input {
-      try connection.execute(
-        .statement(
-          """
-          INSERT INTO
-            users(
-              id,
-              username,
-              firstName,
-              lastName,
-              publicPGPKeyFingerprint,
-              armoredPublicPGPKey,
-              avatarImageURL,
-              isSuspended
-            )
-          VALUES
-            (
-              ?1,
-              ?2,
-              ?3,
-              ?4,
-              ?5,
-              ?6,
-              ?7,
-              ?8
-            )
-          ON CONFLICT
-            (
-              id
-            )
-          DO UPDATE SET
-            username=?2,
-            firstName=?3,
-            lastName=?4,
-            publicPGPKeyFingerprint=?5,
-            armoredPublicPGPKey=?6,
-            avatarImageURL=?7,
-            isSuspended=?8
-          ;
-          """,
-          arguments: user.id,
+    // Upsert users in multi-row batches (8 columns/row, kept under the ~999 bound-parameter limit).
+    for usersChunk: ArraySlice<UserDSO> in input.chunked(into: 100) {
+      var upsertStatement: SQLiteStatement = """
+        INSERT INTO users(
+          id, username, firstName, lastName,
+          publicPGPKeyFingerprint, armoredPublicPGPKey, avatarImageURL, isSuspended
+        ) VALUES
+        """
+      for (offset, user): (Int, UserDSO) in usersChunk.enumerated() {
+        if offset > 0 { upsertStatement.append(", ") }
+        upsertStatement.append("( ?, ?, ?, ?, ?, ?, ?, ? )")
+        upsertStatement.appendArguments(
+          user.id,
           user.username,
           user.profile.firstName,
           user.profile.lastName,
@@ -109,7 +81,20 @@ extension UsersStoreDatabaseOperation {
           user.profile.avatar.urlString,
           user.isSuspended
         )
+      }
+      upsertStatement.append(
+        """
+         ON CONFLICT( id ) DO UPDATE SET
+          username = excluded.username,
+          firstName = excluded.firstName,
+          lastName = excluded.lastName,
+          publicPGPKeyFingerprint = excluded.publicPGPKeyFingerprint,
+          armoredPublicPGPKey = excluded.armoredPublicPGPKey,
+          avatarImageURL = excluded.avatarImageURL,
+          isSuspended = excluded.isSuspended;
+        """
       )
+      try connection.execute(upsertStatement)
     }
   }
 }
