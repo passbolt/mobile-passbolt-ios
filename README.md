@@ -6,14 +6,16 @@
 	  /_/    \__,_/____/____/_.___/\____/_/\__/
 
 	Open source password manager for teams
-	(c) 2021 Passbolt SA
+	(c) 2026 Passbolt SA
 	https://www.passbolt.com
+
+# Welcome
 
 ## License
 
 Passbolt - Open source password manager for teams
 
-(c) 2021 Passbolt SA
+(c) 2026 Passbolt SA
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 Public License (AGPL) as published by the Free Software Foundation version 3.
@@ -28,24 +30,23 @@ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See GNU Affero 
 You should have received a copy of the GNU Affero General Public License along with this program. If not,
 see [GNU Affero General Public License v3](http://www.gnu.org/licenses/agpl-3.0.html).
 
-## About this repository
+## About passbolt
 
-This repository contains the code of the iOS mobile application.
+Passbolt is an open source password manager for teams. It allows to securely share and store credentials. For instance, the wifi password of your office, or the administrator password of a router, or your organisation social media account password, all of them can be secured using Passbolt.
 
-### Reporting a security Issue
+You can try a demo of passbolt at [passbolt.com](https://demo.passbolt.com).
 
-If you've found a security related issue in Passbolt, please don't open an issue in GitHub.
-Instead contact us at security@passbolt.com. In the spirit of responsible disclosure we ask that the reporter keep the
-issue confidential until we announce it.
+You can find step by step quickstart guides for all the clients in the [website help section](https://www.passbolt.com/docs/user/quickstart/).
 
-The passbolt team will take the following actions:
-- Try to first reproduce the issue and confirm the vulnerability.
-- Acknowledge to the reporter that we’ve received the issue and are working on a fix.
-- Get a fix/patch prepared and create associated automated tests.
-- Prepare a post describing the vulnerability, and the possible exploits.
-- Release new versions of all affected major versions.
-- Prominently feature the problem in the release announcement.
-- Provide credits in the release announcement to the reporter if they so desire.
+Or, of course, you can use the code in this repository to build it yourself and run it!
+
+## About passbolt iOS app
+
+The Passbolt iOS app gives you secure access to your passwords on the go. Your private key is stored safely in the iOS Keychain, and you can unlock it quickly using Face ID or Touch ID instead of typing your passphrase every time. Once unlocked, the app can autofill your credentials directly into other apps and websites — strong security, now in your pocket.
+
+## Reporting a security Issue
+
+If you've found a security related issue in Passbolt, please don't open an issue on GitHub. Follow our responsible disclosure process: https://www.passbolt.com/docs/contribute/security/vulnerability/.
 
 # Credits
 
