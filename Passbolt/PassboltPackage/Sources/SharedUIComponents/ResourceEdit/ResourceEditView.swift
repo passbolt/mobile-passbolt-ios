@@ -38,7 +38,7 @@ public struct ResourceEditView: ControlledView {
     withAlert(\.alert) {
       self.with(\.isPreparingForm) { (isPreparingForm: Bool) in
         if isPreparingForm {
-          LoaderView.instance()
+          LoaderView()
         }
         else {
           self.contentView

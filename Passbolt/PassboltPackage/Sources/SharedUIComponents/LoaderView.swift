@@ -21,37 +21,12 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import Display
 
-public struct LoaderView: ControlledView {
-
-  public final class Controller: ViewController {
-
-    public init(
-      context: Void,
-      features: Features
-    ) throws {
-      // NOP
-    }
-
-    fileprivate nonisolated init() {}
-  }
-
-  public static func instance() -> Self {
-    .init(controller: .init())
-  }
-
-  public let controller: Controller
-
-  public init(
-    controller: Controller
-  ) {
-    self.controller = controller
-  }
+public struct LoaderView: View {
 
   public var body: some View {
-    ProgressView()
-      .progressViewStyle(.circular)
+    ActivityIndicator(style: .large)
       .frame(
         maxWidth: .infinity,
         maxHeight: .infinity
