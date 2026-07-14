@@ -24,8 +24,6 @@
 import Localization
 import protocol Foundation.LocalizedError
 
-import protocol Foundation.LocalizedError
-
 public typealias Cancelled = CancellationError
 
 extension CancellationError: TheError {

@@ -98,25 +98,37 @@ final internal class UsersStoreDatabaseOperationTests: DatabaseOperationsTestCas
 
   private func userCount() throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return -1 }
+    else {
+      XCTFail("Missing test connection")
+      return -1
+    }
     return try connection.fetch(.statement("SELECT id FROM users;")).count
   }
 
   private func userExists(_ id: User.ID) throws -> Bool {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return false }
-    return try connection.fetch(
-      .statement("SELECT id FROM users WHERE id = ?1;", arguments: id)
-    )
-    .isEmpty == false
+    else {
+      XCTFail("Missing test connection")
+      return false
+    }
+    return
+      try connection
+      .fetch(
+        .statement("SELECT id FROM users WHERE id = ?1;", arguments: id)
+      )
+      .isEmpty == false
   }
 
   private func userPermissionCount(for resourceID: Resource.ID) throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return -1 }
-    return try connection.fetch(
-      .statement("SELECT userID FROM usersResources WHERE resourceID = ?1;", arguments: resourceID)
-    )
-    .count
+    else {
+      XCTFail("Missing test connection")
+      return -1
+    }
+    return
+      try connection.fetch(
+        .statement("SELECT userID FROM usersResources WHERE resourceID = ?1;", arguments: resourceID)
+      )
+      .count
   }
 }

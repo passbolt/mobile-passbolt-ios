@@ -54,7 +54,7 @@ extension ResourcesStoreDatabaseOperation {
     // Permissions can change without bumping `modified`, so reconcile every seen resource: clear all
     // seen ids here, then re-insert current grants below (storeStatement's ON CONFLICT is only a guard).
     let allSeenResourceIDs: Array<Resource.ID> = changedResources.map(\.id) + unchangedResources.map(\.id)
-    let permissionBatchSize: Int = 256
+    let permissionBatchSize: Int = SQLiteBatch.maxRows(perRowBindings: 1)
     for idsChunk: ArraySlice<Resource.ID> in allSeenResourceIDs.chunked(into: permissionBatchSize) {
       var removeUserPermissions: SQLiteStatement = "DELETE FROM usersResources WHERE resourceID"
       removeUserPermissions.append(.in(Set(idsChunk)))
@@ -86,7 +86,9 @@ extension ResourcesStoreDatabaseOperation {
     }
 
     // Record the stored resources for the single post-batch FTS rebuild (temp table has no triggers).
-    for idsChunk: ArraySlice<Resource.ID> in changedResources.map(\.id).chunked(into: 256) {
+    for idsChunk: ArraySlice<Resource.ID>
+      in changedResources.map(\.id).chunked(into: SQLiteBatch.maxRows(perRowBindings: 1))
+    {
       var rebuildStatement: SQLiteStatement = "INSERT OR IGNORE INTO resourceSearchRebuildBatch ( resourceID ) VALUES "
       for (offset, resourceID): (Int, Resource.ID) in idsChunk.enumerated() {
         if offset > 0 { rebuildStatement.append(", ") }
@@ -97,9 +99,12 @@ extension ResourcesStoreDatabaseOperation {
       try connection.execute(rebuildStatement)
     }
 
-    // Upsert resources in multi-row batches (chunk kept small: 10 columns/row under the ~999 bound
-    // limit). parentFolderID is resolved against the snapshot above — NULL when the parent isn't stored.
-    for resourcesChunk: ArraySlice<ResourceDTO> in changedResources.chunked(into: 80) {
+    // Upsert resources in multi-row batches (10 host parameters/row; batch size derived from the SQLite
+    // parameter budget). parentFolderID is resolved against the snapshot above — NULL when the parent
+    // isn't stored.
+    for resourcesChunk: ArraySlice<ResourceDTO>
+      in changedResources.chunked(into: SQLiteBatch.maxRows(perRowBindings: 10))
+    {
       var upsertStatement: SQLiteStatement = """
         INSERT INTO resources(
           id, typeID, parentFolderID, favoriteID, permission,
@@ -144,7 +149,9 @@ extension ResourcesStoreDatabaseOperation {
     // Metadata / URIs / custom fields exist only for resources that carry decrypted metadata.
     let metadatas: Array<ResourceMetadataDTO> = changedResources.compactMap(\.metadata)
 
-    for metadataChunk: ArraySlice<ResourceMetadataDTO> in metadatas.chunked(into: 100) {
+    for metadataChunk: ArraySlice<ResourceMetadataDTO>
+      in metadatas.chunked(into: SQLiteBatch.maxRows(perRowBindings: 8))
+    {
       var metadataStatement: SQLiteStatement = """
         INSERT INTO resourceMetadata(
           resource_id, data, name, username, description, icon_type, icon_value, icon_background_color
@@ -182,7 +189,9 @@ extension ResourcesStoreDatabaseOperation {
     // Replace all URIs of the affected resources: clear (every resource with metadata, so a shrink to
     // zero URIs is honoured) then re-insert the current set.
     let metadataResourceIDs: Array<Resource.ID> = metadatas.map(\.resourceId)
-    for resourceIDsChunk: ArraySlice<Resource.ID> in metadataResourceIDs.chunked(into: 256) {
+    for resourceIDsChunk: ArraySlice<Resource.ID>
+      in metadataResourceIDs.chunked(into: SQLiteBatch.maxRows(perRowBindings: 1))
+    {
       var removeURIsStatement: SQLiteStatement = "DELETE FROM resourceURI WHERE resource_id"
       removeURIsStatement.append(.in(Set(resourceIDsChunk)))
       removeURIsStatement.append(";")
@@ -190,7 +199,7 @@ extension ResourcesStoreDatabaseOperation {
     }
 
     let uris: Array<ResourceURIDTO> = metadatas.flatMap(\.uris)
-    for urisChunk: ArraySlice<ResourceURIDTO> in uris.chunked(into: 256) {
+    for urisChunk: ArraySlice<ResourceURIDTO> in uris.chunked(into: SQLiteBatch.maxRows(perRowBindings: 2)) {
       var uriStatement: SQLiteStatement = "INSERT INTO resourceURI( resource_id, uri ) VALUES "
       for (offset, uri): (Int, ResourceURIDTO) in urisChunk.enumerated() {
         if offset > 0 { uriStatement.append(", ") }
@@ -205,11 +214,13 @@ extension ResourcesStoreDatabaseOperation {
       metadatas.flatMap { (metadata: ResourceMetadataDTO) in
         metadata.customFields.map { (resourceID: metadata.resourceId, field: $0) }
       }
-    for customFieldsChunk: ArraySlice<(resourceID: Resource.ID, field: ResourceCustomFieldDTO)> in customFields
-      .chunked(into: 256)
+    for customFieldsChunk: ArraySlice<(resourceID: Resource.ID, field: ResourceCustomFieldDTO)>
+      in customFields
+      .chunked(into: SQLiteBatch.maxRows(perRowBindings: 3))
     {
       var customFieldStatement: SQLiteStatement = "INSERT INTO resourceCustomFields( id, resourceID, key ) VALUES "
-      for (offset, entry): (Int, (resourceID: Resource.ID, field: ResourceCustomFieldDTO)) in customFieldsChunk
+      for (offset, entry): (Int, (resourceID: Resource.ID, field: ResourceCustomFieldDTO))
+        in customFieldsChunk
         .enumerated()
       {
         if offset > 0 { customFieldStatement.append(", ") }
@@ -237,9 +248,10 @@ extension ResourcesStoreDatabaseOperation {
     // under SQLite's bound-parameter limit): clear existing links, upsert the unique tags, then insert
     // the resource-tag links. Tags are upserted before links (FK), and links land before the FTS
     // rebuild below reads them.
-    let tagBatchSize: Int = 256
     let storedResourceIDs: Array<Resource.ID> = changedResources.map(\.id)
-    for resourceIDsChunk: ArraySlice<Resource.ID> in storedResourceIDs.chunked(into: tagBatchSize) {
+    for resourceIDsChunk: ArraySlice<Resource.ID>
+      in storedResourceIDs.chunked(into: SQLiteBatch.maxRows(perRowBindings: 1))
+    {
       var deleteStatement: SQLiteStatement = "DELETE FROM resourcesTags WHERE resourceID"
       deleteStatement.append(.in(Set(resourceIDsChunk)))
       deleteStatement.append(";")
@@ -247,7 +259,7 @@ extension ResourcesStoreDatabaseOperation {
     }
 
     let uniqueTagList: Array<ResourceTag> = Array(uniqueTags.values)
-    for tagsChunk: ArraySlice<ResourceTag> in uniqueTagList.chunked(into: tagBatchSize) {
+    for tagsChunk: ArraySlice<ResourceTag> in uniqueTagList.chunked(into: SQLiteBatch.maxRows(perRowBindings: 3)) {
       var upsertStatement: SQLiteStatement = "INSERT INTO resourceTags( id, slug, shared ) VALUES "
       for (offset, resourceTag): (Int, ResourceTag) in tagsChunk.enumerated() {
         if offset > 0 { upsertStatement.append(", ") }
@@ -258,11 +270,13 @@ extension ResourcesStoreDatabaseOperation {
       try connection.execute(upsertStatement)
     }
 
-    for tagLinksChunk: ArraySlice<(resourceID: Resource.ID, tagID: ResourceTag.ID)> in tagLinks
-      .chunked(into: tagBatchSize)
+    for tagLinksChunk: ArraySlice<(resourceID: Resource.ID, tagID: ResourceTag.ID)>
+      in tagLinks
+      .chunked(into: SQLiteBatch.maxRows(perRowBindings: 2))
     {
       var linkStatement: SQLiteStatement = "INSERT INTO resourcesTags( resourceID, resourceTagID ) VALUES "
-      for (offset, tagLink): (Int, (resourceID: Resource.ID, tagID: ResourceTag.ID)) in tagLinksChunk
+      for (offset, tagLink): (Int, (resourceID: Resource.ID, tagID: ResourceTag.ID))
+        in tagLinksChunk
         .enumerated()
       {
         if offset > 0 { linkStatement.append(", ") }
@@ -389,7 +403,7 @@ extension ResourcesStoreDatabaseOperation {
       )
     )
     try connection.execute(.statement("DELETE FROM unchangedResourceReconcile;"))
-    let reconcileBatchSize: Int = 256
+    let reconcileBatchSize: Int = SQLiteBatch.maxRows(perRowBindings: 3)
     for resourcesChunk: ArraySlice<ResourceDTO> in unchangedResources.chunked(into: reconcileBatchSize) {
       var reconcileStatement: SQLiteStatement =
         "INSERT OR REPLACE INTO unchangedResourceReconcile ( resourceID, parentFolderID, favoriteID ) VALUES "

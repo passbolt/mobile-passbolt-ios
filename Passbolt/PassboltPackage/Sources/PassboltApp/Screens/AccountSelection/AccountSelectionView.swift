@@ -252,7 +252,6 @@ private struct AccountSelectionRow: View {
   }
 }
 
-
 #if DEBUG
 
 #Preview {

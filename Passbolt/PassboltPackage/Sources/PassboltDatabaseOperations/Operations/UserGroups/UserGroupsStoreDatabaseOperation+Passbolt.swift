@@ -40,7 +40,7 @@ extension UserGroupsStoreDatabaseOperation {
       .statement("CREATE TEMP TABLE IF NOT EXISTS incomingGroupIDs ( id BLOB NOT NULL PRIMARY KEY );")
     )
     try connection.execute(.statement("DELETE FROM incomingGroupIDs;"))
-    let idBatchSize: Int = 256
+    let idBatchSize: Int = SQLiteBatch.maxRows(perRowBindings: 1)
     for idsChunk: ArraySlice<UserGroup.ID> in input.map(\.id).chunked(into: idBatchSize) {
       var insertIDsStatement: SQLiteStatement = "INSERT OR IGNORE INTO incomingGroupIDs ( id ) VALUES "
       for (offset, groupID): (Int, UserGroup.ID) in idsChunk.enumerated() {
@@ -63,8 +63,8 @@ extension UserGroupsStoreDatabaseOperation {
     )
     try connection.execute(.statement("DELETE FROM incomingGroupIDs;"))
 
-    // Upsert the groups in multi-row batches (2 columns/row).
-    for groupsChunk: ArraySlice<UserGroupDSO> in input.chunked(into: 256) {
+    // Upsert the groups in multi-row batches (2 host parameters/row).
+    for groupsChunk: ArraySlice<UserGroupDSO> in input.chunked(into: SQLiteBatch.maxRows(perRowBindings: 2)) {
       var upsertStatement: SQLiteStatement = "INSERT INTO userGroups( id, name ) VALUES "
       for (offset, userGroup): (Int, UserGroupDSO) in groupsChunk.enumerated() {
         if offset > 0 { upsertStatement.append(", ") }
@@ -80,7 +80,9 @@ extension UserGroupsStoreDatabaseOperation {
       input.flatMap { (userGroup: UserGroupDSO) in
         Set(userGroup.userReferences.map(\.id)).map { (userID: $0, groupID: userGroup.id) }
       }
-    for membershipsChunk: ArraySlice<(userID: User.ID, groupID: UserGroup.ID)> in memberships.chunked(into: 256) {
+    for membershipsChunk: ArraySlice<(userID: User.ID, groupID: UserGroup.ID)> in memberships.chunked(
+      into: SQLiteBatch.maxRows(perRowBindings: 2)
+    ) {
       var membershipStatement: SQLiteStatement = "INSERT INTO usersGroups( userID, userGroupID ) VALUES "
       for (offset, membership): (Int, (userID: User.ID, groupID: UserGroup.ID)) in membershipsChunk.enumerated() {
         if offset > 0 { membershipStatement.append(", ") }

@@ -87,7 +87,6 @@ public final class HelpMenuViewController: ViewController {
     )
   }
 
-
   // Populate the menu with options async - otherwise it breaks height calculation on iOS 16
   @MainActor internal func activate() async {
     let actions: Array<Action> = self.resolvedActions

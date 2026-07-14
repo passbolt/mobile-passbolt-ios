@@ -114,7 +114,10 @@ final internal class ResourceFoldersStoreDatabaseOperationTests: DatabaseOperati
 
   private func count(_ sql: StaticString, _ argument: SQLiteValueConvertible? = nil) throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return -1 }
+    else {
+      XCTFail("Missing test connection")
+      return -1
+    }
     let statement: SQLiteStatement = argument.map { .statement(sql, arguments: $0) } ?? .statement(sql)
     return try connection.fetch(statement).count
   }

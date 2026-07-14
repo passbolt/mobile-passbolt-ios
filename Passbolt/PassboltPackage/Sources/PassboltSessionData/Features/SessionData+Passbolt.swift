@@ -70,53 +70,65 @@ extension SessionData {
       }
     }
 
-    @Sendable nonisolated func refreshUsers() async throws {
-      Diagnostics.logger.info("Refreshing users data...")
+    // Fetch and store are split so `refreshIfNeeded` can run the (independent) network fetches
+    // concurrently while keeping the stores in FK order (users → groups → folders → resources).
+
+    @Sendable nonisolated func refreshUsers(_ fetchedUsers: Array<UserDTO>) async throws {
+      Diagnostics.logger.info("Storing users data...")
       do {
-        try await usersStoreDatabaseOperation(
-          usersFetchNetworkOperation()
-            .compactMap(\.asFilteredDSO)
-        )
-        Diagnostics.logger.info("...users data refresh finished!")
+        try await usersStoreDatabaseOperation(fetchedUsers.compactMap(\.asFilteredDSO))
+        Diagnostics.logger.info("...users data store finished!")
       }
       catch {
-        Diagnostics.logger.info("...users data refresh failed!")
+        Diagnostics.logger.info("...users data store failed!")
         throw error
       }
     }
 
-    @Sendable nonisolated func refreshUserGroups() async throws {
-      Diagnostics.logger.info("Refreshing user groups data...")
+    @Sendable nonisolated func refreshUserGroups(_ fetchedUserGroups: Array<UserGroupDTO>) async throws {
+      Diagnostics.logger.info("Storing user groups data...")
       do {
-        try await userGroupsStoreDatabaseOperation(
-          userGroupsFetchNetworkOperation()
-        )
-
-        Diagnostics.logger.info("...user groups data refresh finished!")
+        try await userGroupsStoreDatabaseOperation(fetchedUserGroups)
+        Diagnostics.logger.info("...user groups data store finished!")
       }
       catch {
-        Diagnostics.logger.info("...user groups data refresh failed!")
+        Diagnostics.logger.info("...user groups data store failed!")
         throw error
       }
     }
 
-    @Sendable nonisolated func refreshFolders() async throws {
+    /// Fetches folders only when the feature is enabled; returns an empty set (and skips the request)
+    /// otherwise, so the concurrent fetch is always safe to start.
+    @Sendable nonisolated func fetchFolders() async throws -> Array<ResourceFolderDTO> {
       guard configuration.folders.enabled
       else {
-        return Diagnostics.logger.info("Refreshing folders skipped, feature disabled!")
+        Diagnostics.logger.info("Fetching folders skipped, feature disabled!")
+        return []
       }
-      Diagnostics.logger.info("Refreshing folders data...")
-      do {
-        try await resourceFoldersStoreDatabaseOperation(
-          resourceFoldersFetchNetworkOperation()
-        )
+      return try await resourceFoldersFetchNetworkOperation()
+    }
 
-        Diagnostics.logger.info("...folders data refresh finished!")
+    @Sendable nonisolated func refreshFolders(_ fetchedFolders: Array<ResourceFolderDTO>) async throws {
+      guard configuration.folders.enabled
+      else { return }  // Folders left untouched when disabled — never store an empty set.
+      Diagnostics.logger.info("Storing folders data...")
+      do {
+        try await resourceFoldersStoreDatabaseOperation(fetchedFolders)
+        Diagnostics.logger.info("...folders data store finished!")
       }
       catch {
-        Diagnostics.logger.info("...folders data refresh failed!")
+        Diagnostics.logger.info("...folders data store failed!")
         throw error
       }
+    }
+
+    /// Fetches metadata settings and initializes metadata keys. Independent of users/groups/folders, so
+    /// it is run concurrently with them; it must complete before resources are decrypted.
+    @Sendable nonisolated func prepareMetadata() async throws {
+      guard configuration.metadata.enabled
+      else { return }
+      try await metadataSettings.fetchSettings()
+      try await metadataKeysService.initialize()
     }
 
     @Sendable nonisolated func refreshResources() async throws {
@@ -160,13 +172,22 @@ extension SessionData {
             // when diffing endpoint becomes available
             // there should be some additional logic
             // to selectively update database data
-            try await refreshUsers()
-            try await refreshUserGroups()
-            if configuration.metadata.enabled {
-              try await metadataSettings.fetchSettings()
-              try await metadataKeysService.initialize()
-            }
-            try await refreshFolders()
+            //
+            // The refresh fetches are independent (no fetch consumes another's response), so start them
+            // concurrently — they overlap on the wire — then store in FK order (users → groups → folders
+            // → resources). Metadata prep (settings + the RSA key init, the largest non-resource cost) is
+            // independent too, so it overlaps the whole store chain; only the brief SessionActor request
+            // prep and the DB stores themselves serialize.
+            async let fetchedUsers: Array<UserDTO> = usersFetchNetworkOperation()
+            async let fetchedUserGroups: Array<UserGroupDTO> = userGroupsFetchNetworkOperation()
+            async let fetchedFolders: Array<ResourceFolderDTO> = fetchFolders()
+            async let preparedMetadata: Void = prepareMetadata()
+
+            try await refreshUsers(fetchedUsers)
+            try await refreshUserGroups(fetchedUserGroups)
+            try await refreshFolders(fetchedFolders)
+            // Metadata keys must be ready before resources are decrypted.
+            try await preparedMetadata
             try await refreshResources()
 
             if configuration.metadata.enabled {
@@ -223,8 +244,8 @@ extension ResourceUpdater.Configuration {
   )
 
   fileprivate static let `extension`: Self = .init(
-    maximumChunkSize: 1_000,
-    maximumConcurrentTasks: 1,
-    maximumConcurrentDecryptions: 2
+    maximumChunkSize: 3_000,
+    maximumConcurrentTasks: 5,
+    maximumConcurrentDecryptions: 4
   )
 }

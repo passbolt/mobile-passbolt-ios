@@ -48,25 +48,25 @@ public struct NavigationContainer<Content: View>: View {
     }
     .sheet(
       item: sheetBinding,
-      onDismiss: { navigationState.sheetDidFinishDismissing() }
-    ) { item in
-      item.makeView()
-
-        .interactiveDismissDisabled()
-        .presentationDragIndicator(.hidden)
-        .solidPresentationBackground()
-    }
+      onDismiss: { navigationState.sheetDidFinishDismissing() },
+      content: { item in
+        item.makeView()
+          .interactiveDismissDisabled()
+          .presentationDragIndicator(.hidden)
+          .solidPresentationBackground()
+      }
+    )
     .sheet(
       item: partialSheetBinding,
-      onDismiss: { navigationState.partialSheetDidFinishDismissing() }
-    ) { item in
-      item.makeView()
-
-        .dynamicDetent()
-        .interactiveDismissDisabled()
-        .presentationDragIndicator(.hidden)
-        .solidPresentationBackground()
-    }
+      onDismiss: { navigationState.partialSheetDidFinishDismissing() },
+      content: { item in
+        item.makeView()
+          .dynamicDetent()
+          .interactiveDismissDisabled()
+          .presentationDragIndicator(.hidden)
+          .solidPresentationBackground()
+      }
+    )
     .alert(
       alertTitle,
       isPresented: alertIsPresented,

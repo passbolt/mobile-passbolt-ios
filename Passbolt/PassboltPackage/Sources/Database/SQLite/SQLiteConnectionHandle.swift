@@ -84,6 +84,18 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
 
     let connectionHandle: SQLiteConnectionHandle = .init(handle)
 
+    #if DEBUG
+    // Guard the hard-coded SQLiteBatch ceilings against a SQLCipher rebuild (newVal < 0 reads the limit).
+    assert(
+      Int(sqlite3_limit(handle, SQLITE_LIMIT_VARIABLE_NUMBER, -1)) == SQLiteBatch.maximumHostParameters,
+      "SQLCipher SQLITE_LIMIT_VARIABLE_NUMBER changed; update SQLiteBatch.maximumHostParameters"
+    )
+    assert(
+      Int(sqlite3_limit(handle, SQLITE_LIMIT_SQL_LENGTH, -1)) == SQLiteBatch.maximumStatementLength,
+      "SQLCipher SQLITE_LIMIT_SQL_LENGTH changed; update SQLiteBatch.maximumStatementLength"
+    )
+    #endif
+
     try connectionHandle.execute("PRAGMA key;")
     try connectionHandle.execute("PRAGMA foreign_keys = ON;")
     try connectionHandle.execute("PRAGMA journal_mode = WAL;")

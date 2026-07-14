@@ -41,7 +41,7 @@ extension ResourceFoldersStoreDatabaseOperation {
       .statement("CREATE TEMP TABLE IF NOT EXISTS incomingFolderIDs ( id BLOB NOT NULL PRIMARY KEY );")
     )
     try connection.execute(.statement("DELETE FROM incomingFolderIDs;"))
-    let idBatchSize: Int = 256
+    let idBatchSize: Int = SQLiteBatch.maxRows(perRowBindings: 1)
     for idsChunk: ArraySlice<ResourceFolder.ID> in input.map(\.id).chunked(into: idBatchSize) {
       var insertIDsStatement: SQLiteStatement = "INSERT OR IGNORE INTO incomingFolderIDs ( id ) VALUES "
       for (offset, folderID): (Int, ResourceFolder.ID) in idsChunk.enumerated() {
@@ -74,7 +74,9 @@ extension ResourceFoldersStoreDatabaseOperation {
     // they must be inserted root→leaf. topoSort gives that order and chunked() preserves it, so within
     // a multi-row batch (and across chunks) a parent is always inserted before its children.
     let sortedFolders: Array<ResourceFolderDTO> = input.topoSort(idPath: \.id, parentIdPath: \.parentID)
-    for foldersChunk: ArraySlice<ResourceFolderDTO> in sortedFolders.chunked(into: 200) {
+    for foldersChunk: ArraySlice<ResourceFolderDTO>
+      in sortedFolders.chunked(into: SQLiteBatch.maxRows(perRowBindings: 4))
+    {
       var upsertStatement: SQLiteStatement =
         "INSERT INTO resourceFolders( id, name, permission, parentFolderID ) VALUES "
       for (offset, folder): (Int, ResourceFolderDTO) in foldersChunk.enumerated() {

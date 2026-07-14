@@ -56,6 +56,8 @@ extension XCTestCase {
   ///   - metrics: Metrics to capture (defaults to ``benchmarkMetrics()``).
   ///   - options: Measurement options (iteration count, etc.).
   ///   - iterations: Measured iterations (lower it for very heavy benchmarks).
+  ///   - file: Source file reporting benchmark failures (defaults to the caller).
+  ///   - line: Source line reporting benchmark failures (defaults to the caller).
   ///   - operation: The asynchronous work to measure.
   public func measureAsync(
     metrics: Array<XCTMetric> = benchmarkMetrics(),

@@ -215,7 +215,10 @@ final internal class ResourcesStoreDatabaseOperationTests: DatabaseOperationsTes
 
   private func parentFolderID(for resourceID: Resource.ID) throws -> Data? {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return nil }
+    else {
+      XCTFail("Missing test connection")
+      return nil
+    }
     let rows: Array<SQLiteRow> = try connection.fetch(
       .statement("SELECT parentFolderID FROM resources WHERE id = ?1;", arguments: resourceID)
     )
@@ -226,34 +229,49 @@ final internal class ResourcesStoreDatabaseOperationTests: DatabaseOperationsTes
 
   private func uriCount(for resourceID: Resource.ID) throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return -1 }
-    return try connection.fetch(
-      .statement("SELECT uri FROM resourceURI WHERE resource_id = ?1;", arguments: resourceID)
-    )
-    .count
+    else {
+      XCTFail("Missing test connection")
+      return -1
+    }
+    return
+      try connection.fetch(
+        .statement("SELECT uri FROM resourceURI WHERE resource_id = ?1;", arguments: resourceID)
+      )
+      .count
   }
 
   private func groupPermissionCount(for resourceID: Resource.ID) throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return -1 }
-    return try connection.fetch(
-      .statement("SELECT userGroupID FROM userGroupsResources WHERE resourceID = ?1;", arguments: resourceID)
-    )
-    .count
+    else {
+      XCTFail("Missing test connection")
+      return -1
+    }
+    return
+      try connection.fetch(
+        .statement("SELECT userGroupID FROM userGroupsResources WHERE resourceID = ?1;", arguments: resourceID)
+      )
+      .count
   }
 
   private func userPermissionCount(for resourceID: Resource.ID) throws -> Int {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return -1 }
-    return try connection.fetch(
-      .statement("SELECT userID FROM usersResources WHERE resourceID = ?1;", arguments: resourceID)
-    )
-    .count
+    else {
+      XCTFail("Missing test connection")
+      return -1
+    }
+    return
+      try connection.fetch(
+        .statement("SELECT userID FROM usersResources WHERE resourceID = ?1;", arguments: resourceID)
+      )
+      .count
   }
 
   private func userPermissionLevel(for resourceID: Resource.ID) throws -> Int? {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return nil }
+    else {
+      XCTFail("Missing test connection")
+      return nil
+    }
     let rows: Array<SQLiteRow> = try connection.fetch(
       .statement("SELECT permission FROM usersResources WHERE resourceID = ?1;", arguments: resourceID)
     )
@@ -268,7 +286,10 @@ final internal class ResourcesStoreDatabaseOperationTests: DatabaseOperationsTes
 
   private func setState(_ state: ResourceState, for resourceID: Resource.ID) throws {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return }
+    else {
+      XCTFail("Missing test connection")
+      return
+    }
     try connection.execute(
       .statement("UPDATE resources SET state = ?1 WHERE id = ?2;", arguments: state.rawValue, resourceID)
     )
@@ -312,7 +333,10 @@ final internal class ResourcesStoreDatabaseOperationTests: DatabaseOperationsTes
 
   private func rowExists(_ statement: SQLiteStatement) throws -> Bool {
     guard let connection: SQLiteConnection = self.databaseConnection
-    else { XCTFail("Missing test connection"); return false }
+    else {
+      XCTFail("Missing test connection")
+      return false
+    }
     return try connection.fetch(statement).isEmpty == false
   }
 }

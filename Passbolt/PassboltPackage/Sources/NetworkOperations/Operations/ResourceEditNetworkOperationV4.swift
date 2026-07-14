@@ -24,8 +24,6 @@
 import Features
 import struct Foundation.Date
 
-import struct Foundation.Date
-
 // MARK: - Interface
 
 public typealias ResourceEditNetworkOperationV4 =

@@ -473,7 +473,7 @@ extension MetadataKeysService {
             )
           }
           catch let validationFailure as NetworkRequestValidationFailure
-            where validationFailure.indicatesMetadataPrivateKeyAlreadyEdited {
+          where validationFailure.indicatesMetadataPrivateKeyAlreadyEdited {
             // Already signed server-side: pin locally instead of re-failing the update on each edit/retry.
             Diagnostics.logger.info("Metadata private key already edited by current user - storing locally.")
           }

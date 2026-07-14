@@ -164,8 +164,9 @@ final class PGPTests: XCTestCase {
     // signature with a slightly negative time offset (e.g. -1 from whole-second truncation)
     // must still succeed thanks to the clock-skew tolerance.
     let passphrase: Passphrase = "Secret"
-    guard case Result.success(let freshlySignedCiphertext) =
-      pgp.encryptAndSign("passbolt", passphrase, privateKey, publicKey)
+    guard
+      case Result.success(let freshlySignedCiphertext) =
+        pgp.encryptAndSign("passbolt", passphrase, privateKey, publicKey)
     else {
       return XCTFail("Encryption failed")
     }

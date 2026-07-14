@@ -45,7 +45,7 @@ extension UsersStoreDatabaseOperation {
       .statement("CREATE TEMP TABLE IF NOT EXISTS incomingUserIDs ( id BLOB NOT NULL PRIMARY KEY );")
     )
     try connection.execute(.statement("DELETE FROM incomingUserIDs;"))
-    let idBatchSize: Int = 256
+    let idBatchSize: Int = SQLiteBatch.maxRows(perRowBindings: 1)
     for idsChunk: ArraySlice<User.ID> in input.map(\.id).chunked(into: idBatchSize) {
       var insertIDsStatement: SQLiteStatement = "INSERT OR IGNORE INTO incomingUserIDs ( id ) VALUES "
       for (offset, userID): (Int, User.ID) in idsChunk.enumerated() {
@@ -60,8 +60,9 @@ extension UsersStoreDatabaseOperation {
     try connection.execute(.statement("DELETE FROM users WHERE id NOT IN ( SELECT id FROM incomingUserIDs );"))
     try connection.execute(.statement("DELETE FROM incomingUserIDs;"))
 
-    // Upsert users in multi-row batches (8 columns/row, kept under the ~999 bound-parameter limit).
-    for usersChunk: ArraySlice<UserDSO> in input.chunked(into: 100) {
+    // Upsert users in multi-row batches (8 host parameters/row; batch size derived from the SQLite
+    // parameter budget).
+    for usersChunk: ArraySlice<UserDSO> in input.chunked(into: SQLiteBatch.maxRows(perRowBindings: 8)) {
       var upsertStatement: SQLiteStatement = """
         INSERT INTO users(
           id, username, firstName, lastName,
