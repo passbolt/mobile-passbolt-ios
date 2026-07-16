@@ -84,6 +84,14 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
 
     let connectionHandle: SQLiteConnectionHandle = .init(handle)
 
+    // The vendored SQLCipher build pinned these via compile-time defines
+    // (SQLITE_MAX_SQL_LENGTH=100000; SQLITE_MAX_VARIABLE_NUMBER defaulted to 32766).
+    // The official SQLCipher package ships higher defaults (1e9 and 99999), so re-impose
+    // the historical values at runtime — preserving the hardening and keeping the
+    // SQLiteBatch chunking assumptions (and the asserts below) valid.
+    sqlite3_limit(handle, SQLITE_LIMIT_SQL_LENGTH, Int32(SQLiteBatch.maximumStatementLength))
+    sqlite3_limit(handle, SQLITE_LIMIT_VARIABLE_NUMBER, Int32(SQLiteBatch.maximumHostParameters))
+
     #if DEBUG
     // Guard the hard-coded SQLiteBatch ceilings against a SQLCipher rebuild (newVal < 0 reads the limit).
     assert(

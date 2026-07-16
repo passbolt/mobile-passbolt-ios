@@ -70,12 +70,6 @@ let package = Package(
       name: "OSFeatures",
       targets: ["OSFeatures"]
     ),
-    // MARK: - Vendor
-    .library(
-      name: "SQLCipher",
-      type: .static,
-      targets: ["SQLCipher"]
-    ),
     // MARK: - Modules
     .library(
       name: "PassboltAccounts",
@@ -140,6 +134,10 @@ let package = Package(
     .package(
       url: "https://github.com/apple/swift-async-algorithms.git",
       .upToNextMinor(from: "0.1.0")
+    ),
+    .package(
+      url: "https://github.com/sqlcipher/SQLCipher.swift.git",
+      .upToNextMajor(from: "4.17.0")
     ),
   ],
   targets: [
@@ -369,7 +367,12 @@ let package = Package(
         "Commons",
         "CommonModels",
         // Vendor
-        "SQLCipher",
+        .product(name: "SQLCipher", package: "SQLCipher.swift"),
+      ],
+      swiftSettings: [
+        // The official SQLCipher xcframework guards sqlite3_key() behind SQLITE_HAS_CODEC;
+        // pass it to the Clang importer so the codec symbols are visible from Swift.
+        .unsafeFlags(["-Xcc", "-DSQLITE_HAS_CODEC"])
       ]
     ),
     .target(
@@ -403,50 +406,6 @@ let package = Package(
     .binaryTarget(
       name: "Gopenpgp",
       path: "./Vendor/Gopenpgp.xcframework"
-    ),
-    .target(
-      // SQLCipher is added as preconfigured source file
-      // see: https://www.zetetic.net/sqlcipher/ios-tutorial/#option-1-source-integration
-      // however due to some issuse with SPM (or generated source)
-      // it is currently required to add define for SQLITE_HAS_CODEC in sqlite3.h
-      // it won't be compiled properly otherwise.
-      //
-      // Put it after:
-      // "Provide the ability to override linkage features of the interface."
-      // comment, around line ~70.
-      //
-      // #ifndef SQLITE_HAS_CODEC
-      // # define SQLITE_HAS_CODEC
-      // #endif
-      //
-      // It might be updated in future see: https://github.com/sqlcipher/sqlcipher/issues/371
-      name: "SQLCipher",
-      cSettings: [
-        .unsafeFlags(["-w"]),  // Suppress all warnings coming from SQLCipher code
-        .define("SQLITE_HAS_CODEC"),
-        .define("SQLITE_TEMP_STORE", to: "3"),
-        .define("SQLCIPHER_CRYPTO_CC"),
-        .define("NDEBUG"),  // Settings based on recommended values: https://www.sqlite.org/draft/security.html
-        .define("SQLITE_MAX_LIMIT_LENGTH", to: "1000000"),
-        .define("SQLITE_MAX_SQL_LENGTH", to: "100000"),
-        .define("SQLITE_MAX_LIMIT_COLUMN", to: "100"),
-        .define("SQLITE_MAX_LIMIT_EXPR_DEPTH", to: "10"),
-        .define("SQLITE_MAX_LIMIT_COMPOUND_SELECT", to: "3"),
-        .define("SQLITE_MAX_LIMIT_VDBE_OP", to: "25000"),
-        .define("SQLITE_MAX_LIMIT_FUNCTION_ARG", to: "8"),
-        .define("SQLITE_MAX_LIMIT_ATTACH", to: "0"),
-        .define("SQLITE_MAX_LIMIT_LIKE_PATTERN_LENGTH", to: "50"),
-        .define("SQLITE_MAX_LIMIT_VARIABLE_NUMBER", to: "10"),
-        .define("SQLITE_MAX_LIMIT_TRIGGER_DEPTH", to: "10"),
-        .define("SQLITE_ENABLE_FTS5"),
-      ],
-      swiftSettings: [
-        .define("SQLITE_HAS_CODEC")
-      ],
-      linkerSettings: [
-        .linkedFramework("Foundation"),
-        .linkedFramework("Security"),
-      ]
     ),
     .target(
       name: "OSFeatures",
