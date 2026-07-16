@@ -29,6 +29,9 @@ internal struct AdvancedPasswordGenerationView: ControlledView {
 
   internal let controller: AdvancedPasswordGenerationViewController
 
+  /// Presentational-only masking of the generated preview. Defaults to unmasked.
+  @State private var previewMasked: Bool = false
+
   internal init(controller: AdvancedPasswordGenerationViewController) {
     self.controller = controller
   }
@@ -66,22 +69,36 @@ internal struct AdvancedPasswordGenerationView: ControlledView {
       VStack(alignment: .leading, spacing: 4) {
         Text(displayable: Self.previewTitleKey(for: generator))
           .text(font: .inter(ofSize: 12, weight: .semibold), color: .passboltPrimaryText)
-        Text(preview)
-          .font(.system(.body, design: .monospaced))
-          .foregroundColor(.passboltPrimaryText)
-          .lineLimit(1)
-          .truncationMode(.tail)
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(12)
-          .background(
-            RoundedRectangle(cornerRadius: 4)
-              .fill(Color.passboltBackgroundAlternative)
+        HStack(spacing: 8) {
+          Text(self.previewMasked ? String(repeating: "•", count: max(preview.count, 1)) : preview)
+            .font(.system(.body, design: .monospaced))
+            .foregroundColor(.passboltPrimaryText)
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .textSelection(.enabled)
+          Button(
+            action: { self.previewMasked.toggle() },
+            label: {
+              if self.previewMasked {
+                RevealButtonImage()
+              }
+              else {
+                CoverButtonImage()
+              }
+            }
           )
-          .overlay(
-            RoundedRectangle(cornerRadius: 4)
-              .stroke(Color.passboltDivider, lineWidth: 1)
-          )
-          .textSelection(.enabled)
+          .accessibilityIdentifier("resource.edit.password.advanced.preview.eye")
+        }
+        .padding(12)
+        .background(
+          RoundedRectangle(cornerRadius: 4)
+            .fill(Color.passboltBackgroundAlternative)
+        )
+        .overlay(
+          RoundedRectangle(cornerRadius: 4)
+            .stroke(Color.passboltDivider, lineWidth: 1)
+        )
       }
     }
   }

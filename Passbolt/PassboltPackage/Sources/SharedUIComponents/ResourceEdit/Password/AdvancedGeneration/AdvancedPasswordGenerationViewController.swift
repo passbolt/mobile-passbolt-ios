@@ -42,7 +42,6 @@ internal final class AdvancedPasswordGenerationViewController: ViewController {
     internal var configuration: PasswordPoliciesDSV
     internal var preview: String
     internal var saveEnabled: Bool
-    internal var edited: Bool
   }
 
   nonisolated let viewState: ViewStateSource<ViewState>
@@ -64,8 +63,7 @@ internal final class AdvancedPasswordGenerationViewController: ViewController {
       initial: .init(
         configuration: .default,
         preview: "",
-        saveEnabled: true,
-        edited: false
+        saveEnabled: true
       ),
       updateFrom: passwordGenerationService.configuration(),
       update: {
@@ -141,9 +139,7 @@ extension AdvancedPasswordGenerationViewController {
     await consumingErrors {
       let snapshot: ViewState = await self.viewState.current
       await self.passwordGenerationService.updateConfiguration(snapshot.configuration)
-      if snapshot.edited, !snapshot.preview.isEmpty {
-        await self.onSaveGenerated(snapshot.preview)
-      }
+      await self.onSaveGenerated(snapshot.preview)
       try await self.navigationToSelf.revert()
     }
   }
@@ -157,7 +153,6 @@ extension AdvancedPasswordGenerationViewController {
     let secretGenerator: SecretGenerator = self.secretGenerator
     self.viewState.update { (state: inout ViewState) in
       guard mutation(&state) else { return }
-      state.edited = true
       Self.regeneratePreview(into: &state, using: secretGenerator)
     }
   }
