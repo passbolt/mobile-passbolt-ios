@@ -80,7 +80,7 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
     )
     patch(
       \ResourceUpdater.updateResources,
-      with: always(Void())
+      with: { _, _ in }
     )
     patch(
       \Session.execute,

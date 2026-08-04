@@ -43,13 +43,13 @@ public struct ResourcesListDisplayView: ControlledView {
         isLoadingMore: state.isLoadingMore,
         contentResetToken: state.contentResetToken,
         refreshAction: self.controller.refresh,
-        refreshIndicatorSource: self.controller.refreshIndicatorSource,
+        refreshSource: self.controller.refreshSource,
         loadMoreAction: self.controller.loadMore,
         createAction: self.controller.createResource,
         resourceTapAction: self.controller.selectResource,
         resourceMenuAction: self.controller.showResourceMenuCallback
       )
-      .homeListRefreshState(source: self.controller.refreshIndicatorSource)
+      .homeListRefreshState(source: self.controller.refreshSource)
     }
   }
 }

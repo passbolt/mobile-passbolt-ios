@@ -52,7 +52,7 @@ internal struct TagsExplorerView: ControlledView {
       contentView: {
         self.contentView(with: state)
           .shadowTopEdgeOverlay()
-          .homeListRefreshState(source: self.controller.refreshIndicatorSource)
+          .homeListRefreshState(source: self.controller.refreshSource)
       }
     )
     .environment(\.hideLeadingItem, state.resourceTagID == .none)
@@ -85,7 +85,7 @@ internal struct TagsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
-      refreshIndicatorSource: self.controller.refreshIndicatorSource,
+      refreshSource: self.controller.refreshSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       tagTapAction: { tagID in
@@ -111,7 +111,7 @@ internal struct TagsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
-      refreshIndicatorSource: self.controller.refreshIndicatorSource,
+      refreshSource: self.controller.refreshSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       resourceTapAction: { resourceID in

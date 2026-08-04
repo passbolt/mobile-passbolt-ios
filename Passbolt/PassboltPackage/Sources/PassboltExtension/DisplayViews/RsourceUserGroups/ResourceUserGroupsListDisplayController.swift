@@ -32,7 +32,7 @@ import Users
 internal final class ResourceUserGroupsListDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
+  internal nonisolated let refreshSource: AnyUpdatable<Double?>
 
   private let sessionData: SessionData
   private let userGroups: UserGroups
@@ -51,7 +51,7 @@ internal final class ResourceUserGroupsListDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.userGroups = try features.instance()
-    self.refreshIndicatorSource = self.sessionData.isRefreshing
+    self.refreshSource = self.sessionData.refreshProgress
 
     let pageSize: Int = context.pageSize
 

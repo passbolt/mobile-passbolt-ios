@@ -100,7 +100,7 @@ public struct ResourcesListView: View {
   private let isLoadingMore: Bool
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
-  private let refreshIndicatorSource: AnyUpdatable<Bool>?
+  private let refreshSource: AnyUpdatable<Double?>?
   private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (@Sendable () async throws -> Void)?
   private let resourceTapAction: @Sendable (Resource.ID) async throws -> Void
@@ -113,7 +113,7 @@ public struct ResourcesListView: View {
     isLoadingMore: Bool,
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
-    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
+    refreshSource: AnyUpdatable<Double?>? = nil,
     loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (@Sendable () async throws -> Void)?,
     resourceTapAction: @escaping @Sendable (Resource.ID) async throws -> Void,
@@ -128,7 +128,7 @@ public struct ResourcesListView: View {
       suggestedResources?.isEmpty ?? true
       && resources.isEmpty
     self.refreshAction = refreshAction
-    self.refreshIndicatorSource = refreshIndicatorSource
+    self.refreshSource = refreshSource
     self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.resourceTapAction = resourceTapAction
@@ -143,7 +143,7 @@ public struct ResourcesListView: View {
       isLoadingMore: isLoadingMore,
       onLoadMore: loadMoreAction,
       refreshAction: refreshAction,
-      refreshIndicatorSource: refreshIndicatorSource,
+      refreshSource: refreshSource,
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )

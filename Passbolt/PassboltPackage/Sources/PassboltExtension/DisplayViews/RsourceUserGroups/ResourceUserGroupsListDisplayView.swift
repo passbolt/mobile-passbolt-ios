@@ -41,7 +41,7 @@ internal struct ResourceUserGroupsListDisplayView: ControlledView {
         isLoadingMore: state.isLoadingMore,
         contentResetToken: state.contentResetToken,
         refreshAction: self.controller.refresh,
-        refreshIndicatorSource: self.controller.refreshIndicatorSource,
+        refreshSource: self.controller.refreshSource,
         loadMoreAction: self.controller.loadMore,
         createAction: .none,
         groupTapAction: self.controller.selectGroup

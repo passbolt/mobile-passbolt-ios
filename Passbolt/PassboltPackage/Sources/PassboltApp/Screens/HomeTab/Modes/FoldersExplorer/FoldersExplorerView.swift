@@ -79,7 +79,7 @@ internal struct FoldersExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
-      refreshIndicatorSource: self.controller.refreshIndicatorSource,
+      refreshSource: self.controller.refreshSource,
       loadMoreAction: self.controller.loadMore,
       createAction: state.canCreateResources
         ? { @Sendable in await self.controller.presentAddNew(folderID: state.folderID) }
@@ -99,6 +99,6 @@ internal struct FoldersExplorerView: ControlledView {
         await self.controller.presentResourceMenu(resourceID)
       }
     )
-    .homeListRefreshState(source: self.controller.refreshIndicatorSource)
+    .homeListRefreshState(source: self.controller.refreshSource)
   }
 }

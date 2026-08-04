@@ -29,9 +29,10 @@ extension View {
   private static var identifier: String { "home.list.collection.view" }
 
   /// Exposes a home list's refresh state to UI/E2E tests as an accessibility value
-  /// (`"refreshing"` / `"idle"`) on a stable container identifier. See `WaitForRefreshToComplete`.
+  /// (`"refreshing"` / `"idle"`) on a stable container identifier. The refresh stream is `nil` while
+  /// idle and `.some(fraction)` while refreshing. See `WaitForRefreshToComplete`.
   public func homeListRefreshState(
-    source: AnyUpdatable<Bool>?
+    source: AnyUpdatable<Double?>?
   ) -> some View {
     self.modifier(
       HomeListRefreshStateModifier(
@@ -45,7 +46,7 @@ extension View {
 private struct HomeListRefreshStateModifier: ViewModifier {
 
   fileprivate let identifier: String
-  fileprivate let source: AnyUpdatable<Bool>?
+  fileprivate let source: AnyUpdatable<Double?>?
 
   /// Mirrors `source` so the refresh state can be exposed to UI/E2E tests as an accessibility value.
   @State private var isRefreshing: Bool = false
@@ -55,11 +56,11 @@ private struct HomeListRefreshStateModifier: ViewModifier {
       .accessibilityIdentifier(self.identifier)
       .accessibilityValue(self.isRefreshing ? "refreshing" : "idle")
       .task {
-        guard let source: AnyUpdatable<Bool> = self.source
+        guard let source: AnyUpdatable<Double?> = self.source
         else { return }
-        var iterator: UpdatableIterator<Bool> = source.makeAsyncIterator()
-        while let update: Update<Bool> = await iterator.next() {
-          self.isRefreshing = (try? update.value) ?? false
+        var iterator: UpdatableIterator<Double?> = source.makeAsyncIterator()
+        while let update: Update<Double?> = await iterator.next() {
+          self.isRefreshing = ((try? update.value) ?? nil) != nil
         }
       }
   }

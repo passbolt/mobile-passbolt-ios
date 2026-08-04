@@ -47,7 +47,8 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
   private let isLoadingMore: Bool
   private let onLoadMore: @Sendable () async -> Void
   private let refreshAction: (@Sendable () async -> Void)?
-  private let refreshIndicatorSource: AnyUpdatable<Bool>?
+  /// Refresh stream: `nil` idle, `.some(fraction)` while refreshing (`SessionData.refreshProgress`).
+  private let refreshSource: AnyUpdatable<Double?>?
   private let contentResetToken: Int
   private let loadMoreThreshold: Int
   @State private var visibleRange: Range<Int> = 0 ..< 1
@@ -72,7 +73,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
     isLoadingMore: Bool,
     onLoadMore: @Sendable @escaping () async -> Void,
     refreshAction: (@Sendable () async -> Void)? = nil,
-    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
+    refreshSource: AnyUpdatable<Double?>? = nil,
     contentResetToken: Int = 0,
     content: @escaping (ItemType) -> Content,
     loadMoreThreshold: Int = 10
@@ -82,7 +83,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
     self.isLoadingMore = isLoadingMore
     self.onLoadMore = onLoadMore
     self.refreshAction = refreshAction
-    self.refreshIndicatorSource = refreshIndicatorSource
+    self.refreshSource = refreshSource
     self.contentResetToken = contentResetToken
     self.content = content
     self.loadMoreThreshold = loadMoreThreshold
@@ -127,7 +128,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
       }
       .refreshableWithIndicator(
         refreshAction: self.refreshAction,
-        refreshIndicatorSource: self.refreshIndicatorSource
+        refreshSource: self.refreshSource
       )
       .onAppear {
         recomputeVisibleRange()
@@ -188,7 +189,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
       }
       .refreshableWithIndicator(
         refreshAction: self.refreshAction,
-        refreshIndicatorSource: self.refreshIndicatorSource
+        refreshSource: self.refreshSource
       )
       .onAppear {
         recomputeVisibleRange()
@@ -395,7 +396,7 @@ private struct LayoutIndex: LayoutValueKey {
 private struct RefreshableWithIndicator: ViewModifier {
 
   fileprivate let refreshAction: (@Sendable () async -> Void)?
-  fileprivate let refreshIndicatorSource: AnyUpdatable<Bool>?
+  fileprivate let refreshSource: AnyUpdatable<Double?>?
   @State private var userPullingRefresh: Bool = false
   @State private var externalRefreshing: Bool = false
 
@@ -414,31 +415,35 @@ private struct RefreshableWithIndicator: ViewModifier {
         await self.refreshAction?()
       }
       .safeAreaInset(edge: .top, spacing: 0) {
-        if self.externalRefreshing && !self.userPullingRefresh {
-          HStack {
-            Spacer()
-            // System-initiated refresh has no native `.refreshable` spinner, so this stands in for it.
-            // It uses the same UIKit `UIActivityIndicatorView` that `UIRefreshControl` (the pull spinner) is
-            // built from, so size, spin speed, and color all match — a SwiftUI `ProgressView` is a different
-            // renderer and visibly differs in all three. The two never appear at the same time.
-            RefreshActivityIndicator(color: .passboltSecondaryText)
-              .scaleEffect(0.8)
-            Spacer()
+        VStack(spacing: 0) {
+          // Determinate progress of the ongoing refresh, shown for both pull and system refreshes.
+          // The component self-manages visibility (incl. the brief 100% linger on completion).
+          RefreshProgressBar(source: self.refreshSource)
+          if self.externalRefreshing && !self.userPullingRefresh {
+            HStack {
+              Spacer()
+              // System-initiated refresh has no native `.refreshable` spinner, so this stands in for it.
+              // It uses the same UIKit `UIActivityIndicatorView` that `UIRefreshControl` (the pull spinner) is
+              // built from, so size, spin speed, and color all match — a SwiftUI `ProgressView` is a different
+              // renderer and visibly differs in all three. The two never appear at the same time.
+              RefreshActivityIndicator(color: .passboltSecondaryText)
+                .scaleEffect(0.8)
+              Spacer()
+            }
+            .padding(.vertical, 12)
           }
-          .padding(.vertical, 12)
-        }
-        else {
-          Color.clear.frame(width: 0, height: 0)
         }
       }
+      // Drives the stand-in spinner for system-initiated refreshes; "is refreshing" is simply the
+      // refresh stream being non-nil. The progress bar manages its own state in `RefreshProgressBar`.
       .task {
-        guard let source: AnyUpdatable<Bool> = self.refreshIndicatorSource
+        guard let source: AnyUpdatable<Double?> = self.refreshSource
         else { return }
-        var iterator: UpdatableIterator<Bool> = source.makeAsyncIterator()
-        while let update: Update<Bool> = await iterator.next() {
-          let newValue: Bool = (try? update.value) ?? false
+        var iterator: UpdatableIterator<Double?> = source.makeAsyncIterator()
+        while let update: Update<Double?> = await iterator.next() {
+          let refreshing: Bool = ((try? update.value) ?? nil) != nil
           withAnimation(.easeInOut(duration: 0.25)) {
-            self.externalRefreshing = newValue
+            self.externalRefreshing = refreshing
           }
         }
       }
@@ -449,12 +454,12 @@ extension View {
 
   fileprivate func refreshableWithIndicator(
     refreshAction: (@Sendable () async -> Void)?,
-    refreshIndicatorSource: AnyUpdatable<Bool>?
+    refreshSource: AnyUpdatable<Double?>?
   ) -> some View {
     self.modifier(
       RefreshableWithIndicator(
         refreshAction: refreshAction,
-        refreshIndicatorSource: refreshIndicatorSource
+        refreshSource: refreshSource
       )
     )
   }

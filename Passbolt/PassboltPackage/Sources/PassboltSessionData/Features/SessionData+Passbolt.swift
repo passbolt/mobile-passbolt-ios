@@ -57,7 +57,9 @@ extension SessionData {
     // we could store last update time and reuse it to avoid
     // fetching all the data when initializing
     let lastUpdate: Variable<Timestamp> = .init(initial: 0)
-    let isRefreshing: Variable<Bool> = .init(initial: false)
+    // `nil` = idle, `.some(fraction)` = refreshing at that progress. One stream carries both the
+    // "is refreshing" flag and the determinate progress (see `SessionData.refreshProgress`).
+    let refreshProgress: Variable<Double?> = .init(initial: .none)
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
@@ -67,6 +69,21 @@ extension SessionData {
       }
       catch {
         error.logged()
+      }
+    }
+
+    /// Publishes a refresh step's progress. `fraction` is how far the step itself has advanced
+    /// (`1` = done; paginated steps pass `pagesDone / totalPages`).
+    ///
+    /// Forward-only and applied only while a refresh is active (`refreshProgress != nil`), so each
+    /// stage — including the concurrently-run `prepareMetadata` — can report independently without
+    /// moving the bar backwards or resurrecting it after the run finished.
+    @Sendable nonisolated func reportRefreshProgress(_ step: RefreshStep, fraction: Double = 1) {
+      let target: Double = step.fraction(fraction)
+      refreshProgress.mutate { (value: inout Double?) in
+        guard let current: Double = value
+        else { return }  // idle — ignore late reports
+        value = max(current, target)
       }
     }
 
@@ -83,6 +100,7 @@ extension SessionData {
         Diagnostics.logger.info("...users data store failed!")
         throw error
       }
+      reportRefreshProgress(.users)
     }
 
     @Sendable nonisolated func refreshUserGroups(_ fetchedUserGroups: Array<UserGroupDTO>) async throws {
@@ -95,6 +113,7 @@ extension SessionData {
         Diagnostics.logger.info("...user groups data store failed!")
         throw error
       }
+      reportRefreshProgress(.userGroups)
     }
 
     /// Fetches folders only when the feature is enabled; returns an empty set (and skips the request)
@@ -109,26 +128,34 @@ extension SessionData {
     }
 
     @Sendable nonisolated func refreshFolders(_ fetchedFolders: Array<ResourceFolderDTO>) async throws {
-      guard configuration.folders.enabled
-      else { return }  // Folders left untouched when disabled — never store an empty set.
-      Diagnostics.logger.info("Storing folders data...")
-      do {
-        try await resourceFoldersStoreDatabaseOperation(fetchedFolders)
-        Diagnostics.logger.info("...folders data store finished!")
+      // Folders left untouched when disabled — never store an empty set — but the step still reports
+      // as completed so a skipped feature-flagged step advances the bar (matching the Android model).
+      if configuration.folders.enabled {
+        Diagnostics.logger.info("Storing folders data...")
+        do {
+          try await resourceFoldersStoreDatabaseOperation(fetchedFolders)
+          Diagnostics.logger.info("...folders data store finished!")
+        }
+        catch {
+          Diagnostics.logger.info("...folders data store failed!")
+          throw error
+        }
       }
-      catch {
-        Diagnostics.logger.info("...folders data store failed!")
-        throw error
-      }
+      // TODO: when the folders endpoint becomes paginated, report `.folders` incrementally with
+      // `fraction: pagesDone / totalPages` like `.resources` below.
+      reportRefreshProgress(.folders)
     }
 
     /// Fetches metadata settings and initializes metadata keys. Independent of users/groups/folders, so
     /// it is run concurrently with them; it must complete before resources are decrypted.
     @Sendable nonisolated func prepareMetadata() async throws {
-      guard configuration.metadata.enabled
-      else { return }
-      try await metadataSettings.fetchSettings()
-      try await metadataKeysService.initialize()
+      if configuration.metadata.enabled {
+        try await metadataSettings.fetchSettings()
+        try await metadataKeysService.initialize()
+      }
+      // Reports as completed even when disabled; `reportRefreshProgress` is forward-only, so this
+      // concurrently-run step can land here in any order without moving the bar backwards.
+      reportRefreshProgress(.metadata)
     }
 
     @Sendable nonisolated func refreshResources() async throws {
@@ -136,7 +163,10 @@ extension SessionData {
       do {
         try await resourceUpdater.updateResources(
           isInApplicationContext ? .application : .extension
-        )
+        ) { (fraction: Double) in
+          // Paginated step: fills its equal-weight segment as pages are processed.
+          reportRefreshProgress(.resources, fraction: fraction)
+        }
         Diagnostics.logger.info("...resources data refresh finished!")
       }
       catch {
@@ -161,13 +191,15 @@ extension SessionData {
           return runningTask
         }
         else {
-          isRefreshing.assign(true)
+          // Enter the active state at 0 progress (this is the only backwards move — a fresh start).
+          refreshProgress.assign(.some(0))
           let runningTask: Task<Void, Error> = session.execute {
             defer {
               refreshTask.access { task in
                 task = .none
               }
-              isRefreshing.assign(false)
+              // Back to idle regardless of how the body terminated (success pins 1.0 just before this).
+              refreshProgress.assign(.none)
             }
             // when diffing endpoint becomes available
             // there should be some additional logic
@@ -198,12 +230,15 @@ extension SessionData {
             lastUpdate.mutate { (lastUpdate: inout Timestamp) in
               lastUpdate = time.timestamp()
             }
+            // Final step; reported even when metadata is disabled (skipped counts as completed), so
+            // a successful refresh pins progress to 1.0 before the defer returns it to idle.
+            reportRefreshProgress(.sessionKeys)
           }
-          // Clear isRefreshing on completion regardless of how the
-          // task body terminated, in case the body never and the defer above didn't fire.
+          // Return to idle on completion regardless of how the task body terminated, in case the
+          // body threw before the defer above ran.
           Task { @Sendable in
             _ = try? await runningTask.value
-            isRefreshing.assign(false)
+            refreshProgress.assign(.none)
           }
           task = runningTask
           return runningTask
@@ -215,7 +250,7 @@ extension SessionData {
 
     return Self(
       lastUpdate: lastUpdate.asAnyUpdatable(),
-      isRefreshing: isRefreshing.asAnyUpdatable(),
+      refreshProgress: refreshProgress.asAnyUpdatable(),
       refreshIfNeeded: refreshIfNeeded,
       updateResource: updateResource
     )
@@ -248,4 +283,31 @@ extension ResourceUpdater.Configuration {
     maximumConcurrentTasks: 5,
     maximumConcurrentDecryptions: 4
   )
+}
+
+/// The top-level steps of a full refresh, each owning an equal `1 / allCases.count` slice of the
+/// progress bar (the Android model). A step's progress is `(index + stepFraction) / total`, so
+/// completing step *k* pins the bar at `(k + 1) / total`; paginated steps fill their own slice
+/// gradually via `stepFraction = pagesDone / totalPages`. Feature-flagged steps that don't run
+/// still report as completed, so the bar simply jumps forward.
+///
+/// Order defines the slice each step occupies. iOS decomposes the refresh into fewer requests than
+/// Android (e.g. metadata setup is one step here), so the step count differs while the model — equal
+/// weight, skipped-counts-as-done, paginated-fill — matches.
+// Internal (not private) so the equal-step math can be unit-tested directly.
+internal enum RefreshStep: Int, CaseIterable {
+
+  case users
+  case userGroups
+  case folders  // paginated once the folders endpoint supports it
+  case metadata
+  case resources  // paginated
+  case sessionKeys
+
+  /// Progress fraction (`0...1`) once this step has advanced by `stepFraction`
+  /// (`1` = done; paginated steps pass `pagesDone / totalPages`).
+  internal func fraction(_ stepFraction: Double) -> Double {
+    let clamped: Double = min(max(stepFraction, 0.0), 1.0)
+    return (Double(self.rawValue) + clamped) / Double(Self.allCases.count)
+  }
 }

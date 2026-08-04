@@ -205,7 +205,10 @@ extension ResourceUpdater {
       try await serialOperationExecutor.execute(.init(changed: [validated]))
     }
 
-    @Sendable func updateResources(_ configuration: Configuration) async throws {
+    @Sendable func updateResources(
+      _ configuration: Configuration,
+      onProgress: @escaping @Sendable (Double) -> Void
+    ) async throws {
       _ = try await ensureResourceTypesLoaded()
 
       try await resourceStateUpdateOperation.execute(.init(state: .waitingForUpdate))
@@ -221,8 +224,20 @@ extension ResourceUpdater {
         )
       let totalPages: Int = firstPage.totalPages
 
+      // Pages are processed concurrently via the batch executor, so count completions atomically
+      // and report the fraction of pages done after each one finishes.
+      let processedPages: CriticalState<Int> = .init(0)
+      @Sendable func reportPageProcessed() {
+        let done: Int = processedPages.access { (count: inout Int) -> Int in
+          count += 1
+          return count
+        }
+        onProgress(totalPages > 0 ? Double(done) / Double(totalPages) : 1)
+      }
+
       await batchExecutor.addOperation {
         try await process(resources: firstPage.items, concurrency: configuration.maximumConcurrentDecryptions)
+        reportPageProcessed()
       }
       if totalPages > 1 {
         for page in 2 ... totalPages {
@@ -232,6 +247,7 @@ extension ResourceUpdater {
               page: page,
               concurrency: configuration.maximumConcurrentDecryptions
             )
+            reportPageProcessed()
           }
         }
       }

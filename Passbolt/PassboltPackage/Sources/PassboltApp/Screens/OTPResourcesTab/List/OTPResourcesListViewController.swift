@@ -51,7 +51,7 @@ internal final class OTPResourcesListViewController: ViewController {
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
+  internal nonisolated let refreshSource: AnyUpdatable<Double?>
 
   internal let createAvailable: Bool
 
@@ -76,7 +76,7 @@ internal final class OTPResourcesListViewController: ViewController {
     self.context = context
     self.resources = try features.instance()
     self.sessionData = try features.instance()
-    self.refreshIndicatorSource = self.sessionData.isRefreshing
+    self.refreshSource = self.sessionData.refreshProgress
 
     self.createAvailable = try features.sessionConfiguration().resources.totpEnabled
     let otpController: ResourcesOTPController = try features.instance()

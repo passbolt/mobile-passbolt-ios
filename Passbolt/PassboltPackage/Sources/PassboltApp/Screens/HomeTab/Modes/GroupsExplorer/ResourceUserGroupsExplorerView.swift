@@ -52,7 +52,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       contentView: {
         self.contentView(with: state)
           .shadowTopEdgeOverlay()
-          .homeListRefreshState(source: self.controller.refreshIndicatorSource)
+          .homeListRefreshState(source: self.controller.refreshSource)
       }
     )
     .environment(\.hideLeadingItem, state.groupID == .none)
@@ -85,7 +85,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
-      refreshIndicatorSource: self.controller.refreshIndicatorSource,
+      refreshSource: self.controller.refreshSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       groupTapAction: { groupID in
@@ -105,7 +105,7 @@ internal struct ResourceUserGroupsExplorerView: ControlledView {
       isLoadingMore: state.isLoadingMore,
       contentResetToken: state.contentResetToken,
       refreshAction: self.controller.refreshIfNeeded,
-      refreshIndicatorSource: self.controller.refreshIndicatorSource,
+      refreshSource: self.controller.refreshSource,
       loadMoreAction: self.controller.loadMore,
       createAction: .none,
       resourceTapAction: { resourceID in

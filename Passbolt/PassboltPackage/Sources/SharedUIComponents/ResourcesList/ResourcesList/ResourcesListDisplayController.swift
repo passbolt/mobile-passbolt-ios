@@ -31,7 +31,7 @@ import SessionData
 public final class ResourcesListDisplayController: ViewController {
 
   public nonisolated let viewState: ViewStateSource<ViewState>
-  public nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
+  public nonisolated let refreshSource: AnyUpdatable<Double?>
 
   private let sessionData: SessionData
   private let resources: ResourcesController
@@ -50,7 +50,7 @@ public final class ResourcesListDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.resources = try features.instance()
-    self.refreshIndicatorSource = self.sessionData.isRefreshing
+    self.refreshSource = self.sessionData.refreshProgress
 
     let pageSize = context.pageSize
 

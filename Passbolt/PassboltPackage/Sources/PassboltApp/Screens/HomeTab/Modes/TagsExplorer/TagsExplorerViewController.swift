@@ -49,7 +49,7 @@ internal final class TagsExplorerViewController: ViewController {
   }
 
   nonisolated let viewState: ViewStateSource<ViewState>
-  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
+  internal nonisolated let refreshSource: AnyUpdatable<Double?>
   internal let searchController: ResourceSearchDisplayController
 
   fileprivate let features: Features
@@ -69,7 +69,7 @@ internal final class TagsExplorerViewController: ViewController {
   init(context: Context, features: Features) throws {
     self.features = features
     self.sessionData = try features.instance()
-    self.refreshIndicatorSource = self.sessionData.isRefreshing
+    self.refreshSource = self.sessionData.refreshProgress
 
     self.navigationToTagContent = try features.instance()
     self.navigationToResourceDetails = try features.instance()

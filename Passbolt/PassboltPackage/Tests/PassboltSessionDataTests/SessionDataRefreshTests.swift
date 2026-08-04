@@ -81,7 +81,7 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     )
     patch(
       \ResourceUpdater.updateResources,
-      with: always(Void())
+      with: { _, _ in }
     )
     patch(
       \Session.execute,
@@ -195,5 +195,63 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     let feature: SessionData = try self.testedInstance()
     try await feature.refreshIfNeeded()
     await fulfillment(of: [fetchKeysExpectation, sendSessionKeysExpectation], timeout: 1)
+  }
+
+  func test_sessionDataRefresh_returnsToIdleAfterCompletion() async throws {
+    set(
+      SessionScope.self,
+      context: .init(
+        account: .mock_ada,
+        configuration: .mock_default.with { $0.metadata = .init(enabled: false) }
+      )
+    )
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+      with: always([])
+    )
+    patch(
+      \ResourceTypesStoreDatabaseOperation.execute,
+      with: always(Void())
+    )
+
+    let feature: SessionData = try self.testedInstance()
+    try await feature.refreshIfNeeded()
+
+    // The single optional stream returns to `nil` (idle) once a refresh finishes.
+    let progress: Double? = try await feature.refreshProgress.value
+    XCTAssertNil(progress, "Refresh progress returns to idle once finished")
+  }
+
+  // MARK: - Equal-step progress model (Android-aligned)
+
+  func test_refreshStepFractions_areEqualWeight_andReachFull() {
+    let total: Double = Double(RefreshStep.allCases.count)
+
+    // Each completed step pins the bar at (index + 1) / total; steps are equal-weight.
+    for step: RefreshStep in RefreshStep.allCases {
+      XCTAssertEqual(
+        step.fraction(1),
+        Double(step.rawValue + 1) / total,
+        accuracy: 0.0001,
+        "Completed step \(step) should fill up to (index + 1) / total"
+      )
+    }
+
+    // A paginated step fills its own equal-weight slice as pages are processed.
+    XCTAssertEqual(
+      RefreshStep.resources.fraction(0.5),
+      (Double(RefreshStep.resources.rawValue) + 0.5) / total,
+      accuracy: 0.0001,
+      "A half-done paginated step fills half of its slice"
+    )
+
+    // The final step reaching 100% pins the whole bar to 1.0.
+    XCTAssertEqual(RefreshStep.sessionKeys, RefreshStep.allCases.last, "sessionKeys is the final step")
+    XCTAssertEqual(
+      RefreshStep.sessionKeys.fraction(1),
+      1.0,
+      accuracy: 0.0001,
+      "Completing the last step reaches 100%"
+    )
   }
 }

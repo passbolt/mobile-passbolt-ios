@@ -42,6 +42,12 @@ internal struct ResourceDetailsView: ControlledView {
 
   internal var body: some View {
     self.contentView
+      .safeAreaInset(edge: .top, spacing: 0) {
+        // Same determinate refresh bar as the lists — details is a common place to sit during a refresh.
+        RefreshProgressBar(
+          source: self.controller.refreshSource
+        )
+      }
       .toolbar {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
           IconButton(

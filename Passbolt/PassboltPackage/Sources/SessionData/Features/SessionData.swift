@@ -27,18 +27,23 @@ import Features
 public struct SessionData: Sendable {
 
   public var lastUpdate: AnyUpdatable<Timestamp>
-  public var isRefreshing: AnyUpdatable<Bool>
+  /// Determinate refresh state and progress in one stream: `nil` while idle, `.some(fraction)` in
+  /// the `0.0 ... 1.0` range while a refresh runs. Emits `.some(0)` when a refresh starts, advances
+  /// through equal-weight step milestones (and page-by-page during paginated steps), reaches
+  /// `.some(1)` on success, then `nil` once finished. A single ordered stream means "is refreshing"
+  /// (`value != nil`) and the reported progress never race against each other.
+  public var refreshProgress: AnyUpdatable<Double?>
   public var refreshIfNeeded: @Sendable () async throws -> Void
   public var updateResource: @Sendable (ResourceDTO) async throws -> Void
 
   public init(
     lastUpdate: AnyUpdatable<Timestamp>,
-    isRefreshing: AnyUpdatable<Bool>,
+    refreshProgress: AnyUpdatable<Double?>,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
     updateResource: @escaping @Sendable (ResourceDTO) async throws -> Void
   ) {
     self.lastUpdate = lastUpdate
-    self.isRefreshing = isRefreshing
+    self.refreshProgress = refreshProgress
     self.refreshIfNeeded = refreshIfNeeded
     self.updateResource = updateResource
   }
@@ -50,7 +55,7 @@ extension SessionData: LoadableFeature {
   nonisolated public static var placeholder: Self {
     .init(
       lastUpdate: PlaceholderUpdatable().asAnyUpdatable(),
-      isRefreshing: PlaceholderUpdatable().asAnyUpdatable(),
+      refreshProgress: PlaceholderUpdatable().asAnyUpdatable(),
       refreshIfNeeded: unimplemented0(),
       updateResource: unimplemented1()
     )

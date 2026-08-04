@@ -103,7 +103,7 @@ final class SessionDataRefreshIntegrationBenchmarkTests: XCTestCase {
       try await prepared.updater.updateResources(
         // Mirror the production app config (see SessionData+Passbolt `.application`).
         .init(maximumChunkSize: 5_000, maximumConcurrentTasks: 5, maximumConcurrentDecryptions: 4)
-      )
+      ) { _ in }
     }
   }
 

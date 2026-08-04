@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import CoreTest
 import DatabaseOperations
 import Metadata
@@ -79,6 +80,32 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
   }
 
+  // MARK: Progress reporting
+  func test_resourcesUpdate_reportsProgress_reachingFull() async throws {
+    patch(
+      \ResourceTypesFetchNetworkOperation.execute,
+      with: always(.init())
+    )
+    patch(
+      \ResourcesFetchNetworkOperation.execute,
+      with: always(.empty())
+    )
+
+    let feature: ResourceUpdater = try self.testedInstance()
+    let reported: CriticalState<Array<Double>> = .init(.init())
+    try await feature.updateResources(.serial) { (fraction: Double) in
+      reported.access { (values: inout Array<Double>) in
+        values.append(fraction)
+      }
+    }
+
+    let values: Array<Double> = reported.get()
+    XCTAssertFalse(values.isEmpty, "onProgress should be reported at least once")
+    // swift-format-ignore: NeverForceUnwrap
+    XCTAssertEqual(values.last!, 1.0, accuracy: 0.0001, "Progress should reach 1.0 on completion")
+    XCTAssertTrue(values.allSatisfy { (0.0 ... 1.0).contains($0) }, "Progress must stay within 0...1")
+  }
+
   // MARK: Preparation & update logic
   func test_resourceUpdate_shouldFetchCurrentResourceTypes() async throws {
     let fetchExpectation: XCTestExpectation = .init(description: "Resource types fetch must be called.")
@@ -96,7 +123,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
 
     let feature: ResourceUpdater = try self.testedInstance()
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
     await fulfillment(of: [fetchExpectation], timeout: 1.0)
   }
 
@@ -125,7 +152,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
 
     await fulfillment(of: [updateExpectation], timeout: 1.0)
   }
@@ -149,7 +176,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
 
     await fulfillment(of: [fetchExpectation], timeout: 1.0)
   }
@@ -173,7 +200,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.concurrent)
+    try await feature.updateResources(.concurrent) { _ in }
 
     await fulfillment(of: [fetchExpectation], timeout: 1.0)
   }
@@ -199,7 +226,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
 
     await fulfillment(of: [fetchExpectation], timeout: 1.0)
   }
@@ -225,7 +252,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.concurrent)
+    try await feature.updateResources(.concurrent) { _ in }
 
     await fulfillment(of: [fetchExpectation], timeout: 1.0)
   }
@@ -261,7 +288,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.concurrent)
+    try await feature.updateResources(.concurrent) { _ in }
 
     await fulfillment(of: [expectation], timeout: 1.0)
   }
@@ -298,7 +325,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.concurrent)
+    try await feature.updateResources(.concurrent) { _ in }
 
     await fulfillment(of: [expectation], timeout: 1.0)
   }
@@ -331,7 +358,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.concurrent)
+    try await feature.updateResources(.concurrent) { _ in }
 
     await fulfillment(of: [expectation], timeout: 1)
   }
@@ -368,7 +395,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
 
     let feature: ResourceUpdater = try self.testedInstance()
 
-    try await feature.updateResources(.concurrent)
+    try await feature.updateResources(.concurrent) { _ in }
 
     await fulfillment(of: [expectation], timeout: 1)
   }
@@ -413,7 +440,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
 
     let feature: ResourceUpdater = try self.testedInstance()
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
 
     await fulfillment(of: [verifyIfKeyExists], timeout: 1.0)
   }
@@ -462,7 +489,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
     )
 
     let feature: ResourceUpdater = try self.testedInstance()
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
     await fulfillment(of: [expectation], timeout: 1.0)
   }
 
@@ -506,7 +533,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
       }
     )
     let feature: ResourceUpdater = try self.testedInstance()
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
     await fulfillment(of: [resourceStored], timeout: 1.0)
   }
 
@@ -652,7 +679,7 @@ final class ResourceUpdaterTests: FeaturesTestCase {
       }
     )
     let feature: ResourceUpdater = try self.testedInstance()
-    try await feature.updateResources(.serial)
+    try await feature.updateResources(.serial) { _ in }
     await fulfillment(of: [resourceReconciled, resourceStateShouldUpdate], timeout: 1.0)
   }
 }

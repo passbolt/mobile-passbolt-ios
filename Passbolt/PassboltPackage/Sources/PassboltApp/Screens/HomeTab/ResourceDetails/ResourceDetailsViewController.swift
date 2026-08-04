@@ -25,6 +25,7 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Resources
+import SessionData
 import Users
 
 internal final class ResourceDetailsViewController: ViewController {
@@ -69,6 +70,10 @@ internal final class ResourceDetailsViewController: ViewController {
   private let navigationToResourcePermissionsDetails: NavigationToResourcePermissionsDetails
   private let pasteboard: OSPasteboard
 
+  /// Session-data refresh sources so the details screen can show the same determinate refresh
+  /// progress bar as the lists — users often open details while a refresh is running.
+  internal nonisolated let refreshSource: AnyUpdatable<Double?>
+
   private let resourceID: Resource.ID
   private let sessionConfiguration: SessionConfiguration
 
@@ -97,6 +102,8 @@ internal final class ResourceDetailsViewController: ViewController {
     self.navigationToResourcePermissionsDetails = try features.instance()
 
     self.resourceController = try features.instance()
+    let sessionData: SessionData = try features.instance()
+    self.refreshSource = sessionData.refreshProgress
     let users: Users = try features.instance()
 
     self.localState = .init(

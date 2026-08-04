@@ -26,11 +26,13 @@ import Features
 
 public struct ResourceUpdater: Sendable {
 
-  public var updateResources: @Sendable (Configuration) async throws -> Void
+  public var updateResources:
+    @Sendable (Configuration, _ onProgress: @Sendable @escaping (Double) -> Void) async throws -> Void
   public var updateResource: @Sendable (ResourceDTO) async throws -> Void
 
   public init(
-    updateResources: @Sendable @escaping (Configuration) async throws -> Void,
+    updateResources:
+      @Sendable @escaping (Configuration, _ onProgress: @Sendable @escaping (Double) -> Void) async throws -> Void,
     updateResource: @Sendable @escaping (ResourceDTO) async throws -> Void
   ) {
     self.updateResources = updateResources
@@ -63,7 +65,7 @@ extension ResourceUpdater: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     .init(
-      updateResources: unimplemented1(),
+      updateResources: unimplemented2(),
       updateResource: unimplemented1()
     )
   }

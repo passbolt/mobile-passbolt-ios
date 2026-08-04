@@ -68,7 +68,7 @@ public struct ResourceTagsListView: View {
   private let isLoadingMore: Bool
   private let contentResetToken: Int
   private let refreshAction: @Sendable () async -> Void
-  private let refreshIndicatorSource: AnyUpdatable<Bool>?
+  private let refreshSource: AnyUpdatable<Double?>?
   private let loadMoreAction: @Sendable () async -> Void
   private let createAction: (@Sendable () async throws -> Void)?
   private let tagTapAction: (ResourceTag.ID) async throws -> Void
@@ -79,7 +79,7 @@ public struct ResourceTagsListView: View {
     isLoadingMore: Bool,
     contentResetToken: Int = 0,
     refreshAction: @escaping @Sendable () async -> Void,
-    refreshIndicatorSource: AnyUpdatable<Bool>? = nil,
+    refreshSource: AnyUpdatable<Double?>? = nil,
     loadMoreAction: @escaping @Sendable () async -> Void,
     createAction: (@Sendable () async throws -> Void)?,
     tagTapAction: @escaping (ResourceTag.ID) async throws -> Void
@@ -89,7 +89,7 @@ public struct ResourceTagsListView: View {
     self.isLoadingMore = isLoadingMore
     self.contentResetToken = contentResetToken
     self.refreshAction = refreshAction
-    self.refreshIndicatorSource = refreshIndicatorSource
+    self.refreshSource = refreshSource
     self.loadMoreAction = loadMoreAction
     self.createAction = createAction
     self.tagTapAction = tagTapAction
@@ -103,7 +103,7 @@ public struct ResourceTagsListView: View {
       isLoadingMore: isLoadingMore,
       onLoadMore: loadMoreAction,
       refreshAction: refreshAction,
-      refreshIndicatorSource: refreshIndicatorSource,
+      refreshSource: refreshSource,
       contentResetToken: contentResetToken,
       content: { viewForRow($0) }
     )

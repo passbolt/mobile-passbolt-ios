@@ -31,7 +31,7 @@ import SessionData
 internal final class ResourceTagsListDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
+  internal nonisolated let refreshSource: AnyUpdatable<Double?>
 
   private let sessionData: SessionData
   private let resourceTags: ResourceTags
@@ -49,7 +49,7 @@ internal final class ResourceTagsListDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.resourceTags = try features.instance()
-    self.refreshIndicatorSource = self.sessionData.isRefreshing
+    self.refreshSource = self.sessionData.refreshProgress
 
     let pageSize: Int = context.pageSize
 

@@ -31,7 +31,7 @@ import SessionData
 internal final class ResourceFolderContentDisplayController: ViewController {
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
-  internal nonisolated let refreshIndicatorSource: AnyUpdatable<Bool>
+  internal nonisolated let refreshSource: AnyUpdatable<Double?>
 
   internal var createFolder: (@Sendable () async throws -> Void)?
   internal var createResource: (@Sendable () async throws -> Void)?
@@ -56,7 +56,7 @@ internal final class ResourceFolderContentDisplayController: ViewController {
 
     self.sessionData = try features.instance()
     self.resourceFolders = try features.instance()
-    self.refreshIndicatorSource = self.sessionData.isRefreshing
+    self.refreshSource = self.sessionData.refreshProgress
 
     self.createFolder = context.createFolder
     self.createResource = context.createResource
