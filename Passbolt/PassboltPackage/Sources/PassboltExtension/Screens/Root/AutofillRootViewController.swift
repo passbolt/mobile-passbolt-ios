@@ -142,8 +142,7 @@ extension AutofillRootViewController {
               }
 
             case .requestedMFA(_, let providers):
-              let navigationToMFA: NavigationToMFA = try await self.features.instance()
-              await navigationToMFA.performCatching(context: providers)
+              await self.features.navigateToMFAAuthorizationCatching(providers: providers)
 
             case .closed:
               self.restorationAccount.set(.none)

@@ -22,19 +22,56 @@
 //
 
 import Display
-import Session
 
-internal final class UnsupportedMFAViewController: ViewController {
+public struct UnsupportedMFAView: ControlledView {
 
-  private let navigationToAccountSelection: NavigationToAccountSelection
+  public let controller: UnsupportedMFAViewController
 
-  internal init(context: (), features: Features) throws {
-    self.navigationToAccountSelection = try features.instance()
+  public init(controller: UnsupportedMFAViewController) {
+    self.controller = controller
   }
 
-  internal func close() async {
-    await consumingErrors {
-      try await self.navigationToAccountSelection.perform(context: .init(isSignIn: true))
+  public var body: some View {
+    ScreenView(
+      title: "mfa.required.title",
+      contentView: {
+        self.content
+      }
+    )
+    .navigationBarBackButtonHidden(true)
+    .toolbar(.hidden, for: .tabBar)
+  }
+
+  @ViewBuilder @MainActor private var content: some View {
+    GeometryReader { (reader: GeometryProxy) in
+      VStack(spacing: 0) {
+        Spacer()
+        Image(named: .failureMark)
+          .resizable()
+          .scaledToFit()
+          .frame(width: reader.size.width * 0.4)
+          .frame(maxWidth: .infinity)
+
+        Text(displayable: "mfa.unsupported.provider.title")
+          .titleStyle()
+          .padding(.top, 32)
+
+        Text(displayable: "mfa.unsupported.provider.description")
+          .infoStyle()
+          .padding(.top, 16)
+
+        Spacer()
+      }
+    }
+    .padding(.horizontal, 16)
+    .padding(.bottom, 16)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        IconButton(
+          iconName: .close,
+          action: { await self.controller.close() }
+        )
+      }
     }
   }
 }

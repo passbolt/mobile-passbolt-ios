@@ -48,13 +48,20 @@ public struct MFAView: ControlledView {
           if let duoController: DUOAuthorizationViewController = self.controller.duoController {
             DUOAuthorizationView(controller: duoController)
           }
+        case .unknown:
+          // unsupported providers are filtered out by the controller,
+          // unsupported MFA is presented using a dedicated screen
+          EmptyView()
         }
       }
 
-      SecondaryButton(
-        title: "mfa.provider.try.another",
-        action: { await self.controller.nextProvider() }
-      )
+      // with a single provider switching is a no-op, don't offer it
+      if self.controller.hasMultipleProviders {
+        SecondaryButton(
+          title: "mfa.provider.try.another",
+          action: { await self.controller.nextProvider() }
+        )
+      }
     }
     .padding(.horizontal, 16)
     .navigationBarBackButtonHidden()

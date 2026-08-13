@@ -35,37 +35,72 @@ public final class MFAViewController: ViewController {
   public nonisolated let viewState: ViewStateSource<ViewState>
 
   private let features: Features
-  private let context: Context
+  /// Providers which have a controller and can actually be shown to the user.
+  private let presentableProviders: Context
 
   internal let totpController: TOTPViewController?
   internal let duoController: DUOAuthorizationViewController?
   internal let yubiKeyController: YubiKeyViewController?
 
   public init(context: Context, features: Features) throws {
-    guard let initialProvider: SessionMFAProvider = context.first else {
+    // unsupported providers can't be presented, drop them upfront
+    let supportedProviders: Context = context.supportedProviders
+    guard let firstSupportedProvider: SessionMFAProvider = supportedProviders.first else {
       throw InternalInconsistency.error("MFAViewController initialized with empty context")
     }
     self.features = features
-    self.context = context
     let viewState: ViewStateSource<ViewState> = .init(
       initial: .init(
-        currentProvider: initialProvider
+        currentProvider: firstSupportedProvider
       )
     )
     self.viewState = viewState
 
-    self.totpController =
-      context.contains(.totp)
+    let totpController: TOTPViewController? =
+      supportedProviders.contains(.totp)
       ? Self.makeTOTPController(features: features, viewState: viewState)
       : nil
-    self.duoController =
-      context.contains(.duo)
+    let duoController: DUOAuthorizationViewController? =
+      supportedProviders.contains(.duo)
       ? Self.makeDUOController(features: features)
       : nil
-    self.yubiKeyController =
-      context.contains(.yubiKey)
+    let yubiKeyController: YubiKeyViewController? =
+      supportedProviders.contains(.yubiKey)
       ? Self.makeYubiKeyController(features: features)
       : nil
+    self.totpController = totpController
+    self.duoController = duoController
+    self.yubiKeyController = yubiKeyController
+
+    // a supported provider whose controller failed to load has nothing
+    // to display, drop it as well to avoid switching to an empty screen
+    let presentableProviders: Context = supportedProviders.filter { (provider: SessionMFAProvider) -> Bool in
+      switch provider {
+      case .totp:
+        return totpController != nil
+
+      case .duo:
+        return duoController != nil
+
+      case .yubiKey:
+        return yubiKeyController != nil
+
+      case .unknown:
+        return false
+      }
+    }
+    self.presentableProviders = presentableProviders
+
+    // without any presentable provider there is nothing but an empty
+    // screen to display, fail instead of stranding the user on it,
+    // the failures are already displayed by the controller factories above
+    guard let initialProvider: SessionMFAProvider = presentableProviders.first
+    else {
+      throw InternalInconsistency.error("MFAViewController has no presentable provider")
+    }
+    // the initial provider differs from the first supported one
+    // when the controller of that one has failed to load
+    viewState.update(\.currentProvider, to: initialProvider)
   }
 
   private static func makeTOTPController(
@@ -107,15 +142,21 @@ public final class MFAViewController: ViewController {
     }
   }
 
+  /// Whether switching to another provider can lead to a different screen.
+  /// Constant after initialization, the providers are not mutated.
+  internal var hasMultipleProviders: Bool { self.presentableProviders.count > 1 }
+
   internal func nextProvider() async {
     let currentProvider: SessionMFAProvider = await viewState.current.currentProvider
-    guard let currentIndex: Array.Index = context.firstIndex(of: currentProvider)
+    guard let currentIndex: Array.Index = presentableProviders.firstIndex(of: currentProvider)
     else { return }
 
     let nextIndex: Array.Index =
-      currentIndex.advanced(by: 1) < context.count ? currentIndex.advanced(by: 1) : context.startIndex
+      currentIndex.advanced(by: 1) < presentableProviders.count
+      ? currentIndex.advanced(by: 1)
+      : presentableProviders.startIndex
 
-    let nextProvider: SessionMFAProvider = context[nextIndex]
+    let nextProvider: SessionMFAProvider = presentableProviders[nextIndex]
     viewState.update(\.currentProvider, to: nextProvider)
   }
 

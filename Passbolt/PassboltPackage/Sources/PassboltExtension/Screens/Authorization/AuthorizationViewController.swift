@@ -180,8 +180,7 @@ extension AuthorizationViewController {
     }
     catch let mfaRequired as SessionMFAAuthorizationRequired {
       await consumingErrors {
-        let navigationToMFA: NavigationToMFA = try await features.instance()
-        try await navigationToMFA.perform(context: mfaRequired.mfaProviders)
+        try await features.navigateToMFAAuthorization(providers: mfaRequired.mfaProviders)
       }
     }
     catch let error as ServerPGPFingeprintInvalid {

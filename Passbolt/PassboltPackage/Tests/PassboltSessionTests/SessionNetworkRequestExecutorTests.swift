@@ -127,6 +127,84 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
     }
   }
 
+  func test_execute_requestsMFAAuthorization_whenForbiddenContainsProviderNotSupported() {
+    let requestedProviders: CriticalState<Array<SessionMFAProvider>?> = .init(.none)
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \SessionStateEnsurance.accessToken,
+      with: always(.valid)
+    )
+    patch(
+      \SessionState.mfaToken,
+      with: always(.none)
+    )
+    patch(
+      \SessionState.mfaTokenInvalidate,
+      with: always(Void())
+    )
+    patch(
+      \SessionState.authorizationRequested,
+      with: { (request: SessionAuthorizationRequest) in
+        switch request {
+        case .mfa(_, let providers):
+          requestedProviders.set(providers)
+
+        case .passphrase:
+          break
+        }
+      }
+    )
+    patch(
+      \SessionAuthorizationState.waitForAuthorizationIfNeeded,
+      with: always(Void())
+    )
+    let forbiddenResponseSent: CriticalState<Bool> = .init(false)
+    patch(
+      \NetworkRequestExecutor.execute,
+      with: { (_: HTTPRequest) in
+        guard forbiddenResponseSent.get()
+        else {
+          forbiddenResponseSent.set(true)
+          throw HTTPForbidden.error(
+            request: .init(),
+            response: .init(
+              url: .test,
+              statusCode: 403,
+              headers: [:],
+              body: .init(#"{"body":{"mfa_providers":["totp","webauthn"]}}"#.utf8)
+            )
+          )
+        }
+
+        return .init(
+          url: .test,
+          statusCode: 200,
+          headers: [:],
+          body: .empty
+        )
+      }
+    )
+
+    withTestedInstanceReturnsEqual(
+      HTTPResponse(
+        url: .test,
+        statusCode: 200,
+        headers: [:],
+        body: .empty
+      )
+    ) { (testedInstance: SessionNetworkRequestExecutor) in
+      try await testedInstance.execute(.none)
+    }
+
+    XCTAssertEqual(
+      requestedProviders.get(),
+      [.totp, .unknown]
+    )
+  }
+
   func test_execute_returnsResponse_whenRequestSucceeds() {
     patch(
       \SessionState.account,

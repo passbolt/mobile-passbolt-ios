@@ -66,6 +66,7 @@ extension FeaturesRegistry {
     self.useLiveNavigationToAccountSelection()
     self.useLiveNavigationToAuthorization()
     self.useLiveNavigationToMFA()
+    self.useLiveNavigationToUnsupportedMFA()
     self.useLiveNavigationToHomeView()
     self.useLiveNavigationToServerFingerprintInvalid()
     self.useLiveNavigationToResourceFolderContent()

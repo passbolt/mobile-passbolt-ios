@@ -116,15 +116,9 @@ internal final class Window {
 
           self.screenStateAccount = account
 
-          if providers.isEmpty {
-            let navigationToResult: NavigationToUnsupportedMFA =
-              try self.features.instance()
-            try await navigationToResult.perform()
-            return
-          }
-
-          let navigationToMFA: NavigationToMFA = try self.features.instance()
-          try await navigationToMFA.perform(context: providers)
+          // errors are consumed here on purpose, throwing out of this loop
+          // ends the task and stops handling any further screen state
+          await self.features.navigateToMFAAuthorizationCatching(providers: providers)
         }
       }
     }
@@ -163,5 +157,6 @@ extension Window {
     guard let navigationState: NavigationState = navigationStateRegistry.activeState()
     else { return false }
     return navigationState.exists(with: NavigationToMFADestination.identifier)
+      || navigationState.exists(with: NavigationToUnsupportedMFADestination.identifier)
   }
 }

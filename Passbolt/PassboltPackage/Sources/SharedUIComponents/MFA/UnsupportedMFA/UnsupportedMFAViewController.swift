@@ -21,40 +21,21 @@
 // @since         v1.0
 //
 
-import Commons
+import Display
+import Session
 
-public enum SessionMFAProvider: String {
+public final class UnsupportedMFAViewController: ViewController {
 
-  case totp = "totp"
-  case yubiKey = "yubikey"
-  case duo = "duo"
-  case unknown
+  private let features: Features
 
-  public init(from decoder: Decoder) throws {
-    let container: SingleValueDecodingContainer = try decoder.singleValueContainer()
-    let rawValue: String = try container.decode(String.self)
-    if let provider: Self = Self(rawValue: rawValue) {
-      self = provider
-    }
-    else {
-      // the raw value is dropped by `unknown`, log it to allow
-      // diagnosing which provider was requested by the server
-      Diagnostics.logger.info("Unsupported MFA provider requested: \(rawValue, privacy: .public)")
-      self = .unknown
-    }
+  public init(context: (), features: Features) throws {
+    self.features = features
   }
 
-  public var isSupported: Bool { self != .unknown }
-}
-
-extension SessionMFAProvider: Hashable {}
-extension SessionMFAProvider: Decodable {}
-extension SessionMFAProvider: Sendable {}
-
-extension Array where Element == SessionMFAProvider {
-
-  /// Providers which can be presented by this application, in the original order.
-  public var supportedProviders: Array<SessionMFAProvider> {
-    self.filter(\.isSupported)
+  @Sendable public func close() async {
+    await consumingErrors {
+      let session: Session = try await features.instance()
+      await session.close(.none)
+    }
   }
 }

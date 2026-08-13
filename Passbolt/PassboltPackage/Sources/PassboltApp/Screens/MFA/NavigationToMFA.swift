@@ -39,6 +39,56 @@ extension NavigationToMFA {
   }
 }
 
+extension Features {
+
+  /// Navigates to the MFA authorization screen using only the providers which can
+  /// be presented, or to the dedicated screen when none of them is supported.
+  ///
+  /// This is the only supported way of reaching MFA authorization - navigating to
+  /// `NavigationToMFA` directly with an unfiltered list of providers makes
+  /// `MFAViewController` initialization fail when none of them is supported.
+  @MainActor internal func navigateToMFAAuthorization(
+    providers: Array<SessionMFAProvider>
+  ) async throws {
+    let supportedProviders: Array<SessionMFAProvider> = providers.supportedProviders
+    if supportedProviders.isEmpty {
+      try await self.navigateToUnsupportedMFA()
+    }
+    else {
+      let navigationToMFA: NavigationToMFA = try self.instance()
+      do {
+        try await navigationToMFA.perform(context: supportedProviders)
+      }
+      catch {
+        error.logged(
+          info: .message(
+            "MFA authorization screen unavailable, using the unsupported MFA screen!"
+          )
+        )
+        try await self.navigateToUnsupportedMFA()
+      }
+    }
+  }
+
+  @MainActor internal func navigateToMFAAuthorizationCatching(
+    providers: Array<SessionMFAProvider>,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) async {
+    await consumingErrors(
+      errorDiagnostics: "Navigation to MFA authorization failed!",
+      { try await self.navigateToMFAAuthorization(providers: providers) },
+      file: file,
+      line: line
+    )
+  }
+
+  @MainActor private func navigateToUnsupportedMFA() async throws {
+    let navigationToUnsupportedMFA: NavigationToUnsupportedMFA = try self.instance()
+    try await navigationToUnsupportedMFA.perform()
+  }
+}
+
 extension FeaturesRegistry {
 
   internal mutating func useLiveNavigationToMFA() {

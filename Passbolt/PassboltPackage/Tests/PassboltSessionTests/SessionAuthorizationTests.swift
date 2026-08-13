@@ -942,4 +942,68 @@ final class SessionAuthorizationTests: LoadableFeatureTestCase<SessionAuthorizat
       try await testedInstance.authorize(.biometrics(.mock_ada))
     }
   }
+
+  func test_authorize_biometrics_throws_whenCreatingSessionSucceedsWithMFARequiredForProviderNotSupported() {
+    let lockingEnsured: CriticalState<Bool> = .init(false)
+    patch(
+      \AccountPassphraseStorage.loadAccountPassphrase,
+      with: always("passphrase")
+    )
+    patch(
+      \AccountPrivateKeyStorage.loadAccountPrivateKey,
+      with: always("private_key")
+    )
+    patch(
+      \PGP.verifyPassphrase,
+      with: always(.success(Void()))
+    )
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    patch(
+      \AccountMFATokenStorage.loadAccountMFAToken,
+      with: always("mfa_token")
+    )
+    patch(
+      \SessionNetworkAuthorization.createSessionTokens,
+      with: always(
+        (
+          tokens: (
+            accessToken: SessionAccessToken.valid,
+            refreshToken: "refresh_token" as SessionRefreshToken
+          ),
+          requiredMFAProviders: [.unknown] as Array<SessionMFAProvider>
+        )
+      )
+    )
+    patch(
+      \AccountsListStorage.storeLastUsedAccount,
+      with: always(Void())
+    )
+    patch(
+      \SessionState.createdSession,
+      with: always(Void())
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: { (_: Account) in
+        lockingEnsured.set(true)
+      }
+    )
+    patch(
+      \AccountMFATokenStorage.deleteAccountMFAToken,
+      with: always(Void())
+    )
+
+    withTestedInstanceThrows(
+      SessionMFAAuthorizationRequired.self
+    ) { (testedInstance: SessionAuthorization) in
+      try await testedInstance.authorize(.biometrics(.mock_ada))
+    }
+
+    // a provider which is not supported still requires MFA authorization,
+    // the session must not be treated as fully authorized
+    XCTAssertFalse(lockingEnsured.get())
+  }
 }

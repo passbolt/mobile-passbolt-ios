@@ -22,6 +22,8 @@
 //
 
 import FeatureScopes
+import Features
+import NetworkOperations
 import TestExtensions
 
 @testable import Display
@@ -54,6 +56,120 @@ final class MFAViewControllerTests: FeaturesTestCase {
       try self.testedInstance(
         context: [] as Array<SessionMFAProvider>
       ) as MFAViewController
+    )
+  }
+
+  func test_init_throwsError_whenContextContainsOnlyProvidersNotSupported() async throws {
+    XCTAssertThrowsError(
+      try self.testedInstance(
+        context: [.unknown, .unknown] as Array<SessionMFAProvider>
+      ) as MFAViewController
+    )
+  }
+
+  func test_init_ignoresProvidersNotSupported() async throws {
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.unknown, .totp]
+    )
+
+    XCTAssertEqual(
+      SessionMFAProvider.totp,
+      tested.viewState.value.currentProvider
+    )
+    XCTAssertNotNil(tested.totpController)
+    XCTAssertNil(tested.duoController)
+    XCTAssertNil(tested.yubiKeyController)
+  }
+
+  func test_nextProvider_skipsProvidersNotSupported() async throws {
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.totp, .unknown, .duo]
+    )
+
+    await tested.nextProvider()
+
+    XCTAssertEqual(
+      SessionMFAProvider.duo,
+      tested.viewState.value.currentProvider
+    )
+  }
+
+  func test_nextProvider_wrapsAround_whenOnlyOneProviderIsSupported() async throws {
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.totp, .unknown]
+    )
+
+    await tested.nextProvider()
+
+    XCTAssertEqual(
+      SessionMFAProvider.totp,
+      tested.viewState.value.currentProvider
+    )
+  }
+
+  func test_hasMultipleProviders_isTrue_withMoreThanOneProviderSupported() async throws {
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.totp, .duo]
+    )
+
+    XCTAssertTrue(tested.hasMultipleProviders)
+  }
+
+  func test_hasMultipleProviders_isFalse_whenOnlyOneProviderIsSupported() async throws {
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.totp, .unknown]
+    )
+
+    XCTAssertFalse(tested.hasMultipleProviders)
+  }
+
+  func test_init_throwsError_whenNoProviderControllerCanBeLoaded() async throws {
+    self.failAllControllersLoading()
+
+    XCTAssertThrowsError(
+      try self.testedInstance(
+        context: [.totp, .duo] as Array<SessionMFAProvider>
+      ) as MFAViewController
+    )
+  }
+
+  func test_init_ignoresProvidersWithControllerNotLoaded() async throws {
+    self.failDUOControllerLoading()
+
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.totp, .duo]
+    )
+
+    XCTAssertNotNil(tested.totpController)
+    XCTAssertNil(tested.duoController)
+    XCTAssertFalse(tested.hasMultipleProviders)
+  }
+
+  func test_init_usesFirstProviderWithControllerLoaded() async throws {
+    self.failDUOControllerLoading()
+
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.duo, .totp]
+    )
+
+    XCTAssertEqual(
+      SessionMFAProvider.totp,
+      tested.viewState.value.currentProvider
+    )
+  }
+
+  func test_nextProvider_skipsProvidersWithControllerNotLoaded() async throws {
+    self.failDUOControllerLoading()
+
+    let tested: MFAViewController = try self.testedInstance(
+      context: [.totp, .duo, .yubiKey]
+    )
+
+    await tested.nextProvider()
+
+    XCTAssertEqual(
+      SessionMFAProvider.yubiKey,
+      tested.viewState.value.currentProvider
     )
   }
 
@@ -137,5 +253,42 @@ final class MFAViewControllerTests: FeaturesTestCase {
     await tested.close()
 
     XCTAssertTrue(sessionClosed.get())
+  }
+}
+
+extension MFAViewControllerTests {
+
+  /// Makes loading of the DUO provider controller fail, other providers are unaffected.
+  private func failDUOControllerLoading() {
+    register(
+      { (registry: inout FeaturesRegistry) -> Void in
+        registry.use(
+          FeatureLoader.disposable(
+            DUOAuthorizationPromptNetworkOperation.self,
+            load: { (_: Features) throws -> DUOAuthorizationPromptNetworkOperation in
+              throw MockIssue.error()
+            }
+          )
+        )
+      },
+      for: DUOAuthorizationPromptNetworkOperation.self
+    )
+  }
+
+  /// Makes loading of every provider controller fail, all of them require a session.
+  private func failAllControllersLoading() {
+    register(
+      { (registry: inout FeaturesRegistry) -> Void in
+        registry.use(
+          FeatureLoader.disposable(
+            Session.self,
+            load: { (_: Features) throws -> Session in
+              throw MockIssue.error()
+            }
+          )
+        )
+      },
+      for: Session.self
+    )
   }
 }

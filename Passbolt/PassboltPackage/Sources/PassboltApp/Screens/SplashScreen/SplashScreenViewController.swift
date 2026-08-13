@@ -172,14 +172,7 @@ internal final class SplashScreenViewController: ViewController {
       try await navigationToLogsViewer.perform(context: sessionContext)
 
     case .mfaAuthorization(let mfaProviders):
-      if mfaProviders.isEmpty {
-        let navigationToUnsupportedMFA: NavigationToUnsupportedMFA = try self.features.instance()
-        try await navigationToUnsupportedMFA.perform()
-      }
-      else {
-        let navigationToMFA: NavigationToMFA = try self.features.instance()
-        try await navigationToMFA.perform(context: mfaProviders)
-      }
+      try await self.features.navigateToMFAAuthorization(providers: mfaProviders)
 
     case .featureConfigFetchError:
       let navigationToError: NavigationToStartupError = try self.features.instance()
