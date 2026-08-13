@@ -26,7 +26,7 @@ import Features
 
 // MARK: - Interface
 
-public struct ResourcesOTPController {
+public struct ResourcesOTPController: Sendable {
 
   public var currentOTP: AnyUpdatable<OTPValue>
   public var revealOTP: @Sendable (Resource.ID) async throws -> OTPValue

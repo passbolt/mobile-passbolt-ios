@@ -86,6 +86,10 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
       with: always(())
     )
     patch(
+      \ResourceEditForm.isSecretEdited,
+      with: always(true)
+    )
+    patch(
       \MetadataSettingsService.typesSettings,
       with: always(
         .init(

@@ -53,7 +53,7 @@ extension ResourceNetworkOperationDispatch {
     @Sendable func editResource(
       resource: Resource,
       withID id: Resource.ID,
-      secrets: Secrets
+      secrets: Secrets?
     ) async throws -> ResourceEditNetworkOperationResult {
       if resource.type.isV4ResourceType {
         return try await editResourceV4(resource: resource, withID: id, secrets: secrets)
@@ -128,7 +128,7 @@ extension ResourceNetworkOperationDispatch {
     @Sendable func editResourceV4(
       resource: Resource,
       withID id: Resource.ID,
-      secrets: Secrets
+      secrets: Secrets?
     ) async throws -> ResourceEditNetworkOperationResult {
       try await resourceEditNetworkOperationV4(
         .init(
@@ -139,7 +139,9 @@ extension ResourceNetworkOperationDispatch {
           username: resource.meta.username.stringValue,
           url: (resource.meta.uris.arrayValue).flatMap { $0.first?.stringValue }.flatMap(URLString.init(rawValue:)),
           description: resource.meta.description.stringValue,
-          secrets: secrets.map { (userID: $0.recipient, data: $0.message) },
+          secrets: secrets.map { (secrets: Secrets) in
+            secrets.map { (userID: $0.recipient, data: $0.message) }
+          },
           expired: resource.expired?.asDate
         )
       )
@@ -148,7 +150,7 @@ extension ResourceNetworkOperationDispatch {
     @Sendable func editResourceV5(
       resource: Resource,
       withID id: Resource.ID,
-      secrets: Secrets
+      secrets: Secrets?
     ) async throws -> ResourceEditNetworkOperationResult {
       var resource = resource
 
@@ -178,7 +180,9 @@ extension ResourceNetworkOperationDispatch {
           metadata: encryptedMetadata,
           metadataKeyID: validatedMetadataProperties.metadataKeyId,
           metadataKeyType: validatedMetadataProperties.metadataKeyType,
-          secrets: secrets.map { (userID: $0.recipient, data: $0.message) },
+          secrets: secrets.map { (secrets: Secrets) in
+            secrets.map { (userID: $0.recipient, data: $0.message) }
+          },
           expired: resource.expired?.asDate
         )
       )

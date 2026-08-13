@@ -116,7 +116,8 @@ extension ResourcePermissionsDetailsViewController {
 
       self.viewState.update { (state: inout ViewState) in
         state.permissionListItems = userGroupPermissionsDetails + userPermissionsDetails
-        state.editable = resource.permission.canEdit
+        // Editing permissions requires ownership, not merely edit access.
+        state.editable = resource.permission.canShare
       }
     }
     catch {

@@ -79,6 +79,11 @@ extension FeaturesRegistry {
     self.useLiveNavigationToResourceContextualMenu()
     self.useLiveNavigationToResourceDeleteAlert()
     self.useLiveNavigationToResourceShare()
+    self.useLiveNavigationToConfirmPermissions()
+    self.useLiveNavigationToConfirmAddRecipients()
+    self.useLiveNavigationToConfirmUserPermissionDetails()
+    self.useLiveNavigationToConfirmGroupPermissionDetails()
+    self.useLiveNavigationToConfirmGroupMembers()
     self.useResourceEditNavigation()
     self.useLiveNavigationToResourceCreateMenu()
 

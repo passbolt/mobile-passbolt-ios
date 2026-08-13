@@ -38,10 +38,21 @@ public struct ResourceEditForm: Sendable {
   public var validateField: @Sendable (Resource.FieldPath) async throws -> Void
   // Send the form
   public var sendForm: @Sendable () async throws -> Resource
+  // Create the resource with the operator as its sole owner, without applying any folder permissions.
+  // Used by the create-in-shared-folder confirmation flow before the confirmed permissions are applied.
+  public var createResourcePrivate: @Sendable () async throws -> Resource
+  // Edit a shared resource applying the operator-confirmed permissions in the safe order
+  // (remove losing recipients -> update + re-encrypt for kept -> grant added). Used by the edit confirmation flow.
+  public var applyConfirmedPermissions:
+    @Sendable (_ confirmed: OrderedSet<ResourcePermission>, _ snapshot: PermissionSnapshot) async throws -> Resource
   // Update resource, publicly exposing only dedicated methods
   // in order to avoid mutable access to the whole resource
   internal var updateField: @Sendable (Resource.FieldPath, JSON) -> Validated<JSON>
   public var updateExpiryDateIfNeeded: @Sendable (Set<Resource.FieldPath>) async throws -> Void
+  /// Whether any secret (encrypted) field differs from the resource as loaded into the form.
+  /// Always true for a new resource. Drives skipping the permission confirmation and omitting
+  /// `secrets` from the update request when only metadata changed.
+  public var isSecretEdited: @Sendable () -> Bool
 
   public init(
     state: AnyUpdatable<Resource>,
@@ -50,7 +61,11 @@ public struct ResourceEditForm: Sendable {
     validateForm: @escaping @Sendable () async throws -> Void,
     validateField: @escaping @Sendable (Resource.FieldPath) async throws -> Void,
     sendForm: @escaping @Sendable () async throws -> Resource,
-    updateExpiryDateIfNeeded: @escaping @Sendable (Set<Resource.FieldPath>) async throws -> Void
+    createResourcePrivate: @escaping @Sendable () async throws -> Resource,
+    applyConfirmedPermissions: @escaping @Sendable (OrderedSet<ResourcePermission>, PermissionSnapshot) async throws
+      -> Resource,
+    updateExpiryDateIfNeeded: @escaping @Sendable (Set<Resource.FieldPath>) async throws -> Void,
+    isSecretEdited: @escaping @Sendable () -> Bool
   ) {
     self.state = state
     self.updateField = updateField
@@ -58,7 +73,10 @@ public struct ResourceEditForm: Sendable {
     self.validateForm = validateForm
     self.validateField = validateField
     self.sendForm = sendForm
+    self.createResourcePrivate = createResourcePrivate
+    self.applyConfirmedPermissions = applyConfirmedPermissions
     self.updateExpiryDateIfNeeded = updateExpiryDateIfNeeded
+    self.isSecretEdited = isSecretEdited
   }
 }
 
@@ -73,7 +91,10 @@ extension ResourceEditForm: LoadableFeature {
       validateForm: unimplemented0(),
       validateField: unimplemented1(),
       sendForm: unimplemented0(),
-      updateExpiryDateIfNeeded: unimplemented1()
+      createResourcePrivate: unimplemented0(),
+      applyConfirmedPermissions: unimplemented2(),
+      updateExpiryDateIfNeeded: unimplemented1(),
+      isSecretEdited: unimplemented0()
     )
   }
   #endif

@@ -112,6 +112,54 @@ final class ResourceEditNetworkOperationVariableEncodingTests: TestCase {
     XCTAssertTrue(json["expired"] is NSNull)
   }
 
+  func test_encode_withoutSecrets_omitsSecretsKey() throws {
+    let variable: ResourceEditNetworkOperationVariable = .init(
+      resourceID: .init(),
+      resourceTypeID: .init(),
+      parentFolderID: .init(),
+      metadata: .init(rawValue: "test-pgp-message"),
+      metadataKeyID: .init(),
+      metadataKeyType: .shared,
+      secrets: .none
+    )
+
+    let data: Data = try JSONEncoder.default.encode(variable)
+    let json: Dictionary<String, Any> = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: data) as? Dictionary<String, Any>
+    )
+
+    // A metadata-only update does not rotate the secret - the key is omitted entirely.
+    XCTAssertNil(json["secrets"])
+
+    XCTAssertNotNil(json["folder_parent_id"])
+    XCTAssertNotNil(json["resource_type_id"])
+    XCTAssertNotNil(json["metadata"])
+    XCTAssertNotNil(json["metadata_key_id"])
+    XCTAssertNotNil(json["metadata_key_type"])
+    XCTAssertTrue(json.keys.contains("expired"))
+  }
+
+  /// An update that rotates the secret but produced no recipients must reach the server as an empty set, so it is
+  /// rejected there instead of silently saving metadata alone.
+  func test_encode_withEmptySecrets_stillSendsSecretsKey() throws {
+    let variable: ResourceEditNetworkOperationVariable = .init(
+      resourceID: .init(),
+      resourceTypeID: .init(),
+      parentFolderID: .init(),
+      metadata: .init(rawValue: "test-pgp-message"),
+      metadataKeyID: .init(),
+      metadataKeyType: .shared,
+      secrets: []
+    )
+
+    let data: Data = try JSONEncoder.default.encode(variable)
+    let json: Dictionary<String, Any> = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: data) as? Dictionary<String, Any>
+    )
+
+    XCTAssertEqual((json["secrets"] as? Array<Any>)?.count, 0)
+  }
+
   // MARK: - V4 (ResourceEditNetworkOperationV4Variable)
 
   func test_encodeV4_excludesResourceID() throws {
@@ -204,5 +252,56 @@ final class ResourceEditNetworkOperationVariableEncodingTests: TestCase {
     XCTAssertNotNil(json["name"])
     XCTAssertNotNil(json["resource_type_id"])
     XCTAssertNotNil(json["secrets"])
+  }
+
+  func test_encodeV4_withoutSecrets_omitsSecretsKey() throws {
+    let variable: ResourceEditNetworkOperationV4Variable = .init(
+      resourceID: .init(),
+      resourceTypeID: .init(),
+      parentFolderID: .init(),
+      name: "test-name",
+      username: "test-username",
+      url: .init(rawValue: "https://example.com"),
+      description: "test-description",
+      secrets: .none
+    )
+
+    let data: Data = try JSONEncoder.default.encode(variable)
+    let json: Dictionary<String, Any> = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: data) as? Dictionary<String, Any>
+    )
+
+    // A metadata-only update does not rotate the secret - the key is omitted entirely.
+    XCTAssertNil(json["secrets"])
+
+    XCTAssertNotNil(json["name"])
+    XCTAssertNotNil(json["folder_parent_id"])
+    XCTAssertNotNil(json["description"])
+    XCTAssertNotNil(json["username"])
+    XCTAssertNotNil(json["uri"])
+    XCTAssertNotNil(json["resource_type_id"])
+    XCTAssertTrue(json.keys.contains("expired"))
+  }
+
+  /// An update that rotates the secret but produced no recipients must reach the server as an empty set, so it is
+  /// rejected there instead of silently saving metadata alone.
+  func test_encodeV4_withEmptySecrets_stillSendsSecretsKey() throws {
+    let variable: ResourceEditNetworkOperationV4Variable = .init(
+      resourceID: .init(),
+      resourceTypeID: .init(),
+      parentFolderID: .init(),
+      name: "test-name",
+      username: "test-username",
+      url: .init(rawValue: "https://example.com"),
+      description: "test-description",
+      secrets: []
+    )
+
+    let data: Data = try JSONEncoder.default.encode(variable)
+    let json: Dictionary<String, Any> = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: data) as? Dictionary<String, Any>
+    )
+
+    XCTAssertEqual((json["secrets"] as? Array<Any>)?.count, 0)
   }
 }

@@ -277,5 +277,4 @@ extension ServerConfiguration.Plugins {
       self.enabled = enabled
     }
   }
-
 }

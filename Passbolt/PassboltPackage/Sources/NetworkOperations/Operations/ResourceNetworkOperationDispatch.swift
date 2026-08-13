@@ -26,7 +26,10 @@ import CommonModels
 public struct ResourceNetworkOperationDispatch: Sendable {
   public typealias Secrets = OrderedSet<EncryptedMessage>
   public var createResource: @Sendable (Resource, Secrets, Bool) async throws -> ResourceCreateNetworkOperationResult
-  public var editResource: @Sendable (Resource, Resource.ID, Secrets) async throws -> ResourceEditNetworkOperationResult
+  /// Updates the resource. `secrets` is `.none` when the edit does not rotate the secret (metadata-only), which is
+  /// the only case where no secrets are sent.
+  public var editResource:
+    @Sendable (Resource, Resource.ID, Secrets?) async throws -> ResourceEditNetworkOperationResult
 
   public init(
     createResource: @Sendable @escaping (
@@ -37,7 +40,7 @@ public struct ResourceNetworkOperationDispatch: Sendable {
     editResource: @Sendable @escaping (
       Resource,
       Resource.ID,
-      Secrets
+      Secrets?
     ) async throws -> ResourceEditNetworkOperationResult
   ) {
     self.createResource = createResource

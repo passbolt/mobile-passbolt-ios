@@ -63,6 +63,20 @@ internal final class OTPResourcesListViewController: ViewController {
   private let sessionData: SessionData
   internal let searchController: ResourceSearchDisplayController
 
+  /// A permission confirmation flow that may still be on screen, with the resource it was built for - it owns the
+  /// editing scope branched for that one resource, and may only be reused for it.
+  private struct OngoingConfirmation {
+
+    fileprivate let resourceID: Resource.ID
+    fileprivate let flow: ResourceEditPermissionConfirmation
+  }
+
+  // Detaching the TOTP changes the resource type, which reshapes and re-encrypts the secret for every recipient,
+  // so a shared resource goes through the permission confirmation like any other edit. Retained here rather than
+  // in the alert - which is a value copied into an `AlertItem` and dropped - for as long as the confirmation may
+  // be on screen, and no longer: the scope it owns holds the decrypted secret.
+  private var permissionConfirmation: OngoingConfirmation?
+
   private let features: Features
   private let context: Context
 
@@ -265,13 +279,198 @@ extension OTPResourcesListViewController {
             ) {
               try await self.revealOTP(for: resourceID)
             }
+          },
+          // Only the identifier is captured, like the reveal action above - the branched container stays with this
+          // presentation instead of being kept alive by the menu and the alert it opens.
+          deleteOTP: { [weak self] in
+            await self?.deleteOTP(for: resourceID)
           }
         )
       )
     }
   }
 
+  /// Removes the TOTP from a resource, from the OTP list contextual menu.
+  ///
+  /// A standalone TOTP is the resource, so removing it deletes the resource - nothing is re-encrypted and there is
+  /// nothing to confirm. Detaching it from a resource that also holds a password changes the resource type, which
+  /// reshapes the secret and re-encrypts it for every recipient, so a shared resource goes through the permission
+  /// confirmation first.
+  @MainActor private func deleteOTP(
+    for resourceID: Resource.ID
+  ) async {
+    await consumingErrors(
+      errorDiagnostics: "Failed to delete OTP."
+    ) {
+      let features: Features =
+        try await self.features.branchIfNeeded(
+          scope: ResourceScope.self,
+          context: resourceID
+        )
+      let resourceController: ResourceController = try await features.instance()
+      let resource: Resource = try await resourceController.state.value
+
+      if ResourceSpecification.Slug.standaloneTOTPTypes.contains(resource.type.specification.slug) {
+        // for standalone TOTP we delete the resource
+        try await resourceController.delete()
+        SnackBarMessageEvent.send("otp.edit.otp.deleted.message")
+      }
+      else if let detachedOTPSlug: ResourceSpecification.Slug = resource.detachedOTPSlug {
+        let editingContext: ResourceEditingContext =
+          try await self.resourceEditPreparation.prepareExisting(resourceID)
+
+        guard
+          let detachedType: ResourceType = editingContext.availableTypes.first(
+            where: { (type: ResourceType) -> Bool in
+              type.specification.slug == detachedOTPSlug
+            }
+          )
+        else {
+          throw
+            InvalidResourceTypeError
+            .error(message: "Attempting to detach OTP from a resource which has none or unavailable detached type!")
+        }
+
+        let editingFeatures: Features =
+          try await features.branchIfNeeded(
+            scope: ResourceEditScope.self,
+            context: editingContext
+          )
+
+        let resourceEditForm: ResourceEditForm = try await editingFeatures.instance()
+        try resourceEditForm.updateType(detachedType)
+
+        // Validated before the confirmation is offered - reviewing recipients only to be told the form is invalid
+        // would be reviewing them for nothing.
+        try await resourceEditForm.validateForm()
+
+        // Editing a shared resource interposes the confirmation screen; that path runs the edit on confirm, so
+        // return early when it takes over.
+        if try await self.presentConfirmationIfNeeded(
+          features: editingFeatures,
+          resourceID: resourceID
+        ) {
+          return
+        }
+
+        do {
+          try await resourceEditForm.send()
+          await self.finishDeletion()
+        }
+        catch let error as MetadataPinnedKeyValidationError {
+          // Same offer as on the confirmed path - a rotated key is trusted and the deletion retried, rather than
+          // leaving the operator with an error they cannot act on.
+          await self.navigateToMetadataPinnedKeyValidation(for: resourceID, reason: error.reason)
+        }
+      }
+      else {
+        throw
+          InvalidResourceTypeError
+          .error(message: "Attempting to delete OTP in a resource without OTP delete action supported!")
+      }
+    }
+  }
+
+  /// Presents the permission confirmation when the detach calls for it, retaining the flow - and with it the
+  /// editing scope branched for the resource - for as long as the confirmation may be on screen.
+  ///
+  /// A flow from an earlier attempt is reused rather than replaced, but only while its confirmation screen is still
+  /// displayed and only for the resource it was built for: trusting a rotated metadata key runs this deletion again
+  /// from the start, and that screen confirms into the flow it was opened with. Replacing it would release the
+  /// branched scope behind the displayed screen and leave its confirm button reporting a failure.
+  ///
+  /// Otherwise the flow is dropped and this deletion builds its own - once the operator left the confirmation they
+  /// are free to open the menu of another resource, and a reused flow would confirm the recipients of the previous
+  /// one and detach its TOTP.
+  @MainActor private func presentConfirmationIfNeeded(
+    features: Features,
+    resourceID: Resource.ID
+  ) async throws -> Bool {
+    let ongoing: OngoingConfirmation? = self.permissionConfirmation
+    let ongoingDisplayed: Bool = try ongoing?.flow.isConfirmationDisplayed() ?? false
+
+    let permissionConfirmation: ResourceEditPermissionConfirmation
+    if let ongoing: OngoingConfirmation = ongoing,
+      ongoingDisplayed,
+      ongoing.resourceID == resourceID
+    {
+      permissionConfirmation = ongoing.flow
+    }
+    else {
+      permissionConfirmation = try .init(features: features)
+    }
+    let takenOver: Bool = try await permissionConfirmation.presentEditConfirmationIfNeeded(
+      onApplied: { [weak self] (_: Resource) in
+        await self?.finishDeletion()
+      },
+      onInvalidMetadataKey: { [weak self] (reason: MetadataPinnedKeyValidationError.Reason) in
+        await self?.navigateToMetadataPinnedKeyValidation(for: resourceID, reason: reason)
+      },
+      onCancelled: { [weak self, weak permissionConfirmation] in
+        // Backing out leaves nothing to resume, so the flow - and the editing scope it owns, holding the decrypted
+        // secret - goes now rather than at the next deletion. Identity checked so a cancel can only ever drop the
+        // flow it belongs to.
+        guard let flow: ResourceEditPermissionConfirmation = permissionConfirmation,
+          self?.permissionConfirmation?.flow === flow
+        else { return }
+        self?.permissionConfirmation = .none
+      }
+    )
+    // Retained only while its screen may be displayed - otherwise the branched scope would outlive the deletion it
+    // was created for. Cancelling releases it through `onCancelled`; this covers leaving the screen any other way,
+    // which reports no cancellation. A flow whose screen is still up is never dropped, even by a deletion that did
+    // not take it over: the presented screen holds nothing but a weak reference back to it, so releasing it here
+    // would leave its confirm button reporting a failure.
+    if takenOver {
+      self.permissionConfirmation = .init(resourceID: resourceID, flow: permissionConfirmation)
+    }
+    else if ongoingDisplayed == false {
+      self.permissionConfirmation = .none
+    }
+    return takenOver
+  }
+
+  /// Releases a confirmation flow whose screen is no longer displayed.
+  ///
+  /// The flow owns the editing scope branched for its deletion, which holds the decrypted secret, so it may not
+  /// outlive the screen it was created for. `onCancelled` covers the cancel button - the only way out of the
+  /// confirmation that reports a cancellation - and the next deletion covers the rest, but this list is a tab that
+  /// lives for the whole session: a confirmation left by a back gesture would otherwise keep a decrypted secret in
+  /// memory until the operator happens to delete another TOTP, or until they sign out.
+  ///
+  /// A flow whose screen is still up is never dropped - the screen holds nothing but a weak reference back to it,
+  /// so releasing it would leave its confirm button reporting a failure. Only a definite "not displayed" releases
+  /// the flow; a flow that cannot be asked is kept for the next checkpoint.
+  @MainActor private func releaseAbandonedConfirmation() {
+    guard let ongoing: OngoingConfirmation = self.permissionConfirmation,
+      let displayed: Bool = try? ongoing.flow.isConfirmationDisplayed(),
+      displayed == false
+    else { return }
+    self.permissionConfirmation = .none
+  }
+
+  /// Reports a removed TOTP. The list is the screen the deletion was started from and the confirmation pops itself,
+  /// so there is no navigation to perform here.
+  @MainActor private func finishDeletion() async {
+    self.permissionConfirmation = .none
+    SnackBarMessageEvent.send("otp.edit.otp.deleted.message")
+  }
+
+  @MainActor private func navigateToMetadataPinnedKeyValidation(
+    for resourceID: Resource.ID,
+    reason: MetadataPinnedKeyValidationError.Reason
+  ) async {
+    await presentMetadataPinnedKeyValidation(
+      features: self.features,
+      reason: reason,
+      onTrustedKey: { [weak self] in await self?.deleteOTP(for: resourceID) }
+    )
+  }
+
   internal func hideOTPCodes() {
+    // Leaving the list and opening a contextual menu on it both pass through here - the checkpoints at which a
+    // confirmation the operator left without cancelling is noticed and released.
+    self.releaseAbandonedConfirmation()
     self.resourcesOTPController.hideOTP()
   }
 }

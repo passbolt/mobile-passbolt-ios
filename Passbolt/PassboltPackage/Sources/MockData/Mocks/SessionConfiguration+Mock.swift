@@ -55,13 +55,9 @@ extension SessionConfiguration {
 
   public func with(metadataEnabled: Bool) -> Self {
     with {
-      $0.metadata = .init(enabled: true)
+      $0.metadata = .init(enabled: metadataEnabled)
     }
   }
-
-  public func with(_ builder: @Sendable (inout Self) -> Void) -> Self {
-    var copy: Self = self
-    builder(&copy)
-    return copy
-  }
 }
+
+extension SessionConfiguration: MockBuilder {}

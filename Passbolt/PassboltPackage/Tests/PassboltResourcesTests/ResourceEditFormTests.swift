@@ -303,6 +303,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always([.mock_1])
     )
     let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.secret.password, to: "modified")  // the secret has to change for it to be encrypted at all
     await verifyIf(
       try await tested.sendForm(),
       throws: MockIssue.self
@@ -323,6 +324,7 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always(.valid)
     )
     let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.secret.password, to: "modified")  // the secret has to change for it to be encrypted at all
     await verifyIf(
       try await tested.sendForm(),
       throws: InvalidResourceSecret.self
@@ -954,8 +956,157 @@ final class ResourceEditFormTests: FeaturesTestCase {
       with: always(.init(resource: .mock_1))
     )
     let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.secret.password, to: "modified")  // the secret has to change for it to be encrypted at all
     await verifyIfNotThrows(
       try await tested.sendForm()
+    )
+  }
+
+  func test_sendForm_whenOnlyMetadataEdited_doesNotSendSecrets() async throws {
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: alwaysThrow(MockIssue.error())  // must not be reached - recipients are only needed to encrypt
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: alwaysThrow(MockIssue.error())  // must not be reached - the stored secret is still valid
+    )
+    let sentSecrets: CriticalState<ResourceNetworkOperationDispatch.Secrets?> = .init(.none)
+    let editCalled: XCTestExpectation = .init(description: "the resource is updated")
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: {
+        (
+          _: Resource,
+          _: Resource.ID,
+          secrets: ResourceNetworkOperationDispatch.Secrets?
+        )
+          -> ResourceEditNetworkOperationResult in
+        sentSecrets.set(secrets)
+        editCalled.fulfill()
+        return .init(resource: .mock_1)
+      }
+    )
+    patch(
+      \SessionData.updateResource,
+      with: always(())
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.meta.name, to: "updated")
+
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+    await fulfillment(of: [editCalled], timeout: 1.0)
+    // No rotation at all - not an empty set, which the server would reject.
+    let expectedSecrets: ResourceNetworkOperationDispatch.Secrets? = .none
+    await verifyIf(
+      sentSecrets.get(),
+      isEqual: expectedSecrets
+    )
+  }
+
+  func test_sendForm_whenSecretEdited_sendsSecrets() async throws {
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: always(.init([.mock_1]))
+    )
+    let sentSecrets: CriticalState<ResourceNetworkOperationDispatch.Secrets?> = .init(.none)
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: {
+        (
+          _: Resource,
+          _: Resource.ID,
+          secrets: ResourceNetworkOperationDispatch.Secrets?
+        )
+          -> ResourceEditNetworkOperationResult in
+        sentSecrets.set(secrets)
+        return .init(resource: .mock_1)
+      }
+    )
+    patch(
+      \SessionData.updateResource,
+      with: always(())
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.secret.password, to: "modified")
+
+    await verifyIfNotThrows(
+      try await tested.sendForm()
+    )
+    let expectedSecrets: ResourceNetworkOperationDispatch.Secrets? = .init([.mock_1])
+    await verifyIf(
+      sentSecrets.get(),
+      isEqual: expectedSecrets
+    )
+  }
+
+  func test_isSecretEdited_isFalse_whenOnlyMetadataWasEdited() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.meta.name, to: "updated")
+
+    await verifyIf(
+      tested.isSecretEdited(),
+      isEqual: false,
+      "A metadata-only edit leaves the stored secret valid, so nothing has to be re-encrypted"
+    )
+  }
+
+  func test_isSecretEdited_isTrue_whenASecretFieldWasEdited() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    tested.update(\.secret.password, to: "modified")
+
+    await verifyIf(
+      tested.isSecretEdited(),
+      isEqual: true,
+      "An edited secret field has to be re-encrypted for every recipient"
+    )
+  }
+
+  /// Switching type reshapes the secret even when no field was touched by hand - here both types carry the same
+  /// `password` field, so only the type id differs, and that alone must count as editing the secret.
+  func test_isSecretEdited_isTrue_afterATypeChange() async throws {
+    let tested: ResourceEditForm = try self.testedInstance()
+    try tested.updateType(Resource.mock_2.type)
+
+    await verifyIf(
+      tested.isSecretEdited(),
+      isEqual: true,
+      "A type change reshapes the secret, so it must be treated as edited"
+    )
+  }
+
+  func test_isSecretEdited_isTrue_forANewResource() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.id = .none
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    let tested: ResourceEditForm = try self.testedInstance()
+
+    await verifyIf(
+      tested.isSecretEdited(),
+      isEqual: true,
+      "A resource that does not exist yet always needs its secret sent"
     )
   }
 

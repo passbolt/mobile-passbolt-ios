@@ -26,10 +26,18 @@ import FeatureScopes
 import OSFeatures
 import Resources
 
+/// Asks the operator to confirm removing a TOTP. Nothing but the question: the removal itself is performed by the
+/// screen that opened this alert.
+///
+/// It cannot own the removal, because removing a TOTP from a resource that also holds a password re-encrypts the
+/// secret for every recipient and so may open the permission confirmation, whose flow must be retained for as long
+/// as its screen may be displayed - and an alert is copied into an `AlertItem` and dropped, retaining nothing.
 internal struct ResourceOTPDeleteAlertController: AlertController {
 
   internal struct Context {
-    internal var resourceID: Resource.ID
+    /// Performs the removal. Invoked on the destructive action only - dismissing or cancelling leaves the resource
+    /// untouched.
+    internal var onConfirmed: @MainActor @Sendable () async -> Void
   }
 
   internal let title: Localization.DisplayableString
@@ -40,57 +48,6 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
     with context: Context,
     using features: Features
   ) throws {
-    let features: Features =
-      try features.branchIfNeeded(
-        scope: ResourceScope.self,
-        context: context.resourceID
-      )
-
-    let resourceController: ResourceController = try features.instance()
-
-    @Sendable func deleteOTP() async {
-      do {
-        let resource: Resource = try await resourceController.state.value
-        if ResourceSpecification.Slug.standaloneTOTPTypes.contains(resource.type.specification.slug) {
-          // for standalone TOTP we delete the resource
-          try await resourceController.delete()
-        }
-        else if let detachedOTPSlug: ResourceSpecification.Slug = resource.detachedOTPSlug {
-          let resourceEditPreparation: ResourceEditPreparation = try await features.instance()
-          let editingContext = try await resourceEditPreparation.prepareExisting(context.resourceID)
-
-          guard
-            let detachedType: ResourceType = editingContext.availableTypes.first(where: { type in
-              type.specification.slug == detachedOTPSlug
-            })
-          else {
-            throw
-              InvalidResourceTypeError
-              .error(message: "Attempting to detach OTP from a resource which has none or unavailable detached type!")
-          }
-          let features: Features =
-            try await features.branchIfNeeded(
-              scope: ResourceEditScope.self,
-              context: editingContext
-            )
-
-          let resourceEditForm: ResourceEditForm = try await features.instance()
-          try resourceEditForm.updateType(detachedType)
-          try await resourceEditForm.send()
-        }
-        else {
-          throw
-            InvalidResourceTypeError
-            .error(message: "Attempting to delete OTP in a resource without OTP delete action supported!")
-        }
-
-        SnackBarMessageEvent.send("otp.edit.otp.deleted.message")
-      }
-      catch {
-        error.consume()
-      }
-    }
-
     self.title = "otp.contextual.menu.delete.confirm.title"
     self.message = "otp.contextual.menu.delete.confirm.message"
     self.actions = [
@@ -101,9 +58,9 @@ internal struct ResourceOTPDeleteAlertController: AlertController {
       .init(
         title: "otp.contextual.menu.delete.confirm.action.delete",
         role: .destructive,
-        action: {
+        action: { [onConfirmed = context.onConfirmed] in
           Task(priority: .userInitiated) { @MainActor in
-            await deleteOTP()
+            await onConfirmed()
           }
         }
       ),

@@ -62,6 +62,7 @@ extension SessionData {
     let refreshProgress: Variable<Double?> = .init(initial: .none)
 
     let refreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
+    let usersAndGroupsRefreshTask: CriticalState<Task<Void, Error>?> = .init(.none)
 
     Task {  // initial refresh after loading
       do {
@@ -175,6 +176,45 @@ extension SessionData {
       }
     }
 
+    /// Users and user groups only - everything a recipient picker needs, without the cost of a full refresh.
+    ///
+    /// Deduplicated the same way `refreshIfNeeded` is: a full refresh already in flight covers both stores and is
+    /// awaited instead, and concurrent callers share a single partial refresh. A full refresh started *after* this
+    /// one began still overlaps it - both write the same server state through upserts, so the outcome is the same.
+    @Sendable nonisolated func refreshUsersAndGroups() async throws {
+      if let runningRefresh: Task<Void, Error> = refreshTask.get() {
+        return try await runningRefresh.value
+      }
+
+      let task: Task<Void, Error> =
+        usersAndGroupsRefreshTask
+        .access { (task: inout Task<Void, Error>?) -> Task<Void, Error> in
+          if let runningTask: Task<Void, Error> = task {
+            return runningTask
+          }
+          else {
+            let runningTask: Task<Void, Error> = session.execute {
+              defer {
+                usersAndGroupsRefreshTask.access { task in
+                  task = .none
+                }
+              }
+              // Fetches are independent, so they overlap on the wire; the stores keep the FK order
+              // (users → groups) the full refresh keeps.
+              async let fetchedUsers: Array<UserDTO> = usersFetchNetworkOperation()
+              async let fetchedUserGroups: Array<UserGroupDTO> = userGroupsFetchNetworkOperation()
+
+              try await refreshUsers(fetchedUsers)
+              try await refreshUserGroups(fetchedUserGroups)
+            }
+            task = runningTask
+            return runningTask
+          }
+        }
+
+      return try await task.value
+    }
+
     @Sendable nonisolated func updateResource(_ resource: ResourceDTO) async throws {
       try await session.execute {
         try await resourceUpdater.updateResource(resource)
@@ -252,6 +292,7 @@ extension SessionData {
       lastUpdate: lastUpdate.asAnyUpdatable(),
       refreshProgress: refreshProgress.asAnyUpdatable(),
       refreshIfNeeded: refreshIfNeeded,
+      refreshUsersAndGroups: refreshUsersAndGroups,
       updateResource: updateResource
     )
   }

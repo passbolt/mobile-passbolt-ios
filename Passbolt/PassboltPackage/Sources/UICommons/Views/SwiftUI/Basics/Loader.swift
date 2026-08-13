@@ -49,6 +49,7 @@ private struct Loader: ViewModifier {
             VStack(spacing: 4) {
               SwiftUI.ProgressView()
                 .progressViewStyle(.circular)
+                .tint(.passboltPrimaryText)
               Text(
                 displayable: .localized(
                   key: .loading

@@ -46,3 +46,5 @@ extension ResourceDTO {
     )
   }
 }
+
+extension ResourceDTO: MockBuilder {}

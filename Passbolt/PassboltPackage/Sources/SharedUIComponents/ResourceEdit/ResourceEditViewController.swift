@@ -121,6 +121,10 @@ public final class ResourceEditViewController: ViewController {
   private let success: @Sendable (Resource) async -> Void
   private let customOnSuccessNavigation: (() async throws -> Void)?
 
+  // Interposes the permission confirmation before the secret is encrypted for others. Retained here for as long
+  // as the screen lives - it owns the resource created by an abandoned create confirmation.
+  private let permissionConfirmation: ResourceEditPermissionConfirmation
+
   private let features: Features
 
   public init(
@@ -158,6 +162,7 @@ public final class ResourceEditViewController: ViewController {
     self.linkOpener = features.instance()
 
     self.resourceEditForm = try features.instance()
+    self.permissionConfirmation = try .init(features: features)
 
     self.editsExisting = !context.editingContext.editedResource.isLocal
     self.allFields = Set(context.editingContext.editedResource.fields.map(\.path))
@@ -342,19 +347,41 @@ public final class ResourceEditViewController: ViewController {
   @MainActor private func confirmedSubmission() async {
     do {
       self.viewState.update(\.isLoading, to: true)
-      let resource: Resource = try await self.resourceEditForm.sendForm()
-      // Removing password from UI prevents displaying OS dialog for saving password.
-      if let passwordFieldModel: ResourceEditFieldViewModel = await self.viewState.current.mainForm.fields.first(
-        where: {
-          $0.isSecret
-        })
-      {
-        self.viewState
-          .update(
-            \.mainForm.fields[passwordFieldModel.path]!.validatedString,
-            to: .valid("")
-          )
+      // Creating inside a shared folder interposes the permission confirmation screen; that path drives its own
+      // create + share and navigation, so return early when it takes over.
+      if try await self.permissionConfirmation.presentCreateConfirmationIfNeeded(
+        onApplied: { [weak self] (resource: Resource) in
+          await self?
+            .finishConfirmedSubmission(
+              message: "resource.form.new.password.created",
+              resource: resource
+            )
+        },
+        onInvalidMetadataKey: { [weak self] (reason: MetadataPinnedKeyValidationError.Reason) in
+          await self?.navigateToMetadataPinnedKeyValidation(reason: reason)
+        }
+      ) {
+        self.viewState.update(\.isLoading, to: false)
+        return
       }
+      // Editing a shared resource interposes the confirmation screen too, then runs the edit on confirm.
+      if try await self.permissionConfirmation.presentEditConfirmationIfNeeded(
+        onApplied: { [weak self] (resource: Resource) in
+          await self?
+            .finishConfirmedSubmission(
+              message: "resource.menu.action.edited",
+              resource: resource
+            )
+        },
+        onInvalidMetadataKey: { [weak self] (reason: MetadataPinnedKeyValidationError.Reason) in
+          await self?.navigateToMetadataPinnedKeyValidation(reason: reason)
+        }
+      ) {
+        self.viewState.update(\.isLoading, to: false)
+        return
+      }
+      let resource: Resource = try await self.resourceEditForm.sendForm()
+      await self.clearPasswordField()
 
       if let customOnSuccessNavigation {
         try await customOnSuccessNavigation()
@@ -377,6 +404,45 @@ public final class ResourceEditViewController: ViewController {
       SnackBarMessageEvent.send(.error(error))
     }
     self.viewState.update(\.isLoading, to: false)
+  }
+
+  /// Clears the password shown in the form once it was saved - keeping it prevents the OS dialog offering to save
+  /// the password. Every successful submission path has to do this, including the confirmation flows.
+  @MainActor private func clearPasswordField() async {
+    guard
+      let passwordFieldModel: ResourceEditFieldViewModel = await self.viewState.current.mainForm.fields.first(
+        where: {
+          $0.isSecret
+        })
+    else { return }
+    self.viewState
+      .update(
+        \.mainForm.fields[passwordFieldModel.path]!.validatedString,
+        to: .valid("")
+      )
+  }
+
+  /// Leaves the form after a confirmed operation reached the server, then reports success. Navigation failures are
+  /// logged rather than propagated: the change is already applied, and failing here would keep the operator on the
+  /// form, free to apply it a second time.
+  @MainActor private func finishConfirmedSubmission(
+    message: SnackBarMessage,
+    resource: Resource
+  ) async {
+    await self.clearPasswordField()
+    do {
+      if let customOnSuccessNavigation: () async throws -> Void = self.customOnSuccessNavigation {
+        try await customOnSuccessNavigation()
+      }
+      else {
+        try await self.navigationToSelf.revert()
+      }
+    }
+    catch {
+      error.logged()
+    }
+    SnackBarMessageEvent.send(message)
+    await self.success(resource)
   }
 
   @MainActor internal func navigateBack() async {
@@ -616,17 +682,14 @@ public final class ResourceEditViewController: ViewController {
     }
   }
 
-  private func navigateToMetadataPinnedKeyValidation(reason: MetadataPinnedKeyValidationError.Reason) async {
-    await consumingErrors {
-      let navigationToInvalidMetadataKey: NavigationToMetadataPinnedKeyValidationDialog = try await self.features
-        .instance()
-      await navigationToInvalidMetadataKey.performCatching(
-        context: .init(
-          reason: reason,
-          onTrustedKey: { [weak self] in try await self?.sendForm() }
-        )
-      )
-    }
+  @MainActor private func navigateToMetadataPinnedKeyValidation(
+    reason: MetadataPinnedKeyValidationError.Reason
+  ) async {
+    await presentMetadataPinnedKeyValidation(
+      features: self.features,
+      reason: reason,
+      onTrustedKey: { [weak self] in try await self?.sendForm() }
+    )
   }
 }
 

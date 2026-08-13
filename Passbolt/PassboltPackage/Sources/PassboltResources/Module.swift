@@ -43,5 +43,7 @@ extension FeaturesRegistry {
     self.usePassboltResourceUpdatePreparation()
     self.usePassboltResourceSharePreparation()
     self.usePassboltResourceCreatePreparation()
+    self.usePassboltPermissionSnapshotService()
+    self.usePassboltResourceShareConfirmation()
   }
 }

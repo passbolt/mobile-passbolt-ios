@@ -54,3 +54,10 @@ public struct UserDetailsDSV {
 
 extension UserDetailsDSV: Hashable {}
 extension UserDetailsDSV: Sendable {}
+
+extension UserDetailsDSV {
+
+  public var displayName: String {
+    "\(self.firstName) \(self.lastName)"
+  }
+}

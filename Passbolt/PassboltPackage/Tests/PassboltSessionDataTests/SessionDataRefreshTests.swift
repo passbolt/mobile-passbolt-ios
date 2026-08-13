@@ -254,4 +254,39 @@ final class SessionDataRefreshTests: FeaturesTestCase {
       "Completing the last step reaches 100%"
     )
   }
+
+  func test_refreshUsersAndGroups_storesBothUsersAndUserGroups() async throws {
+    let usersStored: XCTestExpectation = .init(description: "Users should be stored.")
+    // The refresh performed when the feature loads writes the same stores.
+    usersStored.assertForOverFulfill = false
+    let groupsStored: XCTestExpectation = .init(description: "User groups should be stored.")
+    groupsStored.assertForOverFulfill = false
+    patch(
+      \UsersStoreDatabaseOperation.execute,
+      with: always({ usersStored.fulfill() }())
+    )
+    patch(
+      \UserGroupsStoreDatabaseOperation.execute,
+      with: always({ groupsStored.fulfill() }())
+    )
+
+    let feature: SessionData = try self.testedInstance()
+    try await feature.refreshUsersAndGroups()
+
+    await fulfillment(of: [usersStored, groupsStored], timeout: 1)
+  }
+
+  func test_refreshUsersAndGroups_propagatesFailure() async throws {
+    patch(
+      \UsersFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+
+    let feature: SessionData = try self.testedInstance()
+    await verifyIf(
+      try await feature.refreshUsersAndGroups(),
+      throws: MockIssue.self,
+      "A failed partial refresh must be reported, not swallowed"
+    )
+  }
 }

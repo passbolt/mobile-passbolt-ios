@@ -21,8 +21,10 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import FeatureScopes
+import Metadata
 import OSFeatures
 import Resources
 
@@ -66,6 +68,15 @@ public final class OTPEditFormViewController: @MainActor ViewController {
   private let navigationToSelf: NavigationToOTPEditForm
   nonisolated private let resourceEditForm: ResourceEditForm
 
+  // Saving a standalone TOTP from here submits the whole resource, so it goes through the permission
+  // confirmation like any other creation or edit.
+  private let permissionConfirmation: ResourceEditPermissionConfirmation
+
+  /// Whether saving adds the code or replaces one the resource already carries. Captured from the editing context
+  /// rather than read from the form, which stops looking local once a confirmation created the resource - a
+  /// resumed creation would otherwise report the code as replaced.
+  private let submissionMessage: SnackBarMessage
+
   nonisolated private let context: Context
 
   private let features: Features
@@ -87,6 +98,13 @@ public final class OTPEditFormViewController: @MainActor ViewController {
     self.navigationToSelf = try features.instance()
 
     self.resourceEditForm = try features.instance()
+    self.permissionConfirmation = try .init(features: self.features)
+
+    let editingContext: ResourceEditingContext = try features.context(of: ResourceEditScope.self)
+    self.submissionMessage =
+      editingContext.editedResource.isLocal || !editingContext.editedResource.hasTOTP
+      ? "otp.edit.otp.created.message"
+      : "otp.edit.otp.replaced.message"
 
     self.allFields = [
       \.meta.name,
@@ -214,14 +232,39 @@ extension OTPEditFormViewController {
   @MainActor internal func createOrUpdateOTP() async {
     await consumingErrors {
       do {
-        let editedResource: Resource = try await resourceEditForm.state.value
+        let message: SnackBarMessage = self.submissionMessage
+
+        // Validated before the confirmation is offered - reviewing recipients only to be told the form is
+        // invalid would be reviewing them for nothing.
+        try await resourceEditForm.validateForm()
+
+        // Both confirmed paths end the same way as the direct submission below - the confirmation only decides
+        // when the resource is saved, not what happens afterwards.
+        let onApplied: ResourceEditPermissionConfirmation.OnApplied = { [weak self] (_: Resource) in
+          await self?.finishSubmission(message: message)
+        }
+        let onInvalidMetadataKey: ResourceEditPermissionConfirmation.OnInvalidMetadataKey = {
+          [weak self] (reason: MetadataPinnedKeyValidationError.Reason) in
+          await self?.navigateToMetadataPinnedKeyValidation(reason: reason)
+        }
+
+        // Creating inside a shared folder, or changing the secret of a shared resource, interposes the
+        // permission confirmation screen; those paths run the submission on confirm, so return early.
+        if try await self.permissionConfirmation.presentCreateConfirmationIfNeeded(
+          onApplied: onApplied,
+          onInvalidMetadataKey: onInvalidMetadataKey
+        ) {
+          return
+        }
+        if try await self.permissionConfirmation.presentEditConfirmationIfNeeded(
+          onApplied: onApplied,
+          onInvalidMetadataKey: onInvalidMetadataKey
+        ) {
+          return
+        }
+
         try await resourceEditForm.send()
-        try await navigationToSelf.revert()
-        SnackBarMessageEvent.send(
-          editedResource.isLocal || !editedResource.hasTOTP
-            ? "otp.edit.otp.created.message"
-            : "otp.edit.otp.replaced.message"
-        )
+        await self.finishSubmission(message: message)
       }
       catch let error as InvalidForm {
         self.localState.mutate { (state: inout LocalState) in
@@ -229,10 +272,39 @@ extension OTPEditFormViewController {
         }
         throw error
       }
+      catch let error as MetadataPinnedKeyValidationError {
+        // Same offer as on the confirmed path - a rotated key is trusted and the submission retried, rather than
+        // leaving the operator with an error they cannot act on.
+        await self.navigateToMetadataPinnedKeyValidation(reason: error.reason)
+      }
       catch {
         throw error
       }
     }
+  }
+
+  /// Leaves the OTP form once the resource was saved. Navigation failures are logged rather than thrown: the
+  /// change is already applied, and reporting a failure here would invite submitting it a second time.
+  @MainActor private func finishSubmission(
+    message: SnackBarMessage
+  ) async {
+    do {
+      try await self.navigationToSelf.revert()
+    }
+    catch {
+      error.logged()
+    }
+    SnackBarMessageEvent.send(message)
+  }
+
+  @MainActor private func navigateToMetadataPinnedKeyValidation(
+    reason: MetadataPinnedKeyValidationError.Reason
+  ) async {
+    await presentMetadataPinnedKeyValidation(
+      features: self.features,
+      reason: reason,
+      onTrustedKey: { [weak self] in await self?.createOrUpdateOTP() }
+    )
   }
 
   internal func selectResourceToAttach() async {

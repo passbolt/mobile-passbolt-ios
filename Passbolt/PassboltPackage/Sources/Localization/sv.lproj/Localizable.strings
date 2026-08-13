@@ -376,6 +376,19 @@
 "resource.permission.edit.user.and.group.search.existing.section.title" = "Redan tillagd";
 "resource.permission.delete.user.permission.confirmation.message" = "Lösenordet kommer inte längre att delas med denna användare.";
 "resource.permission.delete.user.group.permission.confirmation.message" = "Lösenordet kommer inte längre att delas med denna grupp.";
+"resource.permission.confirm.title" = "Confirm permissions";
+"resource.permission.confirm.empty.message" = "There is no one to share this password with.";
+"resource.permission.confirm.action.confirm" = "Confirm";
+"resource.permission.confirm.action.remove" = "Remove";
+"resource.permission.confirm.action.add" = "Add users or groups";
+"resource.permission.confirm.duplicate.single.message" = "%@ is already part of group %@";
+"resource.permission.confirm.duplicate.multiple.message" = "%@ (and more) have already access via group membership";
+"resource.permission.confirm.create.pending.share" = "The resource was created but is not shared yet. Save it again to share it.";
+"resource.permission.confirm.drift.message" = "Permissions changed while you were reviewing them. Please review the updated list and try again.";
+"resource.permission.confirm.drift.single.message" = "%@ permissions have changed";
+"resource.permission.confirm.drift.multiple.message" = "%@ (and more) permissions have changed";
+"resource.permission.confirm.snapshot.incomplete.message" = "Could not check who this password is shared with. Please try again.";
+"resource.permission.confirm.recipient.unavailable.message" = "Some recipients could not be added because they cannot receive this password.";
 
 "resource.permission.details.title" = "Behörighet";
 "resource.permission.details.user.suspended" = "avstängd";

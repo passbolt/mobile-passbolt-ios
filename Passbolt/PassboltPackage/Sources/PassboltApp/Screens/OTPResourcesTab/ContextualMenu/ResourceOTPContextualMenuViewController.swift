@@ -43,6 +43,10 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   internal struct Context {
 
     internal var revealOTP: (@MainActor () async -> Void)?
+    /// Removes the TOTP once the operator confirmed the alert. Performed by the presenting list rather than here or
+    /// in the alert: detaching a TOTP re-encrypts the secret for every recipient, so it may open the permission
+    /// confirmation, whose flow has to be retained by something that outlives this menu.
+    internal var deleteOTP: (@MainActor @Sendable () async -> Void)?
   }
 
   internal struct ViewState: Equatable {
@@ -65,6 +69,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
   private let pasteboard: OSPasteboard
 
   private let revealOTP: (@MainActor () async -> Void)?
+  private let deleteOTPAction: (@MainActor @Sendable () async -> Void)?
   private let resourceID: Resource.ID
 
   private let sessionConfiguration: SessionConfiguration
@@ -83,6 +88,7 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
     self.sessionConfiguration = try features.sessionConfiguration()
 
     self.revealOTP = context.revealOTP
+    self.deleteOTPAction = context.deleteOTP
 
     self.linkOpener = features.instance()
     self.pasteboard = features.instance()
@@ -101,7 +107,9 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
         modifyMenuItems: .init()
       ),
       updateFrom: self.resourceController.state,
-      update: { [revealOTP, sessionConfiguration, navigationToSelf] (updateState, update: Update<Resource>) in
+      update: {
+        [revealOTP, deleteOTPAction, sessionConfiguration, navigationToSelf]
+        (updateState, update: Update<Resource>) in
         do {
           let resource: Resource = try update.value
           var accessMenuItems: Array<ResourceOTPContextualMenuItem> = .init()
@@ -120,7 +128,11 @@ internal final class ResourceOTPContextualMenuViewController: ViewController {
               modifyMenuItems.append(.editOTP)
             }  // else NOP
 
-            modifyMenuItems.append(.deleteOTP)
+            // Offered only when there is something to perform it with - the removal itself is driven by the
+            // presenting list, which outlives this menu and the permission confirmation it may open.
+            if case .some = deleteOTPAction {
+              modifyMenuItems.append(.deleteOTP)
+            }  // else NOP
           }  // else NOP
 
           updateState { (viewState: inout ViewState) in
@@ -212,10 +224,16 @@ extension ResourceOTPContextualMenuViewController {
 
   internal func deleteOTP() async {
     await consumingErrors {
+      guard let deleteOTPAction: (@MainActor @Sendable () async -> Void) = self.deleteOTPAction
+      else {
+        throw
+          InternalInconsistency
+          .error("Invalid or missing OTP delete action!")
+      }
       try await self.navigationToSelf.revert()
       try await navigationToResourceOTPDeleteAlert.perform(
         context: .init(
-          resourceID: self.resourceID
+          onConfirmed: deleteOTPAction
         )
       )
     }

@@ -21,8 +21,10 @@
 // @since         v1.0
 //
 
+import Commons
 import Display
 import FeatureScopes
+import Metadata
 import OSFeatures
 import Resources
 
@@ -37,6 +39,10 @@ internal final class OTPScanningSuccessViewController: ViewController {
 
   private let navigationToAttach: NavigationToOTPAttachSelectionList
   private let navigationToOTPScanning: NavigationToOTPScanning
+
+  // Creating a standalone TOTP is a resource creation like any other, so the same permission confirmation is
+  // interposed when it lands in a shared folder.
+  private let permissionConfirmation: ResourceEditPermissionConfirmation
 
   private let context: Context
 
@@ -57,6 +63,7 @@ internal final class OTPScanningSuccessViewController: ViewController {
     self.resourceEditPreparation = try features.instance()
     self.resourceEditForm = try features.instance()
     self.navigationToOTPScanning = try features.instance()
+    self.permissionConfirmation = try .init(features: features)
   }
 }
 
@@ -66,10 +73,54 @@ extension OTPScanningSuccessViewController {
     await consumingErrors(
       errorDiagnostics: "Failed to create standalone OTP"
     ) {
-      try await self.resourceEditForm.send()
-      try await self.navigationToOTPScanning.revert()
-      SnackBarMessageEvent.send("otp.edit.otp.created.message")
+      // Validated before the confirmation is offered - reviewing recipients only to be told the form is invalid
+      // would be reviewing them for nothing.
+      try await self.resourceEditForm.validateForm()
+      // Creating inside a shared folder interposes the permission confirmation screen; that path drives its own
+      // create + share, so return early when it takes over.
+      if try await self.permissionConfirmation.presentCreateConfirmationIfNeeded(
+        onApplied: { [weak self] (_: Resource) in
+          await self?.finishCreation()
+        },
+        onInvalidMetadataKey: { [weak self] (reason: MetadataPinnedKeyValidationError.Reason) in
+          await self?.navigateToMetadataPinnedKeyValidation(reason: reason)
+        }
+      ) {
+        return
+      }
+
+      do {
+        try await self.resourceEditForm.send()
+        await self.finishCreation()
+      }
+      catch let error as MetadataPinnedKeyValidationError {
+        // Same offer as on the confirmed path - a rotated key is trusted and the creation retried, rather than
+        // leaving the operator with an error they cannot act on.
+        await self.navigateToMetadataPinnedKeyValidation(reason: error.reason)
+      }
     }
+  }
+
+  /// Leaves the scanning flow after the resource was created. Navigation failures are logged rather than thrown:
+  /// the resource already exists, and reporting a failure here would invite creating it a second time.
+  private func finishCreation() async {
+    do {
+      try await self.navigationToOTPScanning.revert()
+    }
+    catch {
+      error.logged()
+    }
+    SnackBarMessageEvent.send("otp.edit.otp.created.message")
+  }
+
+  private func navigateToMetadataPinnedKeyValidation(
+    reason: MetadataPinnedKeyValidationError.Reason
+  ) async {
+    await presentMetadataPinnedKeyValidation(
+      features: self.features,
+      reason: reason,
+      onTrustedKey: { [weak self] in await self?.createStandaloneOTP() }
+    )
   }
 
   internal func updateExistingResource() async {

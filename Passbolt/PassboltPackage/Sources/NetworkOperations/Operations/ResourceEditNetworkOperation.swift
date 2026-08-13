@@ -40,7 +40,10 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
   public var resourceID: Resource.ID
   public var resourceTypeID: ResourceType.ID
   public var parentFolderID: ResourceFolder.ID?
-  public var secrets: Array<Secret>
+  /// Secrets to store for the resource, or `.none` when the secret is not being rotated by this update - only then
+  /// is the `secrets` key omitted. An empty (but present) set is still sent, so a caller that meant to rotate the
+  /// secret and produced no recipients is rejected by the server rather than silently saving metadata alone.
+  public var secrets: Array<Secret>?
   public var metadataKeyID: MetadataKeyDTO.ID?
   public var metadataKeyType: MetadataKeyDTO.MetadataKeyType
   public var metadata: ArmoredPGPMessage
@@ -65,7 +68,7 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     metadata: ArmoredPGPMessage,
     metadataKeyID: MetadataKeyDTO.ID?,
     metadataKeyType: MetadataKeyDTO.MetadataKeyType,
-    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>,
+    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>?,
     expired: Date? = .none
   ) {
     self.resourceID = resourceID
@@ -74,7 +77,9 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     self.metadata = metadata
     self.metadataKeyID = metadataKeyID
     self.metadataKeyType = metadataKeyType
-    self.secrets = secrets.map { Secret(userID: $0.userID, data: $0.data) }
+    self.secrets = secrets.map { (secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>) in
+      secrets.map { Secret(userID: $0.userID, data: $0.data) }
+    }
     self.expired = expired
   }
 
@@ -85,7 +90,8 @@ public struct ResourceEditNetworkOperationVariable: Encodable, Sendable {
     try container.encode(self.metadata, forKey: .metadata)
     try container.encode(self.metadataKeyID, forKey: .metadataKeyID)
     try container.encode(self.metadataKeyType, forKey: .metadataKeyType)
-    try container.encode(self.secrets, forKey: .secrets)
+    // Omitted only when the secret is not rotated by this update.
+    try container.encodeIfPresent(self.secrets, forKey: .secrets)
     try container.encode(self.expired, forKey: .expired)
   }
 

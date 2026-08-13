@@ -153,7 +153,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
         type: .init(id: .mock_1, slug: .password)
       ),
       .mock_1,
-      .init([.mock_1])
+      ResourceNetworkOperationDispatch.Secrets([.mock_1])
     )
 
     await fulfillment(of: [expectation], timeout: 1)
@@ -183,7 +183,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
         metadataKeyType: .user
       ),
       .mock_1,
-      .init([.mock_1])
+      ResourceNetworkOperationDispatch.Secrets([.mock_1])
     )
 
     await fulfillment(of: [expectation], timeout: 1)
@@ -204,7 +204,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
           metadataKeyType: .user
         ),
         .mock_1,
-        .init([.mock_1])
+        ResourceNetworkOperationDispatch.Secrets([.mock_1])
       ),
       throws: MetadataEncryptionFailure.self,
       "Should throw MetadataEncryptionFailure"
@@ -301,7 +301,7 @@ final class ResourceNetworkOperationDispatchTests: FeaturesTestCase {
         type: .init(id: .mock_1, slug: .v5Default)
       ),
       .init(),
-      .init([.mock_1])
+      ResourceNetworkOperationDispatch.Secrets([.mock_1])
     )
     await fulfillment(of: [sharedEncryptionExpectation, editNetworkOperationExpectation], timeout: 1)
   }

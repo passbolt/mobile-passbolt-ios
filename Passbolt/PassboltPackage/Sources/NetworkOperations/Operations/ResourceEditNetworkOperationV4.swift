@@ -44,7 +44,10 @@ public struct ResourceEditNetworkOperationV4Variable: Encodable, Sendable {
   public var username: String?
   public var url: URLString?
   public var description: String?
-  public var secrets: Array<Secret>
+  /// Secrets to store for the resource, or `.none` when the secret is not being rotated by this update - only then
+  /// is the `secrets` key omitted. An empty (but present) set is still sent, so a caller that meant to rotate the
+  /// secret and produced no recipients is rejected by the server rather than silently saving metadata alone.
+  public var secrets: Array<Secret>?
   public var expired: Date?
 
   public struct Secret: Encodable, Sendable {
@@ -67,7 +70,7 @@ public struct ResourceEditNetworkOperationV4Variable: Encodable, Sendable {
     username: String?,
     url: URLString?,
     description: String?,
-    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>,
+    secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>?,
     expired: Date? = .none
   ) {
     self.resourceID = resourceID
@@ -77,7 +80,9 @@ public struct ResourceEditNetworkOperationV4Variable: Encodable, Sendable {
     self.username = username
     self.url = url
     self.description = description
-    self.secrets = secrets.map { Secret(userID: $0.userID, data: $0.data) }
+    self.secrets = secrets.map { (secrets: Array<(userID: User.ID, data: ArmoredPGPMessage)>) in
+      secrets.map { Secret(userID: $0.userID, data: $0.data) }
+    }
     self.expired = expired
   }
 
@@ -89,7 +94,8 @@ public struct ResourceEditNetworkOperationV4Variable: Encodable, Sendable {
     try container.encodeIfPresent(self.username, forKey: .username)
     try container.encodeIfPresent(self.url, forKey: .url)
     try container.encode(self.resourceTypeID, forKey: .resourceTypeID)
-    try container.encode(self.secrets, forKey: .secrets)
+    // Omitted only when the secret is not rotated by this update.
+    try container.encodeIfPresent(self.secrets, forKey: .secrets)
     try container.encode(self.expired, forKey: .expired)
   }
 

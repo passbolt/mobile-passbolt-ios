@@ -34,17 +34,22 @@ public struct SessionData: Sendable {
   /// (`value != nil`) and the reported progress never race against each other.
   public var refreshProgress: AnyUpdatable<Double?>
   public var refreshIfNeeded: @Sendable () async throws -> Void
+  /// Refreshes only the users and user groups, for screens that pick permission recipients and would otherwise
+  /// pay for a full session refresh (metadata, folders and every resource) to see a newly invited user.
+  public var refreshUsersAndGroups: @Sendable () async throws -> Void
   public var updateResource: @Sendable (ResourceDTO) async throws -> Void
 
   public init(
     lastUpdate: AnyUpdatable<Timestamp>,
     refreshProgress: AnyUpdatable<Double?>,
     refreshIfNeeded: @escaping @Sendable () async throws -> Void,
+    refreshUsersAndGroups: @escaping @Sendable () async throws -> Void,
     updateResource: @escaping @Sendable (ResourceDTO) async throws -> Void
   ) {
     self.lastUpdate = lastUpdate
     self.refreshProgress = refreshProgress
     self.refreshIfNeeded = refreshIfNeeded
+    self.refreshUsersAndGroups = refreshUsersAndGroups
     self.updateResource = updateResource
   }
 }
@@ -57,6 +62,7 @@ extension SessionData: LoadableFeature {
       lastUpdate: PlaceholderUpdatable().asAnyUpdatable(),
       refreshProgress: PlaceholderUpdatable().asAnyUpdatable(),
       refreshIfNeeded: unimplemented0(),
+      refreshUsersAndGroups: unimplemented0(),
       updateResource: unimplemented1()
     )
   }

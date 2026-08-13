@@ -65,6 +65,11 @@ open class FeaturesTestCase: TestCase {
 
 extension FeaturesTestCase {
 
+  /// The test container itself, for types built from a `Features` instead of resolved out of one.
+  public final var testedFeatures: Features {
+    self.testFeatures
+  }
+
   public final func testedInstance<Feature>(
     _ featureType: Feature.Type = Feature.self
   ) throws -> Feature
