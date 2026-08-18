@@ -54,12 +54,12 @@ final class AdvancedPasswordGenerationViewControllerTests: FeaturesTestCase {
     )
 
     patch(
-      \PasswordGenerationService.configuration,
+      \PasswordService.configuration,
       with: always(self.configuration.asAnyUpdatable())
     )
     let savedConfiguration: CriticalState<PasswordPoliciesDSV?> = self.savedConfiguration
     patch(
-      \PasswordGenerationService.updateConfiguration,
+      \PasswordService.updateConfiguration,
       with: { @Sendable(configuration: PasswordPoliciesDSV) in
         savedConfiguration.set(configuration)
       }
@@ -89,40 +89,62 @@ final class AdvancedPasswordGenerationViewControllerTests: FeaturesTestCase {
     XCTAssertTrue(preview.hasPrefix("generated-secret-"))
   }
 
-  // MOB-4729: the committed value MUST be regenerated on accept, never the on-screen preview.
-  func test_saveConfiguration_forwardsFreshlyGeneratedSecret_differentFromPreview() async throws {
+  // Mirrors Android `AdvancedSecretGenerationViewModel.savePreferences`: the committed value is the
+  // one the user saw in the preview, never a secret regenerated while accepting.
+  func test_saveConfiguration_forwardsPreviewedSecret() async throws {
     let saved: CriticalState<String?> = .init(.none)
     let tested: AdvancedPasswordGenerationViewController = try self.testedInstance(
       context: makeContext(onSaveGenerated: { (value: String) in saved.set(value) })
     )
 
     tested.commitChange()
-    let preview: String = await tested.viewState.current.preview
+    let preview: String = tested.stateSnapshot.preview
     XCTAssertFalse(preview.isEmpty)
 
     await tested.saveConfiguration()
 
-    let savedValue: String? = saved.get()
-    XCTAssertNotNil(savedValue)
-    // It is a freshly generated secret...
-    XCTAssertTrue(savedValue?.hasPrefix("generated-secret-") == true)
-    // ...and it is NOT the value that was previewed on screen.
-    XCTAssertNotEqual(savedValue, preview)
+    XCTAssertEqual(saved.get(), preview)
   }
 
   func test_saveConfiguration_persistsConfiguration_andRevertsNavigation() async throws {
     let tested: AdvancedPasswordGenerationViewController = try self.testedInstance(context: makeContext())
 
-    let snapshotConfiguration: PasswordPoliciesDSV = await tested.viewState.current.configuration
+    tested.commitChange()
+    let snapshotConfiguration: PasswordPoliciesDSV = tested.stateSnapshot.configuration
     await tested.saveConfiguration()
 
     XCTAssertEqual(self.savedConfiguration.get(), snapshotConfiguration)
     XCTAssertTrue(self.revertCalled.get())
   }
 
-  // Unconditional generate-on-accept is intentional (MOB-4729): pressing "Save" always commits
-  // a freshly generated secret, even when the configuration was not edited.
-  func test_saveConfiguration_generatesAndSaves_evenWhenConfigurationNotEdited() async throws {
+  // Unconditional commit is intentional (MOB-4729): pressing "Save" applies the previewed secret
+  // even when the configuration was not edited, matching Android.
+  func test_saveConfiguration_commitsPreview_evenWhenConfigurationNotEdited() async throws {
+    let saved: CriticalState<String?> = .init(.none)
+    let tested: AdvancedPasswordGenerationViewController = try self.testedInstance(
+      context: makeContext(onSaveGenerated: { (value: String) in saved.set(value) })
+    )
+
+    // Preview produced by the initial configuration only - no user edit in between.
+    let preview: String = await tested.viewState.current.preview
+    XCTAssertFalse(preview.isEmpty)
+
+    await tested.saveConfiguration()
+
+    XCTAssertEqual(saved.get(), preview)
+    XCTAssertTrue(self.revertCalled.get())
+  }
+
+  func test_saveEnabled_isFalse_beforeFirstPreviewIsProduced() throws {
+    let tested: AdvancedPasswordGenerationViewController = try self.testedInstance(context: makeContext())
+
+    XCTAssertTrue(tested.stateSnapshot.preview.isEmpty)
+    XCTAssertFalse(tested.stateSnapshot.saveEnabled)
+  }
+
+  // Android returns from `savePreferences` without any side effect when the preview is empty;
+  // committing an empty secret would wipe the password already present in the form.
+  func test_saveConfiguration_doesNothing_whenPreviewIsEmpty() async throws {
     let saved: CriticalState<String?> = .init(.none)
     let tested: AdvancedPasswordGenerationViewController = try self.testedInstance(
       context: makeContext(onSaveGenerated: { (value: String) in saved.set(value) })
@@ -130,7 +152,8 @@ final class AdvancedPasswordGenerationViewControllerTests: FeaturesTestCase {
 
     await tested.saveConfiguration()
 
-    XCTAssertNotNil(saved.get())
-    XCTAssertTrue(self.revertCalled.get())
+    XCTAssertNil(saved.get())
+    XCTAssertNil(self.savedConfiguration.get())
+    XCTAssertFalse(self.revertCalled.get())
   }
 }

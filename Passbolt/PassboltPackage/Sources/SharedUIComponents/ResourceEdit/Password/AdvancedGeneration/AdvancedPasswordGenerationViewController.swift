@@ -47,15 +47,15 @@ internal final class AdvancedPasswordGenerationViewController: ViewController {
   nonisolated let viewState: ViewStateSource<ViewState>
 
   private let onSaveGenerated: @Sendable (String) async -> Void
-  private let passwordGenerationService: PasswordGenerationService
+  private let passwordService: PasswordService
   private let secretGenerator: SecretGenerator
   private let navigationToSelf: NavigationToAdvancedPasswordGeneration
 
   internal init(context: Context, features: Features) throws {
     self.onSaveGenerated = context.onSaveGenerated
-    let passwordGenerationService: PasswordGenerationService = try features.instance()
+    let passwordService: PasswordService = try features.instance()
     let secretGenerator: SecretGenerator = try features.instance()
-    self.passwordGenerationService = passwordGenerationService
+    self.passwordService = passwordService
     self.secretGenerator = secretGenerator
     self.navigationToSelf = try features.instance()
 
@@ -63,9 +63,9 @@ internal final class AdvancedPasswordGenerationViewController: ViewController {
       initial: .init(
         configuration: .default,
         preview: "",
-        saveEnabled: true
+        saveEnabled: false
       ),
-      updateFrom: passwordGenerationService.configuration(),
+      updateFrom: passwordService.configuration(),
       update: {
         @MainActor [secretGenerator] (updateState, update: Update<PasswordPoliciesDSV>) async throws -> Void in
         let configuration: PasswordPoliciesDSV = try update.value
@@ -136,9 +136,10 @@ extension AdvancedPasswordGenerationViewController {
   }
 
   internal func saveConfiguration() async {
+    let snapshot: ViewState = self.stateSnapshot
+    guard !snapshot.preview.isEmpty else { return }
     await consumingErrors {
-      let snapshot: ViewState = await self.viewState.current
-      await self.passwordGenerationService.updateConfiguration(snapshot.configuration)
+      await self.passwordService.updateConfiguration(snapshot.configuration)
       await self.onSaveGenerated(snapshot.preview)
       try await self.navigationToSelf.revert()
     }
@@ -146,6 +147,15 @@ extension AdvancedPasswordGenerationViewController {
 }
 
 extension AdvancedPasswordGenerationViewController {
+
+  /// Current view state, read without consulting the update source.
+  ///
+  /// `viewState.current` would run the source update closure and regenerate the preview, committing a
+  /// secret other than the one shown to the user. Reading through `update` touches only the local value,
+  /// and the unchanged state is filtered out downstream by `removeDuplicates`.
+  internal var stateSnapshot: ViewState {
+    self.viewState.update { (state: inout ViewState) -> ViewState in state }
+  }
 
   /// Atomically apply a state mutation and regenerate the preview in a single ViewState update,
   /// so subscribers never observe a configuration/preview mismatch.

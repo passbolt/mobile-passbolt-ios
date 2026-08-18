@@ -112,8 +112,7 @@ public final class ResourceEditViewController: ViewController {
     self.navigationToOTPScanning.canPerform()
   }
 
-  private let secretGenerator: PasswordService
-  private let passwordGeneration: PasswordGenerationService
+  private let passwordService: PasswordService
   private let pinCodeGenerator: PinCodeService
 
   private let linkOpener: OSLinkOpener
@@ -142,9 +141,8 @@ public final class ResourceEditViewController: ViewController {
     self.success = context.success
     self.customOnSuccessNavigation = context.customOnSuccessNavigation
 
-    let secretGenerator: PasswordService = try features.instance()
-    self.secretGenerator = secretGenerator
-    self.passwordGeneration = try features.instance()
+    let passwordService: PasswordService = try features.instance()
+    self.passwordService = passwordService
     self.pinCodeGenerator = try features.instance()
 
     self.navigationToSelf = try features.instance()
@@ -207,8 +205,8 @@ public final class ResourceEditViewController: ViewController {
         else {
           return
         }
-        let countEntropy: @Sendable (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
-          await secretGenerator.entropy(input)
+        let countEntropy: @Sendable (String) async -> Entropy = { [passwordService] (input: String) -> Entropy in
+          await passwordService.entropy(input)
         }
         let nameField: ResourceEditFieldViewModel? = await .init(
           nameFieldSpecification,
@@ -249,7 +247,7 @@ public final class ResourceEditViewController: ViewController {
     for field: ResourceType.FieldPath
   ) async {
     do {
-      let generated: String = try await self.passwordGeneration.generate()
+      let generated: String = try await self.passwordService.generate()
       self.resourceEditForm.update(field, to: generated)
       self.localState.mutate { (state: inout LocalState) in
         state.editedFields.insert(field)
@@ -310,7 +308,7 @@ public final class ResourceEditViewController: ViewController {
         return await self.confirmedSubmission()
       }
       if let password: String = resource.firstPasswordString {
-        switch try await secretGenerator.validate(password) {
+        switch try await passwordService.validate(password) {
         case .valid:
           await self.confirmedSubmission()
         case .pwned:

@@ -26,11 +26,15 @@ import FeatureScopes
 
 public struct PasswordService: Sendable {
 
+  public typealias Configuration = PasswordPoliciesDSV
+
   fileprivate static let minimumEntropy: Entropy = .fairPassword
 
   public var generate: @Sendable () async throws -> String
   public var entropy: @Sendable (String) async -> Entropy
   public var validate: @Sendable (String) async throws -> SecretValidationResult
+  public var configuration: @Sendable () -> AnyUpdatable<Configuration>
+  public var updateConfiguration: @Sendable (Configuration) async -> Void
 
   public enum SecretValidationResult: Sendable {
 
@@ -47,7 +51,9 @@ extension PasswordService: LoadableFeature {
     .init(
       generate: unimplemented0(),
       entropy: unimplemented1(),
-      validate: unimplemented1()
+      validate: unimplemented1(),
+      configuration: unimplemented0(),
+      updateConfiguration: unimplemented1()
     )
   }
   #endif
@@ -60,21 +66,47 @@ extension PasswordService: LoadableFeature {
     let secretsGenerator: SecretGenerator = try features.instance()
     let pwnedPasswordsChecker: PwnedPasswordChecker = try features.instance()
 
+    // Locally overridden configuration, assigned from the advanced generation screen.
+    // When unset the server (or default) policies are used.
+    let override: Variable<Configuration?> = .init(initial: .none)
+    let resolved: ComputedVariable<Configuration> = .init(transformed: override) {
+      (update: Update<Configuration?>) async throws -> Configuration in
+      if let overridden: Configuration = try update.value {
+        return overridden
+      }
+      return await passwordPoliciesLoader.policies()
+    }
+
+    @Sendable
+    func currentConfiguration() async -> Configuration {
+      do {
+        return try await resolved.value
+      }
+      catch {
+        error.logged()
+        return await passwordPoliciesLoader.policies()
+      }
+    }
+
+    @Sendable func updateConfiguration(_ newConfiguration: Configuration) async {
+      override.assign(newConfiguration)
+    }
+
     @Sendable
     func generate() async throws -> String {
-      let configuration: SecretGenerator.Configuration = await passwordPoliciesLoader.policies()
+      let configuration: Configuration = await currentConfiguration()
       return try secretsGenerator.generate(configuration)
     }
 
     @Sendable
     func entropy(for secret: String) async -> Entropy {
-      let configuration: SecretGenerator.Configuration = await passwordPoliciesLoader.policies()
+      let configuration: Configuration = await currentConfiguration()
       return secretsGenerator.entropy(secret, configuration)
     }
 
     @Sendable func validate(_ secret: String) async throws -> SecretValidationResult {
-      let configuration: SecretGenerator.Configuration = await passwordPoliciesLoader.policies()
-      let entropy: Entropy = await entropy(for: secret)
+      let configuration: Configuration = await currentConfiguration()
+      let entropy: Entropy = secretsGenerator.entropy(secret, configuration)
       if entropy < Self.minimumEntropy {
         return .weak
       }
@@ -94,7 +126,9 @@ extension PasswordService: LoadableFeature {
     return .init(
       generate: generate,
       entropy: entropy(for:),
-      validate: validate
+      validate: validate,
+      configuration: { resolved.asAnyUpdatable() },
+      updateConfiguration: updateConfiguration(_:)
     )
   }
 
@@ -127,7 +161,7 @@ extension FeaturesRegistry {
         PasswordService.self,
         load: PasswordService.load(using:)
       ),
-      in: SessionScope.self
+      in: ResourceEditScope.self
     )
   }
 }

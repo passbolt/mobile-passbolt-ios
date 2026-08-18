@@ -32,7 +32,7 @@ import TestExtensions
 final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unchecked Sendable {
 
   override class var testedImplementationScope: any FeaturesScope.Type {
-    SessionScope.self
+    ResourceEditScope.self
   }
 
   override class func testedImplementationRegister(
@@ -49,6 +49,13 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
         configuration: .mock_1
       )
     )
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: .mock_1,
+        availableTypes: [Resource.mock_1.type]
+      )
+    )
 
     self.patch(
       \SecretGenerator.generate,
@@ -60,12 +67,49 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     )
     self.patch(
       \PasswordPoliciesLoader.policies,
-      with: { await Self.policy(length: 20, externalDictionaryCheck: false) }
+      with: { await Self.policy(length: 20) }
     )
     self.patch(
       \PwnedPasswordChecker.check,
       with: { _ in true }
     )
+  }
+
+  // MARK: - Configuration tests
+
+  func test_configuration_returnsLoaderPolicy() async throws {
+    let service: PasswordService = try testedInstance()
+    let configuration: PasswordService.Configuration = try await service.configuration().value
+    XCTAssertEqual(configuration.passwordGeneratorSettings.length, 20)
+  }
+
+  func test_updateConfiguration_isReflectedInNextConfiguration() async throws {
+    let service: PasswordService = try testedInstance()
+    _ = try await service.configuration().value
+
+    await service.updateConfiguration(Self.policy(length: 64))
+
+    let configuration: PasswordService.Configuration = try await service.configuration().value
+    XCTAssertEqual(configuration.passwordGeneratorSettings.length, 64)
+  }
+
+  func test_updateConfiguration_bypassesLoader() async throws {
+    let loaderCalls: CriticalState<Int> = .init(0)
+    self.patch(
+      \PasswordPoliciesLoader.policies,
+      with: {
+        loaderCalls.access { $0 += 1 }
+        return await Self.policy(length: 20)
+      }
+    )
+
+    let service: PasswordService = try testedInstance()
+    await service.updateConfiguration(Self.policy(length: 64))
+
+    _ = try await service.configuration().value
+    _ = try await service.configuration().value
+
+    XCTAssertEqual(loaderCalls.get(), 0)
   }
 
   // MARK: - Generation tests
@@ -88,6 +132,25 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 20)
   }
 
+  func test_generate_usesOverriddenConfiguration() async throws {
+    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
+    self.patch(
+      \SecretGenerator.generate,
+      with: { (configuration: SecretGenerator.Configuration) in
+        receivedConfiguration.set(configuration)
+        return "generated"
+      }
+    )
+
+    let service: PasswordService = try testedInstance()
+    await service.updateConfiguration(Self.policy(length: 64))
+    _ = try await service.generate()
+
+    XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 64)
+  }
+
+  // MARK: - Entropy tests
+
   func test_entropy_fetchesPoliciesAndCalculates() async throws {
     let expectedEntropy: Entropy = .init(rawValue: 150)
     self.patch(
@@ -99,6 +162,26 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     let result: Entropy = await generator.entropy("test-secret")
 
     XCTAssertEqual(result, expectedEntropy)
+  }
+
+  /// Entropy has to be scored against the same configuration the secret was generated with,
+  /// otherwise the strength indicator contradicts the advanced generation settings.
+  func test_entropy_usesOverriddenConfiguration() async throws {
+    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
+    self.patch(
+      \SecretGenerator.entropy,
+      with: { (_: String, configuration: SecretGenerator.Configuration) in
+        receivedConfiguration.set(configuration)
+        return .init(rawValue: 100)
+      }
+    )
+
+    let service: PasswordService = try testedInstance()
+    await service.updateConfiguration(Self.policy(length: 64, defaultGenerator: .passphrase))
+    _ = await service.entropy("test-secret")
+
+    XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 64)
+    XCTAssertEqual(receivedConfiguration.get()?.defaultGenerator, .passphrase)
   }
 
   // MARK: - Validation tests
@@ -207,12 +290,63 @@ final class PasswordServiceTests: LoadableFeatureTestCase<PasswordService>, @unc
     }
   }
 
+  /// Validation has to score the secret using the overridden configuration, otherwise submitting a
+  /// resource can raise a bogus weak password warning for a secret generated with edited settings.
+  func test_validate_usesOverriddenConfiguration() async throws {
+    let receivedConfiguration: CriticalState<SecretGenerator.Configuration?> = .init(nil)
+    self.patch(
+      \SecretGenerator.entropy,
+      with: { (_: String, configuration: SecretGenerator.Configuration) in
+        receivedConfiguration.set(configuration)
+        return .init(rawValue: 100)
+      }
+    )
+
+    let service: PasswordService = try testedInstance()
+    await service.updateConfiguration(Self.policy(length: 64, defaultGenerator: .passphrase))
+    _ = try await service.validate("some-password")
+
+    XCTAssertEqual(receivedConfiguration.get()?.passwordGeneratorSettings.length, 64)
+    XCTAssertEqual(receivedConfiguration.get()?.defaultGenerator, .passphrase)
+  }
+
+  /// The external dictionary check flag is part of the resolved configuration as well.
+  func test_validate_usesExternalCheckFlagFromOverriddenConfiguration() async throws {
+    self.patch(
+      \PasswordPoliciesLoader.policies,
+      with: { await Self.policy(length: 20, externalDictionaryCheck: false) }
+    )
+    self.patch(
+      \SecretGenerator.entropy,
+      with: { _, _ in .init(rawValue: 100) }
+    )
+
+    let checkerCalled: CriticalState<Bool> = .init(false)
+    self.patch(
+      \PwnedPasswordChecker.check,
+      with: { _ in
+        checkerCalled.set(true)
+        return true
+      }
+    )
+
+    let service: PasswordService = try testedInstance()
+    await service.updateConfiguration(Self.policy(length: 20, externalDictionaryCheck: true))
+    _ = try await service.validate("some-password")
+
+    XCTAssertTrue(checkerCalled.get())
+  }
+
   // MARK: - Helpers
 
-  private static func policy(length: Int, externalDictionaryCheck: Bool) -> SecretGenerator.Configuration {
+  private static func policy(
+    length: Int,
+    externalDictionaryCheck: Bool = false,
+    defaultGenerator: PasswordGeneratorType = .password
+  ) -> SecretGenerator.Configuration {
     SecretGenerator.Configuration(
       id: .init(),
-      defaultGenerator: .password,
+      defaultGenerator: defaultGenerator,
       passwordGeneratorSettings: .init(
         length: length,
         maskUpper: true,

@@ -49,8 +49,7 @@ public final class ResourcePasswordEditViewController: ViewController {
   }
 
   private let resourceEditForm: ResourceEditForm
-  private let secretGenerator: PasswordService
-  private let passwordGeneration: PasswordGenerationService
+  private let passwordService: PasswordService
   private let navigationToSelf: NavigationToResourcePasswordEdit
   private let navigationToAdvancedGeneration: NavigationToAdvancedPasswordGeneration
 
@@ -68,9 +67,8 @@ public final class ResourcePasswordEditViewController: ViewController {
 
     self.context = context
 
-    let secretGenerator: PasswordService = try features.instance()
-    self.secretGenerator = secretGenerator
-    self.passwordGeneration = try features.instance()
+    let passwordService: PasswordService = try features.instance()
+    self.passwordService = passwordService
 
     self.navigationToSelf = try features.instance()
     self.navigationToAdvancedGeneration = try features.instance()
@@ -90,8 +88,8 @@ public final class ResourcePasswordEditViewController: ViewController {
         let update: (resource: Resource, localState: LocalState) = try update.value
         assert(update.resource.secretAvailable, "Can't edit resource without secret!")
 
-        let countEntropy: @Sendable (String) async -> Entropy = { [secretGenerator] (input: String) -> Entropy in
-          await secretGenerator.entropy(input)
+        let countEntropy: @Sendable (String) async -> Entropy = { [passwordService] (input: String) -> Entropy in
+          await passwordService.entropy(input)
         }
 
         let fields: IdentifiedArray<ResourceEditFieldViewModel> = await fields(
@@ -133,7 +131,7 @@ public final class ResourcePasswordEditViewController: ViewController {
     for field: ResourceType.FieldPath
   ) async {
     do {
-      let generated: String = try await self.passwordGeneration.generate()
+      let generated: String = try await self.passwordService.generate()
       self.resourceEditForm.update(field, to: generated)
       self.localState.mutate { (state: inout LocalState) in
         state.editedFields.insert(field)

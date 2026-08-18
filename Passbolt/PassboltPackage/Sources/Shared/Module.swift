@@ -32,7 +32,6 @@ extension FeaturesRegistry {
     self.usePwnedPasswordChecker()
     self.usePasswordPoliciesLoader()
     self.usePasswordService()
-    self.usePasswordGenerationService()
     self.usePinCodeService()
     self.useHomePresentation()
   }
