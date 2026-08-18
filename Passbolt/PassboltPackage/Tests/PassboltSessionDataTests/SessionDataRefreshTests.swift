@@ -217,9 +217,10 @@ final class SessionDataRefreshTests: FeaturesTestCase {
     let feature: SessionData = try self.testedInstance()
     try await feature.refreshIfNeeded()
 
-    // The single optional stream returns to `nil` (idle) once a refresh finishes.
-    let progress: Double? = try await feature.refreshProgress.value
-    XCTAssertNil(progress, "Refresh progress returns to idle once finished")
+    try await verifyIf(
+      try await feature.refreshProgress.value,
+      eventuallyEquals: Double?.none
+    )
   }
 
   // MARK: - Equal-step progress model (Android-aligned)
