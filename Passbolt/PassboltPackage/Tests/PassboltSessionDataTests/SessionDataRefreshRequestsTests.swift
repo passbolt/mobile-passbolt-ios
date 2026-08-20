@@ -27,7 +27,9 @@ import Metadata
 import TestExtensions
 
 import struct Foundation.Data
+import class Foundation.JSONSerialization
 import struct Foundation.URL
+import struct Foundation.URLQueryItem
 
 @testable import PassboltNetworkOperations
 @testable import PassboltSessionData
@@ -94,6 +96,9 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
   /// Each endpoint must be requested at most twice (the load-time refresh may race
   /// the explicit one), never more. This catches duplicate-fetch regressions in the
   /// refresh orchestration.
+  ///
+  /// For folders this doubles as the degrade-to-one-request guard: the fixture reports
+  /// `"limit": null` with the whole set in its body, as a server ignoring `limit` would.
   func test_refreshIfNeeded_requestsEachEndpointAtMostTwice() async throws {
     let counts: CriticalState<Dictionary<String, Int>> = .init(.init())
     self.installFixtureExecutor(
@@ -119,6 +124,107 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
       let hits: Int = tally[endpoint] ?? 0
       XCTAssertEqual(hits, 1, "Expected \(endpoint) to be requested exactly once per explicit refresh.")
     }
+  }
+
+  /// The folders fetch must put the whole pagination contract on the wire, including the stable
+  /// `Folders.created asc` ordering that offset paging depends on.
+  func test_refreshIfNeeded_folders_sendsPaginationQueryItems() async throws {
+    let folderRequests: CriticalState<Array<Dictionary<String, String>>> = .init(.init())
+    self.installFixtureExecutor(
+      size: "small",
+      endpoints: ["users", "groups", "folders"],
+      onHTTPRequest: { (request: HTTPRequest) in
+        guard request.urlComponents.path.hasSuffix("/folders.json")
+        else { return }
+        var queryItems: Dictionary<String, String> = .init()
+        for item: URLQueryItem in request.urlComponents.queryItems ?? Array<URLQueryItem>() {
+          queryItems[item.name] = item.value
+        }
+        folderRequests.access { (requests: inout Array<Dictionary<String, String>>) in
+          requests.append(queryItems)
+        }
+      }
+    )
+    registerFetchOperations()
+
+    let feature: SessionData = try self.testedInstance()
+    // Warm-up drains the load-time refresh, which usually leaves the explicit refresh below alone on the
+    // wire - the assertions do not rely on that, since the two can still race.
+    try await feature.refreshIfNeeded()
+    folderRequests.access { (requests: inout Array<Dictionary<String, String>>) in requests.removeAll() }
+    try await feature.refreshIfNeeded()
+
+    let requests: Array<Dictionary<String, String>> = folderRequests.get()
+    let firstRequest: Dictionary<String, String> = try XCTUnwrap(requests.first, "Folders must be fetched")
+    XCTAssertEqual(firstRequest["page"], "1", "The first page must be requested explicitly")
+    XCTAssertEqual(
+      firstRequest["sort"],
+      "Folders.created",
+      "Offset paging needs the immutable sort key - a mutable one silently skips folders"
+    )
+    XCTAssertEqual(firstRequest["direction"], "asc", "Ordering must be ascending to keep earlier pages stable")
+    let limit: Int = try XCTUnwrap(
+      firstRequest["limit"].flatMap { (value: String) -> Int? in Int(value) },
+      "An explicit limit must be sent"
+    )
+    XCTAssertGreaterThan(limit, 0, "The limit must be a usable page size")
+    // Asserting the requested pages rather than their number: a load-time refresh racing the explicit one
+    // can repeat page 1, but no refresh may ever reach past it here.
+    XCTAssertEqual(
+      Set(requests.compactMap { (request: Dictionary<String, String>) -> String? in request["page"] }),
+      ["1"],
+      "A first page already holding the whole set must not trigger a request for any further page"
+    )
+  }
+
+  /// A server predating folders pagination answers with no `header.pagination` block at all. The decoder
+  /// must degrade to the previous behaviour - one request for the whole body - rather than turning a
+  /// working refresh into a hard failure the way `.paginatedResponse` does for resources.
+  func test_refreshIfNeeded_folders_succeedsWithOneRequest_whenResponseCarriesNoPaginationBlock() async throws {
+    let unpaginated: (payload: Array<UInt8>, folderCount: Int) =
+      try Self.withoutPaginationBlock(self.loadFolderPayload(size: "small"))
+    let folderPages: CriticalState<Array<String>> = .init(.init())
+    self.installFixtureExecutor(
+      size: "small",
+      endpoints: ["users", "groups", "folders"],
+      onHTTPRequest: { (request: HTTPRequest) in
+        guard request.urlComponents.path.hasSuffix("/folders.json")
+        else { return }
+        folderPages.access { (pages: inout Array<String>) in
+          pages.append(
+            request.urlComponents.queryItems?
+              .first { (item: URLQueryItem) -> Bool in item.name == "page" }?
+              .value ?? "none"
+          )
+        }
+      },
+      payloadOverrides: ["/folders.json": unpaginated.payload]
+    )
+    registerFetchOperations()
+
+    let storedCount: CriticalState<Int?> = .init(.none)
+    patch(
+      \ResourceFoldersStoreDatabaseOperation.execute,
+      with: { (input: Array<ResourceFolderDTO>) in
+        storedCount.access { (count: inout Int?) in count = input.count }
+      }
+    )
+
+    let feature: SessionData = try self.testedInstance()
+    try await feature.refreshIfNeeded()
+
+    let stored: Int = try XCTUnwrap(storedCount.get(), "Folders must be stored")
+    XCTAssertEqual(
+      stored,
+      unpaginated.folderCount,
+      "A response without pagination metadata must store its whole body, not fail the refresh"
+    )
+    // A set, not the raw array: the refresh performed when the feature loads may race the explicit one.
+    XCTAssertEqual(
+      Set(folderPages.get()),
+      ["1"],
+      "With no pagination metadata to page by, only the first page may be requested"
+    )
   }
 
   // MARK: - Helpers
@@ -149,13 +255,19 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
 
   /// Patches `SessionNetworkRequestExecutor` to answer requests for the given
   /// `endpoints` with the matching fixture's raw bytes, routed by path suffix.
-  /// `onRequest` is invoked with that path for assertions/counting.
+  /// `onRequest` is invoked with that path for assertions/counting. `payloadOverrides` replaces a
+  /// fixture's bytes for the given path suffix, so a test can answer with a hand-shaped response.
   private func installFixtureExecutor(
     size: String,
     endpoints: Array<String>,
-    onRequest: @escaping @Sendable (String) -> Void = { _ in }
+    onRequest: @escaping @Sendable (String) -> Void = { _ in },
+    onHTTPRequest: @escaping @Sendable (HTTPRequest) -> Void = { _ in },
+    payloadOverrides: Dictionary<String, Array<UInt8>> = .init()
   ) {
+    // Merged rather than assigned into: the `@Sendable` closure below captures this, and Swift 6 rejects
+    // capturing a mutable local there.
     let payloads: Dictionary<String, Array<UInt8>> = self.loadPayloads(size: size, endpoints: endpoints)
+      .merging(payloadOverrides) { (_: Array<UInt8>, override: Array<UInt8>) -> Array<UInt8> in override }
     let fallbackURL: URL = URL(string: "https://passbolt.local") ?? URL(fileURLWithPath: "/")
 
     patch(
@@ -164,6 +276,7 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
         let request: HTTPRequest = mutation.instantiate()
         let path: String = request.urlComponents.path
         onRequest(path)
+        onHTTPRequest(request)
         let endpoint: String? = payloads.keys.first(where: path.hasSuffix)
         let bytes: Array<UInt8> = endpoint.flatMap { payloads[$0] } ?? []
         return HTTPResponse(
@@ -174,6 +287,32 @@ final class SessionDataRefreshRequestsTests: FeaturesTestCase {
         )
       }
     )
+  }
+
+  /// The folders fixture's raw bytes, for tests that reshape the response before installing it.
+  private func loadFolderPayload(
+    size: String
+  ) throws -> Array<UInt8> {
+    Array(try NetworkResponseFixture.data("Benchmark/\(size)/folders.json"))
+  }
+
+  /// Strips `header.pagination`, as a server predating folders pagination answers, and reports how many
+  /// folders the untouched body holds.
+  private static func withoutPaginationBlock(
+    _ bytes: Array<UInt8>
+  ) throws -> (payload: Array<UInt8>, folderCount: Int) {
+    let decoded: Any = try JSONSerialization.jsonObject(with: Data(bytes))
+    guard
+      var json: Dictionary<String, Any> = decoded as? Dictionary<String, Any>,
+      var header: Dictionary<String, Any> = json["header"] as? Dictionary<String, Any>,
+      let body: Array<Any> = json["body"] as? Array<Any>
+    else {
+      throw MockIssue.error()
+    }
+    header.removeValue(forKey: "pagination")
+    json["header"] = header
+    let payload: Data = try JSONSerialization.data(withJSONObject: json)
+    return (payload: Array(payload), folderCount: body.count)
   }
 
   /// Loads the requested fixtures once, keyed by the request path they answer.

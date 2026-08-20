@@ -21,40 +21,32 @@
 // @since         v1.0
 //
 
-import NetworkOperations
+import CommonModels
+import Commons
 
-extension PaginatedResponse {
+extension ResourceFolderDTO {
 
-  public static func empty<Item>() -> PaginatedResponse<Array<Item>> {
+  /// A root folder owned by the operator, carrying no permissions of its own - the shape the folders fetch
+  /// returns for an account whose folders are all its own.
+  ///
+  /// Each call takes a fresh id, so a set built from this is distinguishable by both id and name. Tests of
+  /// the paginated folders fetch rely on that: it merges pages and dedups by id, and asserts the merged set
+  /// against the folders the server was given.
+  public static func mock(named name: String) -> Self {
     .init(
-      items: Array<Item>(),
-      pagination: .init(page: 1, limit: 1, count: 0)
-    )
-  }
-}
-
-extension Array where Element: Sendable {
-  public var asPaginatedResponse: PaginatedResponse<Array<Element>> {
-    PaginatedResponse(
-      items: self,
-      pagination: .init(page: 1, limit: self.count, count: self.count)
+      id: .init(),
+      parentID: .none,
+      name: name,
+      permission: .owner,
+      permissions: .init()
     )
   }
 
-  /// Paged with a block reporting `limit` and `count` instead of deriving them from the array, so a test
-  /// can describe a server whose numbers disagree with the rows it sent.
-  public func asPaginatedResponse(
-    page: Int = 1,
-    limit: Int,
-    count: Int
-  ) -> PaginatedResponse<Array<Element>> {
-    PaginatedResponse(
-      items: self,
-      pagination: .init(
-        page: page,
-        limit: limit,
-        count: count
-      )
-    )
+  /// `count` distinct folders, named by index - for tests that care about how many folders a page holds
+  /// rather than what is in them.
+  public static func mocks(count: Int) -> Array<Self> {
+    (0 ..< count).map { (index: Int) -> Self in .mock(named: "folder-\(index)") }
   }
 }
+
+extension ResourceFolderDTO: MockBuilder {}

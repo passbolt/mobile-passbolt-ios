@@ -30,7 +30,8 @@ public typealias ResourceFoldersFetchNetworkOperation =
 
 public enum ResourceFoldersFetchNetworkOperationDescription: NetworkOperationDescription {
 
+  public typealias Input = PaginationData
   public typealias Output = ResourceFoldersFetchNetworkOperationResult
 }
 
-public typealias ResourceFoldersFetchNetworkOperationResult = Array<ResourceFolderDTO>
+public typealias ResourceFoldersFetchNetworkOperationResult = PaginatedResponse<Array<ResourceFolderDTO>>

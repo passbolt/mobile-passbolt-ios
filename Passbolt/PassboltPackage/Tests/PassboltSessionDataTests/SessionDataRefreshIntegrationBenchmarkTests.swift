@@ -242,7 +242,14 @@ final class SessionDataRefreshIntegrationBenchmarkTests: XCTestCase {
 
     let foldersFetch: ResourceFoldersFetchNetworkOperation = try session.instance()
     let foldersStore: ResourceFoldersStoreDatabaseOperation = try session.instance()
-    try await foldersStore(foldersFetch())
+    let foldersPagination: ResourceFoldersFetch = .init(
+      configuration: .application,
+      fetchPage: { (pagination: PaginationData) async throws -> ResourceFoldersFetchNetworkOperationResult in
+        try await foldersFetch(pagination)
+      },
+      reportProgress: { (_: Double) in }
+    )
+    try await foldersStore(foldersPagination.execute())
 
     let metadataSettings: MetadataSettingsService = try session.instance()
     try await metadataSettings.fetchSettings()

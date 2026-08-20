@@ -34,6 +34,10 @@ extension ResourceFoldersFetchNetworkOperation {
       .pathSuffix("/folders.json"),
       .queryItem("contain[permission]", value: "1"),
       .queryItem("contain[permissions]", value: "1"),
+      .queryItem("limit", value: "\(input.limit)"),
+      .queryItem("page", value: "\(input.page)"),
+      .queryItem("sort", value: "Folders.created"),
+      .queryItem("direction", value: "asc"),
       .method(.get)
     )
   }
@@ -42,13 +46,31 @@ extension ResourceFoldersFetchNetworkOperation {
     _ input: Input,
     _ response: HTTPResponse
   ) throws -> Output {
-    try NetworkResponseDecoder<Input, CommonNetworkResponse<Output>>
+    let decoded: CommonNetworkResponse<Array<ResourceFolderDTO>> =
+      try NetworkResponseDecoder<Input, CommonNetworkResponse<Array<ResourceFolderDTO>>>
       .bodyAsJSON()
       .decode(
         input,
         response
       )
-      .body
+    // Not `.paginatedResponse`: it throws when the header carries no pagination block, which would turn
+    // a working refresh against an older server into a hard failure. Single-page metadata degrades to
+    // the previous behaviour instead - one request for the whole set.
+    guard let pagination: PaginationData = decoded.header.pagination
+    else {
+      return .init(
+        items: decoded.body,
+        pagination: .init(
+          page: 1,
+          limit: 0,
+          count: decoded.body.count
+        )
+      )
+    }
+    return .init(
+      items: decoded.body,
+      pagination: pagination
+    )
   }
 }
 

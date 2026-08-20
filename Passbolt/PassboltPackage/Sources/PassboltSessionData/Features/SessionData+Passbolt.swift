@@ -117,15 +117,30 @@ extension SessionData {
       reportRefreshProgress(.userGroups)
     }
 
-    /// Fetches folders only when the feature is enabled; returns an empty set (and skips the request)
+    /// Fetches folders only when the feature is enabled; returns an empty set (and skips every request)
     /// otherwise, so the concurrent fetch is always safe to start.
+    ///
+    /// Paginated by `ResourceFoldersFetch`, which owns the completeness rules the single-shot store
+    /// depends on: it deletes every folder absent from its input, so a set that cannot be shown to be
+    /// complete fails the refresh instead of being stored.
     @Sendable nonisolated func fetchFolders() async throws -> Array<ResourceFolderDTO> {
       guard configuration.folders.enabled
       else {
         Diagnostics.logger.info("Fetching folders skipped, feature disabled!")
         return []
       }
-      return try await resourceFoldersFetchNetworkOperation()
+
+      let foldersFetch: ResourceFoldersFetch = .init(
+        configuration: isInApplicationContext ? .application : .extension,
+        fetchPage: { (pagination: PaginationData) async throws -> ResourceFoldersFetchNetworkOperationResult in
+          try await resourceFoldersFetchNetworkOperation(pagination)
+        },
+        reportProgress: { (fraction: Double) in
+          // Paginated step: fills its equal-weight segment as pages arrive.
+          reportRefreshProgress(.folders, fraction: fraction)
+        }
+      )
+      return try await foldersFetch.execute()
     }
 
     @Sendable nonisolated func refreshFolders(_ fetchedFolders: Array<ResourceFolderDTO>) async throws {
@@ -142,8 +157,6 @@ extension SessionData {
           throw error
         }
       }
-      // TODO: when the folders endpoint becomes paginated, report `.folders` incrementally with
-      // `fraction: pagesDone / totalPages` like `.resources` below.
       reportRefreshProgress(.folders)
     }
 
@@ -340,7 +353,7 @@ internal enum RefreshStep: Int, CaseIterable {
 
   case users
   case userGroups
-  case folders  // paginated once the folders endpoint supports it
+  case folders  // paginated
   case metadata
   case resources  // paginated
   case sessionKeys
