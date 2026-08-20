@@ -144,13 +144,36 @@ extension PrimaryButton.Style {
 internal struct PrimaryButton_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    PrimaryButton(
-      title: "Primary button",
-      action: {
-        print("TAP")
-        try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
-      }
-    )
+    VStack {
+      PrimaryButton(
+        title: "Primary button",
+        action: {
+          print("TAP")
+          try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
+        }
+      )
+      PrimaryButton(
+        title: "Disabled",
+        disabled: .constant(true),
+        action: {}
+      )
+      PrimaryButton(
+        title: "Icon",
+        iconName: .trash,
+        action: {}
+      )
+      PrimaryButton(
+        title: "Disabled icon",
+        iconName: .trash,
+        disabled: .constant(true),
+        action: {}
+      )
+      PrimaryButton(
+        title: "Loading",
+        isLoading: true,
+        action: {}
+      )
+    }
     .padding()
   }
 }

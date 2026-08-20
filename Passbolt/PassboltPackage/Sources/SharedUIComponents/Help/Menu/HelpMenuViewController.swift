@@ -133,3 +133,12 @@ public final class HelpMenuViewController: ViewController {
 
 extension ImageNameConstant: @retroactive @unchecked Sendable {
 }
+
+#if DEBUG
+extension HelpMenuViewController {
+
+  static public func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.patch(\AccountKitImport.isImportAccountKitAvailable, with: { true })
+  }
+}
+#endif

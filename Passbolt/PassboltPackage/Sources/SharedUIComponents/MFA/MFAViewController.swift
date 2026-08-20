@@ -169,11 +169,15 @@ public final class MFAViewController: ViewController {
 }
 
 #if DEBUG
-#Preview {
-  createPreview(
-    MFAView.self,
-    with: [.yubiKey, .totp, .duo]
-  )
-  .wrapInNavigationStack()
+
+internal struct MFAView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      MFAView.self,
+      with: [.yubiKey, .totp, .duo]
+    )
+    .wrapInNavigationStack()
+  }
 }
 #endif

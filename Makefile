@@ -36,7 +36,12 @@ E2E_SIM_2 = iPhone Air
 E2E_SIM_3 = iPhone SE
 E2E_PARALLEL = true
 
-.PHONY: clean clean_build test benchmark benchmark_baseline ui_test e2e_test e2e_test_multi archive build_publish lint format licenses_plist
+SNAPSHOT_PLATFORM = iOS Simulator,name=iPhone 17 Pro Max
+# Reference PNGs live in the passbolt-ios-screenshot-testing repository, mounted
+# here as a submodule. See Tools/snapshots/bootstrap-submodule.sh.
+SNAPSHOTS_DIR = Passbolt/PassboltPackage/Sources/SnapshotTestsSupport/Snapshots
+
+.PHONY: clean clean_build test benchmark benchmark_baseline ui_test e2e_test e2e_test_multi archive build_publish lint format licenses_plist snapshot_test record_snapshots snapshots_init snapshots_check
 
 clean:
 	rm -rf *.ipa
@@ -129,6 +134,33 @@ e2e_test_multi: clean_build
 				test || exit 1 ; \
 		done ; \
 	fi
+
+# Populate the reference-image submodule. Safe to re-run; no-op once initialised.
+snapshots_init:
+	git submodule update --init --recursive -- $(SNAPSHOTS_DIR)
+
+# Fail early with an actionable message instead of letting the test run record a
+# fresh set of baselines into an empty submodule directory.
+snapshots_check:
+	if [ ! -e $(SNAPSHOTS_DIR)/README.md ]; then \
+		echo "error: $(SNAPSHOTS_DIR) is empty — the snapshot reference-image submodule is not initialised." >&2 ; \
+		echo "       run: make snapshots_init" >&2 ; \
+		exit 1 ; \
+	fi
+
+# No SwiftPM build-tool plugins are used, so -skipPackagePluginValidation is not needed.
+# -skipMacroValidation stays while swift-snapshot-testing keeps a swift-syntax macro in
+# the graph — CI has no human to answer Xcode's interactive macro trust prompt.
+snapshot_test: snapshots_check
+	xcodebuild -project $(PROJECT_PATH) -scheme PassboltSnapshots -destination platform="$(SNAPSHOT_PLATFORM)" -derivedDataPath $(DERIVED_DATA) -skipMacroValidation test || exit -1
+
+record_snapshots: snapshots_check
+	SNAPSHOT_TESTING_RECORD=true $(MAKE) snapshot_test
+	echo ""
+	echo "Baselines written to $(SNAPSHOTS_DIR) (submodule)."
+	echo "Commit and push them THERE first, then record the new commit here:"
+	echo "  git -C $(SNAPSHOTS_DIR) add --all && git -C $(SNAPSHOTS_DIR) commit && git -C $(SNAPSHOTS_DIR) push"
+	echo "  git add $(SNAPSHOTS_DIR)"
 
 archive: clean
 	xcodebuild archive -project $(PROJECT_PATH) -scheme Passbolt -configuration Release -archivePath $(ARCHIVE_PATH) -derivedDataPath $(DERIVED_DATA)

@@ -1,0 +1,4 @@
+[submodule "snapshots"]
+	path = Passbolt/PassboltPackage/Sources/SnapshotTestsSupport/Snapshots
+	url = git@gitlab.com:passbolt/mobile/passbolt-ios-screenshot-testing.git
+	branch = develop

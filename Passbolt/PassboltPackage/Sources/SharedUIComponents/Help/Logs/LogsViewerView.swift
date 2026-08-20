@@ -168,16 +168,18 @@ private struct ActivityViewController: UIViewControllerRepresentable {
 
 #if DEBUG
 
-#Preview {
-  PlaceholderView()
-    .sheet(
-      isPresented: .constant(true)
-    ) {
-      createPreview(
-        LogsViewerView.self,
-        with: .init(useCustomNavigationBar: false)
-      )
-    }
-}
+internal struct LogsViewerView_Previews: PreviewProvider {
 
+  internal static var previews: some View {
+    PlaceholderView()
+      .sheet(
+        isPresented: .constant(true)
+      ) {
+        createPreview(
+          LogsViewerView.self,
+          with: .init(useCustomNavigationBar: false)
+        )
+      }
+  }
+}
 #endif

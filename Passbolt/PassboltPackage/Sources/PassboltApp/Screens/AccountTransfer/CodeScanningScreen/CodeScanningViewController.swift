@@ -205,6 +205,7 @@ internal final class CodeScanningViewController: ViewController {
     }
   }
 
+  @MainActor
   internal func handleCodeScannerAlert(_ alert: AlertViewModel) {
     self.viewState.update(\.alert, to: alert)
   }

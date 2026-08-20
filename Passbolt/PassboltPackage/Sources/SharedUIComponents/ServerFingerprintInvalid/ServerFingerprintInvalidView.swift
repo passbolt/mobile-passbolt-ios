@@ -133,21 +133,19 @@ extension Fingerprint {
 }
 
 #if DEBUG
-#Preview {
-  PlaceholderView()
-    .sheet(
-      isPresented: .constant(true),
-      content: {
-        createPreview(
-          ServerFingerprintInvalidView.self,
-          with: .init(
-            accountID: .ada,
-            fingerprint: "A5BF F682 97CC 6D31 8XXF C298 EC69 E708 D084 CC76",
-            backAction: {}
-          )
-        )
-      }
+
+internal struct ServerFingerprintInvalidView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      ServerFingerprintInvalidView.self,
+      with: .init(
+        accountID: .ada,
+        fingerprint: "A5BF F682 97CC 6D31 8XXF C298 EC69 E708 D084 CC76",
+        backAction: {}
+      )
     )
     .wrapInNavigationStack()
+  }
 }
 #endif

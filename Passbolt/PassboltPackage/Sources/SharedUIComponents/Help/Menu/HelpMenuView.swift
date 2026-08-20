@@ -68,14 +68,18 @@ internal struct HelpMenuView: ControlledView {
 }
 
 #if DEBUG
-#Preview {
-  PlaceholderView()
-    .sheet(isPresented: .constant(true)) {
-      createPreview(
-        HelpMenuView.self,
-        with: .init()
-      )
-      .wrapInNavigationStack()
-    }
+
+internal struct HelpMenuView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    PlaceholderView()
+      .sheet(isPresented: .constant(true)) {
+        createPreview(
+          HelpMenuView.self,
+          with: .init()
+        )
+        .wrapInNavigationStack()
+      }
+  }
 }
 #endif

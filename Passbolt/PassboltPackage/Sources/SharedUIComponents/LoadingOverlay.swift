@@ -77,13 +77,19 @@ public struct LoadingOverlay: View {
   }
 }
 
-#Preview {
-  PlaceholderView()
-    .overlay {
-      LoadingOverlay(
-        loadingMessage: "Loading...",
-        longLoadingMessage: "This is taking longer than usual...",
-        longLoadingDelay: 5.0
-      )
-    }
+#if DEBUG
+
+internal struct LoadingOverlay_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    PlaceholderView()
+      .overlay {
+        LoadingOverlay(
+          loadingMessage: "Loading...",
+          longLoadingMessage: "This is taking longer than usual...",
+          longLoadingDelay: 5.0
+        )
+      }
+  }
 }
+#endif

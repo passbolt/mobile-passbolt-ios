@@ -157,6 +157,7 @@
 		C00FE53F2DE70F62007B3EC2 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		C02BA95C2F4DC602003DBA08 /* PassboltE2ETests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = PassboltE2ETests.xctestplan; sourceTree = "<group>"; };
 		C04F9C1B2EF4121400C916B7 /* AuthenticationScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationScreen.swift; sourceTree = "<group>"; };
+		C06943E02FC9831500F02597 /* SnapshotTestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = SnapshotTestPlan.xctestplan; sourceTree = "<group>"; };
 		C08E424E2E4B40F70044C421 /* cs */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = cs; path = cs.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		C093D96E2F4C51BD00560353 /* PassboltE2ETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PassboltE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C09C2B422EF53BB100FB5CD7 /* MainScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainScreen.swift; sourceTree = "<group>"; };
@@ -502,6 +503,7 @@
 			isa = PBXGroup;
 			children = (
 				C02BA95C2F4DC602003DBA08 /* PassboltE2ETests.xctestplan */,
+				C06943E02FC9831500F02597 /* SnapshotTestPlan.xctestplan */,
 				425A58282925147700C19E05 /* UITestPlan.xctestplan */,
 				DD87927E262983CF006ECC0A /* TestPlan.xctestplan */,
 				DD3F9EB726244A330027D016 /* PassboltPackage */,

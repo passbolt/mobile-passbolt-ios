@@ -1,0 +1,42 @@
+{
+  "configurations" : [
+    {
+      "id" : "B5C3D8E2-4F1A-4A77-9C3E-1D2E3F4A5B6C",
+      "name" : "Snapshots",
+      "options" : {
+        "environmentVariableEntries" : [
+          {
+            "key" : "LANG",
+            "value" : "en_US.UTF-8"
+          },
+          {
+            "key" : "TZ",
+            "value" : "UTC"
+          }
+        ],
+        "mainThreadCheckerEnabled" : false,
+        "uiTestingScreenshotsLifetime" : "keepNever"
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : false,
+    "defaultTestExecutionTimeAllowance" : 120,
+    "language" : "en",
+    "mainThreadCheckerEnabled" : false,
+    "maximumTestExecutionTimeAllowance" : 120,
+    "region" : "US",
+    "testExecutionOrdering" : "alphabetical",
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:PassboltPackage",
+        "identifier" : "SnapshotTests",
+        "name" : "SnapshotTests"
+      }
+    }
+  ],
+  "version" : 1
+}

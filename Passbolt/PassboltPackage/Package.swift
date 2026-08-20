@@ -139,6 +139,10 @@ let package = Package(
       url: "https://github.com/sqlcipher/SQLCipher.swift.git",
       .upToNextMajor(from: "4.17.0")
     ),
+    .package(
+      url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
+      .upToNextMajor(from: "1.18.0")
+    ),
   ],
   targets: [
     // MARK: - Legacy
@@ -845,6 +849,32 @@ let package = Package(
         "PassboltDatabaseOperations",
         "CoreTest",
         "TestExtensions",
+      ]
+    ),
+    .target(
+      name: "SnapshotTestsSupport",
+      dependencies: [
+        .product(
+          name: "SnapshotTesting",
+          package: "swift-snapshot-testing"
+        ),
+      ],
+      resources: [
+        .copy("Snapshots")
+      ]
+    ),
+    // Snapshot coverage is opt-in: a preview is covered when it is listed in one of the
+    // registries under `Tests/SnapshotTests/Registry`. See that target's README.
+    .testTarget(
+      name: "SnapshotTests",
+      dependencies: [
+        "SnapshotTestsSupport",
+        "UICommons",
+        "SharedUIComponents",
+        .product(
+          name: "SnapshotTesting",
+          package: "swift-snapshot-testing"
+        ),
       ]
     ),
   ],

@@ -97,104 +97,100 @@ where TitleView: View, ContentView: View {
 
 #if DEBUG
 
-#Preview {
-  PlaceholderView()
-    .sheet(
-      isPresented: .constant(true),
+internal struct DrawerMenu_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    DrawerMenu(
+      closeTap: {
+        // close
+      },
+      title: {
+        Text("Drawer menu")
+      },
       content: {
-        DrawerMenu(
-          closeTap: {
-            // close
-          },
-          title: {
-            Text("Drawer menu")
-          },
-          content: {
-            VStack(spacing: 0) {
-              DrawerMenuItemView(
-                action: {},
-                title: {
-                  Text("Item 1")
-                },
-                leftIcon: {
-                  Image(named: .dice)
-                    .resizable()
-                },
-                isSelected: false
-              )
+        VStack(spacing: 0) {
+          DrawerMenuItemView(
+            action: {},
+            title: {
+              Text("Item 1")
+            },
+            leftIcon: {
+              Image(named: .dice)
+                .resizable()
+            },
+            isSelected: false
+          )
 
-              DrawerMenuItemView(
-                action: {},
-                title: {
-                  Text("Item 2")
-                },
-                leftIcon: {
-                  Image(named: .biometricsIcon)
-                    .resizable()
-                },
-                isSelected: true
-              )
+          DrawerMenuItemView(
+            action: {},
+            title: {
+              Text("Item 2")
+            },
+            leftIcon: {
+              Image(named: .biometricsIcon)
+                .resizable()
+            },
+            isSelected: true
+          )
 
-              DrawerMenuItemView(
-                action: {},
-                title: {
-                  Text("Item 3")
-                },
-                leftIcon: {
-                  Image(named: .lockedLock)
-                    .resizable()
-                    .padding(2)
-                },
-                isSelected: false
-              )
+          DrawerMenuItemView(
+            action: {},
+            title: {
+              Text("Item 3")
+            },
+            leftIcon: {
+              Image(named: .lockedLock)
+                .resizable()
+                .padding(2)
+            },
+            isSelected: false
+          )
 
-              ListDividerView()
-                .padding(
-                  EdgeInsets(
-                    top: 8,
-                    leading: 0,
-                    bottom: 8,
-                    trailing: 0
-                  )
-                )
-              DrawerMenuItemView(
-                action: {},
-                title: {
-                  Text("Item 4")
-                },
-                leftIcon: {
-                  Image(named: .bug)
-                    .resizable()
-                },
-                rightIcon: {
-                  Image(named: .link)
-                    .resizable()
-                },
-                isSelected: false
+          ListDividerView()
+            .padding(
+              EdgeInsets(
+                top: 8,
+                leading: 0,
+                bottom: 8,
+                trailing: 0
               )
+            )
+          DrawerMenuItemView(
+            action: {},
+            title: {
+              Text("Item 4")
+            },
+            leftIcon: {
+              Image(named: .bug)
+                .resizable()
+            },
+            rightIcon: {
+              Image(named: .link)
+                .resizable()
+            },
+            isSelected: false
+          )
 
-              ForEach((0 ... 10), id: \.self) { _ in
-                DrawerMenuItemView(
-                  action: {},
-                  title: {
-                    Text("Item x")
-                  },
-                  leftIcon: {
-                    Image(named: .bug)
-                      .resizable()
-                  },
-                  rightIcon: {
-                    Image(named: .link)
-                      .resizable()
-                  },
-                  isSelected: false
-                )
-              }
-            }
+          ForEach((0 ... 10), id: \.self) { _ in
+            DrawerMenuItemView(
+              action: {},
+              title: {
+                Text("Item x")
+              },
+              leftIcon: {
+                Image(named: .bug)
+                  .resizable()
+              },
+              rightIcon: {
+                Image(named: .link)
+                  .resizable()
+              },
+              isSelected: false
+            )
           }
-        )
-
+        }
       }
     )
+  }
 }
 #endif
