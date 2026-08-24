@@ -126,7 +126,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
         self.visibleRange = newValue.visibleRange
         self.checkIfNeedToLoadMore()
       }
-      .refreshableWithIndicator(
+      .refreshableWithProgressBar(
         refreshAction: self.refreshAction,
         refreshSource: self.refreshSource
       )
@@ -187,7 +187,7 @@ public struct DynamicList<ItemType, Content: View>: View where ItemType: Dynamic
           self.checkIfNeedToLoadMore()
         }
       }
-      .refreshableWithIndicator(
+      .refreshableWithProgressBar(
         refreshAction: self.refreshAction,
         refreshSource: self.refreshSource
       )
@@ -393,113 +393,72 @@ private struct LayoutIndex: LayoutValueKey {
 
 // MARK: - Refresh modifier
 
-private struct RefreshableWithIndicator: ViewModifier {
+/// Pull to refresh where `RefreshProgressBar` is the only indicator of an ongoing refresh.
+///
+/// The pull gesture keeps its native `UIRefreshControl` affordance while the user drags — dropping it
+/// would leave the pull unacknowledged — but the spinner is dismissed as soon as the progress bar takes
+/// over, so the two are never on screen at the same time. System-initiated refreshes have no spinner at
+/// all; the bar alone reports them.
+private struct RefreshableWithProgressBar: ViewModifier {
 
   fileprivate let refreshAction: (@Sendable () async -> Void)?
   fileprivate let refreshSource: AnyUpdatable<Double?>?
-  @State private var userPullingRefresh: Bool = false
-  @State private var externalRefreshing: Bool = false
 
   fileprivate func body(content: Content) -> some View {
     content
       .refreshable {
-        withAnimation(.easeInOut(duration: 0.25)) {
-          self.userPullingRefresh = true
-        }
-        defer {
-          withAnimation(.easeInOut(duration: 0.25)) {
-            self.externalRefreshing = false
-            self.userPullingRefresh = false
-          }
-        }
-        await self.refreshAction?()
+        guard let refreshAction: @Sendable () async -> Void = self.refreshAction
+        else { return }
+        Task { await refreshAction() }
+        await awaitProgressBarHandoff(source: self.refreshSource)
       }
       .safeAreaInset(edge: .top, spacing: 0) {
-        VStack(spacing: 0) {
-          // Determinate progress of the ongoing refresh, shown for both pull and system refreshes.
-          // The component self-manages visibility (incl. the brief 100% linger on completion).
-          RefreshProgressBar(source: self.refreshSource)
-          if self.externalRefreshing && !self.userPullingRefresh {
-            HStack {
-              Spacer()
-              // System-initiated refresh has no native `.refreshable` spinner, so this stands in for it.
-              // It uses the same UIKit `UIActivityIndicatorView` that `UIRefreshControl` (the pull spinner) is
-              // built from, so size, spin speed, and color all match — a SwiftUI `ProgressView` is a different
-              // renderer and visibly differs in all three. The two never appear at the same time.
-              RefreshActivityIndicator(color: .passboltSecondaryText)
-                .scaleEffect(0.8)
-              Spacer()
-            }
-            .padding(.vertical, 12)
-          }
-        }
+        RefreshProgressBar(source: self.refreshSource)
       }
-      // Drives the stand-in spinner for system-initiated refreshes; "is refreshing" is simply the
-      // refresh stream being non-nil. The progress bar manages its own state in `RefreshProgressBar`.
-      .task {
-        guard let source: AnyUpdatable<Double?> = self.refreshSource
-        else { return }
-        var iterator: UpdatableIterator<Double?> = source.makeAsyncIterator()
-        while let update: Update<Double?> = await iterator.next() {
-          let refreshing: Bool = ((try? update.value) ?? nil) != nil
-          withAnimation(.easeInOut(duration: 0.25)) {
-            self.externalRefreshing = refreshing
-          }
-        }
+  }
+}
+
+/// Safety net for the handoff: a refresh that never reports progress (a no-op `refreshIfNeeded`, an
+/// immediate failure) would otherwise hold the pull spinner forever.
+private let progressBarHandoffTimeoutNanoseconds: UInt64 = 1_000_000_000
+
+/// Returns once the refresh stream reports a refresh in progress, meaning `RefreshProgressBar` is on
+/// screen and the pull spinner can retract without leaving a gap with no indicator at all.
+private func awaitProgressBarHandoff(
+  source: AnyUpdatable<Double?>?
+) async {
+  guard let source: AnyUpdatable<Double?> = source
+  else { return }
+  await withTaskGroup(of: Void.self) { (group: inout TaskGroup<Void>) in
+    group.addTask {
+      var iterator: UpdatableIterator<Double?> = source.makeAsyncIterator()
+      while let update: Update<Double?> = await iterator.next() {
+        // The first update carries the current value, which is `nil` while still idle.
+        guard ((try? update.value) ?? nil) != nil else { continue }
+        return
       }
+    }
+    group.addTask {
+      try? await Task.sleep(nanoseconds: progressBarHandoffTimeoutNanoseconds)
+    }
+    // Whichever finishes first wins; cancelling the other unblocks the group's implicit wait.
+    _ = await group.next()
+    group.cancelAll()
   }
 }
 
 extension View {
 
-  fileprivate func refreshableWithIndicator(
+  fileprivate func refreshableWithProgressBar(
     refreshAction: (@Sendable () async -> Void)?,
     refreshSource: AnyUpdatable<Double?>?
   ) -> some View {
     self.modifier(
-      RefreshableWithIndicator(
+      RefreshableWithProgressBar(
         refreshAction: refreshAction,
         refreshSource: refreshSource
       )
     )
-  }
-}
-
-// MARK: - Activity indicator
-
-/// `UIActivityIndicatorView` wrapper used for the system-initiated refresh spinner so it matches the
-/// `UIRefreshControl` spinner driven by `.refreshable` — same renderer means identical size, spin speed,
-/// and color. (Note: the spinner color is set via `color`, not `tintColor`, which the view ignores.)
-private struct RefreshActivityIndicator: UIViewRepresentable {
-
-  fileprivate let color: UIColor
-  /// Slows the rotation: a standalone `UIActivityIndicatorView` spins faster than `UIRefreshControl`'s, so
-  /// damping the layer time scale matches the pull-to-refresh spinner. Tune toward 1.0 if it looks too slow.
-  fileprivate var speed: Float = 0.65
-  @Environment(\.colorScheme) private var colorScheme
-
-  fileprivate func makeUIView(context: Context) -> UIActivityIndicatorView {
-    let indicator: UIActivityIndicatorView = .init(style: .large)
-    indicator.hidesWhenStopped = false
-    indicator.layer.speed = self.speed
-    self.apply(to: indicator)
-    indicator.startAnimating()
-    return indicator
-  }
-
-  fileprivate func updateUIView(_ uiView: UIActivityIndicatorView, context: Context) {
-    uiView.layer.speed = self.speed
-    self.apply(to: uiView)
-    if !uiView.isAnimating {
-      uiView.startAnimating()
-    }
-  }
-
-  /// Resolve the dynamic color against the current scheme. A `UIView` inside a representable does not reliably
-  /// adopt the SwiftUI color scheme, so the asset's light-mode (darker) variant can leak into dark mode.
-  private func apply(to indicator: UIActivityIndicatorView) {
-    let traits: UITraitCollection = .init(userInterfaceStyle: self.colorScheme == .dark ? .dark : .light)
-    indicator.color = self.color.resolvedColor(with: traits)
   }
 }
 
