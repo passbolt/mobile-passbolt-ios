@@ -118,6 +118,7 @@ internal struct ResourceDetailsView: ControlledView {
                           width: IconProps.bagdeWidth,
                           height: IconProps.bagdeHeight
                         )
+                        .accessibilityIdentifier("resource.detail.favorite.icon")
                     }
                     // else nothing
 
@@ -201,6 +202,9 @@ internal struct ResourceDetailsView: ControlledView {
         .padding(8)
         .background(Color.passboltBackgroundGray)
         .cornerRadius(4)
+        // keep the container as an accessibility container, otherwise its identifier
+        // is propagated onto the contained elements and shadows their own identifiers
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("resource.detail.section.\(section.accessibilityIdenitifier).content")
       }
       CommonListSpacer(minHeight: 8)

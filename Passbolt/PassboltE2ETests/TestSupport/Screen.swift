@@ -28,6 +28,25 @@ internal class Screen {
     .init()
   }
 
+  /// Element identifying the screen regardless of how its content is scrolled - typically a toolbar item,
+  /// which stays in the hierarchy while the content below it scrolls away.
+  ///
+  /// Screens with scrollable content should override it. When the anchor is present but the required
+  /// elements are not, the screen is displayed and merely scrolled, so the appearance check scrolls its
+  /// content back to the top and validates again instead of failing. Content scrolled out of view is
+  /// dropped from the accessibility hierarchy on small devices (iPhone SE), so a screen returned to in a
+  /// scrolled state - i.e. after going back from a screen opened from its bottom - would otherwise look
+  /// like it never appeared.
+  internal var scrollableContentAnchor: XCUIElement? {
+    .none
+  }
+
+  /// Slice of an appearance wait, after which the scroll position is reconsidered.
+  private static let appearancePollInterval: TimeInterval = 1
+
+  /// Upper bound of scroll gestures used to bring the content of a screen back to its top.
+  private static let maxScrollToTopSwipeCount: UInt = 8
+
   internal let application: XCUIApplication
 
   internal required init(application: XCUIApplication) {
@@ -48,6 +67,31 @@ internal class Screen {
       !requiredElements.isEmpty,
       "A screen should have at least one required element to be able to wait for its appearance."
     )
+    let deadline: Date = .init(timeIntervalSinceNow: timeout)
+
+    while true {
+      // A screen left scrolled down keeps its required elements out of the hierarchy on small devices,
+      // so reset the scroll position before deciding that it is not displayed.
+      scrollContentToTopIfNeeded()
+      if isDisplayed {
+        return self
+      }
+      let remainingTime: TimeInterval = deadline.timeIntervalSinceNow
+      if remainingTime <= 0 {
+        break
+      }
+      // Waiting in slices allows the screen to be scrolled back to the top as soon as it shows up,
+      // instead of only after the whole timeout has elapsed.
+      try? awaitRequiredElements(timeout: min(remainingTime, Screen.appearancePollInterval))
+    }
+
+    // Final attempt, reporting which of the required elements are missing.
+    try awaitRequiredElements(timeout: Screen.appearancePollInterval)
+
+    return self
+  }
+
+  private func awaitRequiredElements(timeout: TimeInterval) throws {
     let notExistingYet: Array<XCUIElement> = requiredElements.filter { $0.exists == false }
     let expectations: Array<XCTNSPredicateExpectation> = notExistingYet.map {
       XCTNSPredicateExpectation(
@@ -57,7 +101,7 @@ internal class Screen {
     }
 
     if expectations.isEmpty {
-      return self
+      return
     }
 
     let result: XCTWaiter.Result = XCTWaiter().wait(for: expectations, timeout: timeout)
@@ -81,7 +125,32 @@ internal class Screen {
         result: result
       )
     }
+  }
 
+  /// Brings the content of the screen back to its top when the screen is recognized by its
+  /// `scrollableContentAnchor` while some of its required elements are missing - which means the screen
+  /// is displayed and only scrolled away. Does nothing for screens without an anchor, and costs no
+  /// gesture when the required elements are already in place.
+  private func scrollContentToTopIfNeeded() {
+    guard
+      let anchor: XCUIElement = self.scrollableContentAnchor,
+      anchor.exists
+    else { return }
+
+    var swipeCount: UInt = 0
+    while swipeCount < Screen.maxScrollToTopSwipeCount && !isDisplayed {
+      scrollUp()
+      swipeCount += 1
+    }
+  }
+
+  @discardableResult
+  internal func scrollUp() -> Self {
+    let coordinate: XCUICoordinate = self.application.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+    let endCoordinate: XCUICoordinate = self.application.coordinate(
+      withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)
+    )
+    coordinate.press(forDuration: 0.05, thenDragTo: endCoordinate)
     return self
   }
 

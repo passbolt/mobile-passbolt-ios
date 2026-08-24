@@ -50,6 +50,9 @@ internal struct TypeText: UITestStep {
   @MainActor internal func execute() throws {
     try ensureExists(element, file: file, line: line)
     guard text.isEmpty == false else { return }
+    // Skip when the field already holds exactly the target text (e.g. re-searching the same resource).
+    // Secure fields report a bullet string as their value, so they never match here and are typed normally.
+    if (self.element.value as? String) == self.text { return }
     self.element.tap()
     if self.element.hasKeyboardFocus == false {
       // sometimes first tap dismisses snack bar or other overlay, so we need to tap again to focus the element

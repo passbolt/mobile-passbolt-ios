@@ -21,17 +21,34 @@
 // @since         v1.0
 //
 
-final internal class PermissionsListScreen: Screen {
+/// Executes the nested steps only when the given condition evaluates to `true`, otherwise it is a no-op.
+/// The condition is evaluated lazily when the step runs, so it reflects the current UI state.
+internal struct When: UITestStep {
 
-  override internal var requiredElements: Array<XCUIElement> {
-    [
-      title,
-      editButton
-    ]
+  internal let name: String
+  private let condition: () -> Bool
+  private let steps: () -> Array<UITestStep>
+
+  /// - Parameters:
+  ///   - condition: A boolean condition evaluated when the step is executed.
+  ///   - description: Optional human-readable description of the step, surfaced in test reports.
+  ///   - steps: A builder that returns the steps to execute when the condition holds.
+  internal init(
+    _ condition: @autoclosure @escaping () -> Bool,
+    _ description: String? = nil,
+    @UITestStepsBuilder _ steps: @escaping () -> Array<UITestStep>
+  ) {
+    self.name = description.map { "When: \($0)" } ?? "When"
+    self.condition = condition
+    self.steps = steps
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["Shared with"]
-  internal lazy var editButton: XCUIElement = self.application.buttons["Edit permissions"]
-  internal lazy var backButton: XCUIElement = self.application.buttons["ArrowLeft"]
-  internal lazy var collectionView: XCUIElement = self.application.collectionViews.firstMatch
+  @MainActor internal func execute() throws {
+    guard self.condition() else { return }
+    for step in self.steps() {
+      try XCTContext.runActivity(named: step.name) { _ in
+        try step.execute()
+      }
+    }
+  }
 }

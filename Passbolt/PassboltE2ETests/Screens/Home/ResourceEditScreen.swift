@@ -38,6 +38,12 @@ final internal class ResourceEditScreen: Screen {
     ]
   }
 
+  /// Bottom overlay button - it stays in place while the form scrolls, so it tells that the screen is
+  /// displayed even when it is returned to scrolled down to the fields below the fold.
+  override internal var scrollableContentAnchor: XCUIElement? {
+    self.saveButton
+  }
+
   private lazy var nameLabel = self.application.staticTexts["Name"]
   private lazy var passwordLabel = self.application.staticTexts["Password"]
   private lazy var mainURILabel = self.application.staticTexts["Main URI"]

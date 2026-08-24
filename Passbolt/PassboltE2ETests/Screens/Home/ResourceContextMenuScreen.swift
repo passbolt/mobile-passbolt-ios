@@ -35,6 +35,8 @@ final internal class ResourceContextMenuScreen: Screen {
   lazy var copyPasswordButton = self.application.buttons["Copy password"]
   lazy var copyDescriptionButton = self.application.buttons["Copy description"]
   lazy var copyNoteButton = self.application.buttons["Copy note"]
+  lazy var addToFavoriteButton = self.application.buttons["Add to favorite"]
+  lazy var removeFromFavoriteButton = self.application.buttons["Remove from favorite"]
 
   @discardableResult
   internal func verifyCopyURLExists() -> Self {

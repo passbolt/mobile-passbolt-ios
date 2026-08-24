@@ -21,17 +21,32 @@
 // @since         v1.0
 //
 
-final internal class PermissionsListScreen: Screen {
+/// Deletes a resource by name from the home list: opens its details action menu, confirms the
+/// removal alert and waits for it to disappear. Useful as a cleanup step for tests that create
+/// a dedicated resource so they stay isolated from other (parallel) runs.
+internal struct DeleteResource: CombinedUITestStep {
 
-  override internal var requiredElements: Array<XCUIElement> {
-    [
-      title,
-      editButton
-    ]
+  private let resourceName: () -> ResourceName
+
+  internal init(resourceName: @autoclosure @escaping () -> ResourceName) {
+    self.resourceName = resourceName
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["Shared with"]
-  internal lazy var editButton: XCUIElement = self.application.buttons["Edit permissions"]
-  internal lazy var backButton: XCUIElement = self.application.buttons["ArrowLeft"]
-  internal lazy var collectionView: XCUIElement = self.application.collectionViews.firstMatch
+  @UITestStepsBuilder
+  @MainActor
+  internal var steps: Array<UITestStep> {
+    OpenResourceDetailsActionMenu(resourceName: resourceName())
+    On(ResourceDetailsActionMenuScreen.self) { menu in
+      Tap(menu.deleteButton, "Delete password")
+    }
+    With(self.application.alerts.firstMatch, as: Alert.self) { alert in
+      Tap(alert.buttons["Delete"], "Confirm delete")
+    }
+    VerifySnackBarMessage(expectedMessage: "Resource has been deleted")
+    WaitForDisappearance(
+      self.application.staticTexts[resourceName()],
+      timeout: .networkCall,
+      "Deleted resource to disappear"
+    )
+  }
 }

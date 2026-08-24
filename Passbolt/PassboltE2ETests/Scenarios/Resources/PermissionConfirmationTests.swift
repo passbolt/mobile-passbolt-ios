@@ -185,6 +185,10 @@ internal struct ShareResourceWithGroup: CombinedUITestStep {
       AddPermissionForGroup(groupName: self.groupName)
       Tap(edit.applyButton, "Apply changes")
     }
+    On(ResourceDetailsScreen.self, timeout: .longNetworkCall) { details in
+      ScrollUntilVisible(details.permissionsContent, "Permissions section")
+      Tap(details.permissionsContent, "Open permissions")
+    }
     On(PermissionsListScreen.self) { permissions in
       WaitFor(
         permissions.collectionView.staticTexts[self.groupName],

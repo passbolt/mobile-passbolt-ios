@@ -21,33 +21,28 @@
 // @since         v1.0
 //
 
-internal struct SelectAllItemsFilter: CombinedUITestStep {
+/// Clears the home search field and drops its focus so the filter menu button becomes available again.
+///
+/// While the search field holds text and/or keeps keyboard focus, the leading filter menu button
+/// (`search.view.menu`) is replaced by the search icon. The trailing clear/dismiss button
+/// (`search.view.account`) first clears the text and then, on a second tap, drops the focus, which
+/// restores the menu button. This is a no-op when the field is already empty and unfocused.
+internal struct ClearSearchField: UITestStep {
 
-  @UITestStepsBuilder
-  @MainActor
-  internal var steps: Array<UITestStep> {
-    // Skip the (redundant) filter switch when the list already shows the All items page.
-    When(self.application.navigationBars["All items"].exists == false, "Not already on All items") {
-      ClearSearchField()
-      WaitFor(self.application.buttons["search.view.menu"], "Filter button")
-      Tap(self.application.buttons["search.view.menu"], "Open filter")
-      On(HomeFilterScreen.self) { filter in
-        Tap(filter.allItemsButton, "Select All Items")
-      }
-    }
-  }
-}
+  internal let name: String = "ClearSearchField"
 
-internal struct SelectFoldersFilter: CombinedUITestStep {
-
-  @UITestStepsBuilder
-  @MainActor
-  internal var steps: Array<UITestStep> {
-    ClearSearchField()
-    WaitFor(self.application.buttons["search.view.menu"], "Filter button")
-    Tap(self.application.buttons["search.view.menu"], "Open filter")
-    On(HomeFilterScreen.self) { filter in
-      Tap(filter.foldersButton, "Select Folders")
+  @MainActor internal func execute() throws {
+    let menuButton: XCUIElement = self.application.buttons["search.view.menu"]
+    let clearButton: XCUIElement = self.application.buttons["search.view.account"]
+    let maxIterations: Int = 3
+    var iteration: Int = 0
+    while menuButton.exists == false && iteration < maxIterations {
+      guard clearButton.exists else { break }
+      clearButton.tap()
+      let predicate: NSPredicate = .init(format: "exists == true")
+      let expectation: XCTNSPredicateExpectation = .init(predicate: predicate, object: menuButton)
+      _ = XCTWaiter().wait(for: [expectation], timeout: 1)
+      iteration += 1
     }
   }
 }

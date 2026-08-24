@@ -30,6 +30,12 @@ final internal class ResourceDetailsScreen: Screen {
     ]
   }
 
+  /// Toolbar button - it stays in place while the details content scrolls, so it tells that the screen is
+  /// displayed even when it is returned to scrolled down to the permissions section.
+  internal override var scrollableContentAnchor: XCUIElement? {
+    self.moreButton
+  }
+
   // MARK: - Navigation
 
   lazy var backButton: XCUIElement = self.application.buttons["ArrowLeft"]
@@ -42,6 +48,8 @@ final internal class ResourceDetailsScreen: Screen {
   internal func resourceIcon(identifier: String) -> XCUIElement {
     self.application.images[identifier]
   }
+
+  lazy var favoriteIcon: XCUIElement = self.application.images["resource.detail.favorite.icon"]
 
   // MARK: - Field labels
 

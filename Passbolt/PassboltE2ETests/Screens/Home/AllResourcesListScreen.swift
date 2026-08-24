@@ -26,7 +26,6 @@ final class AllResourcesListScreen: Screen {
   override var requiredElements: Array<XCUIElement> {
     [
       createButton,
-      filterButton,
       searchField,
       homeButton,
       settingsButton,
