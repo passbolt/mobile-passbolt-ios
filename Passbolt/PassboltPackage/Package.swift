@@ -129,7 +129,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/apple/swift-collections.git",
-      .upToNextMajor(from: "1.0.4")
+      .upToNextMajor(from: "1.6.0")
     ),
     .package(
       url: "https://github.com/apple/swift-async-algorithms.git",
@@ -137,11 +137,11 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/sqlcipher/SQLCipher.swift.git",
-      .upToNextMajor(from: "4.17.0")
+      .upToNextMajor(from: "4.18.0")
     ),
     .package(
       url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
-      .upToNextMajor(from: "1.18.0")
+      .upToNextMajor(from: "1.19.4")
     ),
   ],
   targets: [
