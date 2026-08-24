@@ -1,6 +1,6 @@
 //
 // Passbolt - Open source password manager for teams
-// Copyright (c) 2021 Passbolt SA
+// Copyright (c) 2026 Passbolt SA
 //
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
 // Public License (AGPL) as published by the Free Software Foundation version 3.
@@ -21,39 +21,33 @@
 // @since         v1.0
 //
 
-import SwiftUI
+import SnapshotTesting
+import SnapshotTestsSupport
+import UIKit
+import XCTest
 
-public struct UserAvatarView: View {
+/// Guards what makes reference images portable: no canvas may leave its rasterisation scale to
+/// the host. A config omitting `displayScale` renders at the running simulator's scale, so every
+/// affected baseline then fails on image dimensions on any other machine — and that is invisible
+/// on the machine that recorded them, hence a test.
+final class DeviceMatrixTests: XCTestCase {
 
-  private let image: Image
-
-  public init(
-    imageData: Data?
-  ) {
-    self.image = imageData.flatMap(Image.init(data:)) ?? Image(named: .person)
-  }
-
-  public var body: some View {
-    AvatarView {
-      self.image
-        .resizable()
+  func test_everyDeviceInMatrix_pinsDisplayScale() {
+    for device: ViewImageConfig in SnapshotMatrix.devices {
+      let size: String = device.size.map { "\(Int($0.width))x\(Int($0.height))" } ?? "unsized"
+      XCTAssertGreaterThan(
+        device.traits.displayScale,
+        0,
+        """
+        Device config \(size) does not pin `displayScale`, so its reference images will \
+        rasterise at the host simulator's scale. Add `.init(displayScale:)` to its \
+        UITraitCollection — see ViewImageConfig+Missing.swift.
+        """
+      )
     }
   }
-}
 
-#if DEBUG
-
-internal struct UserAvatarView_Previews: PreviewProvider {
-
-  internal static var previews: some View {
-    VStack(spacing: 8) {
-      UserAvatarView(imageData: .none)
-        .frame(width: 64, height: 64)
-      // Undecodable data falls back to the person glyph.
-      UserAvatarView(imageData: Data([0x00, 0x01, 0x02]))
-        .frame(width: 64, height: 64)
-    }
-    .padding(8)
+  func test_fittedCanvas_pinsDisplayScale() {
+    XCTAssertGreaterThan(SnapshotMatrix.fittedDisplayScale, 0)
   }
 }
-#endif

@@ -101,11 +101,42 @@ where Accessory: View {
 internal struct SettingsActionRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    SettingsActionRowView(
-      icon: .bug,
-      title: "Preview item",
-      action: {}
-    )
+    VStack(spacing: 0) {
+      // No accessory.
+      SettingsActionRowView(
+        icon: .bug,
+        title: "Preview item",
+        action: {}
+      )
+
+      // `navigation:` gives a disclosure indicator.
+      SettingsActionRowView(
+        icon: .info,
+        title: "Navigates onwards",
+        navigation: {}
+      )
+
+      // Custom accessory.
+      SettingsActionRowView(
+        icon: .key,
+        title: "Custom accessory",
+        action: {},
+        accessory: {
+          Image(named: .link)
+            .frame(
+              width: 24,
+              height: 24
+            )
+        }
+      )
+
+      SettingsActionRowView(
+        icon: .bug,
+        title: "A title long enough that it has to wrap onto more than a single line of text",
+        navigation: {}
+      )
+    }
+    .padding(8)
   }
 }
 #endif

@@ -68,10 +68,22 @@ where ContentView: View {
 internal struct AvatarView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    AvatarView {
-      Image(named: .person)
-        .resizable()
+    VStack(spacing: 8) {
+      AvatarView {
+        Image(named: .person)
+          .resizable()
+      }
+      .frame(width: 64, height: 64)
+
+      // `Data?` init — falls back to the person glyph.
+      AvatarView(avatarImage: .none)
+        .frame(width: 64, height: 64)
+
+      // Undecodable data takes the same fallback.
+      AvatarView(avatarImage: Data([0x00, 0x01, 0x02]))
+        .frame(width: 64, height: 64)
     }
+    .padding(8)
   }
 }
 #endif

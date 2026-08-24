@@ -49,3 +49,19 @@ public struct ListRowTitleView: View {
       )
   }
 }
+
+#if DEBUG
+
+internal struct ListRowTitleView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      ListRowTitleView(title: "Row title")
+      ListRowTitleView(
+        title: "A row title long enough that it cannot fit on a single line and has to wrap"
+      )
+    }
+    .padding(8)
+  }
+}
+#endif

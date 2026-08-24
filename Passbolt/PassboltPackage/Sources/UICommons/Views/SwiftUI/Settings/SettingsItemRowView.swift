@@ -75,11 +75,32 @@ where Accessory: View {
 internal struct SettingsItemRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    SettingsItemRowView(
-      icon: .bug,
-      title: "Preview item",
-      accessory: EmptyView.init
-    )
+    VStack(spacing: 0) {
+      SettingsItemRowView(
+        icon: .bug,
+        title: "Preview item",
+        accessory: EmptyView.init
+      )
+
+      SettingsItemRowView(
+        icon: .info,
+        title: "With accessory",
+        accessory: {
+          Image(named: .link)
+            .frame(
+              width: 24,
+              height: 24
+            )
+        }
+      )
+
+      SettingsItemRowView(
+        icon: .key,
+        title: "A title long enough that it has to wrap onto more than a single line of text",
+        accessory: EmptyView.init
+      )
+    }
+    .padding(8)
   }
 }
 #endif

@@ -103,15 +103,13 @@ internal struct OperationResultView_Previews: PreviewProvider {
       actionLabel: "Try again",
       action: {}
     )
+  }
+}
 
-    OperationResultView(
-      image: .successMark,
-      title: "Transfer finished",
-      message: "Account transfer is completed",
-      actionLabel: "Continue",
-      action: {}
-    )
+internal struct OperationResultViewSuccess_Previews: PreviewProvider {
 
+  internal static var previews: some View {
+    // No `message`.
     OperationResultView(
       image: .successMark,
       title: "Success!",

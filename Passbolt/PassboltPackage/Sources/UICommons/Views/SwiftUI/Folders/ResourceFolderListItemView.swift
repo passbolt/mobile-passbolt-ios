@@ -102,15 +102,38 @@ public struct ResourceFolderListItemView: View {
 internal struct FolderListItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceFolderListItemView(
-      name: "Folder",
-      shared: false,
-      contentCount: 0,
-      locationString: "Folder location",
-      action: {
-        // action
-      }
-    )
+    VStack(spacing: 0) {
+      ResourceFolderListItemView(
+        name: "Folder",
+        shared: false,
+        contentCount: 0,
+        locationString: "Folder location",
+        action: {
+          // action
+        }
+      )
+
+      // Shared glyph.
+      ResourceFolderListItemView(
+        name: "Shared folder",
+        shared: true,
+        contentCount: 12,
+        locationString: "Folder location",
+        action: {
+          // action
+        }
+      )
+
+      ResourceFolderListItemView(
+        name: "A folder name long enough that it cannot fit on a single line and has to be truncated",
+        shared: true,
+        contentCount: 999,
+        locationString: "A location string long enough that it also has to be truncated somewhere",
+        action: {
+          // action
+        }
+      )
+    }
   }
 }
 #endif

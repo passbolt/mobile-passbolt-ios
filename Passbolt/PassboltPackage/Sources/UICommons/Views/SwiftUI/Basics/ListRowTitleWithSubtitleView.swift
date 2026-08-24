@@ -63,3 +63,23 @@ public struct ListRowTitleWithSubtitleView: View {
     )
   }
 }
+
+#if DEBUG
+
+internal struct ListRowTitleWithSubtitleView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      ListRowTitleWithSubtitleView(
+        title: "Row title",
+        subtitle: "Row subtitle"
+      )
+      ListRowTitleWithSubtitleView(
+        title: "A row title long enough that it cannot fit on a single line and has to wrap",
+        subtitle: "A subtitle that is also long enough to need more than one line of its own"
+      )
+    }
+    .padding(8)
+  }
+}
+#endif

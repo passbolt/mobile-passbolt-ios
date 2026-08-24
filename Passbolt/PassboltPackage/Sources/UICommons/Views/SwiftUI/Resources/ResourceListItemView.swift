@@ -137,21 +137,75 @@ public struct ResourceListItemView<AccessoryView>: View where AccessoryView: Vie
 internal struct ResourceListItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceListItemView(
-      name: "Resource",
-      username: "username",
-      isExpired: true,
-      icon: .init(
-        type: .none,
-        value: .none,
-        backgroundColor: .none
-      ),
-      resourceTypeSlug: .v5Default,
-      contentAction: {
-        // action
-      },
-      rightAccessory: EmptyView.init
-    )
+    VStack(spacing: 0) {
+      ResourceListItemView(
+        name: "Resource",
+        username: "username",
+        isExpired: false,
+        icon: .init(
+          type: .none,
+          value: .none,
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .v5Default,
+        contentAction: {
+          // action
+        },
+        rightAccessory: EmptyView.init
+      )
+
+      // Expired.
+      ResourceListItemView(
+        name: "Expired resource",
+        username: "username",
+        isExpired: true,
+        icon: .init(
+          type: .none,
+          value: .none,
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .v5Default,
+        contentAction: {
+          // action
+        },
+        rightAccessory: EmptyView.init
+      )
+
+      // Custom icon rather than the slug fallback.
+      ResourceListItemView(
+        name: "Custom icon",
+        username: "username",
+        isExpired: false,
+        icon: .init(
+          type: .keepassIconSet,
+          value: .init(rawValue: "01"),
+          backgroundColor: "#3F51B5"
+        ),
+        resourceTypeSlug: .v5Default,
+        contentAction: {
+          // action
+        },
+        rightAccessory: EmptyView.init
+      )
+
+      ResourceListItemView(
+        name: "A resource name long enough that it cannot fit on a single line and gets truncated",
+        username: "an.extremely.long.username.that.also.needs.truncating@example.com",
+        isExpired: false,
+        icon: .init(
+          type: .none,
+          value: .none,
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .v5Default,
+        contentAction: {
+          // action
+        },
+        rightAccessory: {
+          Image(named: .more)
+        }
+      )
+    }
   }
 }
 #endif

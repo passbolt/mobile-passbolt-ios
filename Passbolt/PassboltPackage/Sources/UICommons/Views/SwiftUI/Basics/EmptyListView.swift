@@ -78,3 +78,22 @@ public struct EmptyListView: View {
     .backgroundColor(.passboltBackground)
   }
 }
+
+#if DEBUG
+
+internal struct EmptyListView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    EmptyListView()
+  }
+}
+
+internal struct EmptyListViewCustomMessage_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    EmptyListView(
+      message: "Nothing here yet — a custom message long enough to wrap onto a second line"
+    )
+  }
+}
+#endif

@@ -42,3 +42,20 @@ public struct ListDividerView: View {
       .listRowInsets(EdgeInsets())
   }
 }
+
+#if DEBUG
+
+internal struct ListDividerView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    // Between two blocks of colour, so the hairline is visible.
+    VStack(spacing: 0) {
+      Color.passboltBackgroundAlternative
+        .frame(height: 24)
+      ListDividerView()
+      Color.passboltBackgroundAlternative
+        .frame(height: 24)
+    }
+  }
+}
+#endif

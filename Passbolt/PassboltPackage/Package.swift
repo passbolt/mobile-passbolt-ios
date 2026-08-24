@@ -857,7 +857,7 @@ let package = Package(
         .product(
           name: "SnapshotTesting",
           package: "swift-snapshot-testing"
-        ),
+        )
       ],
       resources: [
         .copy("Snapshots")

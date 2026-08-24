@@ -40,18 +40,13 @@ public struct SnapshotPreview {
   /// How much canvas a preview is rendered onto.
   public enum Layout {
 
-    /// Render at the view's ideal size. The right choice for anything smaller than a screen.
-    ///
-    /// A component rendered onto a full device canvas is mostly empty background, and that
-    /// dilutes every comparison: two 24pt icons occupy roughly 0.3% of an iPhone-sized image,
-    /// so any pixel budget generous enough to absorb rendering noise is also generous enough
-    /// to hide them being deleted. Fitting the canvas to the component removes the problem at
-    /// the source, shrinks reference images by roughly an order of magnitude, and makes a
-    /// visual diff readable.
-    ///
-    /// The device dimension of the matrix collapses here — a fitted component renders the same
-    /// regardless of the screen it would have sat on — so these record once per colour scheme.
+    /// Render at the view's ideal size. Only for views with a size of their own — `.sizeThatFits`
+    /// proposes nothing, so a view that takes its width from its parent needs `fittedWidth`.
     case fitted
+
+    /// Render at `SnapshotMatrix.fittedContentWidth`, height fitted. The default for components:
+    /// given no width, a `GeometryReader` or `TextField` reports zero, and others render squashed.
+    case fittedWidth
 
     /// Render onto the full device canvas, once per device in `SnapshotMatrix.devices`.
     /// Use for screen-level previews, where safe-area insets and available width are part of
@@ -89,8 +84,8 @@ public struct SnapshotPreview {
   /// `AvatarView_Previews` records as `AvatarView`. Pass `named:` only when a provider's type name
   /// would produce a confusing or colliding reference image name.
   ///
-  /// `layout` defaults to `.fitted` because most previews are components. Pass `.device` for
-  /// screen-level previews — typically the ones built through `createPreview`.
+  /// `layout` defaults to `.fitted`, which suits only components with a size of their own — pass
+  /// `.fittedWidth` for anything that spans its width, and `.device` for screen-level previews.
   public static func of<Provider>(
     _ type: Provider.Type,
     module: String,

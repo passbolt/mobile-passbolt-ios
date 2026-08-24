@@ -60,11 +60,17 @@ open class SnapshotTestCase: XCTestCase {
       // device dimension collapses to a single pass. Recording it per device would only
       // duplicate the same image under two directory names.
       let devices: Array<ViewImageConfig?>
+      let fittedWidth: CGFloat?
       switch preview.layout {
       case .fitted:
         devices = [.none]
+        fittedWidth = .none
+      case .fittedWidth:
+        devices = [.none]
+        fittedWidth = SnapshotMatrix.fittedContentWidth
       case .device:
         devices = SnapshotMatrix.devices.map { .some($0) }
+        fittedWidth = .none
       }
 
       for colorScheme: ColorScheme in SnapshotMatrix.colorSchemes {
@@ -75,6 +81,7 @@ open class SnapshotTestCase: XCTestCase {
             module: preview.module,
             colorScheme: colorScheme,
             device: device,
+            fittedWidth: fittedWidth,
             file: file,
             // swift-snapshot-testing composes the file name as `<testName>.<named>`. Every
             // preview in a module shares one test method, so `#function` would stamp the same

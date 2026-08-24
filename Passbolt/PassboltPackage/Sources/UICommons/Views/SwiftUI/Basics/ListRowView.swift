@@ -417,33 +417,84 @@ where ContentView == ListRowTitleWithSubtitleView, RightAccessoryView == EmptyVi
 internal struct ListRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ListRowView(
-      chevronVisible: true,
-      title: "Content title",
-      leftAccessory: {
-        Image(named: .plus)
-          .resizable()
-          .aspectRatio(1, contentMode: .fit)
-          .padding(8)
-          .backgroundColor(.passboltPrimaryBlue)
-          .foregroundColor(Color.passboltPrimaryButtonText)
-          .cornerRadius(8)
-      },
-      contentAction: {
-        // tap
-      },
-      rightAction: {
-        // tap
-      },
-      rightAccessory: {
-        Image(named: .more)
-          .resizable()
-          .aspectRatio(1, contentMode: .fit)
-          .foregroundColor(Color.passboltIcon)
-          .padding(8)
-          .frame(width: 44)
-      }
-    )
+    VStack(spacing: 0) {
+      // Chevron + tappable right accessory.
+      ListRowView(
+        chevronVisible: true,
+        title: "Content title",
+        leftAccessory: {
+          Image(named: .plus)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .padding(8)
+            .backgroundColor(.passboltPrimaryBlue)
+            .foregroundColor(Color.passboltPrimaryButtonText)
+            .cornerRadius(8)
+        },
+        contentAction: {
+          // tap
+        },
+        rightAction: {
+          // tap
+        },
+        rightAccessory: {
+          Image(named: .more)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .foregroundColor(Color.passboltIcon)
+            .padding(8)
+            .frame(width: 44)
+        }
+      )
+
+      // No chevron or right accessory.
+      ListRowView(
+        title: "Without chevron",
+        leftAccessory: {
+          Image(named: .key)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .padding(8)
+            .foregroundColor(Color.passboltIcon)
+        },
+        contentAction: {
+          // tap
+        }
+      )
+
+      // With subtitle.
+      ListRowView(
+        chevronVisible: true,
+        title: "Title with subtitle",
+        subtitle: "The subtitle line",
+        leftAccessory: {
+          Image(named: .person)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .padding(8)
+            .foregroundColor(Color.passboltIcon)
+        },
+        contentAction: {
+          // tap
+        }
+      )
+
+      // Long title.
+      ListRowView(
+        chevronVisible: true,
+        title: "A content title long enough that it cannot fit on a single line and has to wrap",
+        leftAccessory: {
+          Image(named: .info)
+            .resizable()
+            .aspectRatio(1, contentMode: .fit)
+            .padding(8)
+            .foregroundColor(Color.passboltIcon)
+        },
+        contentAction: {
+          // tap
+        }
+      )
+    }
   }
 }
 #endif

@@ -83,6 +83,10 @@ internal struct FolderNameView_Previews: PreviewProvider {
       FolderNameView(
         name: "root"
       )
+
+      FolderNameView(
+        name: "A folder name long enough that it cannot fit on a single line and gets truncated"
+      )
     }
     .padding(8)
   }

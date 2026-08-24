@@ -118,17 +118,24 @@ where Content: View {
   }
 }
 
+/// The live countdown, for the Xcode canvas. Not snapshot-tested — value depends on elapsed time.
+internal struct CountdownCircleViewRunning_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    RunningTimerView { value in
+      CountdownCircleView(
+        value: CGFloat(value) / 30
+      )
+    }
+    .frame(maxWidth: 24)
+    .padding(16)
+  }
+}
+
 internal struct CountdownCircleView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ScrollView {
-      RunningTimerView { value in
-        CountdownCircleView(
-          value: CGFloat(value) / 30
-        )
-      }
-      .frame(maxWidth: 24)
-
+    VStack(spacing: 8) {
       CountdownCircleView(
         value: 0
       )

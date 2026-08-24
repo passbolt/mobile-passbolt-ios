@@ -82,12 +82,29 @@ public struct LinkButton: View {
 internal struct LinkButton_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    LinkButton(
-      title: "Link button",
-      action: {
-        print("tap")
-      }
-    )
+    VStack {
+      LinkButton(
+        title: "Link button",
+        action: {
+          print("tap")
+        }
+      )
+      LinkButton(
+        title: "With icon",
+        iconName: .bug,
+        action: {}
+      )
+      LinkButton(
+        title: "A title long enough that it has to wrap onto more than a single line of text",
+        iconName: .link,
+        action: {}
+      )
+      LinkButton(
+        title: "Disabled",
+        action: {}
+      )
+      .disabled(true)
+    }
     .padding()
   }
 }

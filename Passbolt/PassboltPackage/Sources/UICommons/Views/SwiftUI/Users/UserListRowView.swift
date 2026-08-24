@@ -70,19 +70,64 @@ where RightAccessoryView: View {
 internal struct UserListRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    UserListRowView(
-      model: .init(
-        id: .init(),
-        fullName: "John Doe",
-        username: "johndoe@email.com",
-        avatarImageFetch: { nil },
-        isSuspended: false
-      ),
-      contentAction: {},
-      rightAccesory: {
-        SelectionIndicator(selected: true)
-      }
-    )
+    VStack(spacing: 0) {
+      UserListRowView(
+        model: .init(
+          id: .init(),
+          fullName: "John Doe",
+          username: "johndoe@email.com",
+          avatarImageFetch: { nil },
+          isSuspended: false
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: true)
+        }
+      )
+
+      UserListRowView(
+        model: .init(
+          id: .init(),
+          fullName: "Jane Doe",
+          username: "janedoe@email.com",
+          avatarImageFetch: { nil },
+          isSuspended: false
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: false)
+        }
+      )
+
+      // Suspended.
+      UserListRowView(
+        model: .init(
+          id: .init(),
+          fullName: "Suspended User",
+          username: "suspended@email.com",
+          avatarImageFetch: { nil },
+          isSuspended: true
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: false)
+        }
+      )
+
+      UserListRowView(
+        model: .init(
+          id: .init(),
+          fullName: "A full name long enough that it cannot fit on a single line and gets truncated",
+          username: "an.extremely.long.email.address.that.also.needs.truncating@example.com",
+          avatarImageFetch: { nil },
+          isSuspended: false
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: true)
+        }
+      )
+    }
   }
 }
 #endif

@@ -112,13 +112,29 @@ public struct SecondaryButton: View {
 internal struct SecondaryButton_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    SecondaryButton(
-      title: "Secondary button",
-      action: {
-        print("TAP")
-        try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
-      }
-    )
+    VStack {
+      SecondaryButton(
+        title: "Secondary button",
+        action: {
+          print("TAP")
+          try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
+        }
+      )
+      SecondaryButton(
+        title: "Icon",
+        iconName: .trash,
+        action: {}
+      )
+      SecondaryButton(
+        title: "A title long enough that it has to wrap onto more than a single line",
+        action: {}
+      )
+      SecondaryButton(
+        title: "Disabled",
+        action: {}
+      )
+      .disabled(true)
+    }
     .padding()
   }
 }

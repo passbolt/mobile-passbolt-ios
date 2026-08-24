@@ -66,16 +66,40 @@ where RightAccessoryView: View {
 internal struct UserGroupListRowView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    UserGroupListRowView(
-      model: .init(
-        id: .init(),
-        name: "Admins"
-      ),
-      contentAction: {},
-      rightAccesory: {
-        SelectionIndicator(selected: false)
-      }
-    )
+    VStack(spacing: 0) {
+      UserGroupListRowView(
+        model: .init(
+          id: .init(),
+          name: "Admins"
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: false)
+        }
+      )
+
+      UserGroupListRowView(
+        model: .init(
+          id: .init(),
+          name: "Selected group"
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: true)
+        }
+      )
+
+      UserGroupListRowView(
+        model: .init(
+          id: .init(),
+          name: "A group name long enough that it cannot fit on a single line and gets truncated"
+        ),
+        contentAction: {},
+        rightAccesory: {
+          SelectionIndicator(selected: false)
+        }
+      )
+    }
   }
 }
 #endif

@@ -29,9 +29,7 @@ import XCTest
 
 /// Routes snapshot reference images to the `Snapshots/` resource directory bundled with
 /// `SnapshotTestsSupport` and applies the {color scheme} × {device} matrix.
-/// `device` is `nil` for `SnapshotPreview.Layout.fitted` — the view is then rendered at its ideal
-/// size rather than onto a screen, and the reference image lands in a `fitted` directory instead
-/// of a per-size one.
+/// `fittedWidth` applies only when `device` is `nil`.
 @MainActor
 public func assertSnapshots(
   of view: AnyView,
@@ -39,6 +37,7 @@ public func assertSnapshots(
   module: String,
   colorScheme: ColorScheme,
   device: ViewImageConfig?,
+  fittedWidth: CGFloat? = .none,
   file: StaticString = #filePath,
   testName: String = #function,
   line: UInt = #line
@@ -46,20 +45,47 @@ public func assertSnapshots(
   let directory: String = SnapshotMatrix.referenceDirectory(
     colorScheme: colorScheme,
     device: device,
+    fittedWidth: fittedWidth,
     module: module
   )
   // Wrap the view with an adaptive system background so transparent regions in
   // the view (e.g. `.clear`-background IconButtons in MFAView) show the host
   // window's adaptive background instead of the UIHostingController's default
   // hardcoded white.
-  let configuredView: AnyView = AnyView(
+  let themedView: some View =
     view
-      .environment(\.colorScheme, colorScheme)
-      .background(Color(uiColor: UIColor.systemBackground))
-  )
+    .environment(\.colorScheme, colorScheme)
+    .background(Color(uiColor: UIColor.systemBackground))
 
+  // Outermost, so it constrains the view. Applied only when present — `.frame(width: nil)`
+  // should be inert, but not worth betting recorded baselines on.
+  let configuredView: AnyView
+  if device == nil, let fittedWidth: CGFloat = fittedWidth {
+    configuredView = AnyView(themedView.frame(width: fittedWidth))
+  }
+  else {
+    configuredView = AnyView(themedView)
+  }
+
+  // Display scale must be pinned, or the canvas rasterises at the host simulator's scale and a
+  // baseline recorded on a 2x machine fails on a 3x one — on image size, not content.
+  //
+  // It has to be pinned HERE, in the traits handed to `.image(traits:)`, even for a device.
+  // `snapshotView` builds the renderer with `renderer(bounds:for: traits)` — the traits it was
+  // called with — so the scale a `ViewImageConfig` carries reaches `prepareView` and nothing
+  // else. Pinning it on the config alone still rasterises at the host's scale.
+  let displayScale: CGFloat
+  if let device: ViewImageConfig = device, device.traits.displayScale > 0 {
+    displayScale = device.traits.displayScale
+  }
+  else {
+    displayScale = SnapshotMatrix.fittedDisplayScale
+  }
   let traits: UITraitCollection = UITraitCollection(
-    userInterfaceStyle: colorScheme == .dark ? .dark : .light
+    traitsFrom: [
+      UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light),
+      UITraitCollection(displayScale: displayScale),
+    ]
   )
 
   let imageLayout: SwiftUISnapshotLayout
@@ -76,8 +102,7 @@ public func assertSnapshots(
   // time because they've already lost their dark-mode resolver. We scope
   // `UITraitCollection.current` here so any `.current` lookups that happen on
   // the main thread during the render see the intended traits — most named
-  // colors will then come out correct. The proper fix is to change Colors.swift
-  // to return `UIColor { traits in … }` dynamic providers (out of POC scope).
+  // colors will then come out correct.
   var failure: String? = nil
   traits.performAsCurrent {
     failure = verifySnapshot(
@@ -95,15 +120,22 @@ public func assertSnapshots(
           // outright changed 0.27% of the image and passed comfortably.
           //
           // So: no pixel budget at all, and absorb rendering noise per-pixel instead.
-          // `perceptualPrecision: 0.98` still tolerates the antialiasing and colour-space
-          // jitter that varies between machines and OS versions — which is the actual
-          // problem a loosened `precision` was reaching for.
+          // `perceptualPrecision` tolerates the antialiasing jitter that varies between
+          // machines — which is the actual problem a loosened `precision` was reaching for.
+          //
+          // 0.95, not 0.98, because 0.98 does not cover the machines this actually runs on.
+          // Baselines recorded on a developer's Mac and replayed on Xcode Cloud's virtualised
+          // host differ by 1–2 of 255 on the antialiased edges of glyphs and icons — 7 to 260
+          // pixels of an image, invisible, and identical in alpha. The library scores those at
+          // ΔE 2.2–3.75, over the ΔE 2.0 that 0.98 allows, and since `precision` is 1.0 a
+          // single such pixel fails the image. It failed 22 of them, 19 in dark mode.
+          // 0.95 allows ΔE 5, which clears the worst observed with room to spare.
           //
           // If this starts flaking, tighten what is being rendered rather than reinstating
           // a pixel budget; a budget large enough to hide noise is large enough to hide a
           // deleted control.
           precision: 1.0,
-          perceptualPrecision: 0.98,
+          perceptualPrecision: 0.95,
           layout: imageLayout,
           traits: traits
         )
@@ -127,13 +159,29 @@ public enum SnapshotMatrix {
     .dark,
   ]
 
+  /// Each device declares its display scale — its real one — and `assertSnapshots` lifts it into
+  /// the traits it renders with, which is the only place the renderer reads it from. `iPhone8`
+  /// needs it named here because upstream leaves it unspecified; the iPhone 17-family configs
+  /// carry their own and keep it.
   public static let devices: Array<ViewImageConfig> = [
-    .iPhone8(.portrait),
-    .iPhone17ProMax(.portrait),
+    ViewImageConfig.iPhone8(.portrait)
+      .pinningDisplayScaleIfUnspecified(2),
+    ViewImageConfig.iPhone17ProMax(.portrait)
+      .pinningDisplayScaleIfUnspecified(3),
   ]
 
-  /// Reference images are laid out `<color scheme>/<width>x<height>/<module>/`, or
-  /// `<color scheme>/fitted/<module>/` for previews rendered at their ideal size.
+  /// An iPhone SE's 375pt less the usual 16pt margins: the narrowest realistic width, since a
+  /// wider one hides wrapping and truncation regressions.
+  public static let fittedContentWidth: CGFloat = 320
+
+  /// Rasterisation scale for `fitted` and `fittedWidth` canvases, which have no device to take
+  /// one from, and the fallback for a device config that declares none. The value is arbitrary —
+  /// being fixed is the point, and 2x keeps the images small. Changing it invalidates every
+  /// fitted baseline.
+  public static let fittedDisplayScale: CGFloat = 2
+
+  /// Laid out `<color scheme>/<size>/<module>/`, `<size>` being `<width>x<height>`, `fitted` or
+  /// `fitted-<width>` — so changing `fittedContentWidth` records afresh rather than diffing.
   ///
   /// The module level is not cosmetic: `PassboltApp` and `PassboltExtension` both declare
   /// `AuthorizationView` and `AccountSelectionView`, so without it their reference images would
@@ -141,6 +189,7 @@ public enum SnapshotMatrix {
   public static func referenceDirectory(
     colorScheme: ColorScheme,
     device: ViewImageConfig?,
+    fittedWidth: CGFloat? = .none,
     module: String
   ) -> String {
     let schemeFolder: String
@@ -155,6 +204,9 @@ public enum SnapshotMatrix {
         fatalError("ViewImageConfig.size is required for snapshot routing")
       }
       sizeFolder = "\(Int(size.width))x\(Int(size.height))"
+    }
+    else if let fittedWidth: CGFloat = fittedWidth {
+      sizeFolder = "fitted-\(Int(fittedWidth))"
     }
     else {
       sizeFolder = "fitted"

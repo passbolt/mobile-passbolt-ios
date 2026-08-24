@@ -89,3 +89,24 @@ public struct FingerprintTextView: View {
       .multilineTextAlignment(.center)
   }
 }
+
+#if DEBUG
+
+internal struct FingerprintTextView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      // Full 40 characters.
+      FingerprintTextView(
+        fingerprint: .init(rawValue: "03F60E958F4CB29723ACDF761353B5B15D9B054F")
+      )
+
+      // Length not divisible by four — the tail branch.
+      FingerprintTextView(
+        fingerprint: .init(rawValue: "03F60E958F4CB297")
+      )
+    }
+    .padding(8)
+  }
+}
+#endif

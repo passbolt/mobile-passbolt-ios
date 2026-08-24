@@ -25,6 +25,40 @@
 import SnapshotTesting
 import UIKit
 
+/// The iPhone 17 family — 17, 17 Pro, 17 Pro Max, Air — is 3x throughout.
+///
+/// Must be stated somewhere: `UIGraphicsImageRendererFormat(for:)` falls back to the render
+/// environment when traits leave `displayScale` unspecified, so an unpinned canvas rasterises at
+/// the host simulator's scale and its images fail elsewhere on size rather than on content.
+///
+/// Stating it on the config is not by itself enough — see `assertSnapshots`, which reads it back
+/// out and renders with it.
+private let iPhone17FamilyDisplayScale: CGFloat = 3
+
+extension ViewImageConfig {
+
+  /// Copy with `scale` pinned, unless the config already states one of its own.
+  ///
+  /// This records a device's scale; it does not apply it. `snapshotView` builds the renderer from
+  /// the traits passed to `.image(traits:)`, so a config's own traits never reach the format —
+  /// `assertSnapshots` reads the scale from here and passes it there.
+  internal func pinningDisplayScaleIfUnspecified(_ scale: CGFloat) -> ViewImageConfig {
+    // Unspecified reads back as 0, not nil.
+    guard self.traits.displayScale == 0
+    else {
+      return self
+    }
+    var pinned: ViewImageConfig = self
+    pinned.traits = UITraitCollection(
+      traitsFrom: [
+        self.traits,
+        UITraitCollection(displayScale: scale),
+      ]
+    )
+    return pinned
+  }
+}
+
 extension ViewImageConfig {
 
   public static let iPhone17 = ViewImageConfig.iPhone17(.portrait)
@@ -103,6 +137,7 @@ extension UITraitCollection {
     -> UITraitCollection
   {
     let base: Array<UITraitCollection> = [
+      .init(displayScale: iPhone17FamilyDisplayScale),
       .init(forceTouchCapability: .available),
       .init(layoutDirection: .leftToRight),
       .init(preferredContentSizeCategory: .medium),
@@ -132,6 +167,7 @@ extension UITraitCollection {
     -> UITraitCollection
   {
     let base: Array<UITraitCollection> = [
+      .init(displayScale: iPhone17FamilyDisplayScale),
       .init(forceTouchCapability: .available),
       .init(layoutDirection: .leftToRight),
       .init(preferredContentSizeCategory: .medium),
@@ -161,6 +197,7 @@ extension UITraitCollection {
     -> UITraitCollection
   {
     let base: Array<UITraitCollection> = [
+      .init(displayScale: iPhone17FamilyDisplayScale),
       .init(forceTouchCapability: .available),
       .init(layoutDirection: .leftToRight),
       .init(preferredContentSizeCategory: .medium),
@@ -190,6 +227,7 @@ extension UITraitCollection {
     -> UITraitCollection
   {
     let base: Array<UITraitCollection> = [
+      .init(displayScale: iPhone17FamilyDisplayScale),
       .init(forceTouchCapability: .available),
       .init(layoutDirection: .leftToRight),
       .init(preferredContentSizeCategory: .medium),

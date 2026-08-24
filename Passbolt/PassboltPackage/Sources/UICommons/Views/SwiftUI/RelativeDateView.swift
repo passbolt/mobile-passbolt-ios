@@ -99,15 +99,41 @@ public struct ResourceRelativeDateView: View {
 internal struct ResourceRelativeDateView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceRelativeDateView(
-      viewModel: ResourceRelativeDateViewModel(
-        relativeDate: "days ago",
-        intervalNumber: "4",
-        pastDatePrefix: "Expired",
-        futureDatePrefix: nil,
-        isPastDate: true
+    VStack(spacing: 8) {
+      // Past.
+      ResourceRelativeDateView(
+        viewModel: ResourceRelativeDateViewModel(
+          relativeDate: "days ago",
+          intervalNumber: "4",
+          pastDatePrefix: "Expired",
+          futureDatePrefix: nil,
+          isPastDate: true
+        )
       )
-    )
+
+      // Future.
+      ResourceRelativeDateView(
+        viewModel: ResourceRelativeDateViewModel(
+          relativeDate: "days",
+          intervalNumber: "12",
+          pastDatePrefix: nil,
+          futureDatePrefix: "Expires in",
+          isPastDate: false
+        )
+      )
+
+      // No prefix.
+      ResourceRelativeDateView(
+        viewModel: ResourceRelativeDateViewModel(
+          relativeDate: "hours ago",
+          intervalNumber: "2",
+          pastDatePrefix: nil,
+          futureDatePrefix: nil,
+          isPastDate: true
+        )
+      )
+    }
+    .padding(8)
   }
 }
 #endif

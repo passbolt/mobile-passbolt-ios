@@ -64,3 +64,35 @@ public struct ImageWithPadding: View {
       .padding(self.padding)
   }
 }
+
+#if DEBUG
+
+internal struct ImageWithPadding_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      // None.
+      ImageWithPadding(named: .bug)
+        .frame(width: 48, height: 48)
+
+      // Uniform.
+      ImageWithPadding(8, named: .bug)
+        .frame(width: 48, height: 48)
+
+      // Per-edge.
+      ImageWithPadding(
+        .init(
+          top: 0,
+          leading: 16,
+          bottom: 8,
+          trailing: 0
+        ),
+        named: .bug
+      )
+      .frame(width: 48, height: 48)
+    }
+    .foregroundColor(.passboltIcon)
+    .padding(8)
+  }
+}
+#endif

@@ -66,15 +66,19 @@ public struct ResourcePermissionTypeCompactView: View {
 internal struct ResourcePermissionTypeCompactView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourcePermissionTypeCompactView(
-      permission: .read
-    )
-    ResourcePermissionTypeCompactView(
-      permission: .write
-    )
-    ResourcePermissionTypeCompactView(
-      permission: .owner
-    )
+    // A stack, not a loose tuple — a tuple has no layout and would overlap.
+    VStack(spacing: 8) {
+      ResourcePermissionTypeCompactView(
+        permission: .read
+      )
+      ResourcePermissionTypeCompactView(
+        permission: .write
+      )
+      ResourcePermissionTypeCompactView(
+        permission: .owner
+      )
+    }
+    .padding(8)
   }
 }
 #endif

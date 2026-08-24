@@ -77,3 +77,37 @@ public struct TOTPValueView: View {
     }
   }
 }
+
+#if DEBUG
+
+internal struct TOTPValueView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 12) {
+      // Normal colour.
+      TOTPValueView(
+        value: .init(
+          resourceID: .none,
+          otp: "123456",
+          timeLeft: 30,
+          period: 30
+        )
+      )
+
+      // <= 5s switches to the warning colour.
+      TOTPValueView(
+        value: .init(
+          resourceID: .none,
+          otp: "123456",
+          timeLeft: 4,
+          period: 30
+        )
+      )
+
+      // Covered placeholder.
+      TOTPValueView(value: .none)
+    }
+    .padding(8)
+  }
+}
+#endif

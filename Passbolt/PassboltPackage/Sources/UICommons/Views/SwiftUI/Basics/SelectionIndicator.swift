@@ -44,3 +44,17 @@ public struct SelectionIndicator: View {
     }
   }
 }
+
+#if DEBUG
+
+internal struct SelectionIndicator_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      SelectionIndicator(selected: true)
+      SelectionIndicator(selected: false)
+    }
+    .padding(8)
+  }
+}
+#endif

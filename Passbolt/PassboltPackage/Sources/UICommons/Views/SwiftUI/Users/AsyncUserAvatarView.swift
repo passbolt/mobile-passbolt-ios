@@ -62,6 +62,8 @@ internal struct AsyncUserAvatarView_Previews: PreviewProvider {
 
   internal static var previews: some View {
     AsyncUserAvatarView(imageLoad: { .none })
+      .frame(width: 64, height: 64)
+      .padding(8)
   }
 }
 #endif

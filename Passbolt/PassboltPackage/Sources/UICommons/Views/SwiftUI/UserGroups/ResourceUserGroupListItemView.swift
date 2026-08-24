@@ -79,13 +79,31 @@ public struct ResourceUserGroupListItemView: View {
 internal struct ResourceUserGroupListItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceUserGroupListItemView(
-      name: "UserGroup",
-      contentCount: 0,
-      action: {
-        // action
-      }
-    )
+    VStack(spacing: 0) {
+      ResourceUserGroupListItemView(
+        name: "UserGroup",
+        contentCount: 0,
+        action: {
+          // action
+        }
+      )
+
+      ResourceUserGroupListItemView(
+        name: "Populated group",
+        contentCount: 12,
+        action: {
+          // action
+        }
+      )
+
+      ResourceUserGroupListItemView(
+        name: "A group name long enough that it cannot fit on a single line and has to be truncated",
+        contentCount: 999,
+        action: {
+          // action
+        }
+      )
+    }
   }
 }
 #endif

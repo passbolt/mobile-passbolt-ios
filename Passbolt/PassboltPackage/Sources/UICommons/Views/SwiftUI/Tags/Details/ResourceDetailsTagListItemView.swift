@@ -87,24 +87,44 @@ public struct ResourceDetailsTagListItemView: View {
 internal struct ResourceDetailsTagListItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceDetailsTagListItemView(
-      name: "Tag",
-      shared: false,
-      action: {
-        // action
-      },
-      menuAction: {
-        // menu action
-      }
-    )
-    ResourceDetailsTagListItemView(
-      name: "Tag",
-      shared: false,
-      action: {
-        // action
-      },
-      menuAction: .none
-    )
+    VStack(spacing: 0) {
+      ResourceDetailsTagListItemView(
+        name: "Tag",
+        shared: false,
+        action: {
+          // action
+        },
+        menuAction: {
+          // menu action
+        }
+      )
+      ResourceDetailsTagListItemView(
+        name: "Shared tag",
+        shared: true,
+        action: {
+          // action
+        },
+        menuAction: {
+          // menu action
+        }
+      )
+      ResourceDetailsTagListItemView(
+        name: "Tag without menu",
+        shared: false,
+        action: {
+          // action
+        },
+        menuAction: .none
+      )
+      ResourceDetailsTagListItemView(
+        name: "A tag name long enough that it cannot fit on a single line and has to be truncated",
+        shared: true,
+        action: {
+          // action
+        },
+        menuAction: .none
+      )
+    }
   }
 }
 #endif

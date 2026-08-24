@@ -78,15 +78,18 @@ public struct ResourcePermissionTypeView: View {
 internal struct ResourcePermissionTypeView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourcePermissionTypeView(
-      permission: .read
-    )
-    ResourcePermissionTypeView(
-      permission: .write
-    )
-    ResourcePermissionTypeView(
-      permission: .owner
-    )
+    VStack(spacing: 8) {
+      ResourcePermissionTypeView(
+        permission: .read
+      )
+      ResourcePermissionTypeView(
+        permission: .write
+      )
+      ResourcePermissionTypeView(
+        permission: .owner
+      )
+    }
+    .padding(8)
   }
 }
 #endif

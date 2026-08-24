@@ -86,6 +86,8 @@ internal struct AvatarButton_Previews: PreviewProvider {
           try? await Task.sleep(nanoseconds: 1500 * NSEC_PER_MSEC)
         }
       )
+      // A definite size, so the fitted layout does not depend on the image's intrinsic size.
+      .frame(width: 48, height: 48)
     }
     .padding()
   }

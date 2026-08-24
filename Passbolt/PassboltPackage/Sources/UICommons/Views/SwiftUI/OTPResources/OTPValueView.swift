@@ -164,3 +164,66 @@ public struct OTPValueView: View {
     }
   }
 }
+
+#if DEBUG
+
+internal struct OTPValueView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    // No `.loader` accessory: its spinner is indeterminate, so it cannot be pinned.
+    VStack(spacing: 12) {
+      // Normal colour, countdown accessory.
+      OTPValueView(
+        value: .totp(
+          .init(
+            resourceID: .none,
+            otp: "123456",
+            timeLeft: 30,
+            period: 30
+          )
+        ),
+        accessory: .contextual
+      )
+
+      // <= 5s switches to the warning colour.
+      OTPValueView(
+        value: .totp(
+          .init(
+            resourceID: .none,
+            otp: "123456",
+            timeLeft: 4,
+            period: 30
+          )
+        ),
+        accessory: .contextual
+      )
+
+      // Revealed.
+      OTPValueView(
+        value: .totp(
+          .init(
+            resourceID: .none,
+            otp: "123456",
+            timeLeft: 30,
+            period: 30
+          )
+        ),
+        accessory: .toggle
+      )
+
+      // Covered, with reveal.
+      OTPValueView(
+        value: .none,
+        accessory: .toggle
+      )
+
+      // Covered, no accessory.
+      OTPValueView(
+        value: .none,
+        accessory: .contextual
+      )
+    }
+    .padding(8)
+  }
+}
+#endif

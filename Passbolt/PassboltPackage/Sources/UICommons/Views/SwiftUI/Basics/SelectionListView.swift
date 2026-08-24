@@ -116,20 +116,25 @@ internal struct SelectionListView_Previews: PreviewProvider {
     let allItems: Array<SelectionListView<AnyHashable>.Item> =
       [
         .init(
-          id: UUID(),
+          id: "read",
           iconName: .permissionReadIcon,
           title: "Read"
         ),
         .init(
-          id: UUID(),
+          id: "write",
+          iconName: .permissionWriteIcon,
+          title: "Write"
+        ),
+        .init(
+          id: "own",
           iconName: .permissionOwnIcon,
           title: "Own"
         ),
       ]
-    // swift-format-ignore: NeverForceUnwrap
     SelectionListView(
       items: allItems,
-      selectedItems: [allItems.randomElement()!.id],
+      // Both row states: "write" is the unselected one.
+      selectedItems: ["read", "own"],
       selection: { _ in }
     )
   }

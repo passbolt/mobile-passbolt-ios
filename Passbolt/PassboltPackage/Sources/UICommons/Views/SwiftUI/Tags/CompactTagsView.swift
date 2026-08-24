@@ -96,19 +96,29 @@ public struct CompactTagsView: View {
 internal struct CompactTagsStackView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    CompactTagsView(
-      tags: [
-        "#Tag",
-        "Another",
-        "Test",
-        "More",
-        "Loooooooooong",
-        "Loooooooooong",
-        "Loooooooooong",
-        "Loooooooooong",
-        "Loooooooooooooooooooooooooooooooong",
-      ]
-    )
+    VStack(spacing: 8) {
+      // Empty.
+      CompactTagsView(tags: [])
+
+      // One tag.
+      CompactTagsView(tags: ["#Tag"])
+
+      // Overflow.
+      CompactTagsView(
+        tags: [
+          "#Tag",
+          "Another",
+          "Test",
+          "More",
+          "Loooooooooong",
+          "Loooooooooong",
+          "Loooooooooong",
+          "Loooooooooong",
+          "Loooooooooooooooooooooooooooooooong",
+        ]
+      )
+    }
+    .padding(8)
   }
 }
 #endif

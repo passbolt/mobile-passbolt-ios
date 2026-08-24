@@ -83,14 +83,35 @@ public struct ResourceTagListItemView: View {
 internal struct TagListItemView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    ResourceTagListItemView(
-      name: "Tag",
-      shared: false,
-      contentCount: 0,
-      action: {
-        // action
-      }
-    )
+    VStack(spacing: 0) {
+      ResourceTagListItemView(
+        name: "Tag",
+        shared: false,
+        contentCount: 0,
+        action: {
+          // action
+        }
+      )
+
+      // Shared glyph.
+      ResourceTagListItemView(
+        name: "Shared tag",
+        shared: true,
+        contentCount: 12,
+        action: {
+          // action
+        }
+      )
+
+      ResourceTagListItemView(
+        name: "A tag name long enough that it cannot fit on a single line and has to be truncated",
+        shared: true,
+        contentCount: 999,
+        action: {
+          // action
+        }
+      )
+    }
   }
 }
 #endif

@@ -214,19 +214,49 @@ extension SearchView where LeftAccessoryView == ImageWithPadding, RightAccessory
 internal struct SearchView_Previews: PreviewProvider {
 
   internal static var previews: some View {
-    var text: String = ""
-    SearchView(
-      text: .init(
-        get: { text },
-        set: { text = $0 }
-      ),
-      rightAccessory: {
-        UserAvatarView(
-          imageData: .none
-        )
-        .padding(4)
-      }
-    )
+    var emptyText: String = ""
+    var filledText: String = "search term"
+    var promptedText: String = ""
+    VStack(spacing: 8) {
+      // Empty — default prompt.
+      SearchView(
+        text: .init(
+          get: { emptyText },
+          set: { emptyText = $0 }
+        ),
+        rightAccessory: {
+          UserAvatarView(
+            imageData: .none
+          )
+          .padding(4)
+        }
+      )
+
+      // Non-empty — clear affordance.
+      SearchView(
+        text: .init(
+          get: { filledText },
+          set: { filledText = $0 }
+        ),
+        rightAccessory: {
+          UserAvatarView(
+            imageData: .none
+          )
+          .padding(4)
+        }
+      )
+
+      // Custom prompt, no accessory.
+      SearchView(
+        prompt: "Search resources",
+        text: .init(
+          get: { promptedText },
+          set: { promptedText = $0 }
+        ),
+        rightAccessory: EmptyView.init
+      )
+    }
+    .padding(8)
   }
 }
 #endif

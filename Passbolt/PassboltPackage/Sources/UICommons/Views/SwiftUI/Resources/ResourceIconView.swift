@@ -106,3 +106,72 @@ public struct ResourceIconView: View {
       .fill(backgroundColor)
   }
 }
+
+#if DEBUG
+
+internal struct ResourceIconView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    VStack(spacing: 8) {
+      // No identifier — falls back to the slug icon.
+      ResourceIconView(
+        resourceIcon: .init(
+          type: .none,
+          value: .none,
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .password
+      )
+
+      ResourceIconView(
+        resourceIcon: .init(
+          type: .none,
+          value: .none,
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .totp
+      )
+
+      // Identifier takes precedence over the slug.
+      ResourceIconView(
+        resourceIcon: .init(
+          type: .keepassIconSet,
+          value: .init(rawValue: "01"),
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .password
+      )
+
+      // Light background flips the tint; dark keeps it white.
+      ResourceIconView(
+        resourceIcon: .init(
+          type: .keepassIconSet,
+          value: .init(rawValue: "01"),
+          backgroundColor: "#FFEB3B"
+        ),
+        resourceTypeSlug: .password
+      )
+
+      ResourceIconView(
+        resourceIcon: .init(
+          type: .keepassIconSet,
+          value: .init(rawValue: "01"),
+          backgroundColor: "#3F51B5"
+        ),
+        resourceTypeSlug: .password
+      )
+
+      // Background only.
+      ResourceIconView(
+        resourceIcon: .init(
+          type: .none,
+          value: .none,
+          backgroundColor: .none
+        ),
+        resourceTypeSlug: .none
+      )
+    }
+    .padding(8)
+  }
+}
+#endif
