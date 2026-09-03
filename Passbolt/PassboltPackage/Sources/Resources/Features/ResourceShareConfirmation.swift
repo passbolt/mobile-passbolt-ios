@@ -24,24 +24,24 @@
 import CommonModels
 import Features
 
-/// Applies operator-confirmed permissions to a resource created privately during the create-in-shared-folder flow.
-///
-/// The resource is created first with the operator as its sole owner (see `ResourceEditForm.createResourcePrivate`).
-/// This step then re-checks the folder against the confirmed snapshot for drift and, only if clear, encrypts the
-/// secret for the newly-added recipients **using the snapshot's public keys** (recipients fetched just for the
-/// operation may not be in the local database yet - Option 1) and saves the permissions in a single share call.
-///
-/// On drift it throws ``PermissionDriftDetected`` and applies nothing: the resource is left private, owned by the
-/// operator, who can share it again.
 public struct ResourceShareConfirmation: Sendable {
 
-  /// - Parameter ownPermissionID: identifier of the operator's owner permission created together with the
-  ///   resource. The confirmed list decides what the operator keeps, exactly as folder inheritance would.
+  /// Grants the confirmed recipients access to a resource `createResourcePrivate` just made. On drift it is left
+  /// private and can be shared again. The operator's bootstrap owner permission is settled last, to match what the
+  /// folder grants them.
   public var applyToCreatedResource:
     @Sendable (
       _ resourceID: Resource.ID,
-      _ ownPermissionID: Permission.ID,
       _ folderID: ResourceFolder.ID,
+      _ confirmed: OrderedSet<ResourcePermission>,
+      _ snapshot: PermissionSnapshot
+    ) async throws -> Void
+
+  /// Applies the confirmed set to an existing resource. The secret is not rotated, so revocations and grants go
+  /// out atomically; the operator's own change follows separately, since a self-revocation would invalidate it.
+  public var applyToSharedResource:
+    @Sendable (
+      _ resourceID: Resource.ID,
       _ confirmed: OrderedSet<ResourcePermission>,
       _ snapshot: PermissionSnapshot
     ) async throws -> Void
@@ -49,13 +49,18 @@ public struct ResourceShareConfirmation: Sendable {
   public init(
     applyToCreatedResource: @escaping @Sendable (
       Resource.ID,
-      Permission.ID,
       ResourceFolder.ID,
+      OrderedSet<ResourcePermission>,
+      PermissionSnapshot
+    ) async throws -> Void,
+    applyToSharedResource: @escaping @Sendable (
+      Resource.ID,
       OrderedSet<ResourcePermission>,
       PermissionSnapshot
     ) async throws -> Void
   ) {
     self.applyToCreatedResource = applyToCreatedResource
+    self.applyToSharedResource = applyToSharedResource
   }
 }
 
@@ -64,7 +69,8 @@ extension ResourceShareConfirmation: LoadableFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     .init(
-      applyToCreatedResource: unimplemented5()
+      applyToCreatedResource: unimplemented4(),
+      applyToSharedResource: unimplemented3()
     )
   }
   #endif

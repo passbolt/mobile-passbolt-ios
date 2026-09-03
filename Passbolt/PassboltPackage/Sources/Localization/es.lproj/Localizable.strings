@@ -379,7 +379,7 @@
 "resource.permission.confirm.title" = "Confirm permissions";
 "resource.permission.confirm.empty.message" = "There is no one to share this password with.";
 "resource.permission.confirm.action.confirm" = "Confirm";
-"resource.permission.confirm.action.remove" = "Remove";
+"resource.permission.confirm.action.remove" = "Delete permissions";
 "resource.permission.confirm.action.add" = "Add users or groups";
 "resource.permission.confirm.duplicate.single.message" = "%@ is already part of group %@";
 "resource.permission.confirm.duplicate.multiple.message" = "%@ (and more) have already access via group membership";
@@ -389,6 +389,8 @@
 "resource.permission.confirm.drift.multiple.message" = "%@ (and more) permissions have changed";
 "resource.permission.confirm.snapshot.incomplete.message" = "Could not check who this password is shared with. Please try again.";
 "resource.permission.confirm.recipient.unavailable.message" = "Some recipients could not be added because they cannot receive this password.";
+"resource.permission.confirm.owner.required.message" = "Please make sure you are still owner.";
+"resource.permission.confirm.owner.any.required.message" = "Please make sure there is at least one owner.";
 
 "resource.permission.details.title" = "Permiso";
 "resource.permission.details.user.suspended" = "suspendido";

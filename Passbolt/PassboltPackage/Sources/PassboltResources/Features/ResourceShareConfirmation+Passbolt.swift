@@ -23,6 +23,7 @@
 
 import CommonModels
 import FeatureScopes
+import Metadata
 import NetworkOperations
 import Resources
 import Session
@@ -40,6 +41,7 @@ extension ResourceShareConfirmation {
     let sessionData: SessionData = try features.instance()
     let sessionCryptography: SessionCryptography = try features.instance()
     let resourceSharePreparation: ResourceSharePreparation = try features.instance()
+    let metadataKeysService: MetadataKeysService = try features.instance()
     let permissionSnapshotService: PermissionSnapshotService = try features.instance()
     let resourceShareNetworkOperation: ResourceShareNetworkOperation = try features.instance()
     let resourceSimulateShareNetworkOperation: ResourceSimulateShareNetworkOperation = try features.instance()
@@ -78,9 +80,8 @@ extension ResourceShareConfirmation {
       return newSecrets
     }
 
-    /// Re-captures the recipients the operator added by hand into a freshly-built snapshot, so the drift check
-    /// covers their keys too. A fresh capture only describes who already holds a permission on the folder, which
-    /// would leave an added recipient's key unverified at the exact moment the secret is encrypted for them.
+    /// Re-captures hand-added recipients into a fresh snapshot so the drift check covers their keys - a fresh
+    /// capture only describes who already holds a permission, leaving those keys unverified otherwise.
     @Sendable nonisolated func recapturingAddedRecipients(
       of confirmed: PermissionSnapshot,
       into current: PermissionSnapshot
@@ -91,50 +92,60 @@ extension ResourceShareConfirmation {
       return try await permissionSnapshotService.expanding(current, missing.users, missing.groups)
     }
 
-    /// The operator's own permission on the created resource, as the confirmed list requires it to end up. They
-    /// were made owner when the resource was created privately, so anything else has to be applied explicitly -
-    /// the same alignment the non-confirmed create performs with the folder's permissions.
-    ///
-    /// Their permission is only dropped when someone else in the confirmed list owns the resource (a user or a
-    /// group): a resource without an owner is rejected by the server, and keeping the creator is the safer end.
-    @Sendable nonisolated func ownPermissionChange(
+    /// Lowers or drops the owner permission the operator was created with, so they hold exactly what the folder
+    /// grants them.
+    @Sendable nonisolated func applyOperatorsOwnPermission(
       resourceID: Resource.ID,
-      ownPermissionID: Permission.ID,
-      confirmed: OrderedSet<ResourcePermission>
-    ) -> (updated: Array<GenericPermissionDTO>, deleted: Array<GenericPermissionDTO>) {
-      let ownDTO: (Permission) -> GenericPermissionDTO = { (level: Permission) in
-        .userToResource(
-          id: ownPermissionID,
-          userID: currentAccount.userID,
-          resourceID: resourceID,
-          permission: level
-        )
-      }
+      inherits: Permission?
+    ) async throws {
+      let created: PermissionSnapshot = try await permissionSnapshotService.forResource(resourceID)
+      guard
+        let bootstrap: ResourcePermission = created.permissions
+          .first(where: { (permission: ResourcePermission) -> Bool in
+            permission.userID == currentAccount.userID
+          })
+      else { return }
 
-      if let confirmedOwn: ResourcePermission = confirmed.first(where: { $0.userID == currentAccount.userID }) {
-        guard confirmedOwn.permission != .owner
-        else { return (updated: .init(), deleted: .init()) }
-        return (updated: [ownDTO(confirmedOwn.permission)], deleted: .init())
+      let updated: Array<GenericPermissionDTO>
+      let deleted: Array<GenericPermissionDTO>
+      if let level: Permission = inherits {
+        guard
+          let dto: GenericPermissionDTO =
+            ResourcePermission
+            .user(id: currentAccount.userID, permission: level, permissionID: bootstrap.permissionID)
+            .asExistingDTO(resourceID: resourceID)
+        else { return }
+        updated = [dto]
+        deleted = .init()
       }
       else {
-        let confirmedHasOtherOwner: Bool = confirmed.contains { (permission: ResourcePermission) -> Bool in
-          permission.permission == .owner && permission.userID != currentAccount.userID
-        }
-        guard confirmedHasOtherOwner
-        else { return (updated: .init(), deleted: .init()) }
-        return (updated: .init(), deleted: [ownDTO(.owner)])
+        guard let dto: GenericPermissionDTO = bootstrap.asExistingDTO(resourceID: resourceID)
+        else { return }
+        updated = .init()
+        deleted = [dto]
       }
+
+      try await resourceShareNetworkOperation(
+        .init(
+          resourceID: resourceID,
+          body: .init(
+            newPermissions: .init(),
+            updatedPermissions: updated,
+            deletedPermissions: deleted,
+            newSecrets: .init()
+          )
+        )
+      )
     }
 
     @Sendable nonisolated func applyToCreatedResource(
       resourceID: Resource.ID,
-      ownPermissionID: Permission.ID,
       folderID: ResourceFolder.ID,
       confirmed: OrderedSet<ResourcePermission>,
       snapshot: PermissionSnapshot
     ) async throws {
-      // The resource is created with the operator as sole owner; the confirmed set grants access to everyone
-      // else. Folder permission ids are irrelevant here - these are new permissions on the new resource.
+      // The operator was made sole owner purely to have something to share from; the confirmed set decides what
+      // they keep, settled at the end once the grants have put another owner in place.
       let grants: OrderedSet<ResourcePermission> = .init(
         confirmed.compactMap { (permission: ResourcePermission) -> ResourcePermission? in
           switch permission {
@@ -148,19 +159,18 @@ extension ResourceShareConfirmation {
           }
         }
       )
-      let ownChange: (updated: Array<GenericPermissionDTO>, deleted: Array<GenericPermissionDTO>) =
-        ownPermissionChange(
-          resourceID: resourceID,
-          ownPermissionID: ownPermissionID,
-          confirmed: confirmed
-        )
+      // What the operator inherits, if anything - a folder granting access only through a group leaves no row,
+      // and the bootstrap permission then has to go rather than linger.
+      let operatorInherits: Permission? =
+        confirmed
+        .first { (permission: ResourcePermission) -> Bool in permission.userID == currentAccount.userID }?
+        .permission
+      // Owner is what the bootstrap already is, so only anything else is a change worth sending.
+      let operatorChanges: Bool = operatorInherits != .owner
 
       // The operator confirmed the resource exactly as it was created - private and owned by them. Nothing is
       // shared, so the metadata key is left personal and no empty share request is sent to the server.
-      guard
-        grants.isEmpty == false
-          || ownChange.updated.isEmpty == false
-          || ownChange.deleted.isEmpty == false
+      guard grants.isEmpty == false || operatorChanges
       else { return }
 
       // Migrate the freshly-created (personal-key) resource to a shared metadata key if required.
@@ -195,18 +205,182 @@ extension ResourceShareConfirmation {
       let newSecrets: OrderedSet<EncryptedMessage> =
         try await encryptSecret(resourceID, forAdded: addedRecipients, using: snapshot)
 
-      // Apply the confirmed permissions in a single atomic share call, the operator's own permission included.
-      try await resourceShareNetworkOperation(
-        .init(
-          resourceID: resourceID,
-          body: .init(
-            newPermissions: grants.compactMap { $0.asNewDTO(resourceID: resourceID) },
-            updatedPermissions: ownChange.updated,
-            deletedPermissions: ownChange.deleted,
-            newSecrets: newSecrets
+      // One atomic share call. The operator's own permission follows separately: the server evaluates a request
+      // against the principal making it, and a self-downgrade would invalidate the rest of it.
+      var appliedForOthers: Bool = false
+      if grants.isEmpty == false {
+        appliedForOthers = true
+        try await resourceShareNetworkOperation(
+          .init(
+            resourceID: resourceID,
+            body: .init(
+              newPermissions: grants.compactMap { $0.asNewDTO(resourceID: resourceID) },
+              updatedPermissions: .init(),
+              deletedPermissions: .init(),
+              newSecrets: newSecrets
+            )
           )
         )
+      }
+
+      // Settle the bootstrap permission against what the folder actually grants the operator. Another owner is
+      // in place by now, so dropping or lowering it cannot leave the resource ownerless.
+      if operatorChanges {
+        do {
+          try await applyOperatorsOwnPermission(
+            resourceID: resourceID,
+            inherits: operatorInherits
+          )
+        }
+        catch {
+          guard appliedForOthers
+          else { throw error }
+          try? await sessionData.refreshIfNeeded()
+          throw PermissionsPartiallyApplied.error(underlyingError: error)
+        }
+      }
+
+      try await sessionData.refreshIfNeeded()
+    }
+
+    /// Applies the confirmed set to an existing resource - the explicit share flow.
+    @Sendable nonisolated func applyToSharedResource(
+      resourceID: Resource.ID,
+      confirmed: OrderedSet<ResourcePermission>,
+      snapshot: PermissionSnapshot
+    ) async throws {
+      let diff: ConfirmedPermissionsDiff = .init(
+        confirmed: confirmed,
+        original: snapshot.permissions
       )
+      // The operator confirmed the resource exactly as it stands - nothing to send.
+      guard
+        diff.created.isEmpty == false
+          || diff.updated.isEmpty == false
+          || diff.deleted.isEmpty == false
+      else { return }
+
+      // The server rejects an ownerless resource; nothing behind the screen re-checks it.
+      guard confirmed.contains(where: \.permission.isOwner)
+      else { throw MissingResourceOwner.error() }
+
+      if case .invalid(let reason) = try await metadataKeysService.validatePinnedKey() {
+        throw
+          MetadataPinnedKeyValidationError
+          .error(
+            reason: reason,
+            context: .context(.message("Invalid pinned key"))
+          )
+      }
+
+      // Drift before anything is written - unlike the create flow, nothing has to be sent first.
+      let currentResourceSnapshot: PermissionSnapshot = try await permissionSnapshotService.forResource(resourceID)
+      let currentSnapshot: PermissionSnapshot = try await recapturingAddedRecipients(
+        of: snapshot,
+        into: currentResourceSnapshot
+      )
+      let drift: PermissionDrift = permissionSnapshotService.drift(snapshot, currentSnapshot)
+      guard drift.hasDrift == false
+      else { throw PermissionDriftDetected.error(drift: drift) }
+
+      // Granting access to someone new requires the metadata to be readable by them.
+      if diff.created.isEmpty == false {
+        try await resourceSharePreparation.prepareResourceForSharing(resourceID)
+      }
+
+      // Dry-run the intended end state: the server reports who newly needs the secret, group membership included.
+      let simulation: ResourceSimulateShareNetworkOperation.Output =
+        try await resourceSimulateShareNetworkOperation(
+          .init(
+            foreignModelId: resourceID.rawValue,
+            editedPermissions: OrderedSet(Array(diff.created) + Array(diff.updated)),
+            removedPermissions: diff.deleted
+          )
+        )
+      let addedRecipients: Array<User.ID> = simulation.changes[.added] ?? .init()
+      guard permissionSnapshotService.unexpectedRecipients(snapshot, addedRecipients).isEmpty
+      else { throw PermissionDriftDetected.error() }
+
+      let newSecrets: OrderedSet<EncryptedMessage> =
+        try await encryptSecret(resourceID, forAdded: addedRecipients, using: snapshot)
+
+      let isOperators: (ResourcePermission) -> Bool = { (permission: ResourcePermission) -> Bool in
+        permission.userID == currentAccount.userID
+      }
+
+      let granted: Array<NewGenericPermissionDTO> = diff.created.filter { !isOperators($0) }
+        .compactMap { $0.asNewDTO(resourceID: resourceID) }
+      let changed: Array<GenericPermissionDTO> = diff.updated.filter { !isOperators($0) }
+        .compactMap { $0.asExistingDTO(resourceID: resourceID) }
+      let revoked: Array<GenericPermissionDTO> = diff.deleted.filter { !isOperators($0) }
+        .compactMap { $0.asExistingDTO(resourceID: resourceID) }
+
+      let ownCreated: Array<NewGenericPermissionDTO> = diff.created.filter(isOperators)
+        .compactMap { $0.asNewDTO(resourceID: resourceID) }
+      let ownUpdated: Array<GenericPermissionDTO> = diff.updated.filter(isOperators)
+        .compactMap { $0.asExistingDTO(resourceID: resourceID) }
+      let ownDeleted: Array<GenericPermissionDTO> = diff.deleted.filter(isOperators)
+        .compactMap { $0.asExistingDTO(resourceID: resourceID) }
+
+      // A permission the operator is *gaining* goes first: the group revoked below may be their only access,
+      // and losing it would leave them unable to authorise the rest. No secret needed - they already hold one.
+      var appliedForOthers: Bool = false
+      if ownCreated.isEmpty == false {
+        appliedForOthers = true
+        try await resourceShareNetworkOperation(
+          .init(
+            resourceID: resourceID,
+            body: .init(
+              newPermissions: ownCreated,
+              updatedPermissions: .init(),
+              deletedPermissions: .init(),
+              newSecrets: .init()
+            )
+          )
+        )
+      }
+
+      // Everyone but the operator, atomically. Skipped when only the operator's own permission changed.
+      if granted.isEmpty == false || changed.isEmpty == false || revoked.isEmpty == false {
+        appliedForOthers = true
+        try await resourceShareNetworkOperation(
+          .init(
+            resourceID: resourceID,
+            body: .init(
+              newPermissions: granted,
+              updatedPermissions: changed,
+              deletedPermissions: revoked,
+              newSecrets: newSecrets
+            )
+          )
+        )
+      }
+
+      // Giving up or lowering their own permission goes last, so everything above was asked for by a principal
+      // that still held the right to ask. Whatever keeps them an owner is in place by now.
+      if ownUpdated.isEmpty == false || ownDeleted.isEmpty == false {
+        do {
+          try await resourceShareNetworkOperation(
+            .init(
+              resourceID: resourceID,
+              body: .init(
+                newPermissions: .init(),
+                updatedPermissions: ownUpdated,
+                deletedPermissions: ownDeleted,
+                newSecrets: .init()
+              )
+            )
+          )
+        }
+        catch {
+          // Everyone else's access already changed - say so, or the next attempt measures drift against our own
+          // change. Nothing landed when this was the only call, so that stays a plain failure.
+          guard appliedForOthers
+          else { throw error }
+          try? await sessionData.refreshIfNeeded()
+          throw PermissionsPartiallyApplied.error(underlyingError: error)
+        }
+      }
 
       // Rebuild the local database consistently (Option 1: no targeted local inserts during the operation).
       try await sessionData.refreshIfNeeded()
@@ -215,8 +389,12 @@ extension ResourceShareConfirmation {
     return Self(
       applyToCreatedResource: applyToCreatedResource(
         resourceID:
-        ownPermissionID:
         folderID:
+        confirmed:
+        snapshot:
+      ),
+      applyToSharedResource: applyToSharedResource(
+        resourceID:
         confirmed:
         snapshot:
       )

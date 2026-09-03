@@ -89,6 +89,16 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
       \ResourceEditForm.isSecretEdited,
       with: always(true)
     )
+    // Submitting a secret edit now asks the server who holds the resource before deciding anything. These edit
+    // a resource nobody else holds, so the capture says private and the submission applies without a screen.
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
+    patch(
+      \PermissionSnapshotService.forFolder,
+      with: always(.mock_private)
+    )
     patch(
       \MetadataSettingsService.typesSettings,
       with: always(
@@ -116,8 +126,8 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
 
   func test_sendForm_submitsDirectly_whenPasswordFieldWasNotEdited() async throws {
     patch(
-      \ResourceEditForm.sendForm,
-      with: { @MainActor in
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (_: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
         self.mockExecuted()
         let resource: Resource = self.editedResource.value
         XCTAssertEqual(resource.meta.name, "updated name")
@@ -147,8 +157,8 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
       }
     )
     patch(
-      \ResourceEditForm.sendForm,
-      with: { @MainActor in
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (_: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
         formSubmittedExpectation.fulfill()
         let resource: Resource = self.editedResource.value
         XCTAssertEqual(resource.firstPasswordString, "updated password")
@@ -241,8 +251,8 @@ final class ResourceEditViewControllerTests: FeaturesTestCase {
     let formSubmittedExpectation: XCTestExpectation =
       self.expectation(description: "Form should be submitted")
     patch(
-      \ResourceEditForm.sendForm,
-      with: { @MainActor in
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (_: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
         formSubmittedExpectation.fulfill()
         return self.editedResource.value
       }

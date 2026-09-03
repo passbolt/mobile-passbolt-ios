@@ -76,16 +76,12 @@ extension PermissionSnapshotService {
       )
     }
 
-    /// Fetches the given groups (with their membership) and every user needed to describe them - the users named
-    /// plus the members of the groups - skipping ids already present. Returns the entries to merge into a snapshot.
+    /// Fetches the named groups with their membership and every user needed to describe them, skipping ids
+    /// already present.
     ///
-    /// Two kinds of gap are told apart, because only one of them is safe to live with:
-    /// - a recipient the server never returned - user or group - means the response did not cover what was
-    ///   requested, so the snapshot would be incomplete without anyone noticing; it throws
-    ///   ``PermissionSnapshotIncomplete`` rather than producing a snapshot missing a reviewed recipient;
-    /// - a user the server returned without a usable key (never activated, deleted) cannot hold a secret at all,
-    ///   so they are left out of the entries *and* out of the group membership captured here, keeping the reviewed
-    ///   recipient list and the encryption recipients in agreement.
+    /// A recipient the server never returned throws ``PermissionSnapshotIncomplete`` - the response did not cover
+    /// the request. One returned without a usable key is dropped from the entries *and* the captured membership,
+    /// so the reviewed list and the encryption recipients stay in agreement.
     @Sendable func fetchEntries(
       userIDs: OrderedSet<User.ID>,
       groupIDs: Array<UserGroup.ID>,
@@ -273,8 +269,12 @@ extension PermissionSnapshotService {
 
     var changedMemberships: Bool = false
     for (id, group): (UserGroup.ID, PermissionSnapshotGroup) in confirmed.groups {
+      // Compared as sets. Membership is stored ordered so the group drill-down lists its members the same way
+      // twice running, but `OrderedSet` equality is order-sensitive and the server promises no order at all - so
+      // comparing the captures directly reports drift for a group whose members merely came back rearranged, and
+      // stops an operation nothing has actually changed under.
       guard let currentGroup: PermissionSnapshotGroup = current.group(id),
-        currentGroup.members != group.members
+        Set(currentGroup.members) != Set(group.members)
       else { continue }
       changedMemberships = true
       changedRecipients.append(group.name)

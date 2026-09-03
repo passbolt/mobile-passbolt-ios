@@ -27,7 +27,6 @@ extension FeaturesRegistry {
 
   public mutating func usePassboltResourcesModule() {
     self.usePassboltResourceController()
-    self.usePassboltResourceShareForm()
     self.usePassboltResourceEditPreparation()
     self.usePassboltResourceEditForm()
     self.usePassboltResourceFolders()

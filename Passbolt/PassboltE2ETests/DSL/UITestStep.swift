@@ -43,6 +43,16 @@ extension UITestStep {
       )
     }
   }
+
+  /// Closes the keyboard if one is up. Anything anchored to the bottom of a screen sits under it, so a tap meant
+  /// for a button there lands on a key instead.
+  @MainActor
+  func dismissKeyboardIfPresent() {
+    guard self.application.keyboards.count > 0,
+      self.application.keyboards.buttons["Return"].exists
+    else { return }
+    self.application.keyboards.buttons["Return"].tap()
+  }
 }
 
 @resultBuilder

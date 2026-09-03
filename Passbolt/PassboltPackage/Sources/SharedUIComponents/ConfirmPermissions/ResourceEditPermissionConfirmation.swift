@@ -27,13 +27,9 @@ import FeatureScopes
 import Metadata
 import Resources
 
-/// Drives the permission confirmation interposed before a resource secret is encrypted for others.
-///
-/// Every way of creating or editing a resource follows the same rules - the resource form, and the TOTP QR code
-/// scanning flows (creating a standalone TOTP, or linking a scanned code to an existing resource) - so they live
-/// here rather than in any single screen. The presenting screen supplies only what to do once the confirmed
-/// operation succeeded, and keeps a reference to this object for as long as the confirmation may be on screen:
-/// it owns the resource created by an abandoned attempt, and the `Features` branch the form belongs to.
+/// Drives the permission confirmation interposed before a resource secret is encrypted for others, shared by the
+/// resource form and both TOTP scanning flows. The presenting screen retains this object while the confirmation
+/// may be up: it owns any resource an abandoned attempt created.
 @MainActor public final class ResourceEditPermissionConfirmation {
 
   /// Invoked once the confirmed operation reached the server and the confirmation screen was left, with the
@@ -43,24 +39,19 @@ import Resources
   /// retry its own submission afterwards.
   public typealias OnInvalidMetadataKey = @MainActor @Sendable (MetadataPinnedKeyValidationError.Reason) async ->
     Void
-  /// Invoked when the operator backed out of the confirmation with nothing applied. Lets a screen that retains this
-  /// flow only while its confirmation may be displayed release it right away - and with it the editing scope
-  /// branched for that submission, which holds the decrypted secret.
+  /// Backed out with nothing applied - lets a screen release this flow at once, and with it the editing scope
+  /// holding the decrypted secret.
   public typealias OnCancelled = @MainActor @Sendable () -> Void
 
   private let features: Features
   private let resourceEditForm: ResourceEditForm
-  /// Whether the form edits a resource that already exists on the server. Captured from the editing context
-  /// rather than read from the form, which stops looking local once the create flow created the resource.
+  /// Captured from the editing context, not the form, which stops looking local once the create flow ran.
   private let editsExisting: Bool
 
-  /// Resource created during the current create-in-shared-folder confirmation. Retained across drift retries so
-  /// the resource is created only once - subsequent attempts re-apply the permissions to the same resource.
+  /// Retained across drift retries so the resource is created once and later attempts re-share the same one.
   private var confirmationCreatedResource: Resource?
 
-  /// Whether this flow put the confirmation screen up and has not seen it leave yet. Navigation alone cannot tell
-  /// "the confirmation is displayed" apart from "there is nothing to push onto", and the two call for opposite
-  /// answers - the first means this flow is already driving the submission, the second that it never started.
+  /// Navigation alone cannot tell "already displayed" from "nothing to push onto", which need opposite answers.
   private var confirmationPresented: Bool = false
 
   public init(
@@ -87,11 +78,6 @@ import Resources
       let folderID: ResourceFolder.ID = try await self.resourceEditForm.state.value.parentFolderID
     else { return false }
 
-    // Registered in both the app and the autofill extension, so the confirmation applies wherever a resource can
-    // be created in a shared folder.
-    //
-    // A resource created by a confirmation that was abandoned afterwards still has to be shared, never created
-    // again - so it always reopens the confirmation, whatever the folder's current state says.
     let awaitingShare: Bool = self.confirmationCreatedResource != nil
 
     let navigationToConfirmPermissions: NavigationToConfirmPermissions = try self.features.instance()
@@ -101,15 +87,11 @@ import Resources
     let currentAccount: Account = try self.features.sessionAccount()
     let snapshot: PermissionSnapshot = try await permissionSnapshotService.forFolder(folderID)
     // Creating in a private folder implies no sharing - keep the resource private.
-    guard awaitingShare || Self.folderIsShared(snapshot, operatorID: currentAccount.userID)
+    guard awaitingShare || Self.isShared(snapshot, operatorID: currentAccount.userID)
     else { return self.skippingConfirmation("create - parent folder is not shared") }
 
-    // `confirmationCreatedResource` is deliberately NOT cleared here: if a previous confirmation created the
-    // resource and was then abandoned (drift, a failed share, or the operator backing out), reopening the
-    // confirmation must share that same resource rather than create a second one.
     let context: ConfirmPermissionsContext = .init(
-      // Editable when the operator owns the parent folder; otherwise they may only review the inherited list.
-      mode: .create(editable: Self.operatorOwnsFolder(snapshot, operatorID: currentAccount.userID)),
+      mode: .create(editable: Self.operatorOwns(snapshot, operatorID: currentAccount.userID)),
       snapshot: snapshot,
       operatorID: currentAccount.userID,
       onConfirm: { [weak self] (confirmed: OrderedSet<ResourcePermission>, currentSnapshot: PermissionSnapshot) in
@@ -119,15 +101,12 @@ import Resources
             resourceShareConfirmation: resourceShareConfirmation,
             navigationToConfirmPermissions: navigationToConfirmPermissions,
             folderID: folderID,
-            operatorID: currentAccount.userID,
             snapshot: currentSnapshot,
             confirmed: confirmed,
             onApplied: onApplied,
             onInvalidMetadataKey: onInvalidMetadataKey
           ) ?? .failed
       },
-      // The confirmation screen reverts itself and the form is left untouched - but a resource created by an
-      // earlier attempt exists by now, so the operator is told rather than left with a silent orphan.
       onCancel: { @MainActor [weak self] in
         self?.confirmationDismissed()
         self?.notifyResourceAwaitingShare()
@@ -140,10 +119,8 @@ import Resources
   /// confirmation flow runs the edit on confirm. Returns `false` for new resources, private resources or
   /// metadata-only edits, where the caller performs the normal submission.
   ///
-  /// `onCancelled` is for a screen that retains this flow only while its confirmation may be displayed: backing out
-  /// leaves nothing to resume, so the flow - and the editing scope it owns, holding the decrypted secret - can be
-  /// released at once rather than at the next submission. Screens that keep one flow for their whole lifetime,
-  /// where the retention ends with the screen anyway, pass nothing.
+  /// `onCancelled` lets a short-lived screen release this flow, and the editing scope holding the decrypted
+  /// secret, as soon as the operator backs out.
   public func presentEditConfirmationIfNeeded(
     onApplied: @escaping OnApplied,
     onInvalidMetadataKey: @escaping OnInvalidMetadataKey,
@@ -154,21 +131,33 @@ import Resources
     let resource: Resource = try await self.resourceEditForm.state.value
     guard let resourceID: Resource.ID = resource.id
     else { return false }
-    guard resource.isShared
-    else { return self.skippingConfirmation("edit - resource is not shared") }
 
-    // A metadata-only edit never re-encrypts the secret for the recipients, so there is nothing to confirm.
+    // A metadata-only edit never re-encrypts the secret for the recipients, so there is nothing to confirm - and
+    // nothing to ask the server about. Checked before the capture below so those edits cost no round trip.
     guard self.resourceEditForm.isSecretEdited()
     else { return self.skippingConfirmation("edit - secret unchanged, metadata-only edit") }
 
     let navigationToConfirmPermissions: NavigationToConfirmPermissions = try self.features.instance()
     let permissionSnapshotService: PermissionSnapshotService = try self.features.instance()
     let currentAccount: Account = try self.features.sessionAccount()
+
+    // Captured first; everything below is decided from it, never from the local database. That copy is rebuilt
+    // only on sign-in and full refresh, so a recently shared resource still reads as private there - letting it
+    // gate this screen would skip the check in exactly the case it exists for. A failure stops the submission.
     let snapshot: PermissionSnapshot = try await permissionSnapshotService.forResource(resourceID)
+
+    guard Self.isShared(snapshot, operatorID: currentAccount.userID)
+    else {
+      return try await self.applyPrivateEdit(
+        snapshot: snapshot,
+        onApplied: onApplied,
+        onInvalidMetadataKey: onInvalidMetadataKey
+      )
+    }
 
     let context: ConfirmPermissionsContext = .init(
       // Editable when the operator owns the resource; read-only when they only hold the update permission.
-      mode: .edit(editable: resource.permission == .owner),
+      mode: .edit(editable: Self.operatorOwns(snapshot, operatorID: currentAccount.userID)),
       snapshot: snapshot,
       operatorID: currentAccount.userID,
       onConfirm: { [weak self] (confirmed: OrderedSet<ResourcePermission>, currentSnapshot: PermissionSnapshot) in
@@ -192,12 +181,31 @@ import Resources
     return try await self.present(navigationToConfirmPermissions, context: context)
   }
 
-  /// Whether the confirmation screen this flow presented is currently in the navigation stack.
-  ///
-  /// A flow may be reused for a repeated submission only while it is: that screen confirms into the flow it was
-  /// opened with, so replacing the flow behind it would leave its confirm button reporting a failure. Once the
-  /// operator left the screen there is nothing to confirm into, and a repeated submission has to run on a flow
-  /// built for the form it is submitting - by then the presenting screen may be submitting a different resource.
+  /// Saves a private edit without a screen, but not through the plain submission - that draws recipients from
+  /// the local database, which may still list people the resource was unshared from.
+  private func applyPrivateEdit(
+    snapshot: PermissionSnapshot,
+    onApplied: @escaping OnApplied,
+    onInvalidMetadataKey: @escaping OnInvalidMetadataKey
+  ) async throws -> Bool {
+    Diagnostics.logger
+      .info("Permission confirmation skipped: edit - resource is not shared")
+    do {
+      let resource: Resource = try await self.resourceEditForm.applyConfirmedPermissions(
+        snapshot.permissions,
+        snapshot
+      )
+      await onApplied(resource)
+    }
+    catch let error as MetadataPinnedKeyValidationError {
+      await onInvalidMetadataKey(error.reason)
+    }
+    // Nothing was presented, so there is nothing to leave - the caller must not submit again either way.
+    return true
+  }
+
+  /// Whether this flow's confirmation screen is still in the navigation stack. A flow may be reused for a repeated
+  /// submission only while it is - the screen confirms into the flow it was opened with.
   public func isConfirmationDisplayed() throws -> Bool {
     guard self.confirmationPresented
     else { return false }
@@ -205,18 +213,8 @@ import Resources
     return navigationToConfirmPermissions.canPerform() == false
   }
 
-  /// Puts the confirmation screen up and reports that it took over, unless this flow already has it on screen.
-  ///
-  /// A submission can re-enter this while the confirmation is still displayed: trusting a rotated metadata key
-  /// runs the presenting screen's submission again from the start, and the confirmation screen it was rejected
-  /// from is still in the navigation stack. The destination is unique, so pushing it a second time throws (and
-  /// trips an assertion in debug builds), which would report a failed submission for a screen that is displayed
-  /// and ready to be confirmed. The screen already up is the one to confirm from, so navigation is left alone and
-  /// the operator confirms the recipients again.
-  ///
-  /// `canPerform` reports the same `false` when there is no navigation state to push onto at all - a submission
-  /// this flow never presented anything for. Reporting "took over" for it would drop the submission with nothing
-  /// on screen and nothing said, so the push is attempted and its failure surfaced like any other.
+  /// Puts the confirmation up and reports that it took over, unless this flow already has it on screen -
+  /// trusting a rotated metadata key re-runs the submission while it is, and the destination is unique.
   private func present(
     _ navigationToConfirmPermissions: NavigationToConfirmPermissions,
     context: ConfirmPermissionsContext
@@ -236,10 +234,7 @@ import Resources
     self.confirmationPresented = false
   }
 
-  /// Records why no confirmation was shown, and reports "not needed" to the caller. Every reason is a legitimate
-  /// one, so nothing is surfaced to the operator - but a secret encrypted for others without the checkpoint would
-  /// otherwise leave no trace of the decision, which makes a skipped confirmation impossible to explain after the
-  /// fact. Reasons name no secret or recipient, only the shape of the decision.
+  /// Logs why no confirmation was shown, so a skipped checkpoint leaves a trace naming no secret or recipient.
   private func skippingConfirmation(
     _ reason: String
   ) -> Bool {
@@ -247,24 +242,20 @@ import Resources
     return false
   }
 
-  /// Tells the operator that backing out left a created-but-unshared resource behind. It is private and owned by
-  /// them, and submitting the form again shares that same resource instead of creating a second one.
+  /// Tells the operator that backing out left a private resource behind, which resubmitting will share.
   private func notifyResourceAwaitingShare() {
     guard self.confirmationCreatedResource != nil
     else { return }
     SnackBarMessageEvent.send("resource.permission.confirm.create.pending.share")
   }
 
-  /// Runs after the operator confirms permissions in the create flow: creates the resource privately (once), then
-  /// applies the confirmed permissions. On drift the screen reopens with refreshed folder permissions so the
-  /// operator can review and retry the share (the resource is not re-created). If the operator backs out after
-  /// creation the resource is left private and can be shared later.
+  /// Creates the resource privately once, then grants the confirmed recipients; drift reopens without
+  /// re-creating it.
   private func applyConfirmedCreate(
     permissionSnapshotService: PermissionSnapshotService,
     resourceShareConfirmation: ResourceShareConfirmation,
     navigationToConfirmPermissions: NavigationToConfirmPermissions,
     folderID: ResourceFolder.ID,
-    operatorID: User.ID,
     snapshot: PermissionSnapshot,
     confirmed: OrderedSet<ResourcePermission>,
     onApplied: @escaping OnApplied,
@@ -282,13 +273,7 @@ import Resources
         self.confirmationCreatedResource = resource
       }
 
-      // The created resource carries the operator's own owner permission, whose identifier the share step needs
-      // to align it with the confirmed list.
-      guard let resourceID: Resource.ID = resource.id,
-        let ownPermissionID: Permission.ID = resource.permissions.first(where: {
-          $0.userID == operatorID
-        })?
-        .permissionID
+      guard let resourceID: Resource.ID = resource.id
       else {
         SnackBarMessageEvent.send(.error("resource.form.error.invalid"))
         return .failed
@@ -297,24 +282,18 @@ import Resources
       do {
         try await resourceShareConfirmation.applyToCreatedResource(
           resourceID,
-          ownPermissionID,
           folderID,
           confirmed,
           snapshot
         )
       }
       catch let error as PermissionDriftDetected {
-        // Reopen with refreshed folder permissions; the resource stays created (private) meanwhile. The error
-        // names the recipients behind the drift, so the operator understands why the list just changed - sent
-        // before the refresh, which may fail on its own and would otherwise replace the explanation.
         SnackBarMessageEvent.send(.error(error.displayableMessage))
-        return await self.reopenWithRefreshed {
+        return await self.reopenWithRefreshed(permissionSnapshotService, confirmed: confirmed) {
           try await permissionSnapshotService.forFolder(folderID)
         }
       }
 
-      // Fully shared - the operation succeeded. Nothing below may turn that into a failure: the confirmation
-      // screen would stay up and a second confirm would re-apply permissions the resource already carries.
       self.confirmationCreatedResource = .none
       await self.finishConfirmed(
         navigationToConfirmPermissions: navigationToConfirmPermissions,
@@ -336,10 +315,7 @@ import Resources
     }
   }
 
-  /// Runs after the operator confirms permissions in the edit flow: re-checks drift against the resource's current
-  /// permissions and, if clear, applies the edit with the confirmed recipients in the safe order (remove →
-  /// update+re-encrypt for kept → grant added). For a read-only edit the confirmed set equals the current one, so
-  /// this reduces to a plain re-encrypting update.
+  /// Re-checks drift, then applies the edit in the safe order.
   private func applyConfirmedEdit(
     permissionSnapshotService: PermissionSnapshotService,
     navigationToConfirmPermissions: NavigationToConfirmPermissions,
@@ -371,7 +347,14 @@ import Resources
       guard drift.hasDrift == false
       else {
         SnackBarMessageEvent.send(.error(drift.displayableMessage))
-        return .retryWithRefreshed(currentSnapshot)
+        // `currentSnapshot` already describes the added recipients - it was widened for the drift check - so the
+        // reopen only needs the grants themselves back; its permissions are still the server's own.
+        return .retryWithRefreshed(
+          currentSnapshot,
+          restoring: .init(
+            confirmed.filter { (permission: ResourcePermission) -> Bool in permission.permissionID == .none }
+          )
+        )
       }
 
       let resource: Resource = try await self.resourceEditForm.applyConfirmedPermissions(confirmed, snapshot)
@@ -389,12 +372,11 @@ import Resources
       return .failed
     }
     catch let error as PermissionsPartiallyApplied {
-      // Part of the change landed before failing, so the reviewed list is stale by our own doing. Surface the
-      // cause that stopped the operation and reopen with the real state, so the next attempt starts from it
-      // instead of tripping the drift check on our own revocation.
+      // Part of it landed, so the reviewed list is stale by our own doing - reopen on the real state, or the
+      // next attempt trips the drift check on our own change.
       error.logged()
       SnackBarMessageEvent.send(.error(error.displayableMessage))
-      return await self.reopenWithRefreshed {
+      return await self.reopenWithRefreshed(permissionSnapshotService, confirmed: confirmed) {
         try await permissionSnapshotService.forResource(resourceID)
       }
     }
@@ -402,7 +384,7 @@ import Resources
       // Drift found while applying rather than by the pre-check: reopen with fresh data, as the create flow does.
       error.logged()
       SnackBarMessageEvent.send(.error(error.displayableMessage))
-      return await self.reopenWithRefreshed {
+      return await self.reopenWithRefreshed(permissionSnapshotService, confirmed: confirmed) {
         try await permissionSnapshotService.forResource(resourceID)
       }
     }
@@ -413,9 +395,7 @@ import Resources
     }
   }
 
-  /// Sends any edit made to the form since an earlier confirmation attempt created the resource. The form was
-  /// pointed at the created resource on creation, so this submits an update rather than creating a second one.
-  /// Nothing is sent when the form still matches what was created.
+  /// Sends any edit made since an earlier attempt created the resource; nothing when the form still matches.
   private func flushEditsToCreatedResource(
     _ created: Resource
   ) async throws -> Resource {
@@ -429,16 +409,9 @@ import Resources
     return updated
   }
 
-  /// Hands over to the presenting screen once a confirmed operation reached the server, and makes sure the
-  /// confirmation screen is gone afterwards.
-  ///
-  /// The presenting screen returns to where its flow started, which sits below the confirmation - and reverting
-  /// to it removes everything above it, the confirmation included, in a single navigation change. Popping the
-  /// confirmation first would make it two changes in a row, and the second one, applied while the first is still
-  /// transitioning, is dropped - leaving the operator on the screen the confirmation was opened from.
-  ///
-  /// Navigation failures are logged rather than propagated: the change is already applied, and turning one into a
-  /// failed outcome would keep the operator on the confirmation screen, free to apply it a second time.
+  /// Hands over to the presenting screen, which returns to below the confirmation - one navigation change
+  /// removes both, where popping first would make it two and the second is dropped mid-transition. Failures are
+  /// logged rather than thrown, since the change already landed.
   private func finishConfirmed(
     navigationToConfirmPermissions: NavigationToConfirmPermissions,
     resource: Resource,
@@ -458,14 +431,35 @@ import Resources
     }
   }
 
-  /// Refreshed permissions for the confirmation screen to reopen with. Falls back to `.failed` (the screen keeps
-  /// what it shows) when even the refresh fails - the message explaining why is already on screen either way.
+  /// Refreshed permissions to reopen with, still describing the operator's added grants so they survive it.
   private func reopenWithRefreshed(
+    _ permissionSnapshotService: PermissionSnapshotService,
+    confirmed: OrderedSet<ResourcePermission>,
     _ refresh: () async throws -> PermissionSnapshot
   ) async -> ConfirmPermissionsOutcome {
     do {
       let refreshed: PermissionSnapshot = try await refresh()
-      return .retryWithRefreshed(refreshed)
+      let additions: OrderedSet<ResourcePermission> = .init(
+        confirmed.filter { (permission: ResourcePermission) -> Bool in permission.permissionID == .none }
+      )
+      guard additions.isEmpty == false
+      else { return .retryWithRefreshed(refreshed, restoring: .init()) }
+
+      // A recipient the widening cannot cover is one nobody can encrypt for; the reopen drops them on its own
+      // rather than losing the refreshed list too.
+      let described: PermissionSnapshot
+      do {
+        described = try await permissionSnapshotService.expanding(
+          refreshed,
+          additions.compactMap(\.userID),
+          additions.compactMap(\.userGroupID)
+        )
+      }
+      catch {
+        error.logged()
+        described = refreshed
+      }
+      return .retryWithRefreshed(described, restoring: additions)
     }
     catch {
       error.logged()
@@ -473,36 +467,31 @@ import Resources
     }
   }
 
-  private static func folderIsShared(
+  /// Whether the capture holds anyone but the operator as sole owner - measured against the snapshot, never the
+  /// local database, since it decides whether a secret reaches someone else.
+  private static func isShared(
     _ snapshot: PermissionSnapshot,
     operatorID: User.ID
   ) -> Bool {
-    snapshot.permissions.contains { (permission: ResourcePermission) -> Bool in
-      switch permission {
-      case .userGroup:
-        return true
+    guard snapshot.permissions.count == 1,
+      let only: ResourcePermission = snapshot.permissions.first
+    else { return snapshot.permissions.isEmpty == false }
 
-      case .user(let id, _, _):
-        return id != operatorID
-      }
+    switch only {
+    case .userGroup:
+      return true
+
+    case .user(let id, let level, _):
+      return id != operatorID || level != .owner
     }
   }
 
-  /// Whether the operator owns the parent folder, directly or through a group holding ownership on it - the
-  /// server evaluates ownership the same way, so an owner by group membership may edit the permissions too.
-  private static func operatorOwnsFolder(
+  /// Whether the operator owns the captured ACO - an owner by group membership may edit the permissions too.
+  private static func operatorOwns(
     _ snapshot: PermissionSnapshot,
     operatorID: User.ID
   ) -> Bool {
-    snapshot.permissions.contains { (permission: ResourcePermission) -> Bool in
-      switch permission {
-      case .user(let id, let level, _):
-        return id == operatorID && level == .owner
-
-      case .userGroup(let id, let level, _):
-        return level == .owner && (snapshot.group(id)?.members.contains(operatorID) ?? false)
-      }
-    }
+    snapshot.grantsOwnership(to: operatorID, in: snapshot.permissions)
   }
 }
 

@@ -28,15 +28,11 @@ import Resources
 import SessionData
 import Users
 
-/// A single rendered row of the confirmation list. Each row is a navigation entry into the recipient's details
-/// screen (where the permission level is adjusted). `editable` is false in read-only mode and always false for the
-/// operator's own row; it drives whether removal (swipe) and level editing are offered.
 internal enum ConfirmPermissionRowItem: Equatable, Hashable, Sendable {
 
   case user(UserPermissionDetailsDSV, editable: Bool)
   case group(UserGroupPermissionDetailsDSV, editable: Bool)
 
-  /// Stable identity of the row: the recipient it grants access to, independent of the level it currently holds.
   internal var recipientID: String {
     switch self {
     case .user(let details, _):
@@ -57,9 +53,11 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     internal var mode: ConfirmPermissionsMode
     internal var rows: Array<ConfirmPermissionRowItem>
     internal var loading: Bool = false
-    /// Warning shown above the list when a recipient would receive access more than once (directly and through a
-    /// group, or through several groups). Nil when no recipient is granted redundantly.
+    /// Set when a recipient would receive access more than once - directly and by group, or by several groups.
     internal var duplicateWarning: DisplayableString?
+    /// Set when the edited set breaks ``ConfirmPermissionsMode/ownershipRule``. Blocks confirmation, unlike the
+    /// duplicate warning.
+    internal var ownershipWarning: DisplayableString?
   }
 
   internal let viewState: ViewStateSource<ViewState>
@@ -73,7 +71,7 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
   private let sessionData: SessionData
   private let users: Users
 
-  /// Current snapshot backing the list. Replaced via ``reset(snapshot:)`` when the flow reopens after drift.
+  /// Current snapshot backing the list. Replaced via ``reset(snapshot:restoring:)`` when the flow reopens.
   private var snapshot: PermissionSnapshot
   /// Editable recipient set, seeded from the snapshot. The encryption is bound to whatever is confirmed here.
   private var editedPermissions: OrderedSet<ResourcePermission>
@@ -91,20 +89,27 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     self.sessionData = try features.instance()
     self.users = try features.instance()
     self.snapshot = context.snapshot
-    self.editedPermissions = context.snapshot.permissions
+    // The edited set, not the snapshot, is what gets applied - it starts as a copy of the captured permissions.
+    let initialPermissions: OrderedSet<ResourcePermission> = context.snapshot.permissions
+    self.editedPermissions = initialPermissions
 
     self.viewState = .init(
       initial: .init(
         mode: context.mode,
         rows: Self.rows(
-          for: context.snapshot.permissions,
+          for: initialPermissions,
           snapshot: context.snapshot,
-          editable: context.mode.isEditable,
-          operatorID: context.operatorID
+          editable: context.mode.isEditable
         ),
         duplicateWarning: Self.duplicateAccessWarning(
-          for: context.snapshot.permissions,
+          for: initialPermissions,
           snapshot: context.snapshot
+        ),
+        ownershipWarning: Self.ownershipWarning(
+          for: initialPermissions,
+          snapshot: context.snapshot,
+          mode: context.mode,
+          operatorID: context.operatorID
         )
       )
     )
@@ -116,23 +121,56 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     self.users.loadAvatar(for: userID)
   }
 
-  /// Reopens the list with fresh server data after drift was detected on confirmation, so the operator reviews
-  /// the recipients as they now stand. Any pending edits are dropped with the snapshot they were made against.
+  /// Reopens on fresh server data after drift. Edits to recipients the server already holds go with the stale
+  /// snapshot; `additions` are restored, since a fresh capture cannot list grants the server never held.
   internal func reset(
-    snapshot: PermissionSnapshot
+    snapshot: PermissionSnapshot,
+    restoring additions: OrderedSet<ResourcePermission> = .init()
   ) {
     self.snapshot = snapshot
-    self.editedPermissions = snapshot.permissions
+    var permissions: OrderedSet<ResourcePermission> = snapshot.permissions
+
+    for addition: ResourcePermission in additions
+    where Self.describes(snapshot, addition) && Self.grants(permissions, to: addition) == false {
+      permissions.append(addition)
+    }
+    self.editedPermissions = permissions
     self.refreshRows()
+  }
+
+  /// Whether the snapshot describes the recipient a permission names.
+  private static func describes(
+    _ snapshot: PermissionSnapshot,
+    _ permission: ResourcePermission
+  ) -> Bool {
+    switch permission {
+    case .user(let userID, _, _):
+      return snapshot.user(userID) != nil
+
+    case .userGroup(let groupID, _, _):
+      return snapshot.group(groupID) != nil
+    }
+  }
+
+  /// Whether the set already grants access to the recipient a permission names, at any level.
+  private static func grants(
+    _ permissions: OrderedSet<ResourcePermission>,
+    to permission: ResourcePermission
+  ) -> Bool {
+    switch permission {
+    case .user(let userID, _, _):
+      return permissions.contains { $0.userID == userID }
+
+    case .userGroup(let groupID, _, _):
+      return permissions.contains { $0.userGroupID == groupID }
+    }
   }
 
   internal func setUserPermission(
     _ userID: User.ID,
     to permission: Permission
   ) {
-    // The operator must remain an owner - the view does not offer it, this holds it at the controller boundary.
-    guard self.context.mode.isEditable,
-      userID != self.context.operatorID
+    guard self.context.mode.isEditable
     else { return }
     self.editedPermissions = OrderedSet(
       self.editedPermissions.map { (existing: ResourcePermission) -> ResourcePermission in
@@ -171,8 +209,7 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
   internal func removeUser(
     _ userID: User.ID
   ) {
-    guard self.context.mode.isEditable,
-      userID != self.context.operatorID
+    guard self.context.mode.isEditable
     else { return }
     self.editedPermissions = OrderedSet(
       self.editedPermissions.filter { $0.userID != userID }
@@ -196,10 +233,6 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     guard self.context.mode.isEditable
     else { return }
 
-    // The picker searches the local database, so pull the workspace users and groups from the server first -
-    // otherwise a recently invited user or a new group would not be offered. Only those two are refreshed; a
-    // full session refresh would also pull metadata, folders and every resource. A failed refresh is not fatal:
-    // the picker still opens with the cached lists.
     self.viewState.update(\.loading, to: true)
     do {
       try await self.sessionData.refreshUsersAndGroups()
@@ -224,13 +257,6 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     }
   }
 
-  /// Adds the recipients picked in the search screen: expands the snapshot with their keys/membership (so the
-  /// encryption can bind to them) and grants them the default `read` permission.
-  ///
-  /// Only recipients the expanded snapshot actually describes are granted. A picked user the server returned
-  /// without a usable key is described by nobody: granting them would add a permission that renders no row (the
-  /// list only shows described recipients) and that no secret can be encrypted for - an invisible grant, which is
-  /// exactly what this screen exists to prevent. They are dropped and the operator is told.
   private func handleAddedRecipients(
     users: Array<User.ID>,
     groups: Array<UserGroup.ID>
@@ -268,9 +294,6 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     }
   }
 
-  /// Warns when a recipient would receive access more than once - granted directly while already a member of a
-  /// confirmed group, or a member of several confirmed groups. Recomputed with the rows, so removing the redundant
-  /// grant clears the warning.
   private static func duplicateAccessWarning(
     for permissions: OrderedSet<ResourcePermission>,
     snapshot: PermissionSnapshot
@@ -323,20 +346,45 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     }
   }
 
+  /// Both rules resolve ownership through the capture's groups, so dropping the group that owns on someone's
+  /// behalf counts the same as dropping their own row.
+  private static func ownershipWarning(
+    for permissions: OrderedSet<ResourcePermission>,
+    snapshot: PermissionSnapshot,
+    mode: ConfirmPermissionsMode,
+    operatorID: User.ID
+  ) -> DisplayableString? {
+    switch mode.ownershipRule {
+    case .none:
+      return .none
+
+    case .some(.operatorRemainsOwner):
+      guard snapshot.grantsOwnership(to: operatorID, in: permissions) == false
+      else { return .none }
+      return .localized(key: "resource.permission.confirm.owner.required.message")
+
+    case .some(.anyOwnerRemains):
+      // Ownership held through a group counts, so a hand-over to a group of owners is not an ownerless set.
+      guard
+        permissions.contains(where: { (permission: ResourcePermission) -> Bool in permission.permission.isOwner })
+          == false
+      else { return .none }
+      return .localized(key: "resource.permission.confirm.owner.any.required.message")
+    }
+  }
+
   private func duplicateAccessWarning() -> DisplayableString? {
     Self.duplicateAccessWarning(for: self.editedPermissions, snapshot: self.snapshot)
   }
 
-  /// Opens the details screen for a user recipient. The level picked there is reported back via `setPermission`,
-  /// keeping the edited recipient set - and the encryption bound to it - in sync.
+  /// Opens a user recipient's details; the level picked there comes back via `setPermission`.
   internal func openUserDetails(
     _ userID: User.ID
   ) async {
     guard let user: PermissionSnapshotUser = self.snapshot.user(userID),
       let level: Permission = self.editedPermissions.first(where: { $0.userID == userID })?.permission
     else { return }
-    // The operator must remain an owner, so their own row is never editable here.
-    let editable: Bool = self.context.mode.isEditable && userID != self.context.operatorID
+    let editable: Bool = self.context.mode.isEditable
     await consumingErrors {
       try await self.navigationToUserDetails.perform(
         context: .init(
@@ -353,14 +401,16 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
           editable: editable,
           setPermission: { [weak self] (permission: Permission) in
             await self?.setUserPermission(userID, to: permission)
+          },
+          remove: { [weak self] in
+            await self?.removeUser(userID)
           }
         )
       )
     }
   }
 
-  /// Opens the details screen for a group recipient (members preview + level picker). The level picked there is
-  /// reported back via `setPermission`.
+  /// Opens a group recipient's details - members preview and level picker.
   internal func openGroupDetails(
     _ groupID: UserGroup.ID
   ) async {
@@ -384,6 +434,9 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
           editable: self.context.mode.isEditable,
           setPermission: { [weak self] (permission: Permission) in
             await self?.setUserGroupPermission(groupID, to: permission)
+          },
+          remove: { [weak self] in
+            await self?.removeUserGroup(groupID)
           }
         )
       )
@@ -391,6 +444,9 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
   }
 
   internal func confirm() async {
+    // The button is disabled while this is set; this guard is what actually blocks.
+    guard await self.viewState.current.ownershipWarning == .none
+    else { return }
     self.viewState.update(\.loading, to: true)
     let outcome: ConfirmPermissionsOutcome = await self.context.onConfirm(self.editedPermissions, self.snapshot)
     self.viewState.update(\.loading, to: false)
@@ -401,9 +457,9 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     case .failed:
       break  // the flow already surfaced the error
 
-    case .retryWithRefreshed(let refreshedSnapshot):
+    case .retryWithRefreshed(let refreshedSnapshot, let restoredAdditions):
       // Drift: the flow surfaced a message and handed back fresh data; show the updated recipients to review.
-      self.reset(snapshot: refreshedSnapshot)
+      self.reset(snapshot: refreshedSnapshot, restoring: restoredAdditions)
     }
   }
 
@@ -418,24 +474,28 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
     let rows: Array<ConfirmPermissionRowItem> = Self.rows(
       for: self.editedPermissions,
       snapshot: self.snapshot,
-      editable: self.context.mode.isEditable,
-      operatorID: self.context.operatorID
+      editable: self.context.mode.isEditable
     )
     let duplicateWarning: DisplayableString? = self.duplicateAccessWarning()
+    let ownershipWarning: DisplayableString? = Self.ownershipWarning(
+      for: self.editedPermissions,
+      snapshot: self.snapshot,
+      mode: self.context.mode,
+      operatorID: self.context.operatorID
+    )
 
     self.viewState.update { (state: inout ViewState) in
       state.rows = rows
       state.duplicateWarning = duplicateWarning
+      state.ownershipWarning = ownershipWarning
     }
   }
 
-  /// Builds the flat row list from the confirmed permissions. A row is editable only in editable mode and never
-  /// for the operator's own permission; each row opens its recipient's details screen where the level is adjusted.
+  /// Builds the flat row list. Rows are editable exactly when the list is.
   private static func rows(
     for permissions: OrderedSet<ResourcePermission>,
     snapshot: PermissionSnapshot,
-    editable: Bool,
-    operatorID: User.ID
+    editable: Bool
   ) -> Array<ConfirmPermissionRowItem> {
     var rows: Array<ConfirmPermissionRowItem> = .init()
     rows.reserveCapacity(permissions.count)
@@ -448,7 +508,7 @@ internal final class ConfirmPermissionsController: @MainActor ViewController {
         rows.append(
           .user(
             Self.userDetails(from: user, level: level),
-            editable: editable && userID != operatorID
+            editable: editable
           )
         )
 

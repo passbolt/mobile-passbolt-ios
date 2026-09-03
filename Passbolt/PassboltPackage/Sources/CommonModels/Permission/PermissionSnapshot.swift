@@ -68,12 +68,9 @@ extension PermissionSnapshot {
     self.groups[id]
   }
 
-  /// Recipients this snapshot describes that `other` does not - the ones the operator added by hand, since a
-  /// fresh capture of the resource or folder only covers what already holds a permission on it.
-  ///
-  /// Drift is measured per recipient the two snapshots have in common, so an added recipient would otherwise
-  /// never have their key re-checked before the secret is encrypted for them. Re-capturing them into the current
-  /// snapshot first puts them back under the fingerprint and membership comparison.
+  /// Recipients this snapshot describes that `other` does not - the hand-added ones, since a fresh capture only
+  /// covers who already holds a permission. Drift compares recipients the two have in common, so without
+  /// re-capturing these their keys would go unchecked at the moment the secret is encrypted for them.
   public func recipientsMissing(
     from other: PermissionSnapshot
   ) -> (users: Array<User.ID>, groups: Array<UserGroup.ID>) {
@@ -85,6 +82,23 @@ extension PermissionSnapshot {
         other.groups[groupID] == nil
       }
     )
+  }
+
+  /// Whether the set leaves the operator an owner - directly, or through a group this snapshot records them in,
+  /// which is how the server evaluates it too. Membership is read from the capture, never the local database.
+  public func grantsOwnership(
+    to operatorID: User.ID,
+    in permissions: OrderedSet<ResourcePermission>
+  ) -> Bool {
+    permissions.contains { (permission: ResourcePermission) -> Bool in
+      switch permission {
+      case .user(let id, let level, _):
+        return id == operatorID && level == .owner
+
+      case .userGroup(let id, let level, _):
+        return level == .owner && (self.group(id)?.members.contains(operatorID) ?? false)
+      }
+    }
   }
 }
 

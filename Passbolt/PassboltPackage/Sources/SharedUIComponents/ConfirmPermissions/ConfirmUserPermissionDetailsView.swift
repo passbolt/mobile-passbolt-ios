@@ -82,8 +82,36 @@ internal struct ConfirmUserPermissionDetailsView: @MainActor ControlledView {
       self.permissionSection(with: state)
 
       Spacer()
+
+      self.actionsSection(with: state)
     }
     .padding(leading: 16, bottom: 16, trailing: 16)
+  }
+
+  /// Nothing here reaches the recipient list until one of these is used - the navigation bar's back button leaves
+  /// the recipient as it was.
+  @ViewBuilder private func actionsSection(
+    with state: Controller.ViewState
+  ) -> some View {
+    VStack(spacing: 8) {
+      if state.editable {
+        PrimaryButton(
+          title: .localized(key: .apply),
+          action: self.controller.apply
+        )
+        .accessibilityIdentifier("permissions.confirm.user.apply")
+
+        // Secondary rather than destructive: this drops a row from a list the operator is still composing, and
+        // nothing is sent until they confirm the whole thing. A red button overstates it.
+        SecondaryButton(
+          title: .localized(key: "resource.permission.confirm.action.remove"),
+          iconName: .trash,
+          action: self.controller.remove
+        )
+        .accessibilityIdentifier("permissions.confirm.user.remove")
+      }
+    }
+    .padding(top: 16)
   }
 
   @ViewBuilder private func permissionSection(
@@ -100,7 +128,7 @@ internal struct ConfirmUserPermissionDetailsView: @MainActor ControlledView {
         ForEach(Permission.allCases, id: \.self) { (permission: Permission) in
           AsyncButton(
             action: {
-              await self.controller.setPermission(permission)
+              self.controller.selectPermission(permission)
             },
             label: {
               HStack(spacing: 0) {

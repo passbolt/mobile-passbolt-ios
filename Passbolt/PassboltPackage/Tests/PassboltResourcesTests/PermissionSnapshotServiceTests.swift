@@ -102,6 +102,56 @@ final class PermissionSnapshotServiceTests: FeaturesTestCase {
     )
   }
 
+  /// The server promises no order for group members, so the same membership can come back rearranged between two
+  /// captures. That is not a change to review - reporting it aborts an operation nothing has happened under.
+  func test_drift_whenGroupMembershipIsOnlyReordered_reportsNoDrift() async throws {
+    let sut: PermissionSnapshotService = try self.testedInstance()
+    let groupID: UserGroup.ID = .init()
+    let confirmed: PermissionSnapshot = Self.snapshotWithGroup(
+      groupID: groupID,
+      members: [.mock_1, .mock_2]
+    )
+    let current: PermissionSnapshot = Self.snapshotWithGroup(
+      groupID: groupID,
+      members: [.mock_2, .mock_1]
+    )
+
+    let drift: PermissionDrift = sut.drift(confirmed, current)
+
+    await verifyIf(
+      drift.changedMemberships,
+      isEqual: false,
+      "The same members in a different order are the same members"
+    )
+    await verifyIf(
+      drift.hasDrift,
+      isEqual: false,
+      "A reordered group must not stop the operation"
+    )
+  }
+
+  /// Reordering must not mask a real change either - the set still has to be compared.
+  func test_drift_whenGroupMembershipIsReorderedAndChanged_reportsChangedMemberships() async throws {
+    let sut: PermissionSnapshotService = try self.testedInstance()
+    let groupID: UserGroup.ID = .init()
+    let confirmed: PermissionSnapshot = Self.snapshotWithGroup(
+      groupID: groupID,
+      members: [.mock_1, .mock_2]
+    )
+    let current: PermissionSnapshot = Self.snapshotWithGroup(
+      groupID: groupID,
+      members: [.mock_2, .mock_ada]
+    )
+
+    let drift: PermissionDrift = sut.drift(confirmed, current)
+
+    await verifyIf(
+      drift.changedMemberships,
+      isEqual: true,
+      "A swapped member is membership drift however the list is ordered"
+    )
+  }
+
   func test_drift_whenSnapshotsAreIdentical_namesNoRecipients() async throws {
     let sut: PermissionSnapshotService = try self.testedInstance()
     let snapshot: PermissionSnapshot = Self.snapshot()

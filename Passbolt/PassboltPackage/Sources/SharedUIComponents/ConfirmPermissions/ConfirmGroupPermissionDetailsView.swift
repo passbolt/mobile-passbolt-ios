@@ -67,8 +67,34 @@ internal struct ConfirmGroupPermissionDetailsView: @MainActor ControlledView {
       self.permissionSection(with: state)
 
       Spacer()
+
+      if state.editable {
+        self.actionsSection
+      }
     }
     .padding(leading: 16, bottom: 16, trailing: 16)
+  }
+
+  /// Nothing here reaches the recipient list until one of these is used - the navigation bar's back button leaves
+  /// the recipient as it was.
+  @ViewBuilder private var actionsSection: some View {
+    VStack(spacing: 8) {
+      PrimaryButton(
+        title: .localized(key: .apply),
+        action: self.controller.apply
+      )
+      .accessibilityIdentifier("permissions.confirm.group.apply")
+
+      // Secondary rather than destructive, as on the user details screen: this drops a row from a list still
+      // being composed, and nothing is sent until the whole list is confirmed.
+      SecondaryButton(
+        title: .localized(key: "resource.permission.confirm.action.remove"),
+        iconName: .trash,
+        action: self.controller.remove
+      )
+      .accessibilityIdentifier("permissions.confirm.group.remove")
+    }
+    .padding(top: 16)
   }
 
   @ViewBuilder private func membersSection(
@@ -116,7 +142,7 @@ internal struct ConfirmGroupPermissionDetailsView: @MainActor ControlledView {
         ForEach(Permission.allCases, id: \.self) { (permission: Permission) in
           AsyncButton(
             action: {
-              await self.controller.setPermission(permission)
+              self.controller.selectPermission(permission)
             },
             label: {
               HStack(spacing: 0) {

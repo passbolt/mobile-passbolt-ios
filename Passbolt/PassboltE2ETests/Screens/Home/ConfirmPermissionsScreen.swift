@@ -21,37 +21,39 @@
 // @since         v1.0
 //
 
-/// The "Confirm permissions" checkpoint shown before a secret is encrypted for others
-/// (create-in-shared-folder, edit-shared). The explicit share flow uses the dedicated share screen instead.
+/// The "Confirm permissions" checkpoint shown before a secret is encrypted for others - sharing a resource,
+/// editing a shared one, and creating one inside a shared folder. Sharing can never skip it.
 final internal class ConfirmPermissionsScreen: Screen {
 
+  /// The title varies by flow, so the confirm button - which every mode shows - is what identifies the screen.
   override internal var requiredElements: Array<XCUIElement> {
     [
-      title,
       confirmButton
     ]
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["Confirm permissions"]
+  /// Title shown when the screen is a checkpoint on a submitted create or edit form.
+  internal lazy var confirmTitle: XCUIElement = self.application.staticTexts["Confirm permissions"]
+  /// Title shown when the operator opened the screen to share - it keeps the dedicated share screen's title.
+  internal lazy var shareTitle: XCUIElement = self.application.staticTexts["Share password"]
   internal lazy var confirmButton: XCUIElement = self.application.buttons["permissions.confirm.button"]
   internal lazy var cancelButton: XCUIElement = self.application.buttons["permissions.confirm.cancel"]
   internal lazy var addButton: XCUIElement = self.application.buttons["permissions.confirm.add"]
   internal lazy var collectionView: XCUIElement = self.application.collectionViews.firstMatch
-  /// Warning shown when a recipient would receive access more than once (directly and through a group,
-  /// or through several groups).
+  internal lazy var ownershipWarning: XCUIElement =
+    self.element(identifiedBy: "permissions.confirm.ownership.warning")
   internal lazy var duplicateWarning: XCUIElement =
-    self.application.otherElements["permissions.confirm.duplicate.warning"]
-
-  /// A recipient row, addressed by the identity the operator sees - a username for a user, a name for a group.
-  /// Tapping it opens that recipient's details, where its permission level is adjusted.
+    self.element(identifiedBy: "permissions.confirm.duplicate.warning")
   internal func recipientRow(_ identity: String) -> XCUIElement {
     self.element(identifiedBy: "permissions.confirm.row.\(identity)")
   }
 
   // MARK: - Add users or groups
 
+  /// Queried as a text field on purpose: this screen sets the identifier on the whole `SearchView`, and SwiftUI
+  /// pushes it down onto the search icon as well, so matching on identifier alone can return the icon instead.
   internal lazy var addSearchField: XCUIElement =
-    self.element(identifiedBy: "permissions.confirm.add.search")
+    self.application.textFields["permissions.confirm.add.search"]
   internal lazy var addApplyButton: XCUIElement =
     self.element(identifiedBy: "permissions.confirm.add.apply")
 

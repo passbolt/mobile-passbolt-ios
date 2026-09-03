@@ -80,6 +80,16 @@ final class OTPEditFormViewControllerTests: FeaturesTestCase {
       \NavigationToOTPEditForm.mockRevert,
       with: always(Void())
     )
+    // Submitting a secret edit asks the server who holds the resource before deciding whether to confirm, so
+    // every test reaches this - defaulted to "nobody else holds it" and overridden where sharing is the point.
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
+    patch(
+      \PermissionSnapshotService.forFolder,
+      with: always(.mock_private)
+    )
   }
 
   func test_createOrUpdateOTP_presentsConfirmation_whenResourceIsShared() async throws {
@@ -111,13 +121,14 @@ final class OTPEditFormViewControllerTests: FeaturesTestCase {
     await fulfillment(of: [confirmationPresented], timeout: 1.0)
   }
 
+  /// The server's capture decides, not the cached resource - and a resource it reports as private is applied
+  /// against that capture rather than through the plain submission, which draws its recipients from the cache.
   func test_createOrUpdateOTP_submitsDirectly_whenResourceIsPrivate() async throws {
     let formSubmitted: XCTestExpectation = self.expectation(description: "Form should be submitted")
-    self.editedResource.mutate { (resource: inout Resource) in
-      resource.permissions = [
-        .user(id: .mock_ada, permission: .owner, permissionID: .mock_1)
-      ]
-    }
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
     patch(
       \NavigationToConfirmPermissions.mockPerform,
       with: { (_: Bool, _: ConfirmPermissionsContext) in
@@ -127,6 +138,14 @@ final class OTPEditFormViewControllerTests: FeaturesTestCase {
     patch(
       \ResourceEditForm.sendForm,
       with: { @MainActor in
+        XCTFail("The cached recipient set must not decide who the secret is encrypted for")
+        return self.editedResource.value
+      }
+    )
+    patch(
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (permissions: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
+        XCTAssertEqual(permissions, PermissionSnapshot.mock_private.permissions)
         formSubmitted.fulfill()
         return self.editedResource.value
       }
@@ -179,13 +198,7 @@ final class OTPEditFormViewControllerTests: FeaturesTestCase {
     patch(
       \ResourceShareConfirmation.applyToCreatedResource,
       with: {
-        @Sendable (
-          _: Resource.ID,
-          _: Permission.ID,
-          _: ResourceFolder.ID,
-          _: OrderedSet<ResourcePermission>,
-          _: PermissionSnapshot
-        ) throws in
+        @Sendable (_, _, _, _) throws in
         guard driftedOnce.get()
         else {
           driftedOnce.set(true)

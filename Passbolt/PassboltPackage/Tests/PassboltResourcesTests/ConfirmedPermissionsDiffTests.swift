@@ -171,6 +171,24 @@ final class ConfirmedPermissionsDiffTests: FeaturesTestCase {
       "A recipient the snapshot cannot describe holds no key, so no secret is prepared for them"
     )
   }
+
+  /// A permission carrying an identifier the original set does not know matches nothing: it is neither a grant
+  /// (it has an identifier) nor an update (no original names that recipient) - the recipient simply vanishes.
+  ///
+  /// This is why a flow whose pending permissions come from somewhere other than the snapshot - the share form
+  /// reads its identifiers from the local database - has to re-point them at the server's identifiers before
+  /// diffing. `ResourceSharePermissionConfirmation.reconciled(_:against:)` is what does it.
+  func test_diff_dropsAPermissionCarryingAnIdentifierTheOriginalDoesNotKnow() async throws {
+    let original: OrderedSet<ResourcePermission> = Self.original()
+    var confirmed: OrderedSet<ResourcePermission> = original
+    confirmed.append(.user(id: .mock_2, permission: .read, permissionID: .init()))
+
+    let diff: ConfirmedPermissionsDiff = .init(confirmed: confirmed, original: original)
+
+    await verifyIf(diff.created.isEmpty, isEqual: true, "It carries an identifier, so it is not a grant")
+    await verifyIf(diff.updated.isEmpty, isEqual: true, "No original names that recipient, so nothing to update")
+    await verifyIf(diff.deleted.isEmpty, isEqual: true, "Nothing is revoked either - the grant is simply lost")
+  }
 }
 
 // swift-format-ignore: AlwaysUseLowerCamelCase

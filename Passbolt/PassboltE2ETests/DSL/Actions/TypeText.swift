@@ -71,11 +71,9 @@ internal struct TypeText: UITestStep {
         }
       }
     }
-    // With animations disabled, the keyboard reports focus before it can reliably accept input,
-    // so a single fast typeText() can drop the first 1-2 characters. Clear + type + verify length;
-    // for secure fields `value` is a bullet string whose length equals the real text length.
-    // First try fast typing up to 3 times; if that still fails, fall back to slow per-character
-    // typing (also up to 3 times) before giving up.
+    // With animations disabled the keyboard reports focus before it accepts input, so a fast typeText() can drop
+    // the first characters. Clear, type, verify length - three fast attempts, then three per-character ones.
+    // A secure field's `value` is a bullet string of the same length as its contents.
     let maxFastAttempts: Int = 3
     var fastAttempt: Int = 0
     while fastAttempt < maxFastAttempts {
@@ -103,10 +101,19 @@ internal struct TypeText: UITestStep {
     )
   }
 
+  /// Empties the field in as many passes as it takes. The delete count comes from `value`, and a keystroke
+  /// landing mid-settle leaves a character behind, so one pass can fall short. Stops when the value no longer
+  /// shrinks - an empty field may report its placeholder, which deleting will never clear.
   @MainActor private func clearField() {
-    let currentValue: String = (self.element.value as? String) ?? ""
-    guard currentValue.isEmpty == false else { return }
-    self.element.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: currentValue.count))
+    let maxPasses: Int = 4
+    var previousLength: Int = .max
+    for _ in 0..<maxPasses {
+      let currentValue: String = (self.element.value as? String) ?? ""
+      guard currentValue.isEmpty == false, currentValue.count < previousLength
+      else { return }
+      previousLength = currentValue.count
+      self.element.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: currentValue.count))
+    }
   }
 
   @MainActor private func typedLengthMatches() -> Bool {
@@ -166,10 +173,7 @@ private struct DismissKeyboard: UITestStep {
 
   @MainActor internal func execute() throws {
     try after.execute()
-    if self.application.keyboards.count > 0, self.application.keyboards.buttons["Return"].exists
-    {
-      self.application.keyboards.buttons["Return"].tap()
-    }
+    self.dismissKeyboardIfPresent()
   }
 }
 

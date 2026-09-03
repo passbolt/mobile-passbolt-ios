@@ -38,9 +38,7 @@ internal struct ConfirmPermissionsView: @MainActor ControlledView {
   internal var body: some View {
     WithViewState(from: self.controller) { state in
       ScreenView(
-        title: .localized(
-          key: "resource.permission.confirm.title"
-        ),
+        title: state.mode.title,
         loading: state.loading
       ) {
         self.contentView(with: state)
@@ -53,6 +51,12 @@ internal struct ConfirmPermissionsView: @MainActor ControlledView {
     with state: Controller.ViewState
   ) -> some View {
     VStack(spacing: 0) {
+      if let ownershipWarning: DisplayableString = state.ownershipWarning {
+        WarningView(message: ownershipWarning)
+          .padding(top: 8, leading: 16, bottom: 8, trailing: 16)
+          .accessibilityIdentifier("permissions.confirm.ownership.warning")
+      }
+
       if let duplicateWarning: DisplayableString = state.duplicateWarning {
         WarningView(message: duplicateWarning)
           .padding(top: 8, leading: 16, bottom: 8, trailing: 16)
@@ -97,8 +101,11 @@ internal struct ConfirmPermissionsView: @MainActor ControlledView {
           title: .localized(
             key: "resource.permission.confirm.action.confirm"
           ),
+          // `disabled:` only tints the button; the modifier below is what stops the tap.
+          disabled: .constant(state.ownershipWarning != .none),
           action: self.controller.confirm
         )
+        .disabled(state.ownershipWarning != .none)
         .accessibilityIdentifier("permissions.confirm.button")
         SecondaryButton(
           title: .localized(
@@ -137,19 +144,11 @@ internal struct ConfirmPermissionsView: @MainActor ControlledView {
     for row: ConfirmPermissionRowItem
   ) -> some View {
     switch row {
-    case .user(let details, let editable):
-      self.rowWithRemove(
-        self.userRow(for: details),
-        editable: editable,
-        remove: { self.controller.removeUser(details.id) }
-      )
+    case .user(let details, _):
+      self.userRow(for: details)
 
-    case .group(let details, let editable):
-      self.rowWithRemove(
-        self.groupRow(for: details),
-        editable: editable,
-        remove: { self.controller.removeUserGroup(details.id) }
-      )
+    case .group(let details, _):
+      self.groupRow(for: details)
     }
   }
 
@@ -214,28 +213,6 @@ internal struct ConfirmPermissionsView: @MainActor ControlledView {
     HStack(spacing: 4) {
       ResourcePermissionTypeCompactView(permission: current)
       DisclosureIndicatorImage()
-    }
-  }
-
-  @ViewBuilder private func rowWithRemove<Row: View>(
-    _ row: Row,
-    editable: Bool,
-    remove: @escaping @MainActor () -> Void
-  ) -> some View {
-    if editable {
-      row
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-          Button(
-            role: .destructive,
-            action: remove,
-            label: {
-              Text(displayable: .localized(key: "resource.permission.confirm.action.remove"))
-            }
-          )
-        }
-    }
-    else {
-      row
     }
   }
 }

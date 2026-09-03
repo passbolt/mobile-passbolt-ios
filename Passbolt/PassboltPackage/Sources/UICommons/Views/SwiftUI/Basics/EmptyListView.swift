@@ -54,11 +54,13 @@ public struct EmptyListView: View {
         color: .passboltPrimaryText
       )
       Image(named: .emptyState)
-        .aspectRatio(1, contentMode: .fit)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+        .frame(maxWidth: 247, maxHeight: 150)
         .padding(
           top: 24,
-          leading: 64,
-          trailing: 64
+          leading: 16,
+          trailing: 16
         )
       Spacer()
     }
@@ -92,7 +94,7 @@ internal struct EmptyListViewCustomMessage_Previews: PreviewProvider {
 
   internal static var previews: some View {
     EmptyListView(
-      message: "Nothing here yet — a custom message long enough to wrap onto a second line"
+      message: "A custom message long enough to wrap onto a second line"
     )
   }
 }

@@ -67,7 +67,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
   private let navigationToSelf: NavigationToResourceContextualMenu
   private let navigationToDeleteAlert: NavigationToResourceDeleteAlert
-  private let navigationToShare: NavigationToResourceShare
   private let navigationToResourceEdit: NavigationToResourceEdit
 
   private let linkOpener: OSLinkOpener
@@ -99,7 +98,6 @@ internal final class ResourceContextualMenuViewController: ViewController {
 
     self.navigationToSelf = try features.instance()
     self.navigationToDeleteAlert = try features.instance()
-    self.navigationToShare = try features.instance()
     self.navigationToResourceEdit = try features.instance()
 
     self.resourceController = try features.instance()
@@ -322,7 +320,12 @@ extension ResourceContextualMenuViewController {
         let metadataKeysService: MetadataKeysService = try await self.features.instance()
         try await metadataKeysService.ensureCanEncrypt(resource: resource, forSharing: true)
         try await self.navigationToSelf.revert()
-        try await self.navigationToShare.perform(context: self.resourceID)
+        // The flow driving the confirmation outlives this menu, dismissed just above.
+        let permissionConfirmation: ResourceSharePermissionConfirmation = try await .init(
+          features: self.features,
+          resourceID: self.resourceID
+        )
+        try await permissionConfirmation.present()
       }
       catch let error as MetadataEncryptionKeyUnavailableError {
         SnackBarMessageEvent.send(.error(error))

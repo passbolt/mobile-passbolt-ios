@@ -29,9 +29,8 @@ import XCTest
 
 @testable import PassboltResources
 
-/// Covers `ResourceEditForm.applyConfirmedPermissions` — the security-critical edit pipeline that applies the
-/// operator-confirmed recipients in the doc's safe order: remove losing recipients, then re-encrypt the new secret
-/// for the recipients that keep access, then grant the newly-added recipients with the new secret.
+/// Covers `ResourceEditForm.applyConfirmedPermissions` - the edit pipeline, applying the confirmed recipients in
+/// the safe order: revoke, re-encrypt for those keeping access, then grant the newly added.
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 final class ResourceEditFormConfirmedPermissionsTests: FeaturesTestCase {
 
@@ -108,6 +107,55 @@ final class ResourceEditFormConfirmedPermissionsTests: FeaturesTestCase {
     await verifyIfNotThrows(
       try await tested.applyConfirmedPermissions(confirmed, snapshot)
     )
+    await fulfillment(of: [editCalled], timeout: 1.0)
+  }
+
+  /// `editResource` derives the metadata key type from `resource.isShared`, which counts the permissions the form
+  /// loaded - a stale copy makes a shared resource look personal and the server refuses the update. The confirmed
+  /// set was just checked against a fresh capture, so it decides this.
+  func test_applyConfirmed_sendsTheConfirmedRecipients_onTheUpdatedResource() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    var snapshot: PermissionSnapshot = Self.snapshot(
+      adaPermissionID: adaPermissionID,
+      otherPermissionID: otherPermissionID
+    )
+    // The form opened on a copy that knows of nobody but the operator - the state that made a shared resource
+    // look personal.
+    snapshot.permissions = [
+      .user(id: .mock_ada, permission: .owner, permissionID: adaPermissionID),
+      .user(id: .mock_1, permission: .owner, permissionID: otherPermissionID),
+    ]
+    // Nothing is changed, so the whole apply reduces to the update - exactly the reported scenario.
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions
+
+    let editCalled: XCTestExpectation = .init(description: "the resource is updated")
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: { (resource: Resource, _, _) in
+        XCTAssertEqual(
+          resource.permissions,
+          confirmed,
+          "The confirmed recipients travel with the update, not whatever the form happened to load"
+        )
+        XCTAssertTrue(
+          resource.isShared,
+          "A shared resource must not be sent as a personal one - the server refuses it"
+        )
+        editCalled.fulfill()
+        return .init(resource: .mock_1)
+      }
+    )
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { _ in XCTFail("Nothing changed, so no permission is shared") }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot)
+    )
+
     await fulfillment(of: [editCalled], timeout: 1.0)
   }
 
@@ -569,8 +617,326 @@ final class ResourceEditFormConfirmedPermissionsTests: FeaturesTestCase {
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals, NeverForceUnwrap
 extension ResourceEditFormConfirmedPermissionsTests {
 
-  /// A form editing a resource that does not exist yet, sitting in a folder - what the create-in-shared-folder
-  /// confirmation submits.
+  /// Handing the resource to a group the operator belongs to: their own row goes, but not alongside the step 1
+  /// revocations, or everything after would be asked for by a principal that just lost the right.
+  func test_applyConfirmed_sendsTheOperatorsOwnChangeLast() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    let groupPermissionID: Permission.ID = .init()
+    var snapshot: PermissionSnapshot = Self.snapshot(
+      adaPermissionID: adaPermissionID,
+      otherPermissionID: otherPermissionID
+    )
+    snapshot.groups[.mock_1] = .init(id: .mock_1, name: "Owners", members: [.mock_ada, .mock_1])
+    snapshot.permissions.append(.userGroup(id: .mock_1, permission: .owner, permissionID: groupPermissionID))
+    // Ada drops her own row; the group she belongs to keeps her an owner.
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_1, permission: .read, permissionID: otherPermissionID),
+      .userGroup(id: .mock_1, permission: .owner, permissionID: groupPermissionID),
+    ]
+
+    let calls: CriticalState<Array<ResourceShareNetworkOperationVariable>> = .init(.init())
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        calls.access { (recorded: inout Array<ResourceShareNetworkOperationVariable>) in
+          recorded.append(request)
+        }
+      }
+    )
+    let editCalled: XCTestExpectation = .init(description: "resource is re-encrypted via editResource")
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: { _, _, _ in
+        // Every share call before this point must be free of the operator's own change.
+        let sentSoFar: Array<ResourceShareNetworkOperationVariable> = calls.get()
+        XCTAssertFalse(
+          sentSoFar.contains { (request: ResourceShareNetworkOperationVariable) -> Bool in
+            request.body.deletedPermissions.contains { $0.id == adaPermissionID }
+          },
+          "The operator's own revocation must not precede the update"
+        )
+        editCalled.fulfill()
+        return .init(resource: .mock_1)
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot)
+    )
+
+    await fulfillment(of: [editCalled], timeout: 1.0)
+    let recorded: Array<ResourceShareNetworkOperationVariable> = calls.get()
+    XCTAssertTrue(
+      recorded.last?.body.deletedPermissions.contains { $0.id == adaPermissionID } ?? false,
+      "The operator's own change is the last thing sent"
+    )
+  }
+
+  /// E15: the operator hands ownership to a group added in the same review. Their row is in `deleted` and the
+  /// group in `created`, so neither puts them in the kept set - yet their permission still stands while the secret
+  /// rotates. The server validates the update against who holds access *at that moment*.
+  func test_applyConfirmed_reEncryptsForTheOperator_whenTheirRowGoesAndTheOwningGroupIsNew() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    var snapshot: PermissionSnapshot = Self.snapshot(
+      adaPermissionID: adaPermissionID,
+      otherPermissionID: otherPermissionID
+    )
+    // Added by hand during the review, so it holds no permission yet - only the expanded snapshot describes it.
+    snapshot.groups[.mock_1] = .init(id: .mock_1, name: "Owners", members: [.mock_ada, .mock_2])
+    snapshot.users[.mock_2] = PermissionSnapshotUser.mock(id: .mock_2)
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_1, permission: .read, permissionID: otherPermissionID),
+      .userGroup(id: .mock_1, permission: .owner, permissionID: .none),
+    ]
+
+    let editCalled: XCTestExpectation = .init(description: "the rotated secret covers everyone holding access")
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: { _, _, sentSecrets in
+        let secrets: OrderedSet<EncryptedMessage> = try XCTUnwrap(sentSecrets)
+        XCTAssertTrue(
+          secrets.contains { $0.recipient == .mock_ada },
+          "The operator still holds access here - their own row is revoked last"
+        )
+        XCTAssertTrue(secrets.contains { $0.recipient == .mock_1 }, "The kept member is re-encrypted for")
+        editCalled.fulfill()
+        return .init(resource: .mock_1)
+      }
+    )
+    let calls: CriticalState<Array<ResourceShareNetworkOperationVariable>> = .init(.init())
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        calls.access { (recorded: inout Array<ResourceShareNetworkOperationVariable>) in
+          recorded.append(request)
+        }
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot)
+    )
+
+    await fulfillment(of: [editCalled], timeout: 1.0)
+    let recorded: Array<ResourceShareNetworkOperationVariable> = calls.get()
+    XCTAssertTrue(
+      recorded.last?.body.deletedPermissions.contains { $0.id == adaPermissionID } ?? false,
+      "The operator's own row is still the last thing sent"
+    )
+    XCTAssertFalse(
+      recorded.contains { (request: ResourceShareNetworkOperationVariable) -> Bool in
+        request.body.newSecrets.contains { $0.recipient == .mock_ada }
+      },
+      "They were re-encrypted for in the update, so the grant must not issue them a second secret"
+    )
+  }
+
+  /// E14, the mirror image: the operator takes over from the group that owned for them. Their grant cannot wait
+  /// until last - step 1 revokes their only access, leaving step 2 with no permission to act on.
+  func test_applyConfirmed_grantsTheOperatorsOwnPermissionFirst_whenTakingOverFromTheOwningGroup() async throws {
+    let otherPermissionID: Permission.ID = .init()
+    let groupPermissionID: Permission.ID = .init()
+    // The operator owns only through the group - no direct row of their own.
+    var snapshot: PermissionSnapshot = .init(
+      permissions: [
+        .user(id: .mock_1, permission: .read, permissionID: otherPermissionID),
+        .userGroup(id: .mock_1, permission: .owner, permissionID: groupPermissionID),
+      ],
+      users: [
+        .mock_ada: PermissionSnapshotUser.mock(id: .mock_ada),
+        .mock_1: PermissionSnapshotUser.mock(id: .mock_1),
+      ],
+      groups: .init(),
+      created: 0
+    )
+    snapshot.groups[.mock_1] = .init(id: .mock_1, name: "Owners", members: [.mock_ada])
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_1, permission: .read, permissionID: otherPermissionID),
+      .user(id: .mock_ada, permission: .owner, permissionID: .none),
+    ]
+
+    let calls: CriticalState<Array<ResourceShareNetworkOperationVariable>> = .init(.init())
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        calls.access { (recorded: inout Array<ResourceShareNetworkOperationVariable>) in
+          recorded.append(request)
+        }
+      }
+    )
+    let editCalled: XCTestExpectation = .init(description: "the resource is updated while the operator holds access")
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: { _, _, sentSecrets in
+        let sentSoFar: Array<ResourceShareNetworkOperationVariable> = calls.get()
+        XCTAssertTrue(
+          sentSoFar.contains { (request: ResourceShareNetworkOperationVariable) -> Bool in
+            request.body.newPermissions.contains { $0.userID == .mock_ada }
+          },
+          "The operator's own permission has to exist before the group carrying their access is revoked"
+        )
+        let secrets: OrderedSet<EncryptedMessage> = try XCTUnwrap(sentSecrets)
+        XCTAssertTrue(secrets.contains { $0.recipient == .mock_ada })
+        editCalled.fulfill()
+        return .init(resource: .mock_1)
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot)
+    )
+
+    await fulfillment(of: [editCalled], timeout: 1.0)
+    let recorded: Array<ResourceShareNetworkOperationVariable> = calls.get()
+    XCTAssertTrue(
+      recorded.first?.body.newPermissions.contains { $0.userID == .mock_ada } ?? false,
+      "The operator's own grant is the first thing sent"
+    )
+    XCTAssertTrue(
+      recorded.contains { (request: ResourceShareNetworkOperationVariable) -> Bool in
+        request.body.deletedPermissions.contains { $0.id == groupPermissionID }
+      },
+      "The group is still revoked"
+    )
+  }
+
+  /// E16: an update-only operator confirms a read-only list. The guard is about ownership they would *lose*, so
+  /// it has nothing to say about someone who never had any - demanding it refused every edit they could make.
+  func test_applyConfirmed_appliesAReadOnlyEdit_whenTheOperatorHoldsUpdateRightsOnly() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    let snapshot: PermissionSnapshot = .init(
+      permissions: [
+        .user(id: .mock_ada, permission: .write, permissionID: adaPermissionID),
+        .user(id: .mock_1, permission: .owner, permissionID: otherPermissionID),
+      ],
+      users: [
+        .mock_ada: PermissionSnapshotUser.mock(id: .mock_ada),
+        .mock_1: PermissionSnapshotUser.mock(id: .mock_1),
+      ],
+      groups: .init(),
+      created: 0
+    )
+    // Nothing on a read-only list can be changed, so what is confirmed is what was captured.
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions
+
+    let editCalled: XCTestExpectation = .init(description: "the edit is applied")
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: { _, _, sentSecrets in
+        let secrets: OrderedSet<EncryptedMessage> = try XCTUnwrap(sentSecrets)
+        XCTAssertTrue(secrets.contains { $0.recipient == .mock_ada }, "The operator keeps their own access")
+        XCTAssertTrue(secrets.contains { $0.recipient == .mock_1 }, "The owner keeps theirs")
+        editCalled.fulfill()
+        return .init(resource: .mock_1)
+      }
+    )
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { _ in XCTFail("A read-only edit changes no permission, so nothing is shared") }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot)
+    )
+
+    await fulfillment(of: [editCalled], timeout: 1.0)
+  }
+
+  /// The other half of that guard: nobody owning the resource is refused whoever is editing. The server rejects
+  /// an ownerless resource, so it is caught before anything is sent - including when the operator holds no
+  /// ownership of their own to measure against.
+  func test_applyConfirmed_refusesASetNobodyOwns_evenWhenTheOperatorNeverOwnedIt() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    let snapshot: PermissionSnapshot = .init(
+      permissions: [
+        .user(id: .mock_ada, permission: .write, permissionID: adaPermissionID),
+        .user(id: .mock_1, permission: .owner, permissionID: otherPermissionID),
+      ],
+      users: [
+        .mock_ada: PermissionSnapshotUser.mock(id: .mock_ada),
+        .mock_1: PermissionSnapshotUser.mock(id: .mock_1),
+      ],
+      groups: .init(),
+      created: 0
+    )
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .write, permissionID: adaPermissionID),
+      .user(id: .mock_1, permission: .write, permissionID: otherPermissionID),
+    ]
+    // Neither network operation is patched - reaching either would trap on its placeholder.
+
+    let tested: ResourceEditForm = try self.testedInstance()
+
+    await verifyIf(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot),
+      throws: MissingResourceOwner.self
+    )
+  }
+
+  /// The screen refuses this, but the screen is not the only way in - and an edit that locks the operator out of
+  /// what they are editing cannot be undone from the app.
+  func test_applyConfirmed_refusesToLeaveTheOperatorWithoutOwnership() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    let snapshot: PermissionSnapshot = Self.snapshot(
+      adaPermissionID: adaPermissionID,
+      otherPermissionID: otherPermissionID
+    )
+    // Ada steps down to read with nobody and no group holding ownership for her.
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .read, permissionID: adaPermissionID),
+      .user(id: .mock_1, permission: .read, permissionID: otherPermissionID),
+    ]
+    // Neither network operation is patched - reaching either would trap on its placeholder.
+
+    let tested: ResourceEditForm = try self.testedInstance()
+
+    await verifyIf(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot),
+      throws: MissingResourceOwner.self
+    )
+  }
+
+  /// Ownership resolved through a group is ownership - the guard must not demand a direct owner row.
+  func test_applyConfirmed_acceptsOwnershipHeldThroughAGroup() async throws {
+    let adaPermissionID: Permission.ID = .init()
+    let otherPermissionID: Permission.ID = .init()
+    let groupPermissionID: Permission.ID = .init()
+    var snapshot: PermissionSnapshot = Self.snapshot(
+      adaPermissionID: adaPermissionID,
+      otherPermissionID: otherPermissionID
+    )
+    snapshot.groups[.mock_1] = .init(id: .mock_1, name: "Owners", members: [.mock_ada])
+    snapshot.permissions.append(.userGroup(id: .mock_1, permission: .owner, permissionID: groupPermissionID))
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .read, permissionID: adaPermissionID),
+      .user(id: .mock_1, permission: .read, permissionID: otherPermissionID),
+      .userGroup(id: .mock_1, permission: .owner, permissionID: groupPermissionID),
+    ]
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: always(Void())
+    )
+    patch(
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resource: .mock_1))
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+
+    await verifyIfNotThrows(
+      try await tested.applyConfirmedPermissions(confirmed, snapshot)
+    )
+  }
+
   fileprivate func setCreatedResourceContext() {
     var editedResource: Resource = .mock_1
     editedResource.id = .none

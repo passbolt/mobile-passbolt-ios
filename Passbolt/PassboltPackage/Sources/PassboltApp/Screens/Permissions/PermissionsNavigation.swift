@@ -21,29 +21,16 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
-
-internal enum ResourceShareNavigationDestination: NavigationDestination {
-
-  internal typealias TransitionContext = ResourcePermissionEditListController.Context
-}
-
-internal typealias NavigationToResourceShare = NavigationTo<ResourceShareNavigationDestination>
-
-extension NavigationToResourceShare {
-
-  fileprivate static var live: FeatureLoader {
-    pushTransition(to: ResourcePermissionEditListView.self)
-  }
-}
+import Features
 
 extension FeaturesRegistry {
 
-  internal mutating func useLiveNavigationToResourceShare() {
-    self.use(
-      NavigationToResourceShare.live,
-      in: SessionScope.self
-    )
+  internal mutating func usePermissionsNavigation() {
+    self.useLiveNavigationToResourcePermissionsDetails()
+    self.useLiveNavigationToUserPermissionDetails()
+    self.useLiveNavigationToUserGroupPermissionDetails()
+    self.useLiveNavigationToUserGroupMembersList()
+    self.useLiveNavigationToUserGroupMemberDetails()
+    self.useLiveNavigationToResourceFolderPermissionList()
   }
 }

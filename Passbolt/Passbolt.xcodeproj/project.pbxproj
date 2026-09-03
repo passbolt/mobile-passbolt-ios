@@ -51,7 +51,6 @@
 		C09C2B4A2EF5688D00FB5CD7 /* ShareResourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B492EF5688D00FB5CD7 /* ShareResourceTests.swift */; };
 		C09C2B4C2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B4B2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift */; };
 		C09C2B4E2EF5710A00FB5CD7 /* PermissionsListScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B4D2EF5710A00FB5CD7 /* PermissionsListScreen.swift */; };
-		C09C2B502EF5788B00FB5CD7 /* PermissionsEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C09C2B4F2EF5788B00FB5CD7 /* PermissionsEditScreen.swift */; };
 		C0B4B25B2EC5E27300C91A59 /* MainTOTPScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B25A2EC5E27300C91A59 /* MainTOTPScreen.swift */; };
 		C0B4B25E2EC5E3B400C91A59 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B25D2EC5E3B400C91A59 /* String+Extensions.swift */; };
 		C0B4B2612EC5E64100C91A59 /* TOTPCommonFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B4B2602EC5E64100C91A59 /* TOTPCommonFlows.swift */; };
@@ -166,7 +165,6 @@
 		C09C2B492EF5688D00FB5CD7 /* ShareResourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareResourceTests.swift; sourceTree = "<group>"; };
 		C09C2B4B2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceDetailsScreen.swift; sourceTree = "<group>"; };
 		C09C2B4D2EF5710A00FB5CD7 /* PermissionsListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsListScreen.swift; sourceTree = "<group>"; };
-		C09C2B4F2EF5788B00FB5CD7 /* PermissionsEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsEditScreen.swift; sourceTree = "<group>"; };
 		C0B4B25A2EC5E27300C91A59 /* MainTOTPScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTOTPScreen.swift; sourceTree = "<group>"; };
 		C0B4B25D2EC5E3B400C91A59 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		C0B4B2602EC5E64100C91A59 /* TOTPCommonFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TOTPCommonFlows.swift; sourceTree = "<group>"; };
@@ -471,7 +469,6 @@
 				C0B4B26C2EC5FE2100C91A59 /* CreateResourceMenuScreen.swift */,
 				C09C2B4B2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift */,
 				C09C2B4D2EF5710A00FB5CD7 /* PermissionsListScreen.swift */,
-				C09C2B4F2EF5788B00FB5CD7 /* PermissionsEditScreen.swift */,
 			);
 			path = Resource;
 			sourceTree = "<group>";
@@ -876,7 +873,6 @@
 				425A58272925109000C19E05 /* UITestCase.swift in Sources */,
 				C09C2B4C2EF56B7A00FB5CD7 /* ResourceDetailsScreen.swift in Sources */,
 				C0DBE3F62EC5D880005B4920 /* Screen.swift in Sources */,
-				C09C2B502EF5788B00FB5CD7 /* PermissionsEditScreen.swift in Sources */,
 				B26BE2672C5A731E00138744 /* CreateTOTPTests.swift in Sources */,
 				C09C2B452EF53C7900FB5CD7 /* SettingsScreen.swift in Sources */,
 				B242301E2B2781DB00796887 /* TOTPListTests.swift in Sources */,

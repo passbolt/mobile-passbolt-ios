@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Metadata
 import NetworkOperations
 import Session
 import TestExtensions
@@ -64,12 +65,18 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
       \PermissionSnapshotService.expanding,
       with: { (current: PermissionSnapshot, _, _) in current }
     )
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.empty)
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
   }
 
-  /// Recipients the operator added on the confirmation screen hold no permission on the folder, so a fresh capture
-  /// of it does not describe them and the drift check would never re-verify their keys. They have to be recaptured
-  /// into the current snapshot first, or a key substituted between adding and confirming would go unnoticed at the
-  /// exact moment the secret is encrypted for them.
+  /// Hand-added recipients hold no permission on the folder, so a fresh capture omits them and the drift check
+  /// never re-verifies their keys - a key substituted between adding and confirming would go unnoticed.
   func test_applyToCreatedResource_recapturesTheAddedRecipients_beforeCheckingDrift() async throws {
     var snapshot: PermissionSnapshot = .empty
     snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
@@ -104,7 +111,7 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
     let sut: ResourceShareConfirmation = try self.testedInstance()
 
     await verifyIf(
-      try await sut.applyToCreatedResource(.init(), .init(), .init(), confirmed, snapshot),
+      try await sut.applyToCreatedResource(.init(), .init(), confirmed, snapshot),
       throws: PermissionDriftDetected.self
     )
     await fulfillment(of: [recaptured], timeout: 1.0)
@@ -121,7 +128,7 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
     let sut: ResourceShareConfirmation = try self.testedInstance()
 
     await verifyIfNotThrows(
-      try await sut.applyToCreatedResource(.init(), .init(), .init(), confirmed, .empty),
+      try await sut.applyToCreatedResource(.init(), .init(), confirmed, .empty),
       "A confirmed list that changes nothing must be applied without touching the server"
     )
   }
@@ -151,7 +158,7 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
     let sut: ResourceShareConfirmation = try self.testedInstance()
 
     await verifyIf(
-      try await sut.applyToCreatedResource(.init(), .init(), .init(), confirmed, .empty),
+      try await sut.applyToCreatedResource(.init(), .init(), confirmed, .empty),
       throws: PermissionDriftDetected.self
     )
   }
@@ -177,7 +184,7 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
     let sut: ResourceShareConfirmation = try self.testedInstance()
 
     await verifyIf(
-      try await sut.applyToCreatedResource(.init(), .init(), .init(), confirmed, .empty),
+      try await sut.applyToCreatedResource(.init(), .init(), confirmed, .empty),
       throws: PermissionDriftDetected.self,
       "Folder drift must abort the operation before sharing"
     )
@@ -201,7 +208,7 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
     let sut: ResourceShareConfirmation = try self.testedInstance()
 
     await verifyIf(
-      try await sut.applyToCreatedResource(.init(), .init(), .init(), confirmed, .empty),
+      try await sut.applyToCreatedResource(.init(), .init(), confirmed, .empty),
       throws: PermissionDriftDetected.self,
       "A dry-run recipient absent from the confirmed snapshot must abort before sharing"
     )
@@ -263,88 +270,135 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
 
     let sut: ResourceShareConfirmation = try self.testedInstance()
     await verifyIfNotThrows(
-      try await sut.applyToCreatedResource(.mock_1, .init(), .init(), confirmed, snapshot)
+      try await sut.applyToCreatedResource(.mock_1, .init(), confirmed, snapshot)
     )
     await fulfillment(of: [shared], timeout: 1.0)
   }
 
-  /// The resource is created with the operator as owner, but the confirmed list is what the resource must end up
-  /// matching - exactly as inheriting the folder's permissions would leave it.
-  func test_applyToCreatedResource_downgradesTheOperator_whenConfirmedWithALowerLevel() async throws {
-    let ownPermissionID: Permission.ID = .init()
+  /// The resource is created with the operator as sole owner only to have something to share from. What they
+  /// keep is what the folder grants them, so that bootstrap permission is settled once the grants have put
+  /// another owner in place - never before, or the drop would leave the resource momentarily ownerless.
+
+  /// Inheriting ownership is what the resource was already created with, so there is nothing to settle and no
+  /// second request to send.
+  func test_applyToCreatedResource_leavesTheBootstrapPermission_whenTheOperatorInheritsOwnership() async throws {
     let confirmed: OrderedSet<ResourcePermission> = [
-      .user(id: .mock_ada, permission: .read, permissionID: .init()),
+      .user(id: .mock_ada, permission: .owner, permissionID: .init()),
       .userGroup(id: .mock_1, permission: .owner, permissionID: .init()),
     ]
     self.prepareSuccessfulShare()
-
-    let shared: XCTestExpectation = .init(description: "the operator's own permission is downgraded")
-    patch(
-      \ResourceShareNetworkOperation.execute,
-      with: { request in
-        XCTAssertEqual(request.body.updatedPermissions.count, 1, "only the operator's own permission is updated")
-        XCTAssertEqual(request.body.updatedPermissions.first?.id, ownPermissionID)
-        XCTAssertEqual(request.body.updatedPermissions.first?.permission, .read)
-        XCTAssertTrue(request.body.deletedPermissions.isEmpty, "the operator keeps access, at a lower level")
-        shared.fulfill()
-      }
-    )
+    let requests: CriticalState<Array<RecordedShare>> = .init(.init())
+    self.recordShareRequests(into: requests)
 
     let sut: ResourceShareConfirmation = try self.testedInstance()
     await verifyIfNotThrows(
-      try await sut.applyToCreatedResource(.mock_1, ownPermissionID, .init(), confirmed, .empty)
+      try await sut.applyToCreatedResource(.mock_1, .init(), confirmed, .empty)
     )
-    await fulfillment(of: [shared], timeout: 1.0)
+
+    await verifyIf(
+      requests.get(),
+      isEqual: [.init(granted: 1, updated: 0, deleted: 0)],
+      "Only the group is granted; the creator's ownership is left exactly as created"
+    )
   }
 
-  func test_applyToCreatedResource_revokesTheOperator_whenConfirmedListGrantsThemNothing() async throws {
-    let ownPermissionID: Permission.ID = .init()
-    // Owned through the group only - the same shape the folder had.
+  /// The folder grants the operator update, so the owner permission they were bootstrapped with is lowered to
+  /// it - creating a resource inside a folder does not promote them above that folder.
+  func test_applyToCreatedResource_lowersTheBootstrapPermission_whenTheOperatorInheritsLess() async throws {
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .write, permissionID: .init()),
+      .user(id: .mock_1, permission: .owner, permissionID: .init()),
+    ]
+    self.prepareSuccessfulShare()
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.bootstrappedByOperator)
+    )
+    let requests: CriticalState<Array<RecordedShare>> = .init(.init())
+    self.recordShareRequests(into: requests)
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+    await verifyIfNotThrows(
+      try await sut.applyToCreatedResource(.mock_1, .init(), confirmed, .empty)
+    )
+
+    await verifyIf(
+      requests.get(),
+      isEqual: [
+        .init(granted: 1, updated: 0, deleted: 0),
+        .init(granted: 0, updated: 1, deleted: 0),
+      ],
+      "The other owner is granted first, then the creator's own permission is lowered to what they inherit"
+    )
+  }
+
+  /// The folder grants the operator access only through a group, so they hold no permission of their own on it
+  /// and the bootstrap one is dropped. The group owns the resource by then, so nothing is left ownerless.
+  func test_applyToCreatedResource_dropsTheBootstrapPermission_whenTheFolderGrantsThemNothingDirectly()
+    async throws
+  {
     let confirmed: OrderedSet<ResourcePermission> = [
       .userGroup(id: .mock_1, permission: .owner, permissionID: .init())
     ]
     self.prepareSuccessfulShare()
-
-    let shared: XCTestExpectation = .init(description: "the operator's own permission is revoked")
     patch(
-      \ResourceShareNetworkOperation.execute,
-      with: { request in
-        XCTAssertEqual(request.body.deletedPermissions.count, 1, "the operator holds no confirmed permission")
-        XCTAssertEqual(request.body.deletedPermissions.first?.id, ownPermissionID)
-        XCTAssertTrue(request.body.updatedPermissions.isEmpty)
-        shared.fulfill()
-      }
+      \PermissionSnapshotService.forResource,
+      with: always(.bootstrappedByOperator)
     )
+    let requests: CriticalState<Array<RecordedShare>> = .init(.init())
+    self.recordShareRequests(into: requests)
 
     let sut: ResourceShareConfirmation = try self.testedInstance()
     await verifyIfNotThrows(
-      try await sut.applyToCreatedResource(.mock_1, ownPermissionID, .init(), confirmed, .empty)
+      try await sut.applyToCreatedResource(.mock_1, .init(), confirmed, .empty)
     )
-    await fulfillment(of: [shared], timeout: 1.0)
+
+    await verifyIf(
+      requests.get(),
+      isEqual: [
+        .init(granted: 1, updated: 0, deleted: 0),
+        .init(granted: 0, updated: 0, deleted: 1),
+      ],
+      "The group is granted access before the creator's own permission is revoked, never after"
+    )
   }
 
-  /// Dropping the creator with nobody else owning the resource would leave it ownerless, so the creator stays.
-  func test_applyToCreatedResource_keepsTheOperator_whenNobodyElseWouldOwnTheResource() async throws {
+  /// The capture taken to find the bootstrap permission may not name the operator - it is already gone. There is
+  /// then nothing to send, and certainly nothing to fail over.
+  func test_applyToCreatedResource_sendsNoOwnPermissionChange_whenTheCaptureDoesNotNameTheOperator() async throws {
     let confirmed: OrderedSet<ResourcePermission> = [
-      .user(id: .mock_1, permission: .read, permissionID: .init())
+      .userGroup(id: .mock_1, permission: .owner, permissionID: .init())
     ]
     self.prepareSuccessfulShare()
-
-    let shared: XCTestExpectation = .init(description: "the operator's own permission is left alone")
-    patch(
-      \ResourceShareNetworkOperation.execute,
-      with: { request in
-        XCTAssertTrue(request.body.deletedPermissions.isEmpty, "the last owner must not be revoked")
-        XCTAssertTrue(request.body.updatedPermissions.isEmpty)
-        shared.fulfill()
-      }
-    )
+    let requests: CriticalState<Array<RecordedShare>> = .init(.init())
+    self.recordShareRequests(into: requests)
 
     let sut: ResourceShareConfirmation = try self.testedInstance()
     await verifyIfNotThrows(
-      try await sut.applyToCreatedResource(.mock_1, .init(), .init(), confirmed, .empty)
+      try await sut.applyToCreatedResource(.mock_1, .init(), confirmed, .empty)
     )
-    await fulfillment(of: [shared], timeout: 1.0)
+
+    await verifyIf(requests.get().count, isEqual: 1, "Only the grants go out")
+  }
+
+  /// Records what each share request carried, so a test can assert on how many went out and in what order.
+  private func recordShareRequests(
+    into requests: CriticalState<Array<RecordedShare>>
+  ) {
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        requests.access { (recorded: inout Array<RecordedShare>) in
+          recorded.append(
+            .init(
+              granted: request.body.newPermissions.count,
+              updated: request.body.updatedPermissions.count,
+              deleted: request.body.deletedPermissions.count
+            )
+          )
+        }
+      }
+    )
   }
 
   /// Everything the share step needs when the recipients themselves are not what the test is about: no drift and
@@ -366,6 +420,17 @@ final class ResourceShareConfirmationTests: FeaturesTestCase {
 }
 
 // MARK: - Fixtures
+
+/// One share request reduced to what these tests assert on: how many permissions it granted, changed and revoked.
+/// Recorded in order, so the sequence of requests is assertable too.
+// swift-format-ignore: AlwaysUseLowerCamelCase
+private struct RecordedShare: Equatable, Sendable {
+
+  fileprivate let granted: Int
+  fileprivate let updated: Int
+  fileprivate let deleted: Int
+}
+
 // swift-format-ignore: AlwaysUseLowerCamelCase
 extension PermissionSnapshot {
 
@@ -377,6 +442,394 @@ extension PermissionSnapshot {
       users: .init(),
       groups: .init(),
       created: 0
+    )
+  }
+
+  /// The created resource as the server holds it moments after creation: the operator's bootstrap owner
+  /// permission, carrying the identifier only the server can supply.
+  fileprivate static var bootstrappedByOperator: Self {
+    .init(
+      permissions: [.user(id: .mock_ada, permission: .owner, permissionID: .init())],
+      users: .init(),
+      groups: .init(),
+      created: 0
+    )
+  }
+}
+
+// MARK: - Applying a confirmed share
+
+/// Sharing never rotates the secret, so the revoke/re-encrypt/grant ordering collapses into one atomic call. The
+/// operator's own change does not: the server evaluates a request against the principal making it.
+// swift-format-ignore: AlwaysUseLowerCamelCase
+extension ResourceShareConfirmationTests {
+
+  /// Neither the drift check nor the share operation is patched here, so reaching either would trap on its
+  /// placeholder: returning cleanly proves the whole apply was skipped.
+  func test_applyToSharedResource_whenNothingChanged_appliesNothing() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [.user(id: .mock_ada, permission: .owner, permissionID: .mock_1)]
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIfNotThrows(
+      try await sut.applyToSharedResource(.mock_1, snapshot.permissions, snapshot)
+    )
+  }
+
+  /// The resource already exists, so unlike the create flow nothing has to be sent before drift can be measured.
+  /// A change since the review must leave the resource exactly as it was.
+  func test_applyToSharedResource_abortsOnDrift_withoutSendingAnything() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [.user(id: .mock_ada, permission: .owner, permissionID: .mock_1)]
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions.union([
+      .user(id: .mock_1, permission: .read, permissionID: .none)
+    ])
+
+    patch(
+      \PermissionSnapshotService.drift,
+      with: always(
+        .init(
+          changedPermissions: true,
+          changedFingerprints: false,
+          changedMemberships: false
+        )
+      )
+    )
+    // Neither the share call nor the metadata migration is patched - reaching either traps on its placeholder.
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIf(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot),
+      throws: PermissionDriftDetected.self
+    )
+  }
+
+  /// A recipient the operator picked holds no permission on the resource yet, so a fresh capture does not describe
+  /// them and their key would never be re-verified before the secret is encrypted for them.
+  func test_applyToSharedResource_recapturesTheAddedRecipients_beforeCheckingDrift() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [.user(id: .mock_ada, permission: .owner, permissionID: .mock_1)]
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions.union([
+      .user(id: .mock_1, permission: .read, permissionID: .none)
+    ])
+
+    let recaptured: XCTestExpectation = .init(description: "the added recipient is recaptured")
+    patch(
+      \PermissionSnapshotService.expanding,
+      with: { (current: PermissionSnapshot, addedUsers: Array<User.ID>, _) in
+        XCTAssertEqual(addedUsers, [.mock_1], "the recipient the resource does not describe must be recaptured")
+        recaptured.fulfill()
+        return current
+      }
+    )
+    patch(
+      \PermissionSnapshotService.drift,
+      with: always(
+        .init(
+          changedPermissions: true,
+          changedFingerprints: false,
+          changedMemberships: false
+        )
+      )
+    )
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIf(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot),
+      throws: PermissionDriftDetected.self
+    )
+    await fulfillment(of: [recaptured], timeout: 1.0)
+  }
+
+  /// The dry-run runs against the server's view of group membership. A recipient it reports who was not in the
+  /// reviewed snapshot is someone the operator never saw - drift, not a grant.
+  func test_applyToSharedResource_throwsDrift_forARecipientTheOperatorNeverSaw() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [.user(id: .mock_ada, permission: .owner, permissionID: .mock_1)]
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions.union([
+      .user(id: .mock_1, permission: .read, permissionID: .none)
+    ])
+
+    patch(
+      \PermissionSnapshotService.drift,
+      with: always(.none)
+    )
+    patch(
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_2]]))
+    )
+    patch(
+      \PermissionSnapshotService.unexpectedRecipients,
+      with: always([.mock_2])
+    )
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIf(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot),
+      throws: PermissionDriftDetected.self
+    )
+  }
+
+  /// The secret is not rotated: the recipients keeping access already hold the very same message, so only the ones
+  /// gaining access receive one - encrypted with the key captured in the reviewed snapshot.
+  func test_applyToSharedResource_encryptsTheExistingSecret_forAddedRecipientsOnly() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [
+      .user(id: .mock_ada, permission: .owner, permissionID: .mock_1),
+      .user(id: .mock_2, permission: .read, permissionID: .mock_3),
+    ]
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    snapshot.users[.mock_2] = PermissionSnapshotUser.mock(id: .mock_2)
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions.union([
+      .user(id: .mock_1, permission: .read, permissionID: .none)
+    ])
+
+    patch(
+      \PermissionSnapshotService.drift,
+      with: always(.none)
+    )
+    patch(
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_1]]))
+    )
+    let secretFetched: XCTestExpectation = .init(description: "the existing secret is fetched, never rotated")
+    patch(
+      \ResourceSecretFetchNetworkOperation.execute,
+      with: { _ in
+        secretFetched.fulfill()
+        return .init(data: "encrypted-secret")
+      }
+    )
+    patch(
+      \SessionCryptography.decryptMessage,
+      with: always("decrypted-secret")
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(.init(rawValue: "re-encrypted"))
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: always(Void())
+    )
+
+    let shared: XCTestExpectation = .init(description: "the added recipient is granted with the secret")
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        XCTAssertEqual(
+          request.body.newSecrets.map(\.recipient),
+          [.mock_1],
+          "only the recipient gaining access needs the secret"
+        )
+        shared.fulfill()
+      }
+    )
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIfNotThrows(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot)
+    )
+    await fulfillment(of: [secretFetched, shared], timeout: 1.0)
+  }
+
+  /// Everyone else goes out together - no rotation, so no ordering hazard and no half-applied window. The
+  /// operator's own downgrade follows, or the server evaluates the rest against a principal losing the right.
+  func test_applyToSharedResource_appliesEveryoneElseFirst_andTheOperatorsOwnChangeSecond() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [
+      .user(id: .mock_ada, permission: .owner, permissionID: .mock_1),
+      .user(id: .mock_1, permission: .read, permissionID: .mock_2),
+    ]
+    snapshot.users[.mock_ada] = PermissionSnapshotUser.mock(id: .mock_ada)
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    // The operator hands ownership over and steps down to read; the other recipient loses access entirely.
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .read, permissionID: .mock_1),
+      .user(id: .mock_2, permission: .owner, permissionID: .none),
+    ]
+    snapshot.users[.mock_2] = PermissionSnapshotUser.mock(id: .mock_2)
+
+    patch(
+      \PermissionSnapshotService.drift,
+      with: always(.none)
+    )
+    patch(
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_2]]))
+    )
+    patch(
+      \ResourceSecretFetchNetworkOperation.execute,
+      with: always(.init(data: "encrypted-secret"))
+    )
+    patch(
+      \SessionCryptography.decryptMessage,
+      with: always("decrypted-secret")
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(.init(rawValue: "re-encrypted"))
+    )
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: always(Void())
+    )
+
+    let calls: CriticalState<Array<ResourceShareNetworkOperationVariable>> = .init(.init())
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { request in
+        calls.access { (recorded: inout Array<ResourceShareNetworkOperationVariable>) in
+          recorded.append(request)
+        }
+      }
+    )
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIfNotThrows(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot)
+    )
+
+    let recorded: Array<ResourceShareNetworkOperationVariable> = calls.get()
+    XCTAssertEqual(recorded.count, 2, "everyone else first, the operator's own change second")
+    XCTAssertEqual(
+      recorded.first?.body.newPermissions.count,
+      1,
+      "the new owner is granted in the first call"
+    )
+    XCTAssertEqual(
+      recorded.first?.body.deletedPermissions.count,
+      1,
+      "the recipient losing access is revoked in the same call"
+    )
+    XCTAssertTrue(
+      recorded.first?.body.updatedPermissions.isEmpty ?? false,
+      "the operator's own downgrade must not travel with it"
+    )
+    XCTAssertEqual(
+      recorded.last?.body.updatedPermissions.count,
+      1,
+      "the operator's own downgrade is applied last, on its own"
+    )
+    XCTAssertTrue(
+      recorded.last?.body.newSecrets.isEmpty ?? false,
+      "the operator already holds the secret"
+    )
+  }
+
+  /// Everyone else's access already changed by then, so the reviewed list is stale by our own doing. Saying so is
+  /// what stops the next attempt measuring drift against a change we made ourselves.
+  func test_applyToSharedResource_reportsPartialApplication_whenTheOperatorsOwnChangeFails() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [
+      .user(id: .mock_ada, permission: .owner, permissionID: .mock_1)
+    ]
+    snapshot.users[.mock_ada] = PermissionSnapshotUser.mock(id: .mock_ada)
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .read, permissionID: .mock_1),
+      .user(id: .mock_1, permission: .owner, permissionID: .none),
+    ]
+
+    patch(
+      \PermissionSnapshotService.drift,
+      with: always(.none)
+    )
+    patch(
+      \ResourceSimulateShareNetworkOperation.execute,
+      with: always(.init(changes: [.added: [.mock_1]]))
+    )
+    patch(
+      \ResourceSecretFetchNetworkOperation.execute,
+      with: always(.init(data: "encrypted-secret"))
+    )
+    patch(
+      \SessionCryptography.decryptMessage,
+      with: always("decrypted-secret")
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(.init(rawValue: "re-encrypted"))
+    )
+    let refreshed: XCTestExpectation = .init(description: "the local copy is realigned with what did land")
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: {
+        refreshed.fulfill()
+      }
+    )
+
+    let calls: CriticalState<Int> = .init(0)
+    patch(
+      \ResourceShareNetworkOperation.execute,
+      with: { _ in
+        let index: Int = calls.access { (count: inout Int) -> Int in
+          count += 1
+          return count
+        }
+        guard index > 1
+        else { return }
+        throw MockIssue.error()
+      }
+    )
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIf(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot),
+      throws: PermissionsPartiallyApplied.self
+    )
+    await fulfillment(of: [refreshed], timeout: 1.0)
+  }
+
+  /// The server rejects an ownerless resource. The confirmation screen does not offer removing the last owner, and
+  /// nothing else re-checks it, so the rule has to hold where the change is actually made.
+  func test_applyToSharedResource_throwsMissingResourceOwner_whenNoOwnerRemains() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [
+      .user(id: .mock_ada, permission: .owner, permissionID: .mock_1)
+    ]
+    let confirmed: OrderedSet<ResourcePermission> = [
+      .user(id: .mock_ada, permission: .read, permissionID: .mock_1)
+    ]
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIf(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot),
+      throws: MissingResourceOwner.self
+    )
+  }
+
+  /// A metadata key that cannot be trusted stops the share before anything is sent - the drift check and the share
+  /// call are left unpatched, so reaching either would trap on its placeholder.
+  func test_applyToSharedResource_sendsNothing_whenThePinnedKeyIsInvalid() async throws {
+    var snapshot: PermissionSnapshot = .empty
+    snapshot.permissions = [.user(id: .mock_ada, permission: .owner, permissionID: .mock_1)]
+    snapshot.users[.mock_1] = PermissionSnapshotUser.mock(id: .mock_1)
+    let confirmed: OrderedSet<ResourcePermission> = snapshot.permissions.union([
+      .user(id: .mock_1, permission: .read, permissionID: .none)
+    ])
+
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.invalid(.unknown))
+    )
+
+    let sut: ResourceShareConfirmation = try self.testedInstance()
+
+    await verifyIf(
+      try await sut.applyToSharedResource(.mock_1, confirmed, snapshot),
+      throws: MetadataPinnedKeyValidationError.self
     )
   }
 }

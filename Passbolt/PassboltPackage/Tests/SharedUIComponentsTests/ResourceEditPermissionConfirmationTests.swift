@@ -223,8 +223,22 @@ extension ResourceEditPermissionConfirmationTests {
     XCTAssertEqual(self.navigationEvents.get(), .init())
   }
 
-  func test_editConfirmation_isSkipped_whenResourceIsPrivate() async throws {
+  /// Nobody else holds it, so there is nothing to confirm and no screen - but the edit is still applied against
+  /// the capture rather than through the plain submission, which draws its recipients from the local copy.
+  func test_editConfirmation_appliesWithoutAScreen_whenTheCaptureSaysPrivate() async throws {
     self.editing(Resource.mock_private)
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
+    let appliedAgainst: CriticalState<Array<OrderedSet<ResourcePermission>>> = .init(.init())
+    patch(
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (permissions: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
+        appliedAgainst.access { (sets: inout Array<OrderedSet<ResourcePermission>>) in sets.append(permissions) }
+        return Resource.mock_private
+      }
+    )
 
     let takenOver: Bool = try await self.tested()
       .presentEditConfirmationIfNeeded(
@@ -232,8 +246,92 @@ extension ResourceEditPermissionConfirmationTests {
         onInvalidMetadataKey: self.recordInvalidMetadataKey
       )
 
-    XCTAssertFalse(takenOver, "A private resource has no recipients to confirm")
+    XCTAssertTrue(takenOver, "The flow applied the edit, so the caller must not submit it again")
+    XCTAssertEqual(self.navigationEvents.get(), .init(), "A private resource has no recipients to confirm")
+    XCTAssertEqual(appliedAgainst.get(), [PermissionSnapshot.mock_private.permissions])
+    XCTAssertEqual(self.appliedResources.get().count, 1)
+  }
+
+  /// The local copy is rebuilt only on sign-in and full refresh, so a resource shared since then still reads as
+  /// private there. Deciding from it would skip this screen in exactly the case it exists for.
+  func test_editConfirmation_isPresented_whenTheCaptureSaysSharedAndTheLocalCopySaysPrivate() async throws {
+    self.editing(Resource.mock_private)
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_shared)
+    )
+
+    let takenOver: Bool = try await self.tested()
+      .presentEditConfirmationIfNeeded(
+        onApplied: self.recordApplied,
+        onInvalidMetadataKey: self.recordInvalidMetadataKey
+      )
+
+    XCTAssertTrue(takenOver)
+    XCTAssertEqual(self.navigationEvents.get(), ["present-confirmation"])
+    XCTAssertEqual(try self.lastPresentedContext().snapshot.permissions, PermissionSnapshot.mock_shared.permissions)
+  }
+
+  /// The reverse staleness: the local copy still lists recipients the resource was unshared from. The capture
+  /// decides, and the recipients it names - not the cached ones - are what the secret is re-encrypted for.
+  func test_editConfirmation_ignoresTheLocalCopy_whenItStillSaysShared() async throws {
+    self.editing(Resource.mock_shared)
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
+    patch(
+      \ResourceEditForm.sendForm,
+      with: { @MainActor in
+        XCTFail("The cached recipient set must not decide who the secret is encrypted for")
+        return Resource.mock_shared
+      }
+    )
+    let appliedAgainst: CriticalState<Array<OrderedSet<ResourcePermission>>> = .init(.init())
+    patch(
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (permissions: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
+        appliedAgainst.access { (sets: inout Array<OrderedSet<ResourcePermission>>) in sets.append(permissions) }
+        return Resource.mock_shared
+      }
+    )
+
+    let takenOver: Bool = try await self.tested()
+      .presentEditConfirmationIfNeeded(
+        onApplied: self.recordApplied,
+        onInvalidMetadataKey: self.recordInvalidMetadataKey
+      )
+
+    XCTAssertTrue(takenOver)
     XCTAssertEqual(self.navigationEvents.get(), .init())
+    XCTAssertEqual(appliedAgainst.get(), [PermissionSnapshot.mock_private.permissions])
+  }
+
+  /// A capture that cannot be taken is not an excuse to fall back on the copy it exists to distrust.
+  func test_editConfirmation_failsClosed_whenTheCaptureCannotBeTaken() async throws {
+    self.editing(Resource.mock_private)
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: alwaysThrow(MockIssue.error())
+    )
+    patch(
+      \ResourceEditForm.sendForm,
+      with: { @MainActor in
+        XCTFail("Nothing may be submitted when the current permissions are unknown")
+        return Resource.mock_private
+      }
+    )
+
+    await verifyIf(
+      try await self.tested()
+        .presentEditConfirmationIfNeeded(
+          onApplied: self.recordApplied,
+          onInvalidMetadataKey: self.recordInvalidMetadataKey
+        ),
+      throws: MockIssue.self
+    )
+    XCTAssertEqual(self.navigationEvents.get(), .init())
+    XCTAssertEqual(self.appliedResources.get().count, 0)
   }
 
   /// A metadata-only edit leaves the secret - and therefore everyone it is encrypted for - untouched.
@@ -243,6 +341,8 @@ extension ResourceEditPermissionConfirmationTests {
       \ResourceEditForm.isSecretEdited,
       with: always(false)
     )
+    // Left on its placeholder deliberately: this guard has to stay ahead of the capture, so that an edit which
+    // re-encrypts for nobody costs no round trip. Reaching it here would trap.
 
     let takenOver: Bool = try await self.tested()
       .presentEditConfirmationIfNeeded(
@@ -271,8 +371,27 @@ extension ResourceEditPermissionConfirmationTests {
     XCTAssertEqual(try self.lastPresentedContext().mode, .edit(editable: true))
   }
 
-  /// Holding only the update permission is enough to change the secret, but not to change who receives it.
-  func test_editConfirmation_isReadOnly_whenOperatorOnlyHoldsUpdatePermission() async throws {
+  /// Holding only the update permission is enough to change the secret, but not to change who receives it. The
+  /// capture decides that too - the cached resource still claiming ownership must not open the list for editing.
+  func test_editConfirmation_isReadOnly_whenTheCaptureSaysOperatorOnlyHoldsUpdatePermission() async throws {
+    self.editing(Resource.mock_shared)
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_ownedBySomeoneElse)
+    )
+
+    let takenOver: Bool = try await self.tested()
+      .presentEditConfirmationIfNeeded(
+        onApplied: self.recordApplied,
+        onInvalidMetadataKey: self.recordInvalidMetadataKey
+      )
+
+    XCTAssertTrue(takenOver)
+    XCTAssertEqual(try self.lastPresentedContext().mode, .edit(editable: false))
+  }
+
+  /// And the inverse, so neither direction can be read from the wrong source.
+  func test_editConfirmation_isEditable_whenTheCaptureSaysOwner_andTheLocalCopySaysOtherwise() async throws {
     self.editing(
       Resource.mock_shared.with { (resource: inout Resource) in
         resource.permission = .write
@@ -290,7 +409,25 @@ extension ResourceEditPermissionConfirmationTests {
       )
 
     XCTAssertTrue(takenOver)
-    XCTAssertEqual(try self.lastPresentedContext().mode, .edit(editable: false))
+    XCTAssertEqual(try self.lastPresentedContext().mode, .edit(editable: true))
+  }
+
+  /// Ownership held through a group counts, exactly as the server evaluates it.
+  func test_editConfirmation_isEditable_whenTheCaptureSaysOwnerThroughAGroup() async throws {
+    self.editing(Resource.mock_shared)
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_ownedByOperatorsGroup)
+    )
+
+    let takenOver: Bool = try await self.tested()
+      .presentEditConfirmationIfNeeded(
+        onApplied: self.recordApplied,
+        onInvalidMetadataKey: self.recordInvalidMetadataKey
+      )
+
+    XCTAssertTrue(takenOver)
+    XCTAssertEqual(try self.lastPresentedContext().mode, .edit(editable: true))
   }
 }
 
@@ -333,7 +470,6 @@ extension ResourceEditPermissionConfirmationTests {
         @Sendable
         (
           _: Resource.ID,
-          _: Permission.ID,
           _: ResourceFolder.ID,
           _: OrderedSet<ResourcePermission>,
           _: PermissionSnapshot
@@ -354,7 +490,7 @@ extension ResourceEditPermissionConfirmationTests {
     )
 
     let driftOutcome: ConfirmPermissionsOutcome = await self.confirm(.mock_shared)
-    guard case .retryWithRefreshed(let handedBack) = driftOutcome
+    guard case .retryWithRefreshed(let handedBack, _) = driftOutcome
     else { return XCTFail("Drift should reopen the confirmation with refreshed permissions") }
     XCTAssertEqual(handedBack, refreshedSnapshot)
     XCTAssertEqual(self.appliedResources.get(), .init(), "Nothing was applied, so nothing may be reported as saved")
@@ -380,7 +516,6 @@ extension ResourceEditPermissionConfirmationTests {
         @Sendable
         (
           _: Resource.ID,
-          _: Permission.ID,
           _: ResourceFolder.ID,
           _: OrderedSet<ResourcePermission>,
           _: PermissionSnapshot
@@ -432,7 +567,6 @@ extension ResourceEditPermissionConfirmationTests {
         @Sendable
         (
           _: Resource.ID,
-          _: Permission.ID,
           _: ResourceFolder.ID,
           _: OrderedSet<ResourcePermission>,
           _: PermissionSnapshot
@@ -523,7 +657,7 @@ extension ResourceEditPermissionConfirmationTests {
     )
     let outcome: ConfirmPermissionsOutcome = await self.confirm(.mock_shared)
 
-    guard case .retryWithRefreshed(let handedBack) = outcome
+    guard case .retryWithRefreshed(let handedBack, _) = outcome
     else { return XCTFail("Drift should reopen the confirmation with the current permissions") }
     XCTAssertEqual(handedBack, .mock_shared)
     XCTAssertEqual(self.serverCalls.get(), .init(), "The secret must not be re-encrypted once drift was found")
@@ -600,7 +734,7 @@ extension ResourceEditPermissionConfirmationTests {
     )
     let outcome: ConfirmPermissionsOutcome = await self.confirm(.mock_shared)
 
-    guard case .retryWithRefreshed(let handedBack) = outcome
+    guard case .retryWithRefreshed(let handedBack, _) = outcome
     else { return XCTFail("A partially applied change should reopen with the real state") }
     XCTAssertEqual(handedBack, refreshedSnapshot)
     XCTAssertEqual(self.appliedResources.get(), .init())
@@ -852,7 +986,6 @@ extension ResourceEditPermissionConfirmationTests {
         @Sendable
         (
           _: Resource.ID,
-          _: Permission.ID,
           _: ResourceFolder.ID,
           _: OrderedSet<ResourcePermission>,
           _: PermissionSnapshot

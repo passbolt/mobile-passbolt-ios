@@ -21,30 +21,26 @@
 // @since         v1.0
 //
 
-import Display
-import FeatureScopes
+/// A single recipient's details, opened from the "Confirm permissions" list. The level is picked here and only
+/// reaches the list on Apply; Remove drops the recipient. Backing out with the navigation bar changes nothing.
+final internal class ConfirmPermissionDetailsScreen: Screen {
 
-internal enum NavigationToPermissionUsersAndGroupsSearchDestination: NavigationDestination {
-
-  internal typealias TransitionContext = PermissionUsersAndGroupsSearchViewController.Context
-}
-
-internal typealias NavigationToPermissionUsersAndGroupsSearch =
-  NavigationTo<NavigationToPermissionUsersAndGroupsSearchDestination>
-
-extension NavigationToPermissionUsersAndGroupsSearch {
-
-  fileprivate static var live: FeatureLoader {
-    pushTransition(to: PermissionUsersAndGroupsSearchView.self)
+  override internal var requiredElements: Array<XCUIElement> {
+    [
+      applyButton
+    ]
   }
-}
 
-extension FeaturesRegistry {
+  internal lazy var applyButton: XCUIElement = self.application.buttons["permissions.confirm.user.apply"]
+  internal lazy var removeButton: XCUIElement = self.application.buttons["permissions.confirm.user.remove"]
+  internal lazy var groupApplyButton: XCUIElement = self.application.buttons["permissions.confirm.group.apply"]
+  internal lazy var groupRemoveButton: XCUIElement = self.application.buttons["permissions.confirm.group.remove"]
 
-  internal mutating func useLiveNavigationToPermissionUsersAndGroupsSearch() {
-    self.use(
-      NavigationToPermissionUsersAndGroupsSearch.live,
-      in: ResourceShareScope.self
-    )
+  /// A permission level option, addressed by the level it sets.
+  internal func level(_ permission: String) -> XCUIElement {
+    self.application
+      .descendants(matching: .any)
+      .matching(identifier: "permissions.confirm.user.level.\(permission)")
+      .firstMatch
   }
 }

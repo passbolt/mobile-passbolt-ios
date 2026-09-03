@@ -78,7 +78,6 @@ extension FeaturesRegistry {
     // MARK: - Resource menu
     self.useLiveNavigationToResourceContextualMenu()
     self.useLiveNavigationToResourceDeleteAlert()
-    self.useLiveNavigationToResourceShare()
     self.useLiveNavigationToConfirmPermissions()
     self.useLiveNavigationToConfirmAddRecipients()
     self.useLiveNavigationToConfirmUserPermissionDetails()

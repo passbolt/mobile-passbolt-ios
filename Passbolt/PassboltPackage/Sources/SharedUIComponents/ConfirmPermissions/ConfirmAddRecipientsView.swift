@@ -36,38 +36,43 @@ internal struct ConfirmAddRecipientsView: @MainActor ControlledView {
   }
 
   internal var body: some View {
-    ScreenView(
-      title: .localized(
-        key: "resource.permission.confirm.action.add"
-      ),
-      contentView: {
-        WithViewState(from: self.controller) { state in
-          VStack(spacing: 0) {
-            SearchView(
-              prompt: .localized(
-                key: "resource.permission.edit.user.and.group.search.prompt"
-              ),
-              text: self.binding(
-                to: \.searchText,
-                updating: { self.controller.updateSearchText($0) }
-              )
-            )
-            .padding(top: 0, leading: 16, trailing: 16)
-            .accessibilityIdentifier("permissions.confirm.add.search")
-
-            self.list(for: state)
-
-            PrimaryButton(
-              title: .localized(key: .apply),
-              action: self.controller.apply
-            )
-            .padding(16)
-            .accessibilityIdentifier("permissions.confirm.add.apply")
-          }
-        }
+    WithViewState(from: self.controller) { state in
+      ScreenView(
+        title: .localized(
+          key: "resource.permission.confirm.action.add"
+        )
+      ) {
+        self.contentView(with: state)
       }
-    )
-    .tabbarHidden()
+      .tabbarHidden()
+    }
+  }
+
+  @ViewBuilder private func contentView(
+    with state: Controller.ViewState
+  ) -> some View {
+    VStack(spacing: 0) {
+      SearchView(
+        prompt: .localized(
+          key: "resource.permission.edit.user.and.group.search.prompt"
+        ),
+        text: self.binding(
+          to: \.searchText,
+          updating: { self.controller.updateSearchText($0) }
+        )
+      )
+      .padding(top: 0, leading: 16, trailing: 16)
+      .accessibilityIdentifier("permissions.confirm.add.search")
+
+      self.list(for: state)
+
+      PrimaryButton(
+        title: .localized(key: .apply),
+        action: self.controller.apply
+      )
+      .padding(16)
+      .accessibilityIdentifier("permissions.confirm.add.apply")
+    }
   }
 
   @ViewBuilder private func list(
@@ -98,7 +103,6 @@ internal struct ConfirmAddRecipientsView: @MainActor ControlledView {
                 }
               }
             )
-            // Keyed by the name the operator sees, so a test can pick a candidate without knowing its identifier.
             .accessibilityIdentifier("permissions.confirm.add.group.\(group.name)")
           }
 

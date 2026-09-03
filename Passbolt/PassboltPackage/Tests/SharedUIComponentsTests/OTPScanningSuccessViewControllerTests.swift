@@ -76,6 +76,16 @@ final class OTPScanningSuccessViewControllerTests: FeaturesTestCase {
       \NavigationToOTPScanning.mockRevert,
       with: always(Void())
     )
+    // Submitting a secret edit asks the server who holds the resource before deciding whether to confirm, so
+    // every test reaches this - defaulted to "nobody else holds it" and overridden where sharing is the point.
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
+    patch(
+      \PermissionSnapshotService.forFolder,
+      with: always(.mock_private)
+    )
   }
 
   func test_createStandaloneOTP_presentsConfirmation_whenCreatedInSharedFolder() async throws {

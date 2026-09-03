@@ -81,7 +81,9 @@ internal final class ConfirmAddRecipientsController: @MainActor ViewController {
     _ text: String
   ) {
     self.viewState.update(\.searchText, to: text)
-    self.search(for: text, debounced: true)
+    // Emptying the field is a reset, not a keystroke, so it skips the debounce that exists to absorb typing -
+    // the full list comes straight back instead of after a pause the operator did not ask for.
+    self.search(for: text, debounced: text.isEmpty == false)
   }
 
   private func search(

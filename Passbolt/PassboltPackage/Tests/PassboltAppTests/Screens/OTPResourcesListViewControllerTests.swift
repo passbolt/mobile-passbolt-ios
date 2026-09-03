@@ -159,6 +159,16 @@ final class OTPResourcesListViewControllerTests: FeaturesTestCase {
       \NavigationToConfirmPermissions.canPerformCheck,
       with: { (_: StaticString, _: UInt) -> Bool in true }
     )
+    // Submitting a secret edit asks the server who holds the resource before deciding whether to confirm, so
+    // every test reaches this - defaulted to "nobody else holds it" and overridden where sharing is the point.
+    patch(
+      \PermissionSnapshotService.forResource,
+      with: always(.mock_private)
+    )
+    patch(
+      \PermissionSnapshotService.forFolder,
+      with: always(.mock_private)
+    )
   }
 
   /// Opens the contextual menu and hands back the removal action it was given - the only way into the removal from
@@ -240,6 +250,8 @@ final class OTPResourcesListViewControllerTests: FeaturesTestCase {
     await fulfillment(of: [confirmationPresented], timeout: 1.0)
   }
 
+  /// The server's capture decides, not the cached resource - and a resource it reports as private is applied
+  /// against that capture rather than through the plain submission, which draws its recipients from the cache.
   func test_deleteOTP_submitsDirectly_whenResourceIsPrivate() async throws {
     let formSubmitted: XCTestExpectation = self.expectation(description: "Form should be submitted")
     self.editing(Resource.mock_privateWithTOTP)
@@ -252,6 +264,14 @@ final class OTPResourcesListViewControllerTests: FeaturesTestCase {
     patch(
       \ResourceEditForm.sendForm,
       with: { @MainActor in
+        XCTFail("The cached recipient set must not decide who the secret is encrypted for")
+        return self.editedResource.value
+      }
+    )
+    patch(
+      \ResourceEditForm.applyConfirmedPermissions,
+      with: { (permissions: OrderedSet<ResourcePermission>, _: PermissionSnapshot) in
+        XCTAssertEqual(permissions, PermissionSnapshot.mock_private.permissions)
         formSubmitted.fulfill()
         return self.editedResource.value
       }

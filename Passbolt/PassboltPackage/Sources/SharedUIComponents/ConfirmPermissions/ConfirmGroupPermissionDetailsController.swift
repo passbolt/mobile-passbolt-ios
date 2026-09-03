@@ -26,9 +26,6 @@ import Display
 import FeatureScopes
 import Users
 
-/// Details of a single group recipient shown from the permission confirmation screen: group icon, name, a preview
-/// of the members (tap to open the full members list) and - when editable - a radio picker for the permission
-/// level. Selecting a level reports it back via ``Context/setPermission`` so the edited recipient set stays in sync.
 internal final class ConfirmGroupPermissionDetailsController: @MainActor ViewController {
 
   internal struct Context: Sendable {
@@ -36,8 +33,10 @@ internal final class ConfirmGroupPermissionDetailsController: @MainActor ViewCon
     internal var details: UserGroupPermissionDetailsDSV
     /// Whether the permission level may be changed here (false for read-only flows).
     internal var editable: Bool
-    /// Reports a newly-picked permission level back to the confirmation screen.
+    /// Reports the applied permission level back to the confirmation screen.
     internal var setPermission: @Sendable (Permission) async -> Void
+    /// Drops the recipient from the confirmation screen's list.
+    internal var remove: @Sendable () async -> Void
   }
 
   internal struct ViewState: Equatable, Sendable {
@@ -51,6 +50,7 @@ internal final class ConfirmGroupPermissionDetailsController: @MainActor ViewCon
   internal let viewState: ViewStateSource<ViewState>
 
   private let context: Context
+  private let navigationToSelf: NavigationToConfirmGroupPermissionDetails
   private let navigationToMembers: NavigationToConfirmGroupMembers
 
   internal init(
@@ -58,6 +58,7 @@ internal final class ConfirmGroupPermissionDetailsController: @MainActor ViewCon
     features: Features
   ) throws {
     self.context = context
+    self.navigationToSelf = try features.instance()
     self.navigationToMembers = try features.instance()
 
     let users: Users = try features.instance()
@@ -88,10 +89,28 @@ internal final class ConfirmGroupPermissionDetailsController: @MainActor ViewCon
     }
   }
 
-  internal func setPermission(
+  internal func selectPermission(
     _ permission: Permission
-  ) async {
+  ) {
     self.viewState.update(\.selectedPermission, to: permission)
-    await self.context.setPermission(permission)
+  }
+
+  /// Commits the picked level and returns to the recipient list.
+  internal func apply() async {
+    let selected: Permission = await self.viewState.current.selectedPermission
+    await self.context.setPermission(selected)
+    await self.leave()
+  }
+
+  /// Drops the recipient and returns to the recipient list.
+  internal func remove() async {
+    await self.context.remove()
+    await self.leave()
+  }
+
+  private func leave() async {
+    await consumingErrors {
+      try await self.navigationToSelf.revert()
+    }
   }
 }

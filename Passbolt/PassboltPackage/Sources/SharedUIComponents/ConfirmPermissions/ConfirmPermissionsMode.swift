@@ -21,21 +21,55 @@
 // @since         v1.0
 //
 
-/// Which flow opened the confirmation screen. Governs the title and whether the recipient list may be edited.
-///
-/// The confirmation screen is a checkpoint before a secret is encrypted for others - it never replaces the
-/// explicit share flow, which keeps using the dedicated share screen.
+import Commons
+
 public enum ConfirmPermissionsMode: Equatable, Sendable {
 
   /// Creating a resource inside a shared folder - editable only when the operator owns that folder.
   case create(editable: Bool)
   /// Editing a shared resource - editable only when the operator is an owner.
   case edit(editable: Bool)
+  /// Sharing an existing resource - always editable; only reachable for a resource the operator may share.
+  case share
 
   public var isEditable: Bool {
     switch self {
     case .create(let editable), .edit(let editable):
       return editable
+
+    case .share:
+      return true
     }
   }
+
+  public var title: DisplayableString {
+    switch self {
+    case .create, .edit:
+      return .localized(key: "resource.permission.confirm.title")
+
+    case .share:
+      return .localized(key: "resource.permission.edit.list.title")
+    }
+  }
+
+  public var ownershipRule: ConfirmPermissionsOwnershipRule? {
+    guard self.isEditable
+    else { return .none }
+    switch self {
+    case .edit:
+      return .operatorRemainsOwner
+
+    case .create, .share:
+      return .anyOwnerRemains
+    }
+  }
+}
+
+/// What a confirmation refuses to apply, ownership-wise.
+public enum ConfirmPermissionsOwnershipRule: Equatable, Sendable {
+
+  /// The operator stays an owner - directly or through a group holding ownership.
+  case operatorRemainsOwner
+  /// Somebody has to own the resource, whoever it is.
+  case anyOwnerRemains
 }

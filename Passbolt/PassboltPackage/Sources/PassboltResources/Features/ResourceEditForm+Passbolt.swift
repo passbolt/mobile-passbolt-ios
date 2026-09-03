@@ -118,9 +118,7 @@ extension ResourceEditForm {
       }
     }
 
-    /// Whether any secret field differs from the resource as loaded into the form. Compared against the form state
-    /// rather than tracked per edit, since the sub-editors (password, note, OTP...) mutate this form directly
-    /// without reporting the edited paths back to the screen that submits it.
+    /// Whether any secret field differs from the loaded resource.
     @Sendable nonisolated func isSecretEdited() -> Bool {
       let current: Resource = formState.value
       // A new resource always needs its secret sent; a type change reshapes the secret.
@@ -161,9 +159,9 @@ extension ResourceEditForm {
       }
     }
 
-    /// Encrypts `secret` for each user using the snapshot's public keys (which may include recipients not yet in
-    /// the local database). A recipient absent from the confirmed snapshot is a hard error: silently skipping one
-    /// would rotate the secret away from a valid holder, leaving them a permission they can no longer decrypt.
+    /// Encrypts `secret` with the snapshot's public keys, which may cover recipients not in the local database.
+    /// A recipient the snapshot cannot describe is a hard error - skipping one would rotate the secret away from
+    /// a valid holder.
     @Sendable func encryptForSnapshot(
       _ secret: String,
       users: OrderedSet<User.ID>,
@@ -182,10 +180,9 @@ extension ResourceEditForm {
       return secrets
     }
 
-    /// Applies the operator-confirmed permissions when editing a shared resource, in the doc's safe order:
-    /// (1) remove access from recipients losing it, (2) update the resource re-encrypting the new secret for the
-    /// recipients that keep access, (3) grant access to the newly-added recipients with the new secret. The
-    /// operator cannot remove their own ownership here (guarded by the confirmation screen).
+    /// Applies the confirmed permissions when editing a shared resource, in order: revoke,
+    /// update and re-encrypt for those keeping access, grant the newly added, give up or lower the
+    /// operator's own permission last.
     @Sendable nonisolated func applyConfirmedPermissions(
       _ confirmed: OrderedSet<ResourcePermission>,
       _ snapshot: PermissionSnapshot
@@ -221,23 +218,60 @@ extension ResourceEditForm {
         original: snapshot.permissions
       )
 
-      let keptUserIDs: OrderedSet<User.ID> = snapshot.recipients(of: diff.kept)
+      guard confirmed.contains(where: \ResourcePermission.permission.isOwner)
+      else { throw MissingResourceOwner.error() }
+
+      if snapshot.grantsOwnership(to: currentAccount.userID, in: snapshot.permissions) {
+        guard snapshot.grantsOwnership(to: currentAccount.userID, in: confirmed)
+        else { throw MissingResourceOwner.error() }
+      }
+
+      resource.permissions = confirmed
+
+      let isOperators: (ResourcePermission) -> Bool = { (permission: ResourcePermission) -> Bool in
+        permission.userID == currentAccount.userID
+      }
+      let revoked: OrderedSet<ResourcePermission> = .init(diff.deleted.filter { !isOperators($0) })
+      let granted: OrderedSet<ResourcePermission> = .init(diff.created.filter { !isOperators($0) })
+      let changed: OrderedSet<ResourcePermission> = .init(diff.updated.filter { !isOperators($0) })
+      let ownGranted: Array<NewGenericPermissionDTO> = diff.created.filter(isOperators)
+        .compactMap { $0.asNewDTO(resourceID: resourceID) }
+      let ownChanged: Array<GenericPermissionDTO> = diff.updated.filter(isOperators)
+        .compactMap { $0.asExistingDTO(resourceID: resourceID) }
+      let ownRevoked: Array<GenericPermissionDTO> = diff.deleted.filter(isOperators)
+        .compactMap { $0.asExistingDTO(resourceID: resourceID) }
+
+      var keptUserIDs: OrderedSet<User.ID> = snapshot.recipients(of: diff.kept)
+      keptUserIDs.append(currentAccount.userID)
       var addedUserIDs: OrderedSet<User.ID> = snapshot.recipients(of: diff.created)
       addedUserIDs.subtract(keptUserIDs)
 
-      // 1. Remove access from recipients losing it, before the secret changes.
-      // Tracks whether anything already reached the server, so a later failure is reported as a partial
-      // application rather than as a clean no-op: both the revocation and the secret rotation leave the resource
-      // no longer matching the reviewed snapshot.
       var permissionsAlreadyApplied: Bool = false
-      if diff.deleted.isEmpty == false {
+
+      if ownGranted.isEmpty == false {
+        try await resourceShareNetworkOperation(
+          .init(
+            resourceID: resourceID,
+            body: .init(
+              newPermissions: ownGranted,
+              updatedPermissions: .init(),
+              deletedPermissions: .init(),
+              newSecrets: .init()
+            )
+          )
+        )
+        permissionsAlreadyApplied = true
+      }
+
+      // Remove access from recipients losing it, before the secret changes.
+      if revoked.isEmpty == false {
         try await resourceShareNetworkOperation(
           .init(
             resourceID: resourceID,
             body: .init(
               newPermissions: .init(),
               updatedPermissions: .init(),
-              deletedPermissions: diff.deleted.compactMap { $0.asExistingDTO(resourceID: resourceID) },
+              deletedPermissions: revoked.compactMap { $0.asExistingDTO(resourceID: resourceID) },
               newSecrets: .init()
             )
           )
@@ -246,7 +280,7 @@ extension ResourceEditForm {
       }
 
       do {
-        // 2. Update the resource, re-encrypting the new secret for the recipients that keep access.
+        // Update the resource, re-encrypting the new secret for the recipients that keep access.
         let keptSecrets: OrderedSet<EncryptedMessage> = try await encryptForSnapshot(
           resourceSecret,
           users: keptUserIDs,
@@ -257,11 +291,11 @@ extension ResourceEditForm {
         // snapshot the operator reviewed, so a failure must not be reported as if nothing had happened.
         permissionsAlreadyApplied = true
 
-        // 3. Grant access to newly-added recipients (and apply level changes) with the new secret.
-        if diff.created.isEmpty == false || diff.updated.isEmpty == false {
+        // Grant access to newly-added recipients (and apply level changes) with the new secret.
+        if granted.isEmpty == false || changed.isEmpty == false {
           // Granting access to someone new requires the metadata to be readable by them - the resource is already
           // shared here, but a migration may still be pending, so ensure it the same way the create flow does.
-          if diff.created.isEmpty == false {
+          if granted.isEmpty == false {
             try await resourceSharePreparation.prepareResourceForSharing(resourceID)
           }
           let addedSecrets: OrderedSet<EncryptedMessage> = try await encryptForSnapshot(
@@ -273,20 +307,33 @@ extension ResourceEditForm {
             .init(
               resourceID: resourceID,
               body: .init(
-                newPermissions: diff.created.compactMap { $0.asNewDTO(resourceID: resourceID) },
-                updatedPermissions: diff.updated.compactMap { $0.asExistingDTO(resourceID: resourceID) },
+                newPermissions: granted.compactMap { $0.asNewDTO(resourceID: resourceID) },
+                updatedPermissions: changed.compactMap { $0.asExistingDTO(resourceID: resourceID) },
                 deletedPermissions: .init(),
                 newSecrets: addedSecrets
               )
             )
           )
         }
+
+        // Give up or lower the operator's own permission last, so everything above was authorised by a
+        // principal that still held the right to ask. Whatever keeps them an owner is in place by now.
+        if ownChanged.isEmpty == false || ownRevoked.isEmpty == false {
+          try await resourceShareNetworkOperation(
+            .init(
+              resourceID: resourceID,
+              body: .init(
+                newPermissions: .init(),
+                updatedPermissions: ownChanged,
+                deletedPermissions: ownRevoked,
+                newSecrets: .init()
+              )
+            )
+          )
+        }
       }
       catch {
-        // Part of the change already landed (a revocation, a rotated secret, or both), so the resource no longer
-        // matches the reviewed snapshot - by our own doing, not through server-side drift. Say so, otherwise the
-        // next attempt's drift check reports our own change as someone else's and hides the failure that actually
-        // stopped us.
+        // Part of it landed, so the resource no longer matches the reviewed snapshot
         guard permissionsAlreadyApplied
         else { throw error }
         // Bring the local database back in line with what did land before handing the error over.
@@ -298,10 +345,9 @@ extension ResourceEditForm {
       return resource
     }
 
-    /// Creates the resource with the operator as its sole owner, without applying any folder permissions.
-    /// The create-in-shared-folder confirmation flow calls this first, then applies the confirmed permissions
-    /// via `ResourceShareConfirmation`. Metadata is created with a personal key; migration to a shared key
-    /// happens later, during the share step.
+    /// Creates the resource with the operator as sole owner and no folder permissions - the create-in-shared-
+    /// folder flow calls this first, then applies the confirmed set. Metadata starts on a personal key and
+    /// migrates during the share step.
     @Sendable nonisolated func createResourcePrivate() async throws -> Resource {
       var resource: Resource = formState.value
 
@@ -388,9 +434,6 @@ extension ResourceEditForm {
         }
       }
 
-      // The form now stands for a resource that exists on the server. Without this the form would still look
-      // local, and a further submission - the confirmation flow reopens the form after an abandoned attempt -
-      // would create a second resource instead of updating this one.
       formState.mutate { (state: inout Resource) in
         state = resource
       }

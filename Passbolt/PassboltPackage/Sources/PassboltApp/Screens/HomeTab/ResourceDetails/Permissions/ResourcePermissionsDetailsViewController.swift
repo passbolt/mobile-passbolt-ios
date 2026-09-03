@@ -25,6 +25,7 @@ import Display
 import FeatureScopes
 import OSFeatures
 import Resources
+import SharedUIComponents
 import Users
 
 internal final class ResourcePermissionsDetailsViewController: ViewController {
@@ -40,11 +41,11 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
   private let navigationToSelf: NavigationToResourcePermissionsDetails
   private let navigationToUserPermissionDetails: NavigationToUserPermissionDetails
   private let navigationToGroupPermissionDetails: NavigationToUserGroupPermissionDetails
-  private let navigationToPermissionsEdit: NavigationToResourceShare
 
   private let resourceController: ResourceController
   private let users: Users
 
+  private let features: Features
   private let resourceID: Resource.ID
 
   internal init(
@@ -53,11 +54,11 @@ internal final class ResourcePermissionsDetailsViewController: ViewController {
   ) throws {
     try features.ensureScope(ResourceScope.self)
     self.resourceID = try features.context(of: ResourceScope.self)
+    self.features = features.takeOwned()
 
     self.navigationToSelf = try features.instance()
     self.navigationToUserPermissionDetails = try features.instance()
     self.navigationToGroupPermissionDetails = try features.instance()
-    self.navigationToPermissionsEdit = try features.instance()
 
     self.resourceController = try features.instance()
     self.users = try features.instance()
@@ -141,11 +142,15 @@ extension ResourcePermissionsDetailsViewController {
     }
   }
 
+  /// Opens the confirmation the operator edits and confirms the recipients on - sharing has no separate editing
+  /// screen, so this is where a change to who holds the secret is composed.
   internal func editPermissions() async {
     await consumingErrors {
-      try await navigationToPermissionsEdit.perform(
-        context: self.resourceID
+      let permissionConfirmation: ResourceSharePermissionConfirmation = try await .init(
+        features: self.features,
+        resourceID: self.resourceID
       )
+      try await permissionConfirmation.present()
     }
   }
 }
