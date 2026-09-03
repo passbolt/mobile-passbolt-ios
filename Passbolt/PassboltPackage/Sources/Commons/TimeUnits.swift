@@ -21,6 +21,10 @@
 // @since         v1.0
 //
 
+public enum TimeMillisecondsTag {}
+
+public typealias Milliseconds = Tagged<Int64, TimeMillisecondsTag>
+
 public enum TimeSecondsTag {}
 
 public typealias Seconds = Tagged<Int64, TimeSecondsTag>

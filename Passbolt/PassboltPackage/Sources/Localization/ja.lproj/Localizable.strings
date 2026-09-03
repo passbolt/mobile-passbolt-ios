@@ -36,6 +36,9 @@
 "generic.try.again" = "もう一度やり直してください";
 "generic.delete" = "削除";
 "generic.got.it" = "了解しました";
+"generic.dont.show.again" = "Don't show again";
+"generic.i.understand" = "I understand";
+"generic.dismiss" = "Dismiss";
 "generic.settings" = "設定";
 "generic.disable" = "無効化";
 "generic.sign.out" = "サインアウト";
@@ -446,6 +449,11 @@
 
 "update.available.title" = "新しいバージョンがあります！";
 "update.available.message" = "App Storeからパスボルトアプリを最新バージョンに更新してください";
+"update.available.action.title" = "Update";
+
+"deprecation.system.support.title" = "Outdated iOS version";
+"deprecation.system.support.message" = "Your device runs an iOS version that no longer receives updates. Passbolt support for this version is scheduled to be phased out.";
+"deprecation.system.support.message.action" = "To stay protected and keep receiving Passbolt updates **update your device to a newer iOS version**.";
 
 // Autofill extension
 

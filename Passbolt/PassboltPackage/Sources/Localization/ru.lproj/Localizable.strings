@@ -36,6 +36,9 @@
 "generic.try.again" = "Попробуйте еще раз";
 "generic.delete" = "Удалить";
 "generic.got.it" = "Понятно";
+"generic.dont.show.again" = "Don't show again";
+"generic.i.understand" = "I understand";
+"generic.dismiss" = "Dismiss";
 "generic.settings" = "Настройки";
 "generic.disable" = "Отключено";
 "generic.sign.out" = "Выйти";
@@ -448,6 +451,11 @@ NFC.";
 
 "update.available.title" = "Доступна новая версия!";
 "update.available.message" = "Пожалуйста, обновите приложение Passbook до последней версии из App Store";
+"update.available.action.title" = "Update";
+
+"deprecation.system.support.title" = "Outdated iOS version";
+"deprecation.system.support.message" = "Your device runs an iOS version that no longer receives updates. Passbolt support for this version is scheduled to be phased out.";
+"deprecation.system.support.message.action" = "To stay protected and keep receiving Passbolt updates **update your device to a newer iOS version**.";
 
 // Autofill extension
 

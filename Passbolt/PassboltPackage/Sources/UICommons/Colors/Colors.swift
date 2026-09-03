@@ -140,6 +140,10 @@ extension UIColor {
   public static var passboltPrimaryButtonMenuBackground: Self {
     .init(named: "primaryButtonMenuBackground", in: .uiCommons, compatibleWith: .current)!
   }
+
+  public static var passboltWarningOrange: Self {
+    .init(named: "warningOrange", in: .uiCommons, compatibleWith: .current)!
+  }
 }
 
 extension Color {
@@ -261,5 +265,9 @@ extension Color {
 
   public static var passboltPrimaryButtonMenuBackground: Self {
     .init(UIColor.passboltPrimaryButtonMenuBackground)
+  }
+
+  public static var passboltWarningOrange: Self {
+    .init(UIColor.passboltWarningOrange)
   }
 }

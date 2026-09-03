@@ -24,12 +24,14 @@
 import Features
 
 import class Foundation.Bundle
+import class Foundation.ProcessInfo
 
 // MARK: - Interface
 
 public struct ApplicationMeta: Sendable {
 
   public var applicationVersion: @Sendable () -> String
+  public var operatingSystemMajorVersion: @Sendable () -> Int
 }
 
 extension ApplicationMeta: StaticFeature {
@@ -37,7 +39,8 @@ extension ApplicationMeta: StaticFeature {
   #if DEBUG
   nonisolated public static var placeholder: Self {
     Self(
-      applicationVersion: unimplemented0()
+      applicationVersion: unimplemented0(),
+      operatingSystemMajorVersion: unimplemented0()
     )
   }
   #endif
@@ -57,8 +60,16 @@ extension ApplicationMeta {
         ?? "?.?.?"
     }
 
+    @Sendable
+    func operatingSystemMajorVersion() -> Int {
+      ProcessInfo.processInfo
+        .operatingSystemVersion
+        .majorVersion
+    }
+
     return Self(
-      applicationVersion: applicationVersion
+      applicationVersion: applicationVersion,
+      operatingSystemMajorVersion: operatingSystemMajorVersion
     )
   }
 }

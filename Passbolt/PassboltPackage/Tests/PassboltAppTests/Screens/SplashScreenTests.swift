@@ -22,14 +22,19 @@
 //
 
 import CommonModels
-import Display
 import Features
+import Localization
+import OSFeatures
 import SessionData
 import SharedUIComponents
 import TestExtensions
 
 @testable import Accounts
+@testable import Display
 @testable import PassboltApp
+
+/// Time allowed for a notice drawer to be presented before failing the test.
+private let noticePresentationTimeout: TimeInterval = 1.0
 
 // swift-format-ignore: AlwaysUseLowerCamelCase, NeverUseImplicitlyUnwrappedOptionals
 
@@ -43,6 +48,26 @@ final class NewSplashScreenViewTests: FeaturesTestCase {
     patch(
       \UpdateCheck.checkRequired,
       with: always(false)
+    )
+    patch(
+      \UpdateCheck.updatePageURL,
+      with: always(URLString?.none)
+    )
+    patch(
+      \DeprecationCheck.pendingNotice,
+      with: always(DeprecationNotice?.none)
+    )
+    patch(
+      \DeprecationCheck.markPresented,
+      with: { (_: DeprecationNotice) in
+        // NOP - withholding is covered by DeprecationCheckTests
+      }
+    )
+    patch(
+      \OSTime.waitForMilliseconds,
+      with: { (_: Milliseconds) in
+        // NOP - complete immediately for testing
+      }
     )
     patch(
       \Session.updates,
@@ -157,6 +182,350 @@ final class NewSplashScreenViewTests: FeaturesTestCase {
     )
   }
 
+  func test_presentsDrawer_whenDeprecationNoticeIsPending() async throws {
+    patch(
+      \DeprecationCheck.pendingNotice,
+      with: always(DeprecationNotice.mock)
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let awaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "deprecation drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [awaiter.expectation], timeout: noticePresentationTimeout)
+      let notice: NoticeDrawerViewModel = try awaiter.presentedNotice()
+      XCTAssertEqual(notice.title, DeprecationNotice.mock.title)
+      XCTAssertEqual(notice.actions.count, 2)
+      XCTAssertFalse(self.mockWasExecuted)
+
+      try await notice.action(titled: .localized(key: .iUnderstand)).perform()
+      await activation.value
+
+      XCTAssertTrue(self.mockWasExecuted)
+    }
+  }
+
+  func test_silencesDeprecationNotice_whenSelectingDoNotShowAgain() async throws {
+    let silenced: CriticalState<DeprecationNotice?> = .init(.none)
+    patch(
+      \DeprecationCheck.pendingNotice,
+      with: always(DeprecationNotice.mock)
+    )
+    patch(
+      \DeprecationCheck.silence,
+      with: { (notice: DeprecationNotice) in
+        silenced.set(notice)
+      }
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let awaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "deprecation drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [awaiter.expectation], timeout: noticePresentationTimeout)
+      try await awaiter.presentedNotice().action(titled: .localized(key: .dontShowAgain)).perform()
+      await activation.value
+
+      XCTAssertEqual(silenced.get(), DeprecationNotice.mock)
+      XCTAssertTrue(self.mockWasExecuted)
+    }
+  }
+
+  func test_withholdsDeprecationNotice_onlyAfterItWasPresented() async throws {
+    let presented: CriticalState<DeprecationNotice?> = .init(.none)
+    patch(
+      \DeprecationCheck.pendingNotice,
+      with: always(DeprecationNotice.mock)
+    )
+    patch(
+      \DeprecationCheck.markPresented,
+      with: { (notice: DeprecationNotice) in
+        presented.set(notice)
+      }
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let awaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "deprecation drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [awaiter.expectation], timeout: noticePresentationTimeout)
+      // an interruption at this point has to leave the notice pending
+      XCTAssertNil(presented.get())
+
+      try await awaiter.presentedNotice().action(titled: .localized(key: .iUnderstand)).perform()
+      await activation.value
+
+      XCTAssertEqual(presented.get(), DeprecationNotice.mock)
+    }
+  }
+
+  func test_presentsDeprecationDrawerBeforeUpdateDrawer_whenBothArePending() async throws {
+    patch(
+      \UpdateCheck.checkRequired,
+      with: always(true)
+    )
+    patch(
+      \UpdateCheck.updateAvailable,
+      with: always(true)
+    )
+    patch(
+      \DeprecationCheck.pendingNotice,
+      with: always(DeprecationNotice.mock)
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let deprecationAwaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "deprecation drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [deprecationAwaiter.expectation], timeout: noticePresentationTimeout)
+      let deprecationNotice: NoticeDrawerViewModel = try deprecationAwaiter.presentedNotice()
+      XCTAssertEqual(deprecationNotice.title, DeprecationNotice.mock.title)
+      XCTAssertEqual(deprecationNotice.actions.count, 2)
+      XCTAssertFalse(self.mockWasExecuted)
+
+      // subscribed before the dismissal to not miss the drawer following it
+      let updateAwaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "update drawer")
+      )
+      try await deprecationNotice.action(titled: .localized(key: .iUnderstand)).perform()
+
+      await self.fulfillment(of: [updateAwaiter.expectation], timeout: noticePresentationTimeout)
+      let updateNotice: NoticeDrawerViewModel = try updateAwaiter.presentedNotice()
+      XCTAssertEqual(updateNotice.title, "update.available.title")
+      // navigation is performed only after dismissing the last drawer
+      XCTAssertFalse(self.mockWasExecuted)
+
+      try await updateNotice.action(titled: .localized(key: .gotIt)).perform()
+      await activation.value
+
+      XCTAssertTrue(self.mockWasExecuted)
+    }
+  }
+
+  func test_presentsUpdateDrawerAfterSilencingDeprecationNotice_whenBothArePending() async throws {
+    let silenced: CriticalState<DeprecationNotice?> = .init(.none)
+    patch(
+      \UpdateCheck.checkRequired,
+      with: always(true)
+    )
+    patch(
+      \UpdateCheck.updateAvailable,
+      with: always(true)
+    )
+    patch(
+      \DeprecationCheck.pendingNotice,
+      with: always(DeprecationNotice.mock)
+    )
+    patch(
+      \DeprecationCheck.silence,
+      with: { (notice: DeprecationNotice) in
+        silenced.set(notice)
+      }
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let deprecationAwaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "deprecation drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [deprecationAwaiter.expectation], timeout: noticePresentationTimeout)
+      // subscribed before the dismissal to not miss the drawer following it
+      let updateAwaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "update drawer")
+      )
+      try await deprecationAwaiter.presentedNotice().action(titled: .localized(key: .dontShowAgain)).perform()
+
+      await self.fulfillment(of: [updateAwaiter.expectation], timeout: noticePresentationTimeout)
+      let updateNotice: NoticeDrawerViewModel = try updateAwaiter.presentedNotice()
+      XCTAssertEqual(silenced.get(), DeprecationNotice.mock)
+      XCTAssertEqual(updateNotice.title, "update.available.title")
+      XCTAssertFalse(self.mockWasExecuted)
+
+      try await updateNotice.action(titled: .localized(key: .gotIt)).perform()
+      await activation.value
+
+      XCTAssertTrue(self.mockWasExecuted)
+    }
+  }
+
+  func test_updateDrawerOpensStorePage_whenUpdatePageURLIsKnown() async throws {
+    let openedURL: CriticalState<URLString?> = .init(.none)
+    patch(
+      \UpdateCheck.checkRequired,
+      with: always(true)
+    )
+    patch(
+      \UpdateCheck.updateAvailable,
+      with: always(true)
+    )
+    patch(
+      \UpdateCheck.updatePageURL,
+      with: always(URLString?.some(.mockAppStore))
+    )
+    patch(
+      \OSLinkOpener.openURL,
+      with: { (url: URLString) in
+        openedURL.set(url)
+      }
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let awaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "update drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [awaiter.expectation], timeout: noticePresentationTimeout)
+      let notice: NoticeDrawerViewModel = try awaiter.presentedNotice()
+      XCTAssertEqual(notice.actions.count, 2)
+
+      try await notice.action(titled: "update.available.action.title").perform()
+
+      // the drawer stays up while the App Store is open - dismissing it here would
+      // put the biometrics prompt on screen the moment the user comes back
+      XCTAssertEqual(openedURL.get(), .mockAppStore)
+      XCTAssertFalse(self.mockWasExecuted)
+
+      try await notice.action(titled: .localized(key: .dismiss)).perform()
+      await activation.value
+
+      XCTAssertTrue(self.mockWasExecuted)
+    }
+  }
+
+  func test_updateDrawerOnlyAcknowledges_whenUpdatePageURLIsUnknown() async throws {
+    patch(
+      \UpdateCheck.checkRequired,
+      with: always(true)
+    )
+    patch(
+      \UpdateCheck.updateAvailable,
+      with: always(true)
+    )
+    patch(
+      \UpdateCheck.updatePageURL,
+      with: always(URLString?.none)
+    )
+    patch(
+      \SessionConfigurationLoader.sessionConfiguration,
+      with: always(.default)
+    )
+    patch(
+      \NavigationToMainTabs.mockPerform,
+      with: always(self.mockExecuted())
+    )
+
+    await withInstance(
+      of: SplashScreenViewController.self,
+      context: .none
+    ) { @MainActor feature in
+      let awaiter: NoticeAwaiter = .init(
+        observing: feature.viewState,
+        expectation: self.expectation(description: "update drawer")
+      )
+      let activation: Task<Void, Never> = .init { await feature.activate() }
+      defer { activation.cancel() }
+
+      await self.fulfillment(of: [awaiter.expectation], timeout: noticePresentationTimeout)
+      let notice: NoticeDrawerViewModel = try awaiter.presentedNotice()
+      XCTAssertEqual(notice.actions.count, 1)
+
+      try await notice.action(titled: .localized(key: .gotIt)).perform()
+      await activation.value
+
+      XCTAssertTrue(self.mockWasExecuted)
+    }
+  }
+
   private func verifyIfTriggersNavigation<N>(
     _: NavigationTo<N>.Type = NavigationTo<N>.self,
     with context: SplashScreenViewController.Context = .none,
@@ -178,5 +547,87 @@ final class NewSplashScreenViewTests: FeaturesTestCase {
     ) { @MainActor feature in
       await feature.activate()
     }
+  }
+}
+
+/// Captures the first notice drawer reaching the view state after being created.
+/// Subscribing up front instead of polling keeps the wait independent
+/// of how the concurrently running activation is scheduled.
+/// Uses Combine because it is the only observation point of `ViewStateSource`.
+private final class NoticeAwaiter {
+
+  fileprivate let expectation: XCTestExpectation
+  private let captured: CriticalState<NoticeDrawerViewModel?> = .init(.none)
+  private var subscription: AnyCancellable?
+
+  fileprivate init(
+    observing viewState: ViewStateSource<SplashScreenViewController.ViewState>,
+    expectation: XCTestExpectation
+  ) {
+    self.expectation = expectation
+    let captured: CriticalState<NoticeDrawerViewModel?> = self.captured
+    self.subscription =
+      viewState
+      .updatesPublisher
+      .compactMap { (state: SplashScreenViewController.ViewState) -> NoticeDrawerViewModel? in
+        state.notice
+      }
+      .first()
+      .sink { (notice: NoticeDrawerViewModel) in
+        captured.set(notice)
+        expectation.fulfill()
+      }
+  }
+
+  fileprivate func presentedNotice(
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) throws -> NoticeDrawerViewModel {
+    try XCTUnwrap(
+      self.captured.get(),
+      "Notice drawer was not presented",
+      file: file,
+      line: line
+    )
+  }
+}
+
+extension NoticeDrawerViewModel {
+
+  /// Looks up an action by title to keep assertions independent of presentation order.
+  fileprivate func action(
+    titled title: DisplayableString,
+    file: StaticString = #filePath,
+    line: UInt = #line
+  ) throws -> Action {
+    try XCTUnwrap(
+      self.actions.first { (action: Action) -> Bool in
+        action.title == title
+      },
+      "Missing drawer action titled \(title)",
+      file: file,
+      line: line
+    )
+  }
+}
+
+extension URLString {
+
+  fileprivate static var mockAppStore: Self {
+    "https://apps.apple.com/app/passbolt"
+  }
+}
+
+extension DeprecationNotice {
+
+  fileprivate static var mock: Self {
+    .init(
+      identifier: "mock-deprecation-notice",
+      title: "mock.deprecation.notice.title",
+      messages: [
+        "mock.deprecation.notice.message",
+        "mock.deprecation.notice.message.action",
+      ]
+    )
   }
 }

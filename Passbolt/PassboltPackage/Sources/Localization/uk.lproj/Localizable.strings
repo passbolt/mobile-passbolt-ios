@@ -36,6 +36,9 @@
 "generic.try.again" = "Спробувати знову";
 "generic.delete" = "Видалити";
 "generic.got.it" = "Зрозуміло";
+"generic.dont.show.again" = "Don't show again";
+"generic.i.understand" = "I understand";
+"generic.dismiss" = "Dismiss";
 "generic.settings" = "Налаштування";
 "generic.disable" = "Вимкнути";
 "generic.sign.out" = "Вийти";
@@ -447,6 +450,11 @@ NFC, щоб це працювало.";
 
 "update.available.title" = "Нова версія доступна!";
 "update.available.message" = "Оновіть застосунок Passbolt до останньої версії з App Store";
+"update.available.action.title" = "Update";
+
+"deprecation.system.support.title" = "Outdated iOS version";
+"deprecation.system.support.message" = "Your device runs an iOS version that no longer receives updates. Passbolt support for this version is scheduled to be phased out.";
+"deprecation.system.support.message.action" = "To stay protected and keep receiving Passbolt updates **update your device to a newer iOS version**.";
 
 // Autofill extension
 

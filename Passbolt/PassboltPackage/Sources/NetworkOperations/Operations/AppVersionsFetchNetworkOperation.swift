@@ -49,11 +49,15 @@ extension AppVersionsFetchNetworkOperationResult {
   public struct Result: Decodable, Sendable {
 
     public var version: String
+    /// App Store page of the application, as provided by the lookup service.
+    public var trackViewUrl: String?
 
     public init(
-      version: String
+      version: String,
+      trackViewUrl: String? = .none
     ) {
       self.version = version
+      self.trackViewUrl = trackViewUrl
     }
   }
 }

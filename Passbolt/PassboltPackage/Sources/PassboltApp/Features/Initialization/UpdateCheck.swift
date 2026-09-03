@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Commons
 import Features
 import NetworkOperations
 
@@ -30,6 +31,8 @@ public struct UpdateCheck: Sendable {
 
   public var checkRequired: @MainActor () async -> Bool
   public var updateAvailable: @MainActor () async throws -> Bool
+  /// App Store page of the application, available only after a successful update check.
+  public var updatePageURL: @MainActor () async -> URLString?
 }
 
 extension UpdateCheck: LoadableFeature {
@@ -45,7 +48,8 @@ extension UpdateCheck: LoadableFeature {
 
     return Self(
       checkRequired: updateChecker.isStatusCheckRequired,
-      updateAvailable: updateChecker.isUpdateAvailable
+      updateAvailable: updateChecker.isUpdateAvailable,
+      updatePageURL: updateChecker.updatePageURL
     )
   }
 
@@ -53,7 +57,8 @@ extension UpdateCheck: LoadableFeature {
   public static var placeholder: Self {
     Self(
       checkRequired: unimplemented0(),
-      updateAvailable: unimplemented0()
+      updateAvailable: unimplemented0(),
+      updatePageURL: unimplemented0()
     )
   }
   #endif
@@ -63,7 +68,10 @@ extension FeaturesRegistry {
 
   internal mutating func usePassboltUpdateCheck() {
     self.use(
-      .disposable(
+      // cached - the checker caches its status for the application run, which only
+      // holds while the same instance is reused. The splash screen is reached more
+      // than once per run and the announcement is meant for the first entry only.
+      .lazyLoaded(
         UpdateCheck.self,
         load: { try UpdateCheck.load(using: $0) }
       )
@@ -106,6 +114,7 @@ fileprivate actor UpdateChecker {
   private let appVersionsFetchNetworkOperation: AppVersionsFetchNetworkOperation
   private let mdmConfiguration: MDMConfiguration
   private var status: Status = .unknown
+  private var latestVersionPageURL: URLString? = .none
 
   fileprivate init(
     applicationMeta: ApplicationMeta,
@@ -184,11 +193,16 @@ fileprivate actor UpdateChecker {
     self.applicationMeta.applicationVersion()
   }
 
-  private func latestAppVersion() async throws -> String {
-    let availableVersions = try await appVersionsFetchNetworkOperation()
+  fileprivate func updatePageURL() async -> URLString? {
+    self.latestVersionPageURL
+  }
 
-    if let version: String = availableVersions.results.first?.version {
-      return version
+  private func latestAppVersion() async throws -> String {
+    let availableVersions: AppVersionsFetchNetworkOperationResult = try await appVersionsFetchNetworkOperation()
+
+    if let latest: AppVersionsFetchNetworkOperationResult.Result = availableVersions.results.first {
+      self.latestVersionPageURL = latest.trackViewUrl.map(URLString.init(rawValue:))
+      return latest.version
     }
     else {
       throw ApplicationVersionOutdated.error()

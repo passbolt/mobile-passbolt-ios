@@ -22,17 +22,24 @@
 //
 
 import Accounts
+import Commons
 import Display
 import FeatureScopes
+import OSFeatures
 import Session
 import SessionData
 import SharedUIComponents
 
 internal final class SplashScreenViewController: ViewController {
 
+  /// Time allowing the splash screen to settle before presenting anything on top of it.
+  private static let initialPresentationDelay: Milliseconds = 300
+  /// Time allowing a dismissed notice drawer to disappear before presenting the next one.
+  private static let consecutiveNoticesDelay: Milliseconds = 400
+
   internal struct ViewState: Equatable {
 
-    internal var alert: AlertViewModel?
+    internal var notice: NoticeDrawerViewModel?
   }
 
   internal nonisolated let viewState: ViewStateSource<ViewState>
@@ -40,6 +47,9 @@ internal final class SplashScreenViewController: ViewController {
   private let session: Session
   private let sessionConfigurationLoader: SessionConfigurationLoader
   private let updateCheck: UpdateCheck
+  private let deprecationCheck: DeprecationCheck
+  private let linkOpener: OSLinkOpener
+  private let time: OSTime
   private let context: Context
   private let features: Features
 
@@ -50,6 +60,9 @@ internal final class SplashScreenViewController: ViewController {
     self.session = try features.instance()
     self.sessionConfigurationLoader = try features.instance()
     self.updateCheck = try features.instance()
+    self.deprecationCheck = try features.instance()
+    self.linkOpener = features.instance()
+    self.time = features.instance()
 
     self.viewState = .init(
       initial: .init()
@@ -103,35 +116,159 @@ internal final class SplashScreenViewController: ViewController {
   }
 
   private func navigate(to destination: Destination) async {
-    try? await Task.sleep(nanoseconds: 300_000_000)  // 0.3s
-    let performNavigation: @Sendable () async -> Void = { @MainActor [weak self] in
-      await showFeedbackAlertIfNeeded {
-        try? await self?.handleNavigation(to: destination)
+    do {
+      try await self.time.waitForMilliseconds(Self.initialPresentationDelay)
+
+      // ordered by presentation order
+      var pendingNotices: Array<PendingNotice> = .init()
+      if let notice: DeprecationNotice = self.deprecationCheck.pendingNotice() {
+        pendingNotices.append(.deprecationNotice(notice))
       }
-    }
-    let presentUpdateAlert: Bool = await self.shouldDisplayUpdateAlert()
-    if presentUpdateAlert {
-      viewState.update(
-        \.alert,
-        to: .init(
-          title: "update.available.title",
-          message: "update.available.message",
-          actions: [
-            .regular(
-              id: .init(),
-              title: .localized(key: .gotIt),
-              perform: performNavigation
-            )
-          ]
+      if await self.shouldDisplayUpdateNotice() {
+        pendingNotices.append(
+          .updateAvailable(pageURL: await self.updateCheck.updatePageURL())
         )
-      )
+      }
+
+      try await self.present(notices: pendingNotices)
+
+      if !pendingNotices.isEmpty {
+        try await self.time.waitForMilliseconds(Self.consecutiveNoticesDelay)
+      }  // else - nothing was presented
     }
-    else {
-      await performNavigation()
+    catch {
+      self.viewState.update(\.notice, to: .none)
+      guard !Task.isCancelled
+      else { return }
+      error.consumeSilently()
+    }
+
+    await showFeedbackAlertIfNeeded { [weak self] in
+      try? await self?.handleNavigation(to: destination)
     }
   }
 
-  private func shouldDisplayUpdateAlert() async -> Bool {
+  /// Presents notice drawers one after another, returning after the last one is dismissed.
+  /// Throws only when cancelled.
+  private func present(
+    notices: Array<PendingNotice>
+  ) async throws {
+    guard let firstNotice: PendingNotice = notices.first
+    else { return }  // nothing to present
+
+    try await self.presentAwaitingDismissal(of: firstNotice)
+    for nextNotice: PendingNotice in notices.dropFirst() {
+      // only a single sheet is presented at a time, the dismissed one
+      // has to disappear before presenting the next
+      try await self.time.waitForMilliseconds(Self.consecutiveNoticesDelay)
+      try await self.presentAwaitingDismissal(of: nextNotice)
+    }
+  }
+
+  /// Presents a single notice drawer, applying the choice made by the user on its dismissal.
+  private func presentAwaitingDismissal(
+    of notice: PendingNotice
+  ) async throws {
+    let dismissal: NoticeDismissal = try await futureValue {
+      (dismiss: @escaping @Sendable (NoticeDismissal) -> Void) in
+      self.viewState.update(
+        \.notice,
+        to: self.noticeViewModel(
+          for: notice,
+          dismiss: dismiss
+        )
+      )
+    }
+    self.viewState.update(\.notice, to: .none)
+
+    if case .deprecationNotice(let deprecation) = notice {
+      // withheld only after being seen - a presentation interrupted by cancellation
+      // has to be repeated on the next splash screen entry within the same run
+      self.deprecationCheck.markPresented(deprecation)
+      if case .silenced = dismissal {
+        self.deprecationCheck.silence(deprecation)
+      }  // else - nothing to silence
+    }  // else - nothing to withhold
+  }
+
+  private func noticeViewModel(
+    for notice: PendingNotice,
+    dismiss: @escaping @Sendable (NoticeDismissal) -> Void
+  ) -> NoticeDrawerViewModel {
+    switch notice {
+    case .updateAvailable(let pageURL):
+      return .init(
+        title: "update.available.title",
+        paragraphs: ["update.available.message"],
+        actions: self.updateNoticeActions(
+          pageURL: pageURL,
+          dismiss: dismiss
+        )
+      )
+
+    case .deprecationNotice(let deprecation):
+      return .init(
+        title: deprecation.title,
+        icon: .startupWarning,
+        paragraphs: deprecation.messages,
+        actions: [
+          .init(
+            title: .localized(key: .iUnderstand),
+            style: .primary,
+            perform: { dismiss(.acknowledged) }
+          ),
+          .init(
+            title: .localized(key: .dontShowAgain),
+            style: .secondary,
+            perform: { dismiss(.silenced) }
+          ),
+        ]
+      )
+    }
+  }
+
+  private func updateNoticeActions(
+    pageURL: URLString?,
+    dismiss: @escaping @Sendable (NoticeDismissal) -> Void
+  ) -> Array<NoticeDrawerViewModel.Action> {
+    guard let pageURL: URLString = pageURL
+    // the App Store page is unknown - only acknowledging is available
+    else {
+      return [
+        .init(
+          title: .localized(key: .gotIt),
+          style: .primary,
+          perform: { dismiss(.acknowledged) }
+        )
+      ]
+    }
+
+    let linkOpener: OSLinkOpener = self.linkOpener
+    return [
+      .init(
+        title: "update.available.action.title",
+        style: .primary,
+        perform: {
+          // deliberately not dismissing - leaving the App Store would otherwise
+          // land the user straight on the biometrics prompt, which reads as if
+          // the App Store had asked for it
+          do {
+            try await linkOpener.openURL(pageURL)
+          }
+          catch {
+            error.consumeSilently()
+          }
+        }
+      ),
+      .init(
+        title: .localized(key: .dismiss),
+        style: .secondary,
+        perform: { dismiss(.acknowledged) }
+      ),
+    ]
+  }
+
+  private func shouldDisplayUpdateNotice() async -> Bool {
     guard await updateCheck.checkRequired()
     else { return false }
 
@@ -193,6 +330,19 @@ internal final class SplashScreenViewController: ViewController {
         )
       )
     )
+  }
+
+  private enum PendingNotice: Equatable, Sendable {
+    case updateAvailable(pageURL: URLString?)
+    case deprecationNotice(DeprecationNotice)
+  }
+
+  /// The way a presented notice was dismissed by the user.
+  private enum NoticeDismissal: Equatable, Sendable {
+    /// Can be presented again.
+    case acknowledged
+    /// Must not be presented again.
+    case silenced
   }
 
   private enum Destination {

@@ -126,4 +126,5 @@ extension ImageNameConstant {
   public static var table: Self { "Table" }
   public static var autofill: Self { "autofill" }
   public static var passwords: Self { "Passwords" }
+  public static var startupWarning: Self { "startupWarning" }
 }

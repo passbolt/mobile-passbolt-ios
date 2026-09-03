@@ -82,6 +82,7 @@ internal enum UICommonsPreviews {
 
     // Drawer menu
     DrawerMenuItemView_Previews.self,
+    DrawerNotice_Previews.self,
 
     // Folders
     FolderListItemView_Previews.self,

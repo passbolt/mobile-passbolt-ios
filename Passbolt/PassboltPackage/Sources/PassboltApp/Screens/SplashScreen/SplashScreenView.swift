@@ -32,7 +32,46 @@ internal struct SplashScreenView: ControlledView {
   }
 
   internal var body: some View {
-    SplashView()
-      .task(self.controller.activate)
+    withSheet(
+      \.notice,
+      sheet: { (notice: NoticeDrawerViewModel) in
+        DrawerNotice(
+          title: notice.title,
+          icon: notice.icon,
+          paragraphs: notice.paragraphs,
+          actions: {
+            ForEach(notice.actions) { (action: NoticeDrawerViewModel.Action) in
+              self.actionView(for: action)
+            }
+          }
+        )
+        .ignoresSafeArea()
+        .dynamicDetent()
+        .interactiveDismissDisabled()
+        .presentationDragIndicator(.hidden)
+      },
+      content: {
+        SplashView()
+      }
+    )
+    .task(self.controller.activate)
+  }
+
+  @MainActor @ViewBuilder private func actionView(
+    for action: NoticeDrawerViewModel.Action
+  ) -> some View {
+    switch action.style {
+    case .primary:
+      PrimaryButton(
+        title: action.title,
+        action: action.perform
+      )
+
+    case .secondary:
+      SecondaryButton(
+        title: action.title,
+        action: action.perform
+      )
+    }
   }
 }

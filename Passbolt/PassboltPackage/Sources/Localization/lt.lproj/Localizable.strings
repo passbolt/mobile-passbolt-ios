@@ -38,6 +38,9 @@
 "generic.try.again" = "Pabandykite iš naujo";
 "generic.delete" = "Ištrinti";
 "generic.got.it" = "Supratau";
+"generic.dont.show.again" = "Don't show again";
+"generic.i.understand" = "I understand";
+"generic.dismiss" = "Dismiss";
 "generic.settings" = "Nustatymai";
 "generic.disable" = "Išjungti";
 "generic.sign.out" = "Atsijungti";
@@ -487,6 +490,11 @@
 
 "update.available.title" = "Yra naujesnė versija!";
 "update.available.message" = "Atnaujinkite Passbolt programėlę į naujausią versiją iš App Store";
+"update.available.action.title" = "Update";
+
+"deprecation.system.support.title" = "Outdated iOS version";
+"deprecation.system.support.message" = "Your device runs an iOS version that no longer receives updates. Passbolt support for this version is scheduled to be phased out.";
+"deprecation.system.support.message.action" = "To stay protected and keep receiving Passbolt updates **update your device to a newer iOS version**.";
 
 // Autofill extension
 

@@ -37,6 +37,7 @@ public struct OSTime: Sendable {
 
   public var timestamp: @Sendable () -> Timestamp
   public var waitFor: @Sendable (Seconds) async throws -> Void
+  public var waitForMilliseconds: @Sendable (Milliseconds) async throws -> Void
   public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Void>
   public var timeVariable: @Sendable (Seconds) -> AnyUpdatable<Void>
 }
@@ -48,6 +49,7 @@ extension OSTime: StaticFeature {
     Self(
       timestamp: unimplemented0(),
       waitFor: unimplemented1(),
+      waitForMilliseconds: unimplemented1(),
       timerSequence: unimplemented1(),
       timeVariable: unimplemented1()
     )
@@ -86,6 +88,19 @@ extension OSTime {
         )
     }
 
+    @Sendable func waitForMilliseconds(
+      _ delay: Milliseconds
+    ) async throws {
+      try await continuousClock
+        .sleep(
+          until: continuousClock
+            .now
+            .advanced(
+              by: .milliseconds(delay.rawValue)
+            )
+        )
+    }
+
     @Sendable func timerSequence(
       _ period: Seconds
     ) -> AnyAsyncSequence<Void> {
@@ -101,6 +116,7 @@ extension OSTime {
     return Self(
       timestamp: timestamp,
       waitFor: waitFor(_:),
+      waitForMilliseconds: waitForMilliseconds(_:),
       timerSequence: timerSequence(_:),
       timeVariable: { (period: Seconds) in
         TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))
@@ -124,6 +140,14 @@ extension OSTime {
       )
     }
 
+    @Sendable func waitForMilliseconds(
+      _ delay: Milliseconds
+    ) async throws {
+      try await Task.sleep(
+        nanoseconds: (NSEC_PER_SEC / 1_000) * UInt64(delay.rawValue)
+      )
+    }
+
     @Sendable func timerSequence(
       _ period: Seconds
     ) -> AnyAsyncSequence<Void> {
@@ -143,6 +167,7 @@ extension OSTime {
     return Self(
       timestamp: timestamp,
       waitFor: waitFor(_:),
+      waitForMilliseconds: waitForMilliseconds(_:),
       timerSequence: timerSequence(_:),
       timeVariable: { (period: Seconds) in
         TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))

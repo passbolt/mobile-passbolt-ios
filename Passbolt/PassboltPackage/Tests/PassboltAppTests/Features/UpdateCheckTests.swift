@@ -22,6 +22,7 @@
 //
 
 import Combine
+import Commons
 import Features
 import TestExtensions
 import XCTest
@@ -256,5 +257,95 @@ final class UpdateCheckTests: LoadableFeatureTestCase<UpdateCheck>, @unchecked S
     let result = await feature.checkRequired()
 
     XCTAssertFalse(result)
+  }
+
+  func test_updatePageURL_isNone_whenCheckWasNotPerformed() async throws {
+    usePlaceholder(for: ApplicationMeta.self)
+    usePlaceholder(for: AppVersionsFetchNetworkOperation.self)
+
+    let feature: UpdateCheck = try testedInstance()
+
+    let result: URLString? = await feature.updatePageURL()
+
+    XCTAssertNil(result)
+  }
+
+  func test_updatePageURL_isProvided_whenCheckSucceeds() async throws {
+    patch(
+      \ApplicationMeta.applicationVersion,
+      with: always("1.2.3")
+    )
+    patch(
+      \AppVersionsFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          results: [
+            .init(
+              version: "1.2.3",
+              trackViewUrl: URLString.mockAppStore.rawValue
+            )
+          ]
+        )
+      )
+    )
+
+    let feature: UpdateCheck = try testedInstance()
+
+    _ = try await feature.updateAvailable()
+    let result: URLString? = await feature.updatePageURL()
+
+    XCTAssertEqual(result, .mockAppStore)
+  }
+
+  func test_updatePageURL_isNone_whenCheckSucceedsWithoutProvidingIt() async throws {
+    patch(
+      \ApplicationMeta.applicationVersion,
+      with: always("1.2.3")
+    )
+    patch(
+      \AppVersionsFetchNetworkOperation.execute,
+      with: always(
+        .init(
+          results: [
+            .init(
+              version: "1.2.3",
+              trackViewUrl: .none
+            )
+          ]
+        )
+      )
+    )
+
+    let feature: UpdateCheck = try testedInstance()
+
+    _ = try await feature.updateAvailable()
+    let result: URLString? = await feature.updatePageURL()
+
+    XCTAssertNil(result)
+  }
+
+  func test_updatePageURL_isNone_whenCheckFails() async throws {
+    patch(
+      \ApplicationMeta.applicationVersion,
+      with: always("1.2.3")
+    )
+    patch(
+      \AppVersionsFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+
+    let feature: UpdateCheck = try testedInstance()
+
+    _ = try? await feature.updateAvailable()
+    let result: URLString? = await feature.updatePageURL()
+
+    XCTAssertNil(result)
+  }
+}
+
+extension URLString {
+
+  fileprivate static var mockAppStore: Self {
+    "https://apps.apple.com/app/passbolt"
   }
 }

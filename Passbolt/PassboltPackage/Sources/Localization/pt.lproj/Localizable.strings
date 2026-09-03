@@ -36,6 +36,9 @@
 "generic.try.again" = "Tente novamente";
 "generic.delete" = "Excluir";
 "generic.got.it" = "Entendi";
+"generic.dont.show.again" = "Don't show again";
+"generic.i.understand" = "I understand";
+"generic.dismiss" = "Dismiss";
 "generic.settings" = "Confirgurações";
 "generic.disable" = "Desativado";
 "generic.sign.out" = "Encerrar Sessão";
@@ -446,6 +449,11 @@ Entre em contato com seu administrador para obter mais informações.";
 
 "update.available.title" = "Nova versão disponível!";
 "update.available.message" = "Por favor, atualize o aplicativo Passbolt para a versão mais recente na App Store";
+"update.available.action.title" = "Update";
+
+"deprecation.system.support.title" = "Outdated iOS version";
+"deprecation.system.support.message" = "Your device runs an iOS version that no longer receives updates. Passbolt support for this version is scheduled to be phased out.";
+"deprecation.system.support.message.action" = "To stay protected and keep receiving Passbolt updates **update your device to a newer iOS version**.";
 
 // Autofill extension
 

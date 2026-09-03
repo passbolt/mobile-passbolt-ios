@@ -36,6 +36,9 @@
 "generic.try.again" = "재시도";
 "generic.delete" = "삭제";
 "generic.got.it" = "예";
+"generic.dont.show.again" = "Don't show again";
+"generic.i.understand" = "I understand";
+"generic.dismiss" = "Dismiss";
 "generic.settings" = "설정";
 "generic.disable" = "중지";
 "generic.sign.out" = "로그아웃";
@@ -447,6 +450,11 @@ NFC가 있어야 작동합니다.";
 
 "update.available.title" = "새 버전 사용가능!";
 "update.available.message" = "앱 스토어에서 Passbolt 앱을 최신 버전으로 업데이트하세요";
+"update.available.action.title" = "Update";
+
+"deprecation.system.support.title" = "Outdated iOS version";
+"deprecation.system.support.message" = "Your device runs an iOS version that no longer receives updates. Passbolt support for this version is scheduled to be phased out.";
+"deprecation.system.support.message.action" = "To stay protected and keep receiving Passbolt updates **update your device to a newer iOS version**.";
 
 // Autofill extension
 

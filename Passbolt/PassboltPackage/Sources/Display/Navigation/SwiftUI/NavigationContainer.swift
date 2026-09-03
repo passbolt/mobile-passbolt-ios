@@ -200,7 +200,8 @@ extension View {
     }
   }
 
-  fileprivate func dynamicDetent() -> some View {
+  /// Sizes a sheet to its content, clamped to the available screen height.
+  public func dynamicDetent() -> some View {
     self.modifier(DynamicDetent())
   }
 }
