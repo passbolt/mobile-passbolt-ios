@@ -77,7 +77,7 @@
 "resource.detail.field.passphrase" = "Пароль";
 "resource.detail.field.uri" = "Адрес сайта";
 "resource.detail.field.description" = "Описание";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "Нет URI";
 "resource.show.field.username.placeholder" = "Нет имени пользователя";
 "resource.show.field.password.placeholder" = "Нет пароля";
 "resource.show.field.description.placeholder" = "Нет описания";
@@ -85,7 +85,7 @@
 "resource.details.value" = "Значение";
 "resource.detail.section.location" = "Расположение";
 "resource.detail.section.permissions" = "Общий с";
-"resource.detail.section.additionalURIs" = "Additional URI";
+"resource.detail.section.additionalURIs" = "Дополнительный URI";
 "resource.detail.section.tags" = "Метки";
 "resource.detail.section.expiry" = "Срок действия";
 "resource.detail.section.expiry.expired" = "Истёк";
@@ -130,21 +130,21 @@
 "server.not.reachable.alert.message.server.placeholder" = "Сервер";
 "server.not.reachable.alert.message" = "Невозможно достичь %@ . Пожалуйста, попробуйте еще раз";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "Создать ресурс";
 "resource.edit.title" = "Изменить ресурс";
 "resource.password.edit.title" = "Изменить пароль";
 "resource.edit.field.name.label" = "Имя";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "Основной URI";
 "resource.edit.field.username.label" = "Имя пользователя";
 "resource.edit.field.password.label" = "Пароль";
 "resource.edit.field.description.label" = "Описание";
 "resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.note" = "Заметка";
 "resource.edit.field.add.password" = "Пароль";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Пользовательские поля";
 "resource.edit.field.name.placeholder" = "Введите имя";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "Введите URI";
 "resource.edit.field.username.placeholder" = "Введите имя пользователя";
 "resource.edit.field.password.placeholder" = "Введите пароль";
 "resource.edit.field.description.placeholder" = "Введите описание";
@@ -152,82 +152,82 @@
 "resource.edit.exit.confirmation.message" = "Ваши изменения не будут сохранены.";
 "resource.edit.exit.confirmation.button.edit.title" = "Изменить";
 "resource.edit.exit.confirmation.button.revert.title" = "Вернуться";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "Содержимое";
+"resource.edit.note.content.disclaimer" = "Это содержимое является частью секрета; если вы хотите иметь возможность искать по нему, используйте описание метаданных.";
+"resource.edit.note.remove.button.title" = "Удалить заметку";
 
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.learn.more" = "Узнать больше";
 
 "resource.edit.section.resource.title" = "Ресурс";
 "resource.edit.section.password.title" = "Пароль";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
+"resource.edit.section.note.title" = "Заметка";
 "resource.edit.section.metadata.title" = "Метадата";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.totp.remove.button.title" = "Удалить TOTP";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Длина";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
 "resource.edit.password.advanced.title" = "Advanced password generation";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Пароль";
+"resource.edit.password.advanced.tab.passphrase" = "Парольная фраза";
+"resource.edit.password.advanced.length.title" = "Длина";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Исключить внешние символы";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Количество слов";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "строчные буквы";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Пользовательские поля";
+"resource.edit.customFields.error.invalid" = "Недопустимое значение";
+"resource.edit.customFields.description" = "Редактирование пользовательских полей в настоящее время не поддерживается.";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.button" = "Просмотреть дополнительные параметры";
+"resource.create.additional.secrets.title" = "Дополнительные секреты";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "Описание";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "Описание метаданных";
+"resource.edit.section.metadata.description.description" = "Если вы хотите, чтобы описание было частью секрета, используйте вместо этого заметку.";
 
-"resource.edit.section.metadata.additional.uris" = "Additional URIs";
-"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.metadata.additional.uris" = "Дополнительные URI";
+"resource.edit.section.metadata.appearance" = "Внешний вид";
 
 "resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.customFields.title" = "Пользовательские поля";
 
-"resource.edit.uris.title" = "Additional URIs";
-"resource.edit.uris.main.uri.title" = "Main URI";
-"resource.edit.uris.additional.uris.title" = "Additional URI";
-"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.title" = "Дополнительные URI";
+"resource.edit.uris.main.uri.title" = "Основной URI";
+"resource.edit.uris.additional.uris.title" = "Дополнительный URI";
+"resource.edit.uris.main.uri.placeholder" = "Основной URI";
 "resource.edit.uris.additional.uri.placeholder" = "URI";
-"resource.edit.uris.additional.uri.add" = "Add URI";
-"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.additional.uri.add" = "Добавить URI";
+"resource.edit.uris.additional.uris.error.limit" = "Вы можете добавить не более %d дополнительных URI.";
+"resource.edit.uris.invalid.form" = "Один или несколько URI недействительны.";
 
-"resource.edit.icon.title" = "Appearance";
-"resource.edit.icon.color.select.title" = "Select color";
-"resource.edit.icon.color.default.title" = "Default color";
-"resource.edit.icon.default.title" = "Default icon";
+"resource.edit.icon.title" = "Внешний вид";
+"resource.edit.icon.color.select.title" = "Выбрать цвет";
+"resource.edit.icon.color.default.title" = "Цвет по умолчанию";
+"resource.edit.icon.default.title" = "Значок по умолчанию";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.title" = "Создать ресурс";
 "resource.create.menu.password" = "Пароль";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
+"resource.create.menu.note" = "Заметка";
 "resource.create.menu.pin.code" = "Pin code";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "Не удаётся создать ресурс с текущей конфигурацией.";
+"resource.edit.invalid.configuration" = "Не удаётся редактировать ресурс с текущей конфигурацией.";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Реквизиты счета для перевода";
 "transfer.account.import.description" = "Сканируйте QR-коды, чтобы перенести данные вашей учетной записи";
 "transfer.account.import.info.step.first" = "Войти с помощью расширения браузера";
-"transfer.account.import.info.step.second" = "Перейти на страницу **профиля**";
-"transfer.account.import.info.step.third" = "Перейти в раздел \"**Мобильный**\"";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Сканируйте последовательность QR-кодов";
 "transfer.account.import.scan.qr.button" = "Сканирование QR-кодов";
 "transfer.account.export.description" = "Показать QR-коды для передачи данных аккаунта";
@@ -343,7 +343,7 @@
 "resource.menu.item.copy.password" = "Скопировать пароль";
 "resource.menu.item.copy.username" = "Копировать логин";
 "resource.menu.item.copy.description" = "Скопировать описание";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "Копировать заметку";
 "resource.menu.item.reveal.otp" = "Показать одноразовый пароль";
 "resource.menu.item.copy.otp" = "Скопировать одноразовый пароль";
 "resource.menu.item.add.favorite" = "Добавить в избранное";
@@ -404,7 +404,7 @@
 
 "resource.permission.edit.button.delete.title" = "Удалить разрешение";
 
-"resource.create.menu.add.folder.title" = "Folder";
+"resource.create.menu.add.folder.title" = "Папка";
 
 "group.members.list.title" = "Участники группы";
 "group.members.member.details.title" = "Участник группы";
@@ -544,7 +544,7 @@ NFC.";
 "error.http.response.not.found" = "HTTP не обнаружен.";
 "error.http.response.redirect" = "Переадресация HTTP.";
 "error.http.request.invalid" = "Недопустимый HTTP-запрос.";
-"error.http.response.invalid" = "Некорректный HTTP-ответ.";
+"error.http.response.invalid" = "Некорректный HTTP ответ.";
 "error.http.response.status.code.unexpected" = "Неожиданный код статуса HTTP.";
 "error.http.response.unauthorized" = "HTTP не авторизован.";
 "error.network.response.decoding.failed" = "Сбой расшифровки сетевого отклика.";
@@ -566,7 +566,7 @@ NFC.";
 "error.resource.secret.invalid" = "Неверный секретный ключ ресурса.";
 "error.resource.permission.invalid" = "Разрешение на ресурс недействительно.";
 "error.resource.owner.missing" = "Ресурс должен иметь хотя бы одного владельца.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Не удалось обновить ресурс.";
 "error.system.feature.inaccessible" = "Системная функция недоступна.";
 "error.system.feature.permission.not.granted" = "Доступ к системным функциям не предоставлен.";
 "error.system.feature.permission.required" = "Необходим доступ к системной функции.";
@@ -688,7 +688,7 @@ NFC.";
 "otp.scanning.success.link.button.title" = "Связать TOTP с паролем.";
 "otp.code.scanning.title" = "Сканировать QR-код";
 "otp.code.scanning.initial.message" = "Наведите камеру на QR-код";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "Или создать одноразовый пароль вручную";
 
 // OTP form
 
@@ -700,7 +700,7 @@ NFC.";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Секретный ключ";
 "otp.edit.form.field.secret.prompt" = "Секретный ключ";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "Дополнительные настройки TOTP";
 "otp.edit.form.create.button.title" = "Создать независимый одноразовый пароль";
 "otp.edit.form.apply.button.title" = "Применить";
 "otp.edit.form.edit.button.title" = "Сохранить";
@@ -733,12 +733,12 @@ NFC.";
 "settings.main.item.accounts.title" = "Учетные записи";
 "settings.main.item.terms.and.licenses.title" = "Условия и лицензии";
 "settings.main.item.troubleshooting.title" = "Отладка, журналы";
-"settings.main.item.expert.title" = "Expert settings";
+"settings.main.item.expert.title" = "Экспертные настройки";
 "settings.main.item.sign.out.title" = "Выйти";
 
 // Settings - Expert
 
-"settings.expert.title" = "Expert settings";
+"settings.expert.title" = "Экспертные настройки";
 "settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
@@ -818,16 +818,16 @@ NFC.";
 "authorization.primary.button.title" = "Авторизоваться";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "Ключ метаданных изменился.";
+"metadata.pinned.key.validation.error.message" = "Ключ шифрования, используемый для обмена метаданными между пользователями, был обновлён %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Если вы не ожидали этого, обратитесь к администратору для проверки.";
+"metadata.pinned.key.validation.error.trust" = "Доверять ключу";
+"metadata.pinned.key.fingerprint" = "Отпечаток ключа:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "Ключ метаданных был удалён.";
+"metadata.pinned.key.validation.deleted.message" = "Доверенный ключ шифрования, использующийся для обмена метаданными между пользователями, был удалён.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "Ключ метаданных изменился.";
+"metadata.pinned.key.validation.unknown.message" = "Не удалось проверить доверенный ключ шифрования, используемый для обмена метаданными между пользователями.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Вы не можете выполнить это действие, поскольку у вас нет доступа к общему ключу метаданных.";

@@ -77,7 +77,7 @@
 "resource.detail.field.passphrase" = "Lösenord";
 "resource.detail.field.uri" = "Webbplatsens URL";
 "resource.detail.field.description" = "Beskrivning";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "Ingen URI";
 "resource.show.field.username.placeholder" = "Inget användarnamn";
 "resource.show.field.password.placeholder" = "Inget lösenord";
 "resource.show.field.description.placeholder" = "Ingen beskrivning";
@@ -85,7 +85,7 @@
 "resource.details.value" = "Värde";
 "resource.detail.section.location" = "Plats";
 "resource.detail.section.permissions" = "Delade med";
-"resource.detail.section.additionalURIs" = "Additional URI";
+"resource.detail.section.additionalURIs" = "Ytterligare URI";
 "resource.detail.section.tags" = "Taggar";
 "resource.detail.section.expiry" = "Utgångsdatum";
 "resource.detail.section.expiry.expired" = "Utgånget";
@@ -130,21 +130,21 @@
 "server.not.reachable.alert.message.server.placeholder" = "Servern";
 "server.not.reachable.alert.message" = "%@ kan inte nås. Försök igen";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "Skapa en resurs";
 "resource.edit.title" = "Redigera resurs";
-"resource.password.edit.title" = "Edit password";
+"resource.password.edit.title" = "Redigera lösenord";
 "resource.edit.field.name.label" = "Namn";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "Huvud-URI";
 "resource.edit.field.username.label" = "Användarnamn";
 "resource.edit.field.password.label" = "Lösenord";
 "resource.edit.field.description.label" = "Beskrivning";
 "resource.edit.field.totp.label" = "Engångslösenord (TOTP)";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.note" = "Anteckning";
 "resource.edit.field.add.password" = "Lösenord";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Anpassade fält";
 "resource.edit.field.name.placeholder" = "Ange ett namn";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "Ange URI";
 "resource.edit.field.username.placeholder" = "Ange användarnamn";
 "resource.edit.field.password.placeholder" = "Ange lösenord";
 "resource.edit.field.description.placeholder" = "Ange beskrivning";
@@ -152,82 +152,82 @@
 "resource.edit.exit.confirmation.message" = "Dina ändringar kommer inte att sparas.";
 "resource.edit.exit.confirmation.button.edit.title" = "Redigera";
 "resource.edit.exit.confirmation.button.revert.title" = "Återställ";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "Innehåll";
+"resource.edit.note.content.disclaimer" = "Denna anteckning är en del av hemligheten; om du vill kunna söka i innehållet, använd metadata­beskrivningen.";
+"resource.edit.note.remove.button.title" = "Ta bort anteckning";
 
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.learn.more" = "Mer information";
 
 "resource.edit.section.resource.title" = "Resurs";
 "resource.edit.section.password.title" = "Lösenord";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
+"resource.edit.section.note.title" = "Anteckning";
 "resource.edit.section.metadata.title" = "Metadata";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.totp.remove.button.title" = "Ta bort TOTP";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Längd";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
 "resource.edit.password.advanced.title" = "Advanced password generation";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Lösenord";
+"resource.edit.password.advanced.tab.passphrase" = "Lösenfras";
+"resource.edit.password.advanced.length.title" = "Längd";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Exkludera utseendemässigt lika tecken";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Antal ord";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "små bokstäver";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Anpassade fält";
+"resource.edit.customFields.error.invalid" = "Ogiltigt värde";
+"resource.edit.customFields.description" = "Redigering av anpassade fält stöds för närvarande inte.";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.button" = "Visa avancerade inställningar";
+"resource.create.additional.secrets.title" = "Ytterligare hemligheter";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "Beskrivning";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "Metadata­beskrivning";
+"resource.edit.section.metadata.description.description" = "Om du vill att beskrivningen ska ingå i hemligheten, använd anteckningen i stället.";
 
-"resource.edit.section.metadata.additional.uris" = "Additional URIs";
-"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.metadata.additional.uris" = "Ytterligare URI:er";
+"resource.edit.section.metadata.appearance" = "Utseende";
 
 "resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.customFields.title" = "Anpassade fält";
 
-"resource.edit.uris.title" = "Additional URIs";
-"resource.edit.uris.main.uri.title" = "Main URI";
-"resource.edit.uris.additional.uris.title" = "Additional URI";
-"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.title" = "Ytterligare URI:er";
+"resource.edit.uris.main.uri.title" = "Huvud-URI";
+"resource.edit.uris.additional.uris.title" = "Ytterligare URI";
+"resource.edit.uris.main.uri.placeholder" = "Huvud-URI";
 "resource.edit.uris.additional.uri.placeholder" = "URI";
-"resource.edit.uris.additional.uri.add" = "Add URI";
-"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.additional.uri.add" = "Lägg till URI";
+"resource.edit.uris.additional.uris.error.limit" = "Du kan lägga till högst %d ytterligare URI:er.";
+"resource.edit.uris.invalid.form" = "En eller flera URI:er är ogiltiga.";
 
-"resource.edit.icon.title" = "Appearance";
-"resource.edit.icon.color.select.title" = "Select color";
-"resource.edit.icon.color.default.title" = "Default color";
-"resource.edit.icon.default.title" = "Default icon";
+"resource.edit.icon.title" = "Utseende";
+"resource.edit.icon.color.select.title" = "Välj färg";
+"resource.edit.icon.color.default.title" = "Standardfärg";
+"resource.edit.icon.default.title" = "Standardikon";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.title" = "Skapa en resurs";
 "resource.create.menu.password" = "Lösenord";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
+"resource.create.menu.note" = "Anteckning";
 "resource.create.menu.pin.code" = "Pin code";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "Kan inte skapa en resurs med nuvarande konfiguration.";
+"resource.edit.invalid.configuration" = "Kan inte redigera en resurs med nuvarande konfiguration.";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Överför kontoinformation";
 "transfer.account.import.description" = "Skanna QR-koder för att överföra dina kontouppgifter";
 "transfer.account.import.info.step.first" = "Logga in med webbläsartillägget";
-"transfer.account.import.info.step.second" = "Gå till **profilsidan**";
-"transfer.account.import.info.step.third" = "Gå till avsnittet **Mobil**";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Skanna qr-kodsekvensen";
 "transfer.account.import.scan.qr.button" = "Skanna QR-koder";
 "transfer.account.export.description" = "Visa QR-koder för att överföra dina kontouppgifter";
@@ -343,7 +343,7 @@
 "resource.menu.item.copy.password" = "Kopiera lösenord";
 "resource.menu.item.copy.username" = "Kopiera användarnamn";
 "resource.menu.item.copy.description" = "Kopiera beskrivning";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "Kopiera anteckning";
 "resource.menu.item.reveal.otp" = "Visa TOTP";
 "resource.menu.item.copy.otp" = "Kopiera TOTP";
 "resource.menu.item.add.favorite" = "Lägg till i favoriter";
@@ -402,9 +402,9 @@
 "permission.details.group.members.section.title" = "Gruppmedlemmar";
 "permission.details.user.suspended" = "avstängd";
 
-"resource.permission.edit.button.delete.title" = "Radera behörighet";
+"resource.permission.edit.button.delete.title" = "Delete permission";
 
-"resource.create.menu.add.folder.title" = "Folder";
+"resource.create.menu.add.folder.title" = "Mapp";
 
 "group.members.list.title" = "Gruppmedlemmar";
 "group.members.member.details.title" = "Gruppmedlem";
@@ -563,7 +563,7 @@
 "error.resource.secret.invalid" = "Resurshemligheten är ogiltig.";
 "error.resource.permission.invalid" = "Resursbehörigheten är ogiltig.";
 "error.resource.owner.missing" = "Resursen måste ha minst en ägare.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Uppdatering av resurs misslyckades.";
 "error.system.feature.inaccessible" = "Systemfunktion otillgänglig.";
 "error.system.feature.permission.not.granted" = "Systemfunktionstillstånd inte beviljat.";
 "error.system.feature.permission.required" = "Systemfunktionstillstånd krävs.";
@@ -685,7 +685,7 @@
 "otp.scanning.success.link.button.title" = "Koppla TOTP till ett lösenord";
 "otp.code.scanning.title" = "Skanna QR-kod";
 "otp.code.scanning.initial.message" = "Rikta kameran mot QR-koden";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "Eller skapa TOTP manuellt";
 
 // OTP form
 
@@ -697,7 +697,7 @@
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Hemlig nyckel";
 "otp.edit.form.field.secret.prompt" = "Hemlig nyckel";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "Fler TOTP-inställningar";
 "otp.edit.form.create.button.title" = "Skapa fristående TOTP";
 "otp.edit.form.apply.button.title" = "Verkställ";
 "otp.edit.form.edit.button.title" = "Spara";
@@ -815,16 +815,16 @@
 "authorization.primary.button.title" = "Auktorisera";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "Metadatanyckeln har ändrats.";
+"metadata.pinned.key.validation.error.message" = "Krypteringsnyckeln som används för att dela metadata mellan användare har uppdaterats av %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Om du inte förväntade dig detta kan du kontrollera med din administratör.";
+"metadata.pinned.key.validation.error.trust" = "Lita på nyckeln";
+"metadata.pinned.key.fingerprint" = "Fingeravtryck:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "Metadatanyckeln har raderats.";
+"metadata.pinned.key.validation.deleted.message" = "Den betrodda krypteringsnyckel som används för att dela metadata mellan användare har raderats.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "Metadatanyckeln har ändrats.";
+"metadata.pinned.key.validation.unknown.message" = "Den betrodda krypteringsnyckel som används för att dela metadata mellan användare kunde inte valideras.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Du kan inte utföra den här åtgärden eftersom du saknar åtkomst till den delade metadatanyckeln.";

@@ -77,7 +77,7 @@
 "resource.detail.field.passphrase" = "Wachtwoord";
 "resource.detail.field.uri" = "Website-URL";
 "resource.detail.field.description" = "Omschrijving";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "Geen URI";
 "resource.show.field.username.placeholder" = "Geen gebruikersnaam";
 "resource.show.field.password.placeholder" = "Geen wachtwoord";
 "resource.show.field.description.placeholder" = "Geen omschrijving";
@@ -85,7 +85,7 @@
 "resource.details.value" = "Waarde";
 "resource.detail.section.location" = "Locatie";
 "resource.detail.section.permissions" = "Gedeeld met";
-"resource.detail.section.additionalURIs" = "Additional URI";
+"resource.detail.section.additionalURIs" = "Extra URI";
 "resource.detail.section.tags" = "Labels";
 "resource.detail.section.expiry" = "Vervaldatum";
 "resource.detail.section.expiry.expired" = "Verlopen";
@@ -130,21 +130,21 @@
 "server.not.reachable.alert.message.server.placeholder" = "Server";
 "server.not.reachable.alert.message" = "%@ kan niet worden bereikt. Probeer het opnieuw";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "Middel aanmaken";
 "resource.edit.title" = "Middel bewerken";
-"resource.password.edit.title" = "Edit password";
+"resource.password.edit.title" = "Wachtwoord bewerken";
 "resource.edit.field.name.label" = "Naam";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "Hoofd-URI";
 "resource.edit.field.username.label" = "Gebruikersnaam";
 "resource.edit.field.password.label" = "Wachtwoord";
 "resource.edit.field.description.label" = "Omschrijving";
 "resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.note" = "Notitie";
 "resource.edit.field.add.password" = "Wachtwoord";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Aangepaste velden";
 "resource.edit.field.name.placeholder" = "Voer een naam in";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "Voer URI in";
 "resource.edit.field.username.placeholder" = "Voer een gebruikersnaam in";
 "resource.edit.field.password.placeholder" = "Voer een wachtwoord in";
 "resource.edit.field.description.placeholder" = "Voer een omschrijving in";
@@ -152,82 +152,82 @@
 "resource.edit.exit.confirmation.message" = "Je wijzigingen worden niet opgeslagen.";
 "resource.edit.exit.confirmation.button.edit.title" = "Bewerken";
 "resource.edit.exit.confirmation.button.revert.title" = "Ongedaan maken";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "Inhoud";
+"resource.edit.note.content.disclaimer" = "Deze beveiligde inhoud maakt deel uit van het geheim; als je deze inhoud doorzoekbaar wilt maken, gebruik dan de metadatabeschrijving.";
+"resource.edit.note.remove.button.title" = "Notitie verwijderen";
 
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.learn.more" = "Meer informatie";
 
 "resource.edit.section.resource.title" = "Middel";
 "resource.edit.section.password.title" = "Wachtwoord";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
+"resource.edit.section.note.title" = "Notitie";
 "resource.edit.section.metadata.title" = "Metadata";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.totp.remove.button.title" = "TOTP verwijderen";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Lengte";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
 "resource.edit.password.advanced.title" = "Advanced password generation";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Wachtwoord";
+"resource.edit.password.advanced.tab.passphrase" = "Wachtwoordzin";
+"resource.edit.password.advanced.length.title" = "Lengte";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Sluit gelijksoortige tekens uit";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Aantal woorden";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "kleine letters";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Aangepaste velden";
+"resource.edit.customFields.error.invalid" = "Ongeldige waarde";
+"resource.edit.customFields.description" = "Het bewerken van aangepaste velden wordt momenteel niet ondersteund.";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.button" = "Geavanceerde instellingen weergeven";
+"resource.create.additional.secrets.title" = "Extra geheimen";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "Omschrijving";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "Metadatabeschrijving";
+"resource.edit.section.metadata.description.description" = "Als je wilt dat de beschrijving onderdeel van het geheim is, gebruik dan in plaats daarvan de notitie.";
 
-"resource.edit.section.metadata.additional.uris" = "Additional URIs";
-"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.metadata.additional.uris" = "Extra URI's";
+"resource.edit.section.metadata.appearance" = "Uiterlijk";
 
 "resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.customFields.title" = "Aangepaste velden";
 
-"resource.edit.uris.title" = "Additional URIs";
-"resource.edit.uris.main.uri.title" = "Main URI";
-"resource.edit.uris.additional.uris.title" = "Additional URI";
-"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.title" = "Extra URI's";
+"resource.edit.uris.main.uri.title" = "Hoofd-URI";
+"resource.edit.uris.additional.uris.title" = "Extra URI";
+"resource.edit.uris.main.uri.placeholder" = "Hoofd-URI";
 "resource.edit.uris.additional.uri.placeholder" = "URI";
-"resource.edit.uris.additional.uri.add" = "Add URI";
-"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.additional.uri.add" = "URI toevoegen";
+"resource.edit.uris.additional.uris.error.limit" = "Je kunt maximaal %d extra URI's toevoegen.";
+"resource.edit.uris.invalid.form" = "Een of meer URI's zijn ongeldig.";
 
-"resource.edit.icon.title" = "Appearance";
-"resource.edit.icon.color.select.title" = "Select color";
-"resource.edit.icon.color.default.title" = "Default color";
-"resource.edit.icon.default.title" = "Default icon";
+"resource.edit.icon.title" = "Uiterlijk";
+"resource.edit.icon.color.select.title" = "Kleur selecteren";
+"resource.edit.icon.color.default.title" = "Standaardkleur";
+"resource.edit.icon.default.title" = "Standaardpictogram";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.title" = "Middel aanmaken";
 "resource.create.menu.password" = "Wachtwoord";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
+"resource.create.menu.note" = "Notitie";
 "resource.create.menu.pin.code" = "Pin code";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "Kan geen middel aanmaken met de huidige configuratie.";
+"resource.edit.invalid.configuration" = "Kan geen middel bewerken met de huidige configuratie.";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Accountgegevens overdragen";
 "transfer.account.import.description" = "Scan QR-codes om je accountgegevens over te dragen";
 "transfer.account.import.info.step.first" = "Meld je aan met de browserextensie";
-"transfer.account.import.info.step.second" = "Ga naar de **profielpagina**";
-"transfer.account.import.info.step.third" = "Ga naar het **mobiele** gedeelte";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Scan de reeks qr-codes";
 "transfer.account.import.scan.qr.button" = "Scan QR-codes";
 "transfer.account.export.description" = "Toon QR-codes om je accountgegevens over te dragen";
@@ -343,7 +343,7 @@
 "resource.menu.item.copy.password" = "Wachtwoord kopiëren";
 "resource.menu.item.copy.username" = "Kopieer gebruikersnaam";
 "resource.menu.item.copy.description" = "Omschrijving kopiëren";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "Notitie kopiëren";
 "resource.menu.item.reveal.otp" = "Toon TOTP";
 "resource.menu.item.copy.otp" = "TOTP kopiëren";
 "resource.menu.item.add.favorite" = "Toevoegen aan favorieten";
@@ -402,9 +402,9 @@
 "permission.details.group.members.section.title" = "Groepsleden";
 "permission.details.user.suspended" = "opgeschort";
 
-"resource.permission.edit.button.delete.title" = "Machtiging verwijderen";
+"resource.permission.edit.button.delete.title" = "Delete permission";
 
-"resource.create.menu.add.folder.title" = "Folder";
+"resource.create.menu.add.folder.title" = "Map";
 
 "group.members.list.title" = "Groepsleden";
 "group.members.member.details.title" = "Groepslid";
@@ -565,7 +565,7 @@ Neem contact op met je beheerder voor meer informatie.";
 "error.resource.secret.invalid" = "Resource-geheim is ongeldig.";
 "error.resource.permission.invalid" = "Resource-machtiging is ongeldig.";
 "error.resource.owner.missing" = "Resource moet minstens één eigenaar hebben.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Bijwerken van middel mislukt.";
 "error.system.feature.inaccessible" = "Systeemfunctie niet toegankelijk.";
 "error.system.feature.permission.not.granted" = "Geen toestemming voor systeemfunctie verleend.";
 "error.system.feature.permission.required" = "Systeemfunctie vereist toestemming.";
@@ -688,7 +688,7 @@ gescand!";
 "otp.scanning.success.link.button.title" = "Koppel TOTP aan een wachtwoord";
 "otp.code.scanning.title" = "QR-code scannen";
 "otp.code.scanning.initial.message" = "Richt de camera op de QR-code";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "Of maak TOTP handmatig aan";
 
 // OTP form
 
@@ -700,7 +700,7 @@ gescand!";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Geheim";
 "otp.edit.form.field.secret.prompt" = "Geheim";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "Meer TOTP-instellingen";
 "otp.edit.form.create.button.title" = "Maak een standalone TOTP";
 "otp.edit.form.apply.button.title" = "Toepassen";
 "otp.edit.form.edit.button.title" = "Opslaan";
@@ -818,16 +818,16 @@ gescand!";
 "authorization.primary.button.title" = "Toestaan";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "De metadatasleutel is gewijzigd.";
+"metadata.pinned.key.validation.error.message" = "De encryptiesleutel die wordt gebruikt om metadata tussen gebruikers te delen is bijgewerkt door %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Als je dit niet verwachtte, kun je dit verifiëren bij je beheerder.";
+"metadata.pinned.key.validation.error.trust" = "Vertrouw de sleutel";
+"metadata.pinned.key.fingerprint" = "Sleutelvingerafdruk:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "De metadatasleutel is verwijderd.";
+"metadata.pinned.key.validation.deleted.message" = "De vertrouwde encryptiesleutel die wordt gebruikt om metadata tussen gebruikers te delen, is verwijderd.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "De metadatasleutel is gewijzigd.";
+"metadata.pinned.key.validation.unknown.message" = "De vertrouwde encryptiesleutel die wordt gebruikt om metadata tussen gebruikers te delen, kon niet worden gevalideerd.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Je kunt deze actie niet uitvoeren omdat je geen toegang hebt tot de gedeelde metadatasleutel.";

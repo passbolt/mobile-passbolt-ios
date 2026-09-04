@@ -22,5 +22,5 @@
 //
 
 "NSCameraUsageDescription" = "Vaša kamera bo uporabljena za skeniranje QR kode za prenos vaših podatkov.";
-"NSFaceIDUsageDescription" = "Biometrija se lahko uporablja za varno shranjevanje vašega gesla.";
-"NFCReaderUsageDescription" = "NFC se lahko uporablja za komunikacijo z žetonom YubiKey.";
+"NSFaceIDUsageDescription" = "Z biometričnimi podatki lahko varno shranite geslo.";
+"NFCReaderUsageDescription" = "Za komunikacijo z žetonom YubiKey lahko uporabite NFC.";

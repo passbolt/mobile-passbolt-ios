@@ -66,7 +66,7 @@
 "authorization.forgot.passphrase.alert.title" = "Nie pamiętasz swojego hasła dostępu?";
 "authorization.forgot.passphrase.alert.message" = "Niestety nie możesz uzyskać dostępu do swoich danych, jeśli nie pamiętasz hasła dostępu. Skontaktuj się z administratorem, aby odblokować Twoje konto.";
 "authorization.passphrase.description.text" = "Hasło dostępu";
-"authorization.title" = "Edytuj hasło dostępu";
+"authorization.title" = "Wprowadź hasło dostępu";
 
 "sign.in.title" = "Logowanie";
 
@@ -142,13 +142,13 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Notatka";
 "resource.edit.field.add.password" = "Hasło";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Dodatkowe pola";
 "resource.edit.field.name.placeholder" = "Wpisz nazwę";
 "resource.edit.field.uri.placeholder" = "Wpisz adres URL";
 "resource.edit.field.username.placeholder" = "Wpisz nazwę użytkownika";
 "resource.edit.field.password.placeholder" = "Wpisz hasło";
 "resource.edit.field.description.placeholder" = "Wprowadź opis";
-"resource.edit.field.pin_code.label" = "Code";
+"resource.edit.field.pin_code.label" = "Kod";
 "resource.edit.exit.confirmation.message" = "Twoje zmiany nie zostaną zapisane.";
 "resource.edit.exit.confirmation.button.edit.title" = "Edytuj";
 "resource.edit.exit.confirmation.button.revert.title" = "Cofnij";
@@ -156,10 +156,10 @@
 "resource.edit.note.content.disclaimer" = "Notatka jest częścią sekretu, jeśli chcesz mieć możliwość wyszukiwania tej zawartości, użyj opisu metadanych.";
 "resource.edit.note.remove.button.title" = "Usuń notatkę";
 
-"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
-"resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
-"resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.title" = "Ulepszenie jest dostępne";
+"resource.edit.v4.upgrade.banner.description" = "To jest zasób starszego typu. Ulepsz konto, aby cieszyć się usprawnieniami bezpieczeństwa i nowymi funkcjami.";
+"resource.edit.v4.upgrade.banner.button" = "Ulepsz";
+"resource.edit.v4.upgrade.banner.learn.more" = "Dowiedz się więcej";
 
 "resource.edit.section.resource.title" = "Zasób";
 "resource.edit.section.password.title" = "Hasło";
@@ -168,29 +168,29 @@
 "resource.edit.section.metadata.title" = "Metadane";
 "resource.edit.totp.remove.button.title" = "Usuń TOTP";
 
-"resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
-"resource.edit.pin.code.save.button.title" = "Save preferences";
-"resource.edit.password.advanced.title" = "Advanced password generation";
-"resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
-"resource.edit.password.advanced.preview.password.title" = "Password preview";
-"resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
-"resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
-"resource.edit.password.advanced.separator.title" = "Word separator";
-"resource.edit.password.advanced.case.title" = "Word case";
-"resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
-"resource.edit.password.advanced.case.camelcase" = "Camel Case";
-"resource.edit.password.advanced.save.button.title" = "Save preferences";
+"resource.edit.pin.code.advanced.title" = "Zaawansowane ustawienia generowania kodu PIN";
+"resource.edit.pin.code.length.title" = "Długość";
+"resource.edit.pin.code.save.button.title" = "Zapisz";
+"resource.edit.password.advanced.title" = "Zaawansowane ustawienia generowania hasła";
+"resource.edit.password.advanced.passphrase.title" = "Zaawansowane ustawienia generowania hasła";
+"resource.edit.password.advanced.preview.password.title" = "Podgląd hasła";
+"resource.edit.password.advanced.preview.passphrase.title" = "Podgląd hasła";
+"resource.edit.password.advanced.tab.password" = "Hasło";
+"resource.edit.password.advanced.tab.passphrase" = "Hasło dostępu";
+"resource.edit.password.advanced.length.title" = "Długość";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Wykluczaj podobne znaki";
+"resource.edit.password.advanced.character_sets.title" = "Typy znaków";
+"resource.edit.password.advanced.words.title" = "Liczba słów";
+"resource.edit.password.advanced.separator.title" = "Separator słów";
+"resource.edit.password.advanced.case.title" = "Weilkość liter";
+"resource.edit.password.advanced.case.uppercase" = "DUŻE LITERY";
+"resource.edit.password.advanced.case.lowercase" = "małe litery";
+"resource.edit.password.advanced.case.camelcase" = "Notacja camelCase";
+"resource.edit.password.advanced.save.button.title" = "Zapisz preferencje";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Dodatkowe pola";
+"resource.edit.customFields.error.invalid" = "Nieprawidłowa wartość";
+"resource.edit.customFields.description" = "Edycja pól niestandardowych nie jest obecnie obsługiwana.";
 
 "resource.create.advanced.button" = "Wyświetl zaawansowane ustawienia";
 "resource.create.additional.secrets.title" = "Dodatkowe sekrety";
@@ -203,8 +203,8 @@
 "resource.edit.section.metadata.additional.uris" = "Dodatkowe adresy URI";
 "resource.edit.section.metadata.appearance" = "Wygląd";
 
-"resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.pin_code.title" = "Kod PIN";
+"resource.edit.section.customFields.title" = "Dodatkowe pola";
 
 "resource.edit.uris.title" = "Dodatkowe adresy URI";
 "resource.edit.uris.main.uri.title" = "Główny adres URI";
@@ -223,20 +223,20 @@
 "resource.create.menu.title" = "Utwórz zasób";
 "resource.create.menu.password" = "Hasło";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
-"resource.create.menu.pin.code" = "Pin code";
+"resource.create.menu.note" = "Notatka";
+"resource.create.menu.pin.code" = "Kod PIN";
 
 "resource.create.invalid.configuration" = "Nie można utworzyć zasobu z bieżącą konfiguracją.";
 "resource.edit.invalid.configuration" = "Nie można zaktualizować zasobu z obecną konfiguracją.";
 
-"resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
+"resource.edit.unable.to.generate.secret" = "Nie udało się wygenerować sekretu.";
 
-"resource.edit.password.alert.weak.title" = "Confirm your password";
-"resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
-"resource.edit.password.alert.pwned.title" = "Confirm your password";
-"resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
+"resource.edit.password.alert.weak.title" = "Potwierdź hasło";
+"resource.edit.password.alert.weak.message" = "Hasło jest bardzo słabe i może być częścią wycieku danych. Czy na pewno chcesz go użyć?";
+"resource.edit.password.alert.pwned.title" = "Potwierdź hasło";
+"resource.edit.password.alert.pwned.message" = "Hasło figuruje w znanych wyciekach danych. Czy na pewno chcesz go użyć?";
 
-"resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
+"resource.edit.password.alert.password.check.error.message" = "Nie można zweryfikować hasła w bazie ujawnionych haseł. Czy na pewno chcesz go użyć?";
 
 "help.logs.viewer.title" = "Rejestry";
 
@@ -267,7 +267,7 @@
 "transfer.account.import.description" = "Zeskanuj kody QR, aby przenieść dane Twojego konta";
 "transfer.account.import.info.step.first" = "Zaloguj się przez rozszerzenie przeglądarki";
 "transfer.account.import.info.step.second" = "Przejdź do strony **Profilu**";
-"transfer.account.import.info.step.third" = "Przejdź do sekcji **Mobilnej**";
+"transfer.account.import.info.step.third" = "Przejdź do sekcji **Mobilne**";
 "transfer.account.import.info.step.fourth" = "Zeskanuj sekwencję kodów QR";
 "transfer.account.import.scan.qr.button" = "Skanuj kody QR";
 "transfer.account.export.description" = "Pokaż kody QR aby przenieść dane konta";
@@ -321,11 +321,11 @@
 "extension.setup.keychain.step.bold" = "Wyłącz";
 "extension.setup.passbolt.step" = "Wybierz Passbolt!";
 "extension.setup.passbolt.step.bold" = "Passbolt!";
-"extension.setup.step.settings" = "Go to the **Settings** → **General**";
-"extension.setup.step.autofill" = "Open **Autofill & Passwords**";
-"extension.setup.step.switch" = "**Enable** Autofill Passwords & Passkeys";
-"extension.setup.step.passbolt" = "Enable **Passbolt!**";
-"extension.setup.step.passwords" = "Optionally, **Disable** Apple \"Passwords\" app";
+"extension.setup.step.settings" = "Przejdź do strony **Ustawienia** → **Ogólne**";
+"extension.setup.step.autofill" = "Otwórz **Autouzupełnianie i hasła**";
+"extension.setup.step.switch" = "**Włącz** autouzupełnianie haseł i haseł dostępu";
+"extension.setup.step.passbolt" = "Włącz **Passbolt!**";
+"extension.setup.step.passwords" = "Opcjonalnie **wyłącz** aplikację Apple \"Hasła\"";
 "extension.setup.setup.button" = "Przejdź do ustawień";
 "extension.setup.later.button" = "Może później";
 
@@ -339,7 +339,7 @@
 "resources.search.placeholder" = "Szukaj po nazwie, nazwie użytkownika, adresie URL lub tagu...";
 
 "resource.menu.item.open.url" = "Uruchom stronę";
-"resource.menu.item.copy.url" = "Skopiuj adres URL";
+"resource.menu.item.copy.url" = "Skopiuj URI";
 "resource.menu.item.copy.password" = "Skopiuj hasło";
 "resource.menu.item.copy.username" = "Skopiuj nazwę użytkownika";
 "resource.menu.item.copy.description" = "Skopiuj opis";
@@ -424,8 +424,8 @@
 NFC, aby ta operacja się powiodła.";
 "mfa.yubiKey.scan" = "Zeskanuj swój YubiKey";
 "mfa.yubiKey.nfc.not.supported" = "To urządzenie nie obsługuje NFC.";
-"mfa.yubiKey.unavailable.description" = "YubiKey is not available in this context. Please complete MFA in the main app or switch to another provider.";
-"mfa.yubiKey.unavailable.extension.description" = "NFC isn't available to the autofill view on this version of iOS, so your YubiKey can't be scanned here.\n\nOpen the Passbolt app to sign in with your YubiKey, or switch to another MFA provider.";
+"mfa.yubiKey.unavailable.description" = "YubiKey nie jest dostępny w tym kontekście. Wypełnij MFA w aplikacji głównej lub przełącz się na innego dostawcę.";
+"mfa.yubiKey.unavailable.extension.description" = "NFC nie jest dostępny w widoku autouzupełniania w tej wersji iOS, więc YubiKey nie może być tutaj zeskanowany.\n\nOtwórz główną aplikację Passbolt, aby zalogować się za pomocą YubiKey, lub przełącz się na inną metodę MFA.";
 "mfa.provider.try.another" = "Spróbuj innego dostawcy";
 "mfa.remember.token" = "Zapamiętaj to urządzenie na 30 dni";
 "mfa.unsupported.provider.title" = "Nie obsługujemy Twojego dostawcy uwierzytelniania wieloskładnikowego";
@@ -527,7 +527,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "error.nfc.not.supported" = "NFC nie jest obsługiwane.";
 "error.nfc.payload.invalid" = "Nieprawidłowy payload NFC.";
 "error.url.invalid" = "Nieprawidłowy adres URL.";
-"error.url.open.failed" = "Unable to open the URL.";
+"error.url.open.failed" = "Nie można otworzyć adresu URL.";
 "error.internet.connection.issue" = "Nie można połączyć się z Internetem.";
 "error.client.certificate.invalid" = "Certyfikat klienta jest nieprawidłowy.";
 "error.server.connection.issue" = "Nie można połączyć się z serwerem.";
@@ -565,7 +565,7 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "error.resource.secret.invalid" = "Sekret zasobu jest nieprawidłowy.";
 "error.resource.permission.invalid" = "Uprawnienia do zasobów są nieprawidłowe.";
 "error.resource.owner.missing" = "Zasób musi mieć przynajmniej jednego właściciela.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Aktualizacja zasobów nie powiodła się.";
 "error.system.feature.inaccessible" = "Funkcja systemu jest niedostępna.";
 "error.system.feature.permission.not.granted" = "Nie przyznano uprawnień do funkcji systemu.";
 "error.system.feature.permission.required" = "Wymagane uprawnienia do funkcji systemu.";
@@ -622,12 +622,12 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "error.resource.field.range.greater" = "%@ musi być większy niż %d!";
 "error.resource.field.content.invalid" = "%@ ma nieprawidłową zawartość!";
 "error.resource.field.selection.invalid" = "%@ musi być jedną z poprawnych opcji!";
-"error.resource.field.digits.only" = "%@ can only contain digits!";
+"error.resource.field.digits.only" = "%@ może zawierać tylko cyfry!";
 "error.resource.field.unknown" = "Nieznane pola nie są prezentowane!";
 "error.validation.password.length.invalid" = "Nieprawidłowe ustawienia długości hasła!";
 "error.validation.password.mask.empty" = "Maska wygasania hasła nie może być pusta!";
-"error.validation.passphrase.separator.too_long" = "Word separator is too long!";
-"error.validation.passphrase.words.invalid" = "Invalid number of words!";
+"error.validation.passphrase.separator.too_long" = "Separator słów jest zbyt długi!";
+"error.validation.passphrase.words.invalid" = "Nieprawidłowa liczba słów!";
 
 // Home - presentation mode menu
 
@@ -732,13 +732,13 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "settings.main.item.accounts.title" = "Konta";
 "settings.main.item.terms.and.licenses.title" = "Warunki i licencje";
 "settings.main.item.troubleshooting.title" = "Debugowanie, logi";
-"settings.main.item.expert.title" = "Expert settings";
+"settings.main.item.expert.title" = "Ustawienia eksperckie";
 "settings.main.item.sign.out.title" = "Wyloguj się";
 
 // Settings - Expert
 
-"settings.expert.title" = "Expert settings";
-"settings.expert.item.require.auth.title" = "Require auth on every entry";
+"settings.expert.title" = "Ustawienia eksperckie";
+"settings.expert.item.require.auth.title" = "Wymagaj autoryzacji przy każdym wpisie";
 
 // Settings - Application
 
@@ -829,4 +829,4 @@ Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "metadata.pinned.key.validation.unknown.title" = "Klucz metadanych uległ zmianie.";
 "metadata.pinned.key.validation.unknown.message" = "Nie można zweryfikować zaufanego klucza szyfrowania używanego do udostępniania metadanych pomiędzy użytkownikami.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Nie możesz wykonać tej czynności, ponieważ nie masz dostępu do współdzielonego klucza metadanych.";

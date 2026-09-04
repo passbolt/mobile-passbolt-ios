@@ -77,7 +77,7 @@
 "resource.detail.field.passphrase" = "パスワード";
 "resource.detail.field.uri" = "ウェブサイトURL";
 "resource.detail.field.description" = "説明";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "URI なし";
 "resource.show.field.username.placeholder" = "ユーザー名なし";
 "resource.show.field.password.placeholder" = "パスワードなし";
 "resource.show.field.description.placeholder" = "説明なし";
@@ -85,7 +85,7 @@
 "resource.details.value" = "値";
 "resource.detail.section.location" = "場所";
 "resource.detail.section.permissions" = "共有相手";
-"resource.detail.section.additionalURIs" = "Additional URI";
+"resource.detail.section.additionalURIs" = "追加 URI";
 "resource.detail.section.tags" = "タグ";
 "resource.detail.section.expiry" = "有効期限";
 "resource.detail.section.expiry.expired" = "期限切れ";
@@ -130,21 +130,21 @@
 "server.not.reachable.alert.message.server.placeholder" = "サーバー";
 "server.not.reachable.alert.message" = "%@ に接続できません。もう一度お試しください";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "リソースを作成";
 "resource.edit.title" = "リソースを編集";
-"resource.password.edit.title" = "Edit password";
+"resource.password.edit.title" = "パスワードを編集";
 "resource.edit.field.name.label" = "名前";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "メイン URI";
 "resource.edit.field.username.label" = "ユーザー名";
 "resource.edit.field.password.label" = "パスワード";
 "resource.edit.field.description.label" = "説明";
 "resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.note" = "ノート";
 "resource.edit.field.add.password" = "パスワード";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "カスタムフィールド";
 "resource.edit.field.name.placeholder" = "名前を入力";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "URI を入力してください";
 "resource.edit.field.username.placeholder" = "ユーザー名を入力";
 "resource.edit.field.password.placeholder" = "パスワードを入力";
 "resource.edit.field.description.placeholder" = "説明を入力";
@@ -152,82 +152,82 @@
 "resource.edit.exit.confirmation.message" = "変更内容は保存されません。";
 "resource.edit.exit.confirmation.button.edit.title" = "編集";
 "resource.edit.exit.confirmation.button.revert.title" = "元に戻す";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "内容";
+"resource.edit.note.content.disclaimer" = "この内容はシークレットの一部です。この内容を検索可能にしたい場合は、メタデータの説明を使用してください。";
+"resource.edit.note.remove.button.title" = "ノートを削除";
 
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.learn.more" = "詳細情報";
 
 "resource.edit.section.resource.title" = "リソース";
 "resource.edit.section.password.title" = "パスワード";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
-"resource.edit.section.metadata.title" = "Metadata";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.section.note.title" = "ノート";
+"resource.edit.section.metadata.title" = "メタデータ";
+"resource.edit.totp.remove.button.title" = "TOTP を削除";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "長さ";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
 "resource.edit.password.advanced.title" = "Advanced password generation";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "パスワード";
+"resource.edit.password.advanced.tab.passphrase" = "パスフレーズ";
+"resource.edit.password.advanced.length.title" = "長さ";
+"resource.edit.password.advanced.exclude_lookalike.title" = "似たような文字を除外";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "単語数";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "小文字";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "カスタムフィールド";
+"resource.edit.customFields.error.invalid" = "無効な値";
+"resource.edit.customFields.description" = "現在、カスタムフィールドの編集はサポートされていません。";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.button" = "詳細設定を表示";
+"resource.create.additional.secrets.title" = "追加のシークレット";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "説明";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "メタデータの説明";
+"resource.edit.section.metadata.description.description" = "説明をシークレットに含めたい場合は、代わりにノートを使用してください。";
 
-"resource.edit.section.metadata.additional.uris" = "Additional URIs";
-"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.metadata.additional.uris" = "追加 URI";
+"resource.edit.section.metadata.appearance" = "外観";
 
 "resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.customFields.title" = "カスタムフィールド";
 
-"resource.edit.uris.title" = "Additional URIs";
-"resource.edit.uris.main.uri.title" = "Main URI";
-"resource.edit.uris.additional.uris.title" = "Additional URI";
-"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.title" = "追加 URI";
+"resource.edit.uris.main.uri.title" = "メイン URI";
+"resource.edit.uris.additional.uris.title" = "追加 URI";
+"resource.edit.uris.main.uri.placeholder" = "メイン URI";
 "resource.edit.uris.additional.uri.placeholder" = "URI";
-"resource.edit.uris.additional.uri.add" = "Add URI";
-"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.additional.uri.add" = "URI を追加";
+"resource.edit.uris.additional.uris.error.limit" = "追加 URI は最大 %d 件まで追加できます。";
+"resource.edit.uris.invalid.form" = "1 つ以上の URI が無効です。";
 
-"resource.edit.icon.title" = "Appearance";
-"resource.edit.icon.color.select.title" = "Select color";
-"resource.edit.icon.color.default.title" = "Default color";
-"resource.edit.icon.default.title" = "Default icon";
+"resource.edit.icon.title" = "外観";
+"resource.edit.icon.color.select.title" = "色を選択";
+"resource.edit.icon.color.default.title" = "デフォルトの色";
+"resource.edit.icon.default.title" = "デフォルトのアイコン";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.title" = "リソースを作成";
 "resource.create.menu.password" = "パスワード";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
+"resource.create.menu.note" = "ノート";
 "resource.create.menu.pin.code" = "Pin code";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "現在の構成ではリソースを作成できません。";
+"resource.edit.invalid.configuration" = "現在の構成ではリソースを編集できません。";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
@@ -266,8 +266,8 @@
 "transfer.account.title" = "アカウント情報を転送";
 "transfer.account.import.description" = "アカウント情報を転送するためにQRコードをスキャン";
 "transfer.account.import.info.step.first" = "ブラウザ拡張機能を使用してサインイン";
-"transfer.account.import.info.step.second" = "**プロフィール**ページに移動";
-"transfer.account.import.info.step.third" = "**モバイル**セクションに移動";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "QRコードシーケンスをスキャン";
 "transfer.account.import.scan.qr.button" = "QRコードをスキャン";
 "transfer.account.export.description" = "アカウント情報を転送するためにQRコードを表示";
@@ -343,7 +343,7 @@
 "resource.menu.item.copy.password" = "パスワードをコピー";
 "resource.menu.item.copy.username" = "ユーザー名をコピー";
 "resource.menu.item.copy.description" = "説明をコピー";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "ノートをコピー";
 "resource.menu.item.reveal.otp" = "TOTPを表示";
 "resource.menu.item.copy.otp" = "TOTPをコピー";
 "resource.menu.item.add.favorite" = "お気に入りに追加";
@@ -402,9 +402,9 @@
 "permission.details.group.members.section.title" = "グループメンバー";
 "permission.details.user.suspended" = "一時停止中";
 
-"resource.permission.edit.button.delete.title" = "パーミッションを削除";
+"resource.permission.edit.button.delete.title" = "Delete permission";
 
-"resource.create.menu.add.folder.title" = "Folder";
+"resource.create.menu.add.folder.title" = "フォルダ";
 
 "group.members.list.title" = "グループメンバー";
 "group.members.member.details.title" = "グループメンバー";
@@ -564,7 +564,7 @@
 "error.resource.secret.invalid" = "リソースのシークレットが無効です。";
 "error.resource.permission.invalid" = "リソースのパーミッションが無効です。";
 "error.resource.owner.missing" = "リソースには少なくとも1人の所有者が必要です。";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "リソースの更新に失敗しました。";
 "error.system.feature.inaccessible" = "システム機能にアクセスできません。";
 "error.system.feature.permission.not.granted" = "システム機能の権限が付与されていません。";
 "error.system.feature.permission.required" = "システム機能の権限が必要です。";
@@ -686,7 +686,7 @@
 "otp.scanning.success.link.button.title" = "TOTPをパスワードにリンク";
 "otp.code.scanning.title" = "QRコードをスキャン";
 "otp.code.scanning.initial.message" = "カメラをQRコードに向けてください";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "または TOTP を手動で作成";
 
 // OTP form
 
@@ -698,7 +698,7 @@
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "シークレット";
 "otp.edit.form.field.secret.prompt" = "シークレット";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "その他の TOTP 設定";
 "otp.edit.form.create.button.title" = "スタンドアロンTOTPを作成";
 "otp.edit.form.apply.button.title" = "適用";
 "otp.edit.form.edit.button.title" = "保存";
@@ -816,16 +816,16 @@
 "authorization.primary.button.title" = "承認";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "メタデータキーが変更されました。";
+"metadata.pinned.key.validation.error.message" = "ユーザー間でメタデータを共有するための暗号化キーは %@ により更新されました。";
+"metadata.pinned.key.validation.error.disclaimer" = "心当たりがない場合は、管理者に確認してください。";
+"metadata.pinned.key.validation.error.trust" = "このキーを信頼する";
+"metadata.pinned.key.fingerprint" = "キーの指紋:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "メタデータキーが削除されました。";
+"metadata.pinned.key.validation.deleted.message" = "ユーザー間でメタデータを共有するために使用されていた信頼済み暗号化キーが削除されました。";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "メタデータキーが変更されました。";
+"metadata.pinned.key.validation.unknown.message" = "ユーザー間でメタデータを共有するために使用されている信頼済み暗号化キーを検証できませんでした。";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "共有メタデータキーへのアクセス権がないため、この操作を実行できません。";

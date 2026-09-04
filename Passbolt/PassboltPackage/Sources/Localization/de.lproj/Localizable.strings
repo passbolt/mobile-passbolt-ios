@@ -142,7 +142,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Notiz";
 "resource.edit.field.add.password" = "Passwort";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Benutzerdefinierte Felder";
 "resource.edit.field.name.placeholder" = "Namen eingeben";
 "resource.edit.field.uri.placeholder" = "URI eingeben";
 "resource.edit.field.username.placeholder" = "Benutzernamen eingeben";
@@ -156,10 +156,10 @@
 "resource.edit.note.content.disclaimer" = "Diese Sicherheit ist Teil des Geheimnisses, wenn Sie diesen Inhalt durchsuchen wollen können, verwenden Sie Metadaten-Beschreibung.";
 "resource.edit.note.remove.button.title" = "Notiz entfernen";
 
-"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.title" = "Aktualisierung verfügbar";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
-"resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.button" = "Aktualisieren";
+"resource.edit.v4.upgrade.banner.learn.more" = "Weitere Informationen";
 
 "resource.edit.section.resource.title" = "Ressource";
 "resource.edit.section.password.title" = "Passwort";
@@ -169,28 +169,28 @@
 "resource.edit.totp.remove.button.title" = "TOTP entfernen";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Länge";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
-"resource.edit.password.advanced.title" = "Advanced password generation";
+"resource.edit.password.advanced.title" = "Erweiterte Passwortgenerierung";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Passwort";
+"resource.edit.password.advanced.tab.passphrase" = "Kennwort";
+"resource.edit.password.advanced.length.title" = "Länge";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Ausschließen von gleichartigen Zeichen";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Anzahl der Wörter";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "kleinbuchstaben";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Benutzerdefinierte Felder";
+"resource.edit.customFields.error.invalid" = "Ungültiger Wert";
+"resource.edit.customFields.description" = "Die Bearbeitung benutzerdefinierter Felder wird derzeit nicht unterstützt.";
 
 "resource.create.advanced.button" = "Erweiterte Einstellungen anzeigen";
 "resource.create.additional.secrets.title" = "Zusätzliche Geheimnisse";
@@ -203,8 +203,8 @@
 "resource.edit.section.metadata.additional.uris" = "Zusätzliche URIs";
 "resource.edit.section.metadata.appearance" = "Darstellung";
 
-"resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.pin_code.title" = "Pin-Code";
+"resource.edit.section.customFields.title" = "Benutzerdefinierte Felder";
 
 "resource.edit.uris.title" = "Zusätzliche URIs";
 "resource.edit.uris.main.uri.title" = "Haupt-URI";
@@ -213,7 +213,7 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "URI hinzufügen";
 "resource.edit.uris.additional.uris.error.limit" = "Sie können ein Maximum von %d zusätzlichen URIs hinzufügen.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.invalid.form" = "Eine oder mehrere URIs sind ungültig.";
 
 "resource.edit.icon.title" = "Darstellung";
 "resource.edit.icon.color.select.title" = "Farbe auswählen";
@@ -223,17 +223,17 @@
 "resource.create.menu.title" = "Eine Ressource erstellen";
 "resource.create.menu.password" = "Passwort";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
-"resource.create.menu.pin.code" = "Pin code";
+"resource.create.menu.note" = "Notiz";
+"resource.create.menu.pin.code" = "Pin-Code";
 
 "resource.create.invalid.configuration" = "Mit der aktuellen Konfiguration kann Ressource nicht erstellt werden.";
 "resource.edit.invalid.configuration" = "Mit der aktuellen Konfiguration kann Ressource nicht bearbeitet werden.";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
-"resource.edit.password.alert.weak.title" = "Confirm your password";
+"resource.edit.password.alert.weak.title" = "Passwort bestätigen";
 "resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
-"resource.edit.password.alert.pwned.title" = "Confirm your password";
+"resource.edit.password.alert.pwned.title" = "Passwort bestätigen";
 "resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
 
 "resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Kontodaten übertragen";
 "transfer.account.import.description" = "QR-Codes scannen, um Ihre Kontodaten zu übertragen";
 "transfer.account.import.info.step.first" = "Anmeldung über die Browsererweiterung";
-"transfer.account.import.info.step.second" = "Zur **Profilseite** gehen";
-"transfer.account.import.info.step.third" = "Zum **Mobil**-Bereich";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Scannen Sie die QR-Codes nacheinander";
 "transfer.account.import.scan.qr.button" = "QR-Codes scannen";
 "transfer.account.export.description" = "QR-Codes anzeigen, um Ihre Kontodaten zu übertragen";
@@ -565,7 +565,7 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "error.resource.secret.invalid" = "Ressourcengeheimnis ist ungültig.";
 "error.resource.permission.invalid" = "Ressourcen-Berechtigung ist ungültig.";
 "error.resource.owner.missing" = "Ressource muss mindestens einen Eigentümer haben.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Aktualisierung der Ressource fehlgeschlagen.";
 "error.system.feature.inaccessible" = "Systemfunktion nicht zugänglich.";
 "error.system.feature.permission.not.granted" = "Systemfunktion Berechtigung nicht erteilt.";
 "error.system.feature.permission.required" = "Systemfunktion Berechtigung erforderlich.";
@@ -732,12 +732,12 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "settings.main.item.accounts.title" = "Konten";
 "settings.main.item.terms.and.licenses.title" = "Bedingungen & Lizenzen";
 "settings.main.item.troubleshooting.title" = "Debug, Logs";
-"settings.main.item.expert.title" = "Expert settings";
+"settings.main.item.expert.title" = "Experteneinstellungen";
 "settings.main.item.sign.out.title" = "Abmelden";
 
 // Settings - Expert
 
-"settings.expert.title" = "Expert settings";
+"settings.expert.title" = "Experteneinstellungen";
 "settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
@@ -829,4 +829,4 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "metadata.pinned.key.validation.unknown.title" = "Der Metadaten-Schlüssel hat sich geändert.";
 "metadata.pinned.key.validation.unknown.message" = "Der vertraute Verschlüsselungsschlüssel, welcher verwendet wird, um Metadaten zwischen Benutzern zu teilen, konnte nicht validiert werden.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Sie können diese Aktion nicht ausführen, da Ihnen der Zugriff auf die freigegebenen Metadaten-Schlüssel fehlt.";

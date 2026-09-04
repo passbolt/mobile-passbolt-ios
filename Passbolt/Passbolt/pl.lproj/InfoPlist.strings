@@ -21,6 +21,6 @@
 // @since         v1.0
 //
 
-"NSCameraUsageDescription" = "Twój aparat zostanie użyty do skanowania kodu QR w celu przesłania Twoich danych.";
+"NSCameraUsageDescription" = "Twój aparat zostanie użyty do skanowania kodów QR w celu przesłania Twoich danych.";
 "NSFaceIDUsageDescription" = "Możesz użyć danych biometrycznych, aby bezpiecznie zapisać Twoje hasło dostępu.";
-"NFCReaderUsageDescription" = "Mechanizm NFC może zostać użyty do komunikacji z tokenem YubiKey.";
+"NFCReaderUsageDescription" = "NFC jest używany do komunikowania się z tokenem YubiKey.";

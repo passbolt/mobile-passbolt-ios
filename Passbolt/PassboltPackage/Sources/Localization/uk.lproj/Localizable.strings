@@ -142,7 +142,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Примітка";
 "resource.edit.field.add.password" = "Пароль";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Користувацькі поля";
 "resource.edit.field.name.placeholder" = "Введіть назву";
 "resource.edit.field.uri.placeholder" = "Введіть URI";
 "resource.edit.field.username.placeholder" = "Введіть ім'я користувача";
@@ -156,12 +156,12 @@
 "resource.edit.note.content.disclaimer" = "Ця безпечна частина є частиною секрету. Якщо ви бажаєте мати змогу шукати цей вміст, скористайтеся описом метаданих.";
 "resource.edit.note.remove.button.title" = "Видалити примітку";
 
-"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.title" = "Доступне оновлення";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
-"resource.edit.v4.upgrade.banner.button" = "Upgrade";
+"resource.edit.v4.upgrade.banner.button" = "Оновити";
 "resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
 
-"resource.edit.section.resource.title" = "Resource";
+"resource.edit.section.resource.title" = "Ресурс";
 "resource.edit.section.password.title" = "Пароль";
 "resource.edit.section.totp.title" = "TOTP";
 "resource.edit.section.note.title" = "Примітка";
@@ -169,28 +169,28 @@
 "resource.edit.totp.remove.button.title" = "Вилучити TOTP";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Довжина";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
-"resource.edit.password.advanced.title" = "Advanced password generation";
+"resource.edit.password.advanced.title" = "Розширена генерація пароля";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
+"resource.edit.password.advanced.tab.password" = "Пароль";
+"resource.edit.password.advanced.tab.passphrase" = "Парольна фраза";
+"resource.edit.password.advanced.length.title" = "Довжина";
 "resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
 "resource.edit.password.advanced.words.title" = "Number of words";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "нижній регістр";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Користувацькі поля";
+"resource.edit.customFields.error.invalid" = "Недопустиме значення";
+"resource.edit.customFields.description" = "Редагування користувацьких полів наразі не підтримується.";
 
 "resource.create.advanced.button" = "Переглянути додаткові налаштування";
 "resource.create.additional.secrets.title" = "Додаткові секрети";
@@ -203,8 +203,8 @@
 "resource.edit.section.metadata.additional.uris" = "Додаткові URI";
 "resource.edit.section.metadata.appearance" = "Вигляд";
 
-"resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.pin_code.title" = "PIN-код";
+"resource.edit.section.customFields.title" = "Користувацькі поля";
 
 "resource.edit.uris.title" = "Додаткові URI";
 "resource.edit.uris.main.uri.title" = "Основний URI";
@@ -213,30 +213,30 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "Додати URI";
 "resource.edit.uris.additional.uris.error.limit" = "Ви можете додати максимум %d додаткових URI.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.invalid.form" = "Один або декілька URI є недопустимими.";
 
 "resource.edit.icon.title" = "Вигляд";
-"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.select.title" = "Виберіть колір";
 "resource.edit.icon.color.default.title" = "Стандартний колір";
 "resource.edit.icon.default.title" = "Стандартна іконка";
 
 "resource.create.menu.title" = "Створити ресурс";
 "resource.create.menu.password" = "Пароль";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
-"resource.create.menu.pin.code" = "Pin code";
+"resource.create.menu.note" = "Примітка";
+"resource.create.menu.pin.code" = "PIN-код";
 
 "resource.create.invalid.configuration" = "Неможливо створити ресурс з поточною конфігурацією.";
 "resource.edit.invalid.configuration" = "Неможливо редагувати ресурс з поточною конфігурацією.";
 
-"resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
+"resource.edit.unable.to.generate.secret" = "Не вдалося згенерувати секрет.";
 
-"resource.edit.password.alert.weak.title" = "Confirm your password";
-"resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
-"resource.edit.password.alert.pwned.title" = "Confirm your password";
-"resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
+"resource.edit.password.alert.weak.title" = "Підтвердьте свій пароль";
+"resource.edit.password.alert.weak.message" = "Цей пароль дуже слабкий і може бути у відомих скомпрометованих даних. Ви дійсно бажаєте його використати?";
+"resource.edit.password.alert.pwned.title" = "Підтвердьте свій пароль";
+"resource.edit.password.alert.pwned.message" = "Цей пароль міститься у відомих скомпрометованих даних. Ви дійсно бажаєте його використати?";
 
-"resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
+"resource.edit.password.alert.password.check.error.message" = "Не вдалося перевірити ваш пароль у зовнішньому словнику. Ви дійсно бажаєте його використати?";
 
 "help.logs.viewer.title" = "Журнали";
 
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Передати дані облікового запису";
 "transfer.account.import.description" = "Скануйте QR-коди, щоб передати дані вашого облікового запису";
 "transfer.account.import.info.step.first" = "Увійдіть за допомогою розширення браузера";
-"transfer.account.import.info.step.second" = "Перейдіть на сторінку **Профіль**";
-"transfer.account.import.info.step.third" = "Перейдіть до розділу **Mobile**";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Відскануйте послідовність QR-кодів";
 "transfer.account.import.scan.qr.button" = "Сканувати QR-коди";
 "transfer.account.export.description" = "Показати QR-коди, щоб передати дані вашого облікового запису";
@@ -348,7 +348,7 @@
 "resource.menu.item.copy.otp" = "Скопіювати TOTP";
 "resource.menu.item.add.favorite" = "Додати в обране";
 "resource.menu.item.remove.favorite" = "Видалити з обраного";
-"resource.menu.item.share" = "Share";
+"resource.menu.item.share" = "Поділитися";
 "resource.menu.item.edit.resource" = "Редагувати";
 "resource.menu.item.edit.otp" = "Редагувати TOTP";
 "resource.menu.item.delete.resource" = "Видалити";
@@ -527,7 +527,7 @@ NFC, щоб це працювало.";
 "error.nfc.not.supported" = "NFC не підтримується.";
 "error.nfc.payload.invalid" = "Неправильний вміст NFC.";
 "error.url.invalid" = "Неправильний URL.";
-"error.url.open.failed" = "Unable to open the URL.";
+"error.url.open.failed" = "Не вдалося відкрити URL.";
 "error.internet.connection.issue" = "Неможливо під'єднатися до інтернету.";
 "error.client.certificate.invalid" = "Недійсний клієнтський сертифікат.";
 "error.server.connection.issue" = "Неможливо під'єднатися до сервера.";
@@ -565,7 +565,7 @@ NFC, щоб це працювало.";
 "error.resource.secret.invalid" = "Секрет ресурсу неправильний.";
 "error.resource.permission.invalid" = "Дозвіл ресурсу неправильний.";
 "error.resource.owner.missing" = "У ресурсу має бути принаймні один власник.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Не вдалося оновити ресурс.";
 "error.system.feature.inaccessible" = "Функція системи недоступна.";
 "error.system.feature.permission.not.granted" = "Дозвіл на використання функції системи не надано.";
 "error.system.feature.permission.required" = "Потрібен дозвіл на використання функції системи.";
@@ -732,13 +732,13 @@ NFC, щоб це працювало.";
 "settings.main.item.accounts.title" = "Облікові записи";
 "settings.main.item.terms.and.licenses.title" = "Умови та ліцензії";
 "settings.main.item.troubleshooting.title" = "Налагодження, журнали";
-"settings.main.item.expert.title" = "Expert settings";
+"settings.main.item.expert.title" = "Розширені налаштування";
 "settings.main.item.sign.out.title" = "Вийти";
 
 // Settings - Expert
 
-"settings.expert.title" = "Expert settings";
-"settings.expert.item.require.auth.title" = "Require auth on every entry";
+"settings.expert.title" = "Розширені налаштування";
+"settings.expert.item.require.auth.title" = "Вимагати авторизацію при кожному вході";
 
 // Settings - Application
 
@@ -829,4 +829,4 @@ NFC, щоб це працювало.";
 "metadata.pinned.key.validation.unknown.title" = "Ключ метаданих змінено.";
 "metadata.pinned.key.validation.unknown.message" = "Не вдалося перевірити довірений ключ шифрування, що використовується для обміну метаданими між користувачами.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Ви не можете виконати цю дію, оскільки у вас відсутній доступ до спільного ключа метаданих.";

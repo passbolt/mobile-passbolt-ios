@@ -77,7 +77,7 @@
 "resource.detail.field.passphrase" = "Parolă";
 "resource.detail.field.uri" = "URL website";
 "resource.detail.field.description" = "Descriere";
-"resource.show.field.uri.placeholder" = "No URI";
+"resource.show.field.uri.placeholder" = "Niciun URI";
 "resource.show.field.username.placeholder" = "Niciun utilizator";
 "resource.show.field.password.placeholder" = "Nicio parolă";
 "resource.show.field.description.placeholder" = "Nicio descriere";
@@ -85,7 +85,7 @@
 "resource.details.value" = "Valoare";
 "resource.detail.section.location" = "Locaţie";
 "resource.detail.section.permissions" = "Partajată cu";
-"resource.detail.section.additionalURIs" = "Additional URI";
+"resource.detail.section.additionalURIs" = "URI suplimentar";
 "resource.detail.section.tags" = "Etichete";
 "resource.detail.section.expiry" = "Expiră";
 "resource.detail.section.expiry.expired" = "Expirat";
@@ -130,21 +130,21 @@
 "server.not.reachable.alert.message.server.placeholder" = "Server";
 "server.not.reachable.alert.message" = "%@ nu poate fi accesat. Vă rugăm să încercați din nou";
 
-"resource.edit.create.title" = "Create a resource";
+"resource.edit.create.title" = "Creează o resursă";
 "resource.edit.title" = "Modificați resursa";
 "resource.password.edit.title" = "Modifică parola";
 "resource.edit.field.name.label" = "Nume";
-"resource.edit.field.uri.label" = "Main URI";
+"resource.edit.field.uri.label" = "URI principal";
 "resource.edit.field.username.label" = "Utilizator";
 "resource.edit.field.password.label" = "Parolă";
 "resource.edit.field.description.label" = "Descriere";
 "resource.edit.field.totp.label" = "TOTP";
 "resource.edit.field.add.totp" = "TOTP";
-"resource.edit.field.add.note" = "Note";
+"resource.edit.field.add.note" = "Notă";
 "resource.edit.field.add.password" = "Parolă";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Câmpuri personalizate";
 "resource.edit.field.name.placeholder" = "Introduceți un nume";
-"resource.edit.field.uri.placeholder" = "Enter URI";
+"resource.edit.field.uri.placeholder" = "Introduceți URI-ul";
 "resource.edit.field.username.placeholder" = "Introduceți numele de utilizator";
 "resource.edit.field.password.placeholder" = "Introduceți parola";
 "resource.edit.field.description.placeholder" = "Introduceți descrierea";
@@ -152,82 +152,82 @@
 "resource.edit.exit.confirmation.message" = "Modificările tale nu vor fi salvate.";
 "resource.edit.exit.confirmation.button.edit.title" = "Editați";
 "resource.edit.exit.confirmation.button.revert.title" = "Reveniți";
-"resource.edit.note.content.title" = "Content";
-"resource.edit.note.content.disclaimer" = "This secure is part of the secret if you wan to be able to search this content, use metadata description.";
-"resource.edit.note.remove.button.title" = "Remove note";
+"resource.edit.note.content.title" = "Conținut";
+"resource.edit.note.content.disclaimer" = "Această informație face parte din secret; dacă doriți să puteți căuta acest conținut, folosiți descrierea din metadate.";
+"resource.edit.note.remove.button.title" = "Elimină nota";
 
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.learn.more" = "Aflați mai multe";
 
 "resource.edit.section.resource.title" = "Resursă";
 "resource.edit.section.password.title" = "Parolă";
 "resource.edit.section.totp.title" = "TOTP";
-"resource.edit.section.note.title" = "Note";
-"resource.edit.section.metadata.title" = "Metadata";
-"resource.edit.totp.remove.button.title" = "Remove TOTP";
+"resource.edit.section.note.title" = "Notă";
+"resource.edit.section.metadata.title" = "Metadate";
+"resource.edit.totp.remove.button.title" = "Elimină TOTP";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Lungime";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
 "resource.edit.password.advanced.title" = "Advanced password generation";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Parolă";
+"resource.edit.password.advanced.tab.passphrase" = "Parolă";
+"resource.edit.password.advanced.length.title" = "Lungime";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude caracterele asemănătoare";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Numarul de cuvinte";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "caractere mici";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Câmpuri personalizate";
+"resource.edit.customFields.error.invalid" = "Valoare nevalidă";
+"resource.edit.customFields.description" = "Editarea câmpurilor personalizate nu este încă suportată.";
 
-"resource.create.advanced.button" = "View advanced settings";
-"resource.create.additional.secrets.title" = "Additional secrets";
+"resource.create.advanced.button" = "Vezi setările avansate";
+"resource.create.additional.secrets.title" = "Secrete suplimentare";
 "resource.create.advanced.add.otp" = "TOTP";
 
 "resource.edit.section.metadata.description" = "Descriere";
-"resource.edit.section.metadata.description.name" = "Metadata description";
-"resource.edit.section.metadata.description.description" = "If you want the description to be part of the secret, use the note instead.";
+"resource.edit.section.metadata.description.name" = "Descrierea metadatelor";
+"resource.edit.section.metadata.description.description" = "Dacă doriți ca descrierea să facă parte din secret, folosiți în schimb nota.";
 
-"resource.edit.section.metadata.additional.uris" = "Additional URIs";
-"resource.edit.section.metadata.appearance" = "Appearance";
+"resource.edit.section.metadata.additional.uris" = "URI-uri suplimentare";
+"resource.edit.section.metadata.appearance" = "Aspect";
 
 "resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.customFields.title" = "Câmpuri personalizate";
 
-"resource.edit.uris.title" = "Additional URIs";
-"resource.edit.uris.main.uri.title" = "Main URI";
-"resource.edit.uris.additional.uris.title" = "Additional URI";
-"resource.edit.uris.main.uri.placeholder" = "Main URI";
+"resource.edit.uris.title" = "URI-uri suplimentare";
+"resource.edit.uris.main.uri.title" = "URI principal";
+"resource.edit.uris.additional.uris.title" = "URI suplimentar";
+"resource.edit.uris.main.uri.placeholder" = "URI principal";
 "resource.edit.uris.additional.uri.placeholder" = "URI";
-"resource.edit.uris.additional.uri.add" = "Add URI";
-"resource.edit.uris.additional.uris.error.limit" = "You can add a maximum of %d additional URIs.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.additional.uri.add" = "Adaugă URI";
+"resource.edit.uris.additional.uris.error.limit" = "Puteți adăuga maximum %d URI-uri suplimentare.";
+"resource.edit.uris.invalid.form" = "Unul sau mai multe URI-uri sunt invalide.";
 
-"resource.edit.icon.title" = "Appearance";
-"resource.edit.icon.color.select.title" = "Select color";
-"resource.edit.icon.color.default.title" = "Default color";
-"resource.edit.icon.default.title" = "Default icon";
+"resource.edit.icon.title" = "Aspect";
+"resource.edit.icon.color.select.title" = "Selectați culoarea";
+"resource.edit.icon.color.default.title" = "Culoare implicită";
+"resource.edit.icon.default.title" = "Pictogramă implicită";
 
-"resource.create.menu.title" = "Create a resource";
+"resource.create.menu.title" = "Creează o resursă";
 "resource.create.menu.password" = "Parolă";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
+"resource.create.menu.note" = "Notă";
 "resource.create.menu.pin.code" = "Pin code";
 
-"resource.create.invalid.configuration" = "Cannot create a resource with current configuration.";
-"resource.edit.invalid.configuration" = "Cannot edit a resource with current configuration.";
+"resource.create.invalid.configuration" = "Nu se poate crea o resursă cu configurația actuală.";
+"resource.edit.invalid.configuration" = "Nu se poate edita o resursă cu configurația actuală.";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Transferă detaliile contului";
 "transfer.account.import.description" = "Scanați codurile QR pentru a transfera detaliile contului";
 "transfer.account.import.info.step.first" = "Conectați-vă folosind extensia browser-ului";
-"transfer.account.import.info.step.second" = "Accesați pagina de **profil**";
-"transfer.account.import.info.step.third" = "Accesați secțiunea **Mobil**";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Scanați secvența de coduri qr";
 "transfer.account.import.scan.qr.button" = "Scanează codurile QR";
 "transfer.account.export.description" = "Afișați codurile QR pentru a transfera detaliile contului";
@@ -343,7 +343,7 @@
 "resource.menu.item.copy.password" = "Copiază parola";
 "resource.menu.item.copy.username" = "Copiază nume utilizator";
 "resource.menu.item.copy.description" = "Copiază descrierea";
-"resource.menu.item.copy.note" = "Copy note";
+"resource.menu.item.copy.note" = "Copiază nota";
 "resource.menu.item.reveal.otp" = "Afișați TOTP-ul";
 "resource.menu.item.copy.otp" = "Copiați TOTP-ul";
 "resource.menu.item.add.favorite" = "Adaugă la favorite";
@@ -565,7 +565,7 @@ Contactați administratorul pentru mai multe informații.";
 "error.resource.secret.invalid" = "Secretul este invalid.";
 "error.resource.permission.invalid" = "Permisiunea resursei este nevalidă.";
 "error.resource.owner.missing" = "Resursa trebuie să aibă cel puțin un proprietar.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Actualizarea resursei a eșuat.";
 "error.system.feature.inaccessible" = "Funcția sistemului este inaccesibilă.";
 "error.system.feature.permission.not.granted" = "Permisiunea pentru funcția de sistem nu a fost acordată.";
 "error.system.feature.permission.required" = "Permisiunea pentru funcția de sistem este necesară.";
@@ -688,7 +688,7 @@ scanat!";
 "otp.scanning.success.link.button.title" = "Asociați TOTP la o parolă";
 "otp.code.scanning.title" = "Scanați codul QR";
 "otp.code.scanning.initial.message" = "Direcționează camera către codul QR";
-"otp.code.scanning.manual.input" = "Or create TOTP manually";
+"otp.code.scanning.manual.input" = "Sau creează TOTP manual";
 
 // OTP form
 
@@ -700,7 +700,7 @@ scanat!";
 "otp.edit.form.field.uri.prompt" = "URL";
 "otp.edit.form.field.secret.title" = "Cheie secretă";
 "otp.edit.form.field.secret.prompt" = "Cheie secretă";
-"otp.edit.form.advanced.button.title" = "More TOTP settings";
+"otp.edit.form.advanced.button.title" = "Mai multe setări TOTP";
 "otp.edit.form.create.button.title" = "Creați TOTP autonom";
 "otp.edit.form.apply.button.title" = "Aplicați";
 "otp.edit.form.edit.button.title" = "Salvare";
@@ -818,16 +818,16 @@ scanat!";
 "authorization.primary.button.title" = "Autorizați";
 
 // Metadata
-"metadata.pinned.key.validation.error.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.error.message" = "The encryption key used to share metadata between users has been updated by %@.";
-"metadata.pinned.key.validation.error.disclaimer" = "If you weren't expecting this, you can verify with your administrator.";
-"metadata.pinned.key.validation.error.trust" = "Trust the key";
-"metadata.pinned.key.fingerprint" = "Key fingerprint:";
+"metadata.pinned.key.validation.error.title" = "Cheia metadatelor s-a schimbat.";
+"metadata.pinned.key.validation.error.message" = "Cheia de criptare folosită pentru a partaja metadate între utilizatori a fost actualizată de %@.";
+"metadata.pinned.key.validation.error.disclaimer" = "Dacă nu vă așteptați la aceasta, puteți verifica cu administratorul.";
+"metadata.pinned.key.validation.error.trust" = "Acceptă cheia";
+"metadata.pinned.key.fingerprint" = "Amprentă digitală a cheii:";
 
-"metadata.pinned.key.validation.deleted.title" = "The metadata key has been deleted.";
-"metadata.pinned.key.validation.deleted.message" = "The trusted encryption key used to share metadata between users has been deleted.";
+"metadata.pinned.key.validation.deleted.title" = "Cheia metadatelor a fost ștearsă.";
+"metadata.pinned.key.validation.deleted.message" = "Cheia de criptare de încredere folosită pentru a partaja metadate între utilizatori a fost ștearsă.";
 
-"metadata.pinned.key.validation.unknown.title" = "The metadata key has changed.";
-"metadata.pinned.key.validation.unknown.message" = "The trusted encryption key used to share metadata between users could not be validated.";
+"metadata.pinned.key.validation.unknown.title" = "Cheia metadatelor s-a schimbat.";
+"metadata.pinned.key.validation.unknown.message" = "Cheia de criptare de încredere folosită pentru a partaja metadate între utilizatori nu a putut fi validată.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Nu puteți efectua această acțiune deoarece nu aveți acces la cheia de metadate partajată.";

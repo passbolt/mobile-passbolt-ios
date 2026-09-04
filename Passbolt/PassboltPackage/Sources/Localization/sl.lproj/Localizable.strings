@@ -142,7 +142,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Opomba";
 "resource.edit.field.add.password" = "Geslo";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Polja po meri";
 "resource.edit.field.name.placeholder" = "Vnesite ime";
 "resource.edit.field.uri.placeholder" = "Vnesite URI";
 "resource.edit.field.username.placeholder" = "Vnesite uporabniško ime";
@@ -156,10 +156,10 @@
 "resource.edit.note.content.disclaimer" = "Ta varen del je del skrivnosti. Če želite iskati po tej vsebini, uporabite opis metapodatkov.";
 "resource.edit.note.remove.button.title" = "Odstrani opombo";
 
-"resource.edit.v4.upgrade.banner.title" = "Upgrade available";
+"resource.edit.v4.upgrade.banner.title" = "Nadgradnja na voljo";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
-"resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.button" = "Nadgradi";
+"resource.edit.v4.upgrade.banner.learn.more" = "Več o tem";
 
 "resource.edit.section.resource.title" = "Vir";
 "resource.edit.section.password.title" = "Geslo";
@@ -169,28 +169,28 @@
 "resource.edit.totp.remove.button.title" = "Odstrani TOTP";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Dolžina";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
-"resource.edit.password.advanced.title" = "Advanced password generation";
+"resource.edit.password.advanced.title" = "Napredno generiranje gesel";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Geslo";
+"resource.edit.password.advanced.tab.passphrase" = "Geslo";
+"resource.edit.password.advanced.length.title" = "Dolžina";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Izključite podobne znake";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Število besed";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "mala začetnica";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Polja po meri";
+"resource.edit.customFields.error.invalid" = "Neveljavna vrednost";
+"resource.edit.customFields.description" = "Urejanje polj po meri trenutno ni podprto.";
 
 "resource.create.advanced.button" = "Prikaži dodatne nastavitve";
 "resource.create.additional.secrets.title" = "Dodatne skrivnosti";
@@ -203,8 +203,8 @@
 "resource.edit.section.metadata.additional.uris" = "Dodatni URI";
 "resource.edit.section.metadata.appearance" = "Videz";
 
-"resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.pin_code.title" = "PIN koda";
+"resource.edit.section.customFields.title" = "Polja po meri";
 
 "resource.edit.uris.title" = "Dodatni URI";
 "resource.edit.uris.main.uri.title" = "Glavni URI";
@@ -213,27 +213,27 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "Dodaj URI";
 "resource.edit.uris.additional.uris.error.limit" = "Lahko dodate največ %d dodatnih URI-jev.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.invalid.form" = "Eden ali več URI-jev je neveljavnih.";
 
 "resource.edit.icon.title" = "Videz";
-"resource.edit.icon.color.select.title" = "Select color";
+"resource.edit.icon.color.select.title" = "Izberite barvo";
 "resource.edit.icon.color.default.title" = "Privzeta barva";
 "resource.edit.icon.default.title" = "Privzeta ikona";
 
 "resource.create.menu.title" = "Ustvari vir";
 "resource.create.menu.password" = "Geslo";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
-"resource.create.menu.pin.code" = "Pin code";
+"resource.create.menu.note" = "Opomba";
+"resource.create.menu.pin.code" = "PIN koda";
 
 "resource.create.invalid.configuration" = "Ni mogoče ustvariti vira s trenutno konfiguracijo.";
 "resource.edit.invalid.configuration" = "Ni mogoče urediti vira s trenutno konfiguracijo.";
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
-"resource.edit.password.alert.weak.title" = "Confirm your password";
+"resource.edit.password.alert.weak.title" = "Potrdite svoje geslo";
 "resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
-"resource.edit.password.alert.pwned.title" = "Confirm your password";
+"resource.edit.password.alert.pwned.title" = "Potrdite svoje geslo";
 "resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
 
 "resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Prenesi podatke računa";
 "transfer.account.import.description" = "Skenirajte QR kode za prenos podatkov vašega računa";
 "transfer.account.import.info.step.first" = "Prijavite se z razširitvijo brskalnika";
-"transfer.account.import.info.step.second" = "Pojdite na stran **Profila**";
-"transfer.account.import.info.step.third" = "Pojdite v razdelek **Mobilna naprava**";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Skenirajte zaporedje QR kod";
 "transfer.account.import.scan.qr.button" = "Skeniraj QR kode";
 "transfer.account.export.description" = "Pokažite QR kode za prenos podatkov vašega računa";
@@ -402,7 +402,7 @@
 "permission.details.group.members.section.title" = "Člani skupine";
 "permission.details.user.suspended" = "suspendiran";
 
-"resource.permission.edit.button.delete.title" = "Izbriši dovoljenje";
+"resource.permission.edit.button.delete.title" = "Odstrani dovoljenje";
 
 "resource.create.menu.add.folder.title" = "Mapa";
 
@@ -540,8 +540,8 @@
 "error.http.response.conflict" = "Konflikt HTTP.";
 "error.http.response.not.found" = "HTTP ni najdeno.";
 "error.http.response.redirect" = "HTTP preusmeritev.";
-"error.http.request.invalid" = "HTTP neveljavna zahteva.";
-"error.http.response.invalid" = "HTTP neveljaven odziv.";
+"error.http.request.invalid" = "HTTP zahteva ni veljavna.";
+"error.http.response.invalid" = "HTTP odziv ni veljaven.";
 "error.http.response.status.code.unexpected" = "HTTP status koda ni pričakovana.";
 "error.http.response.unauthorized" = "HTTP neavtoriziran.";
 "error.network.response.decoding.failed" = "Dekodiranje omrežnega odziva ni uspelo.";
@@ -563,7 +563,7 @@
 "error.resource.secret.invalid" = "Geslo vira ni veljavno.";
 "error.resource.permission.invalid" = "Dovoljenje vira je neveljavno.";
 "error.resource.owner.missing" = "Vir mora imeti vsaj enega lastnika.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Posodobitev vira ni uspela.";
 "error.system.feature.inaccessible" = "Sistemska funkcija ni dostopna.";
 "error.system.feature.permission.not.granted" = "Sistemsko dovoljenje ni bilo dodeljeno.";
 "error.system.feature.permission.required" = "Dovoljenje za sistemsko funkcijo je obvezno.";
@@ -730,12 +730,12 @@
 "settings.main.item.accounts.title" = "Računi";
 "settings.main.item.terms.and.licenses.title" = "Pogoji in licence";
 "settings.main.item.troubleshooting.title" = "Reševanje težav, dnevniki";
-"settings.main.item.expert.title" = "Expert settings";
+"settings.main.item.expert.title" = "Napredne nastavitve";
 "settings.main.item.sign.out.title" = "Odjava";
 
 // Settings - Expert
 
-"settings.expert.title" = "Expert settings";
+"settings.expert.title" = "Napredne nastavitve";
 "settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
@@ -827,4 +827,4 @@
 "metadata.pinned.key.validation.unknown.title" = "Ključ metapodatkov se je spremenil.";
 "metadata.pinned.key.validation.unknown.message" = "Zaupan šifrirni ključ za deljenje metapodatkov med uporabniki, ni bil preverjen.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Tega dejanja ne morete izvesti, ker nimate dostopa do skupnega ključa metapodatkov.";

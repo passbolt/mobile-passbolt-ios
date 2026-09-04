@@ -142,7 +142,7 @@
 "resource.edit.field.add.totp" = "TOTP";
 "resource.edit.field.add.note" = "Poznámka";
 "resource.edit.field.add.password" = "Heslo";
-"resource.edit.field.add.customFields" = "Custom Fields";
+"resource.edit.field.add.customFields" = "Vlastní pole";
 "resource.edit.field.name.placeholder" = "Zadejte název";
 "resource.edit.field.uri.placeholder" = "Zadejte URI";
 "resource.edit.field.username.placeholder" = "Zadejte uživatelské jméno";
@@ -159,7 +159,7 @@
 "resource.edit.v4.upgrade.banner.title" = "Upgrade available";
 "resource.edit.v4.upgrade.banner.description" = "This is a legacy resource. Upgrade for security improvements and new features.";
 "resource.edit.v4.upgrade.banner.button" = "Upgrade";
-"resource.edit.v4.upgrade.banner.learn.more" = "Learn more";
+"resource.edit.v4.upgrade.banner.learn.more" = "Zjistit více";
 
 "resource.edit.section.resource.title" = "Prostředek";
 "resource.edit.section.password.title" = "Heslo";
@@ -169,28 +169,28 @@
 "resource.edit.totp.remove.button.title" = "Nahradit TOTP";
 
 "resource.edit.pin.code.advanced.title" = "Advanced pin code generation";
-"resource.edit.pin.code.length.title" = "Length";
+"resource.edit.pin.code.length.title" = "Délka";
 "resource.edit.pin.code.save.button.title" = "Save preferences";
 "resource.edit.password.advanced.title" = "Advanced password generation";
 "resource.edit.password.advanced.passphrase.title" = "Advanced passphrase generation";
 "resource.edit.password.advanced.preview.password.title" = "Password preview";
 "resource.edit.password.advanced.preview.passphrase.title" = "Passphrase preview";
-"resource.edit.password.advanced.tab.password" = "Password";
-"resource.edit.password.advanced.tab.passphrase" = "Passphrase";
-"resource.edit.password.advanced.length.title" = "Length";
-"resource.edit.password.advanced.exclude_lookalike.title" = "Exclude look-alike characters";
+"resource.edit.password.advanced.tab.password" = "Heslo";
+"resource.edit.password.advanced.tab.passphrase" = "Přístupová fráze";
+"resource.edit.password.advanced.length.title" = "Délka";
+"resource.edit.password.advanced.exclude_lookalike.title" = "Vyloučit znaky podobného vzhledu";
 "resource.edit.password.advanced.character_sets.title" = "Character types";
-"resource.edit.password.advanced.words.title" = "Number of words";
+"resource.edit.password.advanced.words.title" = "Počet slov";
 "resource.edit.password.advanced.separator.title" = "Word separator";
 "resource.edit.password.advanced.case.title" = "Word case";
 "resource.edit.password.advanced.case.uppercase" = "UPPER CASE";
-"resource.edit.password.advanced.case.lowercase" = "lower case";
+"resource.edit.password.advanced.case.lowercase" = "malá písmena";
 "resource.edit.password.advanced.case.camelcase" = "Camel Case";
 "resource.edit.password.advanced.save.button.title" = "Save preferences";
 
-"resource.edit.customFields.title" = "Custom Fields";
-"resource.edit.customFields.error.invalid" = "Invalid value";
-"resource.edit.customFields.description" = "Edition of custom fields is currently not supported.";
+"resource.edit.customFields.title" = "Vlastní pole";
+"resource.edit.customFields.error.invalid" = "Neplatná hodnota";
+"resource.edit.customFields.description" = "Editace vlastních polí není v současné době podporována.";
 
 "resource.create.advanced.button" = "Zobrazit pokročilá nastavení";
 "resource.create.additional.secrets.title" = "Další tajemství";
@@ -204,7 +204,7 @@
 "resource.edit.section.metadata.appearance" = "Vzhled";
 
 "resource.edit.section.pin_code.title" = "Pin code";
-"resource.edit.section.customFields.title" = "Custom Fields";
+"resource.edit.section.customFields.title" = "Vlastní pole";
 
 "resource.edit.uris.title" = "Další URI";
 "resource.edit.uris.main.uri.title" = "Hlavní URI";
@@ -213,7 +213,7 @@
 "resource.edit.uris.additional.uri.placeholder" = "URI";
 "resource.edit.uris.additional.uri.add" = "Přidat URI";
 "resource.edit.uris.additional.uris.error.limit" = "Můžete přidat maximálně %d dalších URI.";
-"resource.edit.uris.invalid.form" = "One or more URIs are invalid.";
+"resource.edit.uris.invalid.form" = "Jedna nebo více URI je neplatných.";
 
 "resource.edit.icon.title" = "Vzhled";
 "resource.edit.icon.color.select.title" = "Vybrat barvu";
@@ -223,7 +223,7 @@
 "resource.create.menu.title" = "Vytvořit zdroj";
 "resource.create.menu.password" = "Heslo";
 "resource.create.menu.totp" = "TOTP";
-"resource.create.menu.note" = "Note";
+"resource.create.menu.note" = "Poznámka";
 "resource.create.menu.pin.code" = "Pin code";
 
 "resource.create.invalid.configuration" = "Nelze vytvořit zdroj s aktuální konfigurací.";
@@ -231,9 +231,9 @@
 
 "resource.edit.unable.to.generate.secret" = "Unable to generate secret.";
 
-"resource.edit.password.alert.weak.title" = "Confirm your password";
+"resource.edit.password.alert.weak.title" = "Potvrďte své heslo";
 "resource.edit.password.alert.weak.message" = "The password is very weak and might be part of an exposed data breach. Are you sure you want to use it?";
-"resource.edit.password.alert.pwned.title" = "Confirm your password";
+"resource.edit.password.alert.pwned.title" = "Potvrďte své heslo";
 "resource.edit.password.alert.pwned.message" = "The password is part of an exposed data breach. Are you sure you want to use it?";
 
 "resource.edit.password.alert.password.check.error.message" = "Unable to verify your password in external dictionary. Are you sure you want to use it?";
@@ -266,8 +266,8 @@
 "transfer.account.title" = "Převést detaily o účtu";
 "transfer.account.import.description" = "Naskenujte QR kódy pro přenos údajů o vašem účtu";
 "transfer.account.import.info.step.first" = "Přihlásit se pomocí rozšíření prohlížeče";
-"transfer.account.import.info.step.second" = "Přejít na **profilovou** stránku";
-"transfer.account.import.info.step.third" = "Přejít do **mobilní** sekce";
+"transfer.account.import.info.step.second" = "Go to the **Profile** page";
+"transfer.account.import.info.step.third" = "Go to the **Mobile** section";
 "transfer.account.import.info.step.fourth" = "Naskenujte sekvenci QR kódů";
 "transfer.account.import.scan.qr.button" = "Načíst QR kódy";
 "transfer.account.export.description" = "Zobrazit QR kódy pro přenos údajů o vašem účtu";
@@ -402,7 +402,7 @@
 "permission.details.group.members.section.title" = "Členové skupiny";
 "permission.details.user.suspended" = "pozastaven";
 
-"resource.permission.edit.button.delete.title" = "Odebrat oprávnění";
+"resource.permission.edit.button.delete.title" = "Odstranit oprávnění";
 
 "resource.create.menu.add.folder.title" = "Složka";
 
@@ -564,7 +564,7 @@
 "error.resource.secret.invalid" = "Tajný klíč prostředku je neplatný.";
 "error.resource.permission.invalid" = "Oprávnění prostředku je neplatné.";
 "error.resource.owner.missing" = "Prostředek musí mít alespoň jednoho vlastníka.";
-"error.resource.update.failed" = "Resource update failed.";
+"error.resource.update.failed" = "Aktualizace položky se nezdařila.";
 "error.system.feature.inaccessible" = "Systémová funkce je nepřístupná.";
 "error.system.feature.permission.not.granted" = "Oprávnění k systémové funkci nebylo uděleno.";
 "error.system.feature.permission.required" = "Vyžadováno oprávnění k systémové funkci.";
@@ -731,12 +731,12 @@
 "settings.main.item.accounts.title" = "Účty";
 "settings.main.item.terms.and.licenses.title" = "Podmínky a licence";
 "settings.main.item.troubleshooting.title" = "Debug, logy";
-"settings.main.item.expert.title" = "Expert settings";
+"settings.main.item.expert.title" = "Expertní nastavení";
 "settings.main.item.sign.out.title" = "Odhlásit se";
 
 // Settings - Expert
 
-"settings.expert.title" = "Expert settings";
+"settings.expert.title" = "Expertní nastavení";
 "settings.expert.item.require.auth.title" = "Require auth on every entry";
 
 // Settings - Application
@@ -828,4 +828,4 @@
 "metadata.pinned.key.validation.unknown.title" = "Klíč metadat se změnil.";
 "metadata.pinned.key.validation.unknown.message" = "Důvěryhodný šifrovací klíč používaný k sdílení metadat mezi uživateli nebylo možné ověřit.";
 
-"metadata.error.encryption.key.unavailable" = "You cannot perform this action because you lack access to the shared metadata key.";
+"metadata.error.encryption.key.unavailable" = "Tuto akci nelze provést, protože nemáte přístup ke sdílenému metadatovému klíči.";
