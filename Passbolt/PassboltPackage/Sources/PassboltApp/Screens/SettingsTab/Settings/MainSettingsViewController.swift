@@ -86,3 +86,19 @@ extension MainSettingsViewController {
     await session.close(currentAccount)
   }
 }
+
+#if DEBUG
+
+extension MainSettingsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+  }
+}
+#endif

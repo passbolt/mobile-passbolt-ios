@@ -21,10 +21,10 @@
   ],
   "defaultOptions" : {
     "codeCoverage" : false,
-    "defaultTestExecutionTimeAllowance" : 120,
+    "defaultTestExecutionTimeAllowance" : 600,
     "language" : "en",
     "mainThreadCheckerEnabled" : false,
-    "maximumTestExecutionTimeAllowance" : 120,
+    "maximumTestExecutionTimeAllowance" : 600,
     "region" : "US",
     "testExecutionOrdering" : "alphabetical",
     "testTimeoutsEnabled" : true

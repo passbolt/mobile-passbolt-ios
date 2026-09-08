@@ -24,6 +24,7 @@
 import Accounts
 import Display
 import Resources
+import SessionData
 import SharedUIComponents
 
 internal final class ResourcesListViewController: ViewController {
@@ -89,3 +90,102 @@ internal final class ResourcesListViewController: ViewController {
     )
   }
 }
+
+#if DEBUG
+
+extension ResourcesListViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      with: { nil }
+    )
+    features.patch(
+      \SessionData.refreshProgress,
+      with: Constant(Optional<Double>.none).asAnyUpdatable()
+    )
+    features.patch(
+      \SessionData.lastUpdate,
+      with: Constant(Timestamp(rawValue: 0)).asAnyUpdatable()
+    )
+    features.patch(
+      \ResourcesController.filteredResourcesList,
+      with: { _ in
+        [
+          ResourceListItemDSV(
+            id: .init(),
+            type: .init(id: .init(), slug: .passwordWithDescription),
+            permission: .owner,
+            parentFolderID: nil,
+            name: "Password",
+            username: "ada@passbolt.com",
+            url: "https://example.com",
+            icon: .none
+          ),
+          ResourceListItemDSV(
+            id: .init(),
+            type: .init(id: .init(), slug: .passwordWithDescription),
+            permission: .read,
+            parentFolderID: nil,
+            name: "Communicator",
+            username: "ada@passbolt.com",
+            url: "https://im.passbolt.com",
+            icon: .init(type: .none, value: "20", backgroundColor: "#FFAABB")
+          ),
+          ResourceListItemDSV(
+            id: .init(),
+            type: .init(id: .init(), slug: .passwordWithDescription),
+            permission: .write,
+            parentFolderID: nil,
+            name: "Settings",
+            username: .none,
+            url: nil,
+            isExpired: true,
+            icon: .init(type: .none, value: "40", backgroundColor: "#BBAADD")
+          ),
+          ResourceListItemDSV(
+            id: .init(),
+            type: .init(id: .init(), slug: .v5CustomFields),
+            permission: .write,
+            parentFolderID: nil,
+            name: "Custom fields",
+            username: .none,
+            url: nil,
+            isExpired: false,
+            icon: .none
+          ),
+          ResourceListItemDSV(
+            id: .init(),
+            type: .init(id: .init(), slug: .v5StandaloneNote),
+            permission: .write,
+            parentFolderID: nil,
+            name: "Note",
+            username: .none,
+            url: nil,
+            isExpired: false,
+            icon: .none
+          ),
+          ResourceListItemDSV(
+            id: .init(),
+            type: .init(id: .init(), slug: .v5PinCode),
+            permission: .write,
+            parentFolderID: nil,
+            name: "Custom fields",
+            username: .none,
+            url: nil,
+            isExpired: false,
+            icon: .none
+          ),
+        ]
+      }
+    )
+  }
+}
+#endif

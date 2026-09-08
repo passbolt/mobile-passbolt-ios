@@ -22,29 +22,33 @@
 //
 
 import SnapshotTestsSupport
-import XCTest
+import SwiftUI
 
-/// Renders every registered preview and compares it against the reference images in the
-/// `Snapshots` submodule.
+@testable import SharedUIComponents
+
+/// Previews from `SharedUIComponents` enrolled in snapshot testing.
 ///
-/// Each preview is rendered once per colour scheme; screen-level previews are additionally
-/// rendered once per device, while `.fitted` components are not — see `SnapshotPreview.Layout`.
+/// Coverage is opt-in: a preview is covered only once named here, and naming the type means
+/// renaming or deleting one is a compile error rather than a vanishing test.
 ///
-/// One test method per module, rather than one per preview: `assertSnapshots` reports failures
-/// through `XCTFail` instead of throwing, so a single method still surfaces every mismatch it
-/// finds, and each failure names the reference image it belongs to.
+/// Main-actor isolated because `SnapshotPreview` stores a non-`Sendable` `@MainActor` view builder.
 @MainActor
-final class PreviewSnapshotTests: SnapshotTestCase {
+internal enum SharedUIComponentsPreviews {
 
-  func test_previews() async {
-    await assertMatrix(of: UICommonsPreviews.all)
-  }
+  private static let module: String = "SharedUIComponents"
 
-  func test_passboltAppPreviews() async {
-    await assertMatrix(of: PassboltAppPreviews.all)
-  }
-
-  func test_sharedUIComponentsPreviews() async {
-    await assertMatrix(of: SharedUIComponentsPreviews.all)
+  /// Screen-level previews, four images each. DI-bound and loads its content through
+  /// `ViewStateSource`'s reactive pipeline, so built directly from its own `async`
+  /// `makeSnapshotPreview()` rather than through `.of(_:)` — see `SnapshotPreview.view`'s doc for
+  /// why a `.task`-based load isn't safe to snapshot otherwise.
+  internal static var all: Array<SnapshotPreview> {
+    [
+      .init(
+        module: module,
+        name: "ResourceEdit",
+        layout: .device,
+        view: { AnyView(await ResourceEditView_Previews.makeSnapshotPreview()) }
+      )
+    ]
   }
 }

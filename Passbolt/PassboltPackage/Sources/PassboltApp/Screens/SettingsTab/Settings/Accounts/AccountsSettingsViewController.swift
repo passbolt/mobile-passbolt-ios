@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import CommonModels
 import Display
 import FeatureScopes
 import OSFeatures
@@ -67,3 +68,20 @@ extension AccountsSettingsViewController {
     await self.navigationToAccountKeyInspector.performCatching()
   }
 }
+
+#if DEBUG
+
+extension AccountsSettingsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.set(SettingsScope.self)
+  }
+}
+#endif

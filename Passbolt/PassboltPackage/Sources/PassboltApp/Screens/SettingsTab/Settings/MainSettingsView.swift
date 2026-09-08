@@ -114,3 +114,22 @@ internal struct MainSettingsView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct MainSettingsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      MainSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      MainSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

@@ -786,3 +786,64 @@ internal struct RelativeDateDisplayableFormat: Equatable {
   public let number: String
   public let localizedRelativeString: String
 }
+
+#if DEBUG
+
+extension ResourceDetailsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.patch(
+      \SessionData.refreshProgress,
+      with: Constant(Optional<Double>.none).asAnyUpdatable()
+    )
+    features.patch(
+      \ResourceController.state,
+      with: Constant(previewResource).asAnyUpdatable()
+    )
+    features.patch(
+      \Users.userAvatarImage,
+      with: { _ in .none }
+    )
+    features.patch(
+      \Users.userDetails,
+      with: {
+        .init(
+          id: $0,
+          username: "ada@passbolt.com",
+          firstName: "Ada",
+          lastName: "Passbolt",
+          fingerprint: .empty,
+          avatarImageURL: .empty,
+          isSuspended: false
+        )
+      }
+    )
+  }
+
+  /// A `.passwordWithDescription` resource with plain (unencrypted) name/username/URI filled in
+  /// and the password/note left at their initialized empty defaults — those render masked
+  /// ("encrypted", not revealed) regardless of their underlying value, since nothing in this
+  /// preview populates `revealedFields`, matching what a real first-open of the screen shows.
+  private static var previewResource: Resource {
+    var resource: Resource = .init(
+      id: .init(),
+      type: .init(id: .init(), slug: .passwordWithDescription),
+      permission: .owner
+    )
+    resource.name = "Passbolt"
+    resource[keyPath: \.meta.username] = .string("ada@passbolt.com")
+    resource[keyPath: \.meta.uris.0] = .string("https://passbolt.com")
+    resource.permissions = [
+      .user(id: .init(), permission: .owner, permissionID: .init())
+    ]
+    return resource
+  }
+}
+#endif

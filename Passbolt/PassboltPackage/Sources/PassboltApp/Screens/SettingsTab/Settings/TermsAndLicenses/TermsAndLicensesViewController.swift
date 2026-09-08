@@ -92,3 +92,39 @@ extension TermsAndLicensesViewController {
     }
   }
 }
+
+#if DEBUG
+
+extension TermsAndLicensesViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        // `.default` leaves both URLs `.none`, which renders the terms/privacy rows disabled —
+        // real URLs here show the more common enabled state instead.
+        configuration: .init(
+          termsURL: "https://passbolt.com/terms",
+          privacyPolicyURL: "https://passbolt.com/privacy",
+          resources: .init(
+            passwordRevealEnabled: true,
+            passwordCopyEnabled: true,
+            totpEnabled: false
+          ),
+          folders: .init(enabled: false),
+          tags: .init(enabled: false),
+          share: .init(showMembersList: true),
+          passwordPolicies: .init(
+            passwordPoliciesEnabled: false,
+            passwordPoliciesUpdateEnabled: false
+          ),
+          metadata: .init(enabled: false),
+          passwordExpiry: .init(enabled: false)
+        )
+      )
+    )
+    features.set(SettingsScope.self)
+  }
+}
+#endif

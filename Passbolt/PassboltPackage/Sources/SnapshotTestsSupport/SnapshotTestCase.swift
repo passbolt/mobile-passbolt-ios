@@ -54,7 +54,7 @@ open class SnapshotTestCase: XCTestCase {
     of previews: Array<SnapshotPreview>,
     file: StaticString = #filePath,
     line: UInt = #line
-  ) {
+  ) async {
     for preview: SnapshotPreview in previews {
       // A fitted preview renders identically whatever screen it would have sat on, so the
       // device dimension collapses to a single pass. Recording it per device would only
@@ -73,10 +73,17 @@ open class SnapshotTestCase: XCTestCase {
         fittedWidth = .none
       }
 
+      // Resolved once per preview, not once per (colorScheme, device) combination: the view's
+      // data doesn't depend on either, and for a DI-bound preview resolving it is real async
+      // work (container setup, reactive state settling via `createSnapshotPreview`'s `ready:`),
+      // not just constructing a cheap SwiftUI value — repeating it 4x per `.device` preview for
+      // no reason is how this pushed the whole test run past a two-minute time limit.
+      let resolvedView: AnyView = await preview.view()
+
       for colorScheme: ColorScheme in SnapshotMatrix.colorSchemes {
         for device: ViewImageConfig? in devices {
           assertSnapshots(
-            of: preview.view(),
+            of: resolvedView,
             named: preview.name,
             module: preview.module,
             colorScheme: colorScheme,

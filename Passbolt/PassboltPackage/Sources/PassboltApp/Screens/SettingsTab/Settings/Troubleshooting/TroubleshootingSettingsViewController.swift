@@ -58,3 +58,20 @@ extension TroubleshootingSettingsViewController {
     }
   }
 }
+
+#if DEBUG
+
+extension TroubleshootingSettingsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.set(SettingsScope.self)
+  }
+}
+#endif

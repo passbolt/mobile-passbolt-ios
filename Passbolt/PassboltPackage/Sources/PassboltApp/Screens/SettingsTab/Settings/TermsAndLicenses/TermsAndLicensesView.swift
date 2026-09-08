@@ -71,3 +71,22 @@ internal struct TermsAndLicensesView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct TermsAndLicensesView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      TermsAndLicensesView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      TermsAndLicensesView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

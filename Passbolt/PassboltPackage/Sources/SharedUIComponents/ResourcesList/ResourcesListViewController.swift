@@ -149,3 +149,15 @@ extension ResourcesListViewController {
     await self.context.callbacks.onClose?()
   }
 }
+
+#if DEBUG
+
+extension ResourcesListViewController {
+
+  /// Forces the search bar and resources list to resolve their initial async state - for snapshot testing/previews.
+  public func waitForInitialContent() async {
+    _ = await self.searchController.viewState.current
+    _ = await self.contentController.viewState.current
+  }
+}
+#endif

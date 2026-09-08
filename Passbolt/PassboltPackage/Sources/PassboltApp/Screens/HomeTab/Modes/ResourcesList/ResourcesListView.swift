@@ -38,3 +38,30 @@ internal struct ResourcesListView: ControlledView {
     )
   }
 }
+
+#if DEBUG
+internal struct ResourcesListView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      ResourcesListView.self,
+      with: .init(mode: .plainResourcesList),
+      perform: { controller in
+        await controller.resourcesListViewController.waitForInitialContent()
+      }
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      ResourcesListView.self,
+      with: .init(mode: .plainResourcesList),
+      ready: { controller in
+        await controller.resourcesListViewController.waitForInitialContent()
+      }
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

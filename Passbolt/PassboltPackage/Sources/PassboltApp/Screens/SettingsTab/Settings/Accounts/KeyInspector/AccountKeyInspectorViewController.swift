@@ -151,3 +151,42 @@ private func formatFingerprint(
 
   return formattedString
 }
+
+#if DEBUG
+
+extension AccountKeyInspectorViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.patch(
+      \AccountDetails.updates,
+      with: Constant(()).asAnyUpdatable()
+    )
+    features.patch(
+      \AccountDetails.profile,
+      with: { .init(account: .ada, profile: .ada) }
+    )
+    features.patch(
+      \AccountDetails.keyDetails,
+      with: {
+        .init(
+          publicKey: "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+          userID: "Ada Lovelace <ada@passbolt.com>",
+          fingerprint: "03F60E958F4CB29723ACDF761353B5B15D9B054",
+          length: 4096,
+          algorithm: "RSA",
+          created: Date(timeIntervalSince1970: 1_600_000_000),
+          expires: nil
+        )
+      }
+    )
+    features.patch(
+      \AccountDetails.avatarImage,
+      with: { nil }
+    )
+    features.patch(
+      \OSCalendar.format,
+      with: { _, _ in "1 Jan 2026" }
+    )
+  }
+}
+#endif

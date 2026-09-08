@@ -68,3 +68,22 @@ internal struct ExpertSettingsView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct ExpertSettingsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      ExpertSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      ExpertSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

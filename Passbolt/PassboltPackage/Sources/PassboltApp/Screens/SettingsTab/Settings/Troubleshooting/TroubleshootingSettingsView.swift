@@ -60,3 +60,22 @@ internal struct TroubleshootingSettingsView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct TroubleshootingSettingsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      TroubleshootingSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      TroubleshootingSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

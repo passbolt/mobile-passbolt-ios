@@ -76,3 +76,22 @@ internal struct AccountsSettingsView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct AccountsSettingsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      AccountsSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      AccountsSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

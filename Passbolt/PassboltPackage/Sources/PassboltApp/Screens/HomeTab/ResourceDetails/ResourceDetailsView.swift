@@ -521,3 +521,24 @@ private struct ColoredPasswordView: View {
     return attributed
   }
 }
+
+#if DEBUG
+internal struct ResourceDetailsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      ResourceDetailsView.self,
+      with: Resource.ID()
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      ResourceDetailsView.self,
+      with: Resource.ID()
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

@@ -121,18 +121,22 @@ internal struct AuthorizationView: ControlledView {
 }
 
 #if DEBUG
-#Preview {
-  PlaceholderView()
-    .sheet(isPresented: .constant(true)) {
-      createPreview(
-        AuthorizationView.self,
-        with: .ada,
-        perform: { controller in
-          await controller.signIn()
-        }
-      )
-      .wrapInNavigationStack()
-    }
-}
+internal struct AuthorizationView_Previews: PreviewProvider {
 
+  internal static var previews: some View {
+    createPreview(
+      AuthorizationView.self,
+      with: .ada
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      AuthorizationView.self,
+      with: .ada
+    )
+    .wrapInNavigationStack()
+  }
+}
 #endif

@@ -124,3 +124,22 @@ internal struct DefaultPresentationModeSettingsView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct DefaultPresentationModeSettingsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      DefaultPresentationModeSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      DefaultPresentationModeSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

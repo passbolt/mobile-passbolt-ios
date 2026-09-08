@@ -45,6 +45,7 @@ internal struct AccountKeyInspectorView: ControlledView {
       }
     }
     .navigationTitle(displayable: "account.key.inspector.title")
+    .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItemGroup(placement: .navigationBarTrailing) {
         IconButton(
@@ -171,3 +172,22 @@ internal struct AccountKeyInspectorView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct AccountKeyInspectorView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      AccountKeyInspectorView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      AccountKeyInspectorView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

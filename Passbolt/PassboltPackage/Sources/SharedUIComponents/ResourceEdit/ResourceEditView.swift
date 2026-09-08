@@ -582,3 +582,24 @@ public struct ResourceEditView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct ResourceEditView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      ResourceEditView.self,
+      with: ResourceEditViewController.previewContext
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      ResourceEditView.self,
+      with: ResourceEditViewController.previewContext
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

@@ -871,6 +871,8 @@ let package = Package(
         "SnapshotTestsSupport",
         "UICommons",
         "SharedUIComponents",
+        "PassboltApp",
+        "MockData",
         .product(
           name: "SnapshotTesting",
           package: "swift-snapshot-testing"

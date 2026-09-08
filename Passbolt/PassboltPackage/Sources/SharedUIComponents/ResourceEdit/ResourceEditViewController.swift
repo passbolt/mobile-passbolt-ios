@@ -28,6 +28,7 @@ import FeatureScopes
 import Metadata
 import OSFeatures
 import Resources
+import Shared
 
 import struct OrderedCollections.OrderedDictionary
 
@@ -1237,3 +1238,47 @@ extension Resource {
     return false
   }
 }
+
+#if DEBUG
+
+extension ResourceEditViewController {
+
+  public static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.patch(
+      \MetadataSettingsService.typesSettings,
+      with: { .default }
+    )
+    features.patch(
+      \PasswordService.entropy,
+      with: { _ in .strongPassword }
+    )
+    features.patch(
+      \ResourceEditForm.state,
+      with: Constant(previewResource).asAnyUpdatable()
+    )
+  }
+
+  private static var previewResource: Resource {
+    var resource: Resource = .init(
+      id: .init(),
+      type: .init(id: .init(), slug: .passwordWithDescription),
+      permission: .owner,
+      secret: .object([:])
+    )
+    resource.name = "Passbolt"
+    resource[keyPath: \.meta.username] = .string("ada@passbolt.com")
+    resource[keyPath: \.meta.uris.0] = .string("https://passbolt.com")
+    resource[keyPath: \.secret.password] = .string("Sup3rSecr3t!")
+    return resource
+  }
+
+  internal static var previewContext: Context {
+    .init(
+      editingContext: .init(
+        editedResource: previewResource,
+        availableTypes: [previewResource.type]
+      )
+    )
+  }
+}
+#endif

@@ -64,13 +64,21 @@ public struct SnapshotPreview {
   /// Builds the view. Deferred rather than eager so that a provider whose body is expensive — or
   /// which resolves feature dependencies through `createPreview` — does no work until the test
   /// that needs it runs.
-  public let view: @MainActor () -> AnyView
+  ///
+  /// `async` because a DI-bound screen's content can depend on state that only resolves once
+  /// something actually awaits it (`ViewStateSource`'s reactive `updateFrom:` pipeline) — a plain
+  /// `.task` on the rendered view races against a single-frame capture instead of gating it. Such
+  /// a provider awaits that state itself, in its own `async` static method, via `createPreview`'s
+  /// `ready:` parameter — see `AuthorizationView_Previews` for the pattern — and the registry
+  /// constructs a `SnapshotPreview` directly from it rather than through `.of(_:)`, since the
+  /// content isn't reachable from a plain, synchronous `PreviewProvider.previews`.
+  public let view: @MainActor () async -> AnyView
 
   public init(
     module: String,
     name: String,
     layout: Layout = .fitted,
-    view: @escaping @MainActor () -> AnyView
+    view: @escaping @MainActor () async -> AnyView
   ) {
     self.module = module
     self.name = name

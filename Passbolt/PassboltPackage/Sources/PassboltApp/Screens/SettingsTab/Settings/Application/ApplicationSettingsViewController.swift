@@ -106,3 +106,32 @@ extension ApplicationSettingsViewController {
     await self.navigationToDefaultModeSettings.performCatching()
   }
 }
+
+#if DEBUG
+
+extension ApplicationSettingsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.set(SettingsScope.self)
+    features.patch(
+      \OSBiometry.availability,
+      with: { .faceID }
+    )
+    features.patch(
+      \AccountPreferences.updates,
+      with: Constant(()).asAnyUpdatable()
+    )
+    features.patch(
+      \AccountPreferences.isPassphraseStored,
+      with: { true }
+    )
+  }
+}
+#endif

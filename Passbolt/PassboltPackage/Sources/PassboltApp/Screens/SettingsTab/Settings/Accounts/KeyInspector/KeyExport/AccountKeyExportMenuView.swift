@@ -65,3 +65,20 @@ internal struct AccountKeyExportMenuView: ControlledView {
     )
   }
 }
+
+#if DEBUG
+internal struct AccountKeyExportMenuView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      AccountKeyExportMenuView.self
+    )
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      AccountKeyExportMenuView.self
+    )
+  }
+}
+#endif

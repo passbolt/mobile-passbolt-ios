@@ -22,6 +22,8 @@
 //
 
 import Accounts
+import Commons
+import CommonModels
 import Display
 import FeatureScopes
 
@@ -67,3 +69,28 @@ extension ExpertSettingsViewController {
     self.accountPreferences.passphraseWipeOnBackground.value = enabled
   }
 }
+
+#if DEBUG
+
+extension ExpertSettingsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.set(SettingsScope.self)
+    features.patch(
+      \AccountPreferences.updates,
+      with: Constant(()).asAnyUpdatable()
+    )
+    features.patch(
+      \AccountPreferences.passphraseWipeOnBackground,
+      with: StoredVariable(fetch: { false }, store: { _ in })
+    )
+  }
+}
+#endif

@@ -249,15 +249,20 @@ extension AuthorizationViewController {
       with: { .init(account: .ada, profile: .ada) }
     )
     features.patch(
+      \AccountDetails.isPassphraseStored,
+      with: { true }
+    )
+    features.patch(
       \MediaDownloadNetworkOperation.execute,
       with: { url in throw CancellationError.error() }
     )
     features.patch(
       \Session.authorize,
-      with: { method in
-        try await Task.sleep(seconds: 3)
-        throw ServerPGPFingeprintInvalid.error(account: .ada, fingerprint: nil)
-      }
+      with: { _ in }
+    )
+    features.patch(
+      \Session.prewarmAuthorization,
+      with: { _ in }
     )
   }
 }

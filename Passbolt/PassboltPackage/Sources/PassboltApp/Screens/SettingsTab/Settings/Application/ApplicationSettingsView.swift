@@ -115,3 +115,22 @@ internal struct ApplicationSettingsView: ControlledView {
     }
   }
 }
+
+#if DEBUG
+internal struct ApplicationSettingsView_Previews: PreviewProvider {
+
+  internal static var previews: some View {
+    createPreview(
+      ApplicationSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+
+  internal static func makeSnapshotPreview() async -> some View {
+    await createSnapshotPreview(
+      ApplicationSettingsView.self
+    )
+    .wrapInNavigationStack()
+  }
+}
+#endif

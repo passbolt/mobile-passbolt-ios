@@ -22,10 +22,13 @@
 //
 
 import Accounts
+import Commons
+import CommonModels
 import Display
 import FeatureScopes
 import OSFeatures
 import Session
+import Shared
 import SharedUIComponents
 
 internal final class DefaultPresentationModeSettingsViewController: ViewController {
@@ -101,3 +104,45 @@ extension DefaultPresentationModeSettingsViewController {
     await navigationToSelf.revertCatching()
   }
 }
+
+#if DEBUG
+
+extension DefaultPresentationModeSettingsViewController {
+
+  internal static func previewDependencies(_ features: inout PreviewFeaturesContainer) {
+    features.set(
+      SessionScope.self,
+      context: .init(
+        account: .ada,
+        configuration: .default
+      )
+    )
+    features.set(SettingsScope.self)
+    features.patch(
+      \AccountPreferences.updates,
+      with: Constant(()).asAnyUpdatable()
+    )
+    features.patch(
+      \AccountPreferences.useLastHomePresentationAsDefault,
+      with: StoredVariable(fetch: { true }, store: { _ in })
+    )
+    features.patch(
+      \AccountPreferences.defaultHomePresentation,
+      with: StoredVariable(fetch: { .plainResourcesList }, store: { _ in })
+    )
+    features.patch(
+      \HomePresentation.availableHomePresentationModes,
+      with: {
+        [
+          .plainResourcesList,
+          .favoriteResourcesList,
+          .modifiedResourcesList,
+          .sharedResourcesList,
+          .ownedResourcesList,
+          .expiredResourcesList,
+        ]
+      }
+    )
+  }
+}
+#endif
