@@ -21,20 +21,9 @@
 // @since         v1.0
 //
 
-final internal class AccountSelectionScreen: Screen {
+/// Base for test cases running against an application with a configured account that has not been
+/// authorized - the application stays on the sign in screen instead of being signed in by `setUp`.
+internal class UnauthorizedUITestCase: UITestCase {
 
-  override var requiredElements: Array<XCUIElement> {
-    [
-      title,
-      message,
-    ]
-  }
-
-  internal lazy var title: XCUIElement = self.application.staticTexts["account.selection.title"]
-  internal lazy var message: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
-
-  /// Row of an account in the list, matched by its label.
-  internal func accountRow(of account: MockAccount) -> XCUIElement {
-    self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
-  }
+  override internal var authorizesDuringSetUp: Bool { false }
 }

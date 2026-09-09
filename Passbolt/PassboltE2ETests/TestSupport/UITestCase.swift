@@ -52,20 +52,40 @@ internal class UITestCase: XCTestCase {
       .with(account: .automation)
   }
 
+  /// Whether `setUp` authorizes the initial account. Test cases exercising the sign in screen itself
+  /// override it to `false` - they need the application left on that screen, unauthorized.
+  open var authorizesDuringSetUp: Bool { true }
+
   override func setUp() async throws {
     try await super.setUp()
     self.configureLauncher()
     self.continueAfterFailure = false
+    let initialAccount: MockAccount? = self.launcher.accounts.first
+    let authorizesDuringSetUp: Bool = self.authorizesDuringSetUp
     let application: XCUIApplication = await self.application
     await application.launch()
     await MainActor.run {
       UITestFlow(application: application) {
-        Login(account: .automation)
-        On(HomeScreen.self, timeout: .networkCall) { _ in
-          // Nothing to do here, just waiting for the home screen to be loaded
+        if let initialAccount: MockAccount = initialAccount {
+          if authorizesDuringSetUp {
+            Login(account: initialAccount)
+            On(HomeScreen.self, timeout: .networkCall) { _ in
+              // Nothing to do here, just waiting for the home screen to be loaded
+            }
+            On(HomeListScreen.self) { screen in
+              WaitForRefreshToComplete(screen.list, timeout: 60)
+            }
+          }
+          else {
+            On(LoginScreen.self, timeout: .networkCall) { _ in
+              // The account is configured but not authorized - the application starts on the sign in screen
+            }
+          }
         }
-        On(HomeListScreen.self) { screen in
-          WaitForRefreshToComplete(screen.list, timeout: 60)
+        else {
+          On(WelcomeScreen.self, timeout: .networkCall) { _ in
+            // No account is set up - the application starts on the welcome screen
+          }
         }
       }
       .run()

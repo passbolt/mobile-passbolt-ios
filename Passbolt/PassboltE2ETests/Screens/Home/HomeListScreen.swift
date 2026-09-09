@@ -34,4 +34,30 @@ final internal class HomeListScreen: Screen {
   /// The home list container. Exposes the refresh state via its accessibility value
   /// (`"refreshing"` / `"idle"`) — see `WaitForRefreshToComplete`.
   internal lazy var list: XCUIElement = self.application.scrollViews["home.list.collection.view"]
+
+  /// Avatar of the currently signed in account, in the search bar - opens the "Switch account" drawer.
+  /// `SearchView` labels its trailing accessory slot `search.view.cancel` and that identifier replaces
+  /// whatever the accessory itself declares, so the avatar is reachable only under that name.
+  internal lazy var accountAvatar: XCUIElement = self.application.buttons["search.view.cancel"]
+
+  /// Opens the "Filter view by" drawer. Present only while the search field is empty and unfocused -
+  /// see `ClearSearchField`.
+  internal lazy var filterButton: XCUIElement = self.application.buttons["search.view.menu"]
+  internal lazy var searchField: XCUIElement = self.application.textFields["search.view.input"]
+  /// Placeholder shown instead of list content when nothing matches the applied filter or search.
+  internal lazy var emptyListMessage: XCUIElement = self.application.staticTexts["There are no results"]
+
+  /// Navigation bar of the list opened by a filter. Every resource list mode titles its screen with
+  /// the label of its filter.
+  internal func navigationBar(of filter: HomeFilter) -> XCUIElement {
+    self.application.navigationBars[filter.title]
+  }
+
+  /// Cell of a resource in the list, matched by the identifier the list derives from the resource name.
+  internal func resourceCell(named resourceName: String) -> XCUIElement {
+    self.application
+      .buttons
+      .matching(NSPredicate(format: "identifier == %@", "resources_list_resource_\(resourceName)"))
+      .firstMatch
+  }
 }

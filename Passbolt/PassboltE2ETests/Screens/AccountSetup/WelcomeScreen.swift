@@ -21,20 +21,23 @@
 // @since         v1.0
 //
 
-final internal class AccountSelectionScreen: Screen {
+final internal class WelcomeScreen: Screen {
 
-  override var requiredElements: Array<XCUIElement> {
+  override internal var requiredElements: Array<XCUIElement> {
     [
       title,
       message,
+      connectToAccountButton,
+      noAccountButton,
     ]
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["account.selection.title"]
-  internal lazy var message: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
-
-  /// Row of an account in the list, matched by its label.
-  internal func accountRow(of account: MockAccount) -> XCUIElement {
-    self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
-  }
+  internal lazy var logo: XCUIElement = self.application.images["PassboltLogo"]
+  internal lazy var illustration: XCUIElement = self.application.images["image.account.avatar"]
+  internal lazy var title: XCUIElement = self.application.staticTexts["label.title"]
+  internal lazy var message: XCUIElement = self.application.staticTexts["label.description"]
+  internal lazy var connectToAccountButton: XCUIElement = self.application.buttons["button.account.transfer"]
+  internal lazy var noAccountButton: XCUIElement = self.application.buttons["button.account.none"]
+  internal lazy var helpButton: XCUIElement = self.application.buttons["Help"]
+  internal lazy var noAccountAlert: XCUIElement = self.application.alerts.firstMatch
 }

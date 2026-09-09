@@ -21,20 +21,12 @@
 // @since         v1.0
 //
 
-final internal class AccountSelectionScreen: Screen {
+/// Base for test cases running against an application without any configured account -
+/// the application starts on the welcome screen instead of the sign in screen.
+internal class NoAccountUITestCase: UITestCase {
 
-  override var requiredElements: Array<XCUIElement> {
-    [
-      title,
-      message,
-    ]
-  }
-
-  internal lazy var title: XCUIElement = self.application.staticTexts["account.selection.title"]
-  internal lazy var message: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
-
-  /// Row of an account in the list, matched by its label.
-  internal func accountRow(of account: MockAccount) -> XCUIElement {
-    self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
+  override internal func configureLauncher() {
+    // No account is set up - `AppLauncher` launches the application with an empty accounts list
+    // and `UITestCase` waits for the welcome screen instead of signing in.
   }
 }

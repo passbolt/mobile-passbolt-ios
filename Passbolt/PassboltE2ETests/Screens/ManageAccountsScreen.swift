@@ -21,19 +21,26 @@
 // @since         v1.0
 //
 
-final internal class AccountSelectionScreen: Screen {
+/// "Manage accounts" page - the account selection screen presented outside of the sign in flow,
+/// so it shows the account list without the "Welcome back!" title.
+final internal class ManageAccountsScreen: Screen {
 
-  override var requiredElements: Array<XCUIElement> {
+  override internal var requiredElements: Array<XCUIElement> {
     [
-      title,
-      message,
+      subtitle,
+      removeAccountButton,
     ]
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["account.selection.title"]
-  internal lazy var message: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
+  internal lazy var logo: XCUIElement = self.application.images["account.selection.app.logo.imageview"]
+  internal lazy var subtitle: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
+  internal lazy var addAccountButton: XCUIElement = self.application.buttons["Add new account"]
+  internal lazy var removeAccountButton: XCUIElement =
+    self.application.buttons["Remove an account from this device"]
+  internal lazy var backButton: XCUIElement = self.application.buttons["ArrowLeft"]
 
-  /// Row of an account in the list, matched by its label.
+  /// Row of the account in the list, matched by its label - the list container itself carries an
+  /// identifier that SwiftUI does not expose as an element.
   internal func accountRow(of account: MockAccount) -> XCUIElement {
     self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
   }

@@ -51,3 +51,46 @@ internal struct SelectFoldersFilter: CombinedUITestStep {
     }
   }
 }
+
+/// Selects any filter from the home "Filter view by" drawer.
+///
+/// Generalizes `SelectAllItemsFilter` / `SelectFoldersFilter` over `HomeFilter`. The search field is
+/// cleared first because the filter menu button is hidden while the field holds text or focus.
+internal struct SelectFilter: CombinedUITestStep {
+
+  internal let name: String
+  private let filter: HomeFilter
+
+  internal init(_ filter: HomeFilter) {
+    self.name = "SelectFilter: \(filter.title)"
+    self.filter = filter
+  }
+
+  @UITestStepsBuilder
+  @MainActor
+  internal var steps: Array<UITestStep> {
+    ClearSearchField()
+    WaitFor(self.application.buttons["search.view.menu"], "Filter button")
+    Tap(self.application.buttons["search.view.menu"], "Open filter")
+    On(HomeFilterScreen.self) { drawer in
+      // The drawer content scrolls and its trailing items start below the fold. Scrolling is
+      // conditional so an already visible item is not scrolled out of view by the gesture.
+      When(drawer.filterItem(self.filter).isHittable == false, "Filter is below the fold") {
+        ScrollUntilVisible(drawer.filterItem(self.filter), "Scroll to \(self.filter.title)")
+      }
+      Tap(drawer.filterItem(self.filter), "Select \(self.filter.title)")
+    }
+  }
+}
+
+/// Opens the home "Filter view by" drawer without selecting anything.
+internal struct OpenFilterDrawer: CombinedUITestStep {
+
+  @UITestStepsBuilder
+  @MainActor
+  internal var steps: Array<UITestStep> {
+    ClearSearchField()
+    WaitFor(self.application.buttons["search.view.menu"], "Filter button")
+    Tap(self.application.buttons["search.view.menu"], "Open filter")
+  }
+}

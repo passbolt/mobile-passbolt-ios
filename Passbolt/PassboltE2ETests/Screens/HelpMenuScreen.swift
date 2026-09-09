@@ -21,20 +21,18 @@
 // @since         v1.0
 //
 
-final internal class AccountSelectionScreen: Screen {
+final internal class HelpMenuScreen: Screen {
 
-  override var requiredElements: Array<XCUIElement> {
+  override internal var requiredElements: Array<XCUIElement> {
     [
       title,
-      message,
+      accessTheLogsButton,
     ]
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["account.selection.title"]
-  internal lazy var message: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
-
-  /// Row of an account in the list, matched by its label.
-  internal func accountRow(of account: MockAccount) -> XCUIElement {
-    self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
-  }
+  internal lazy var title: XCUIElement = self.application.staticTexts["Help"].firstMatch
+  internal lazy var accessTheLogsButton: XCUIElement = self.application.buttons["Access the logs"]
+  internal lazy var importAccountKitButton: XCUIElement = self.application.buttons["Import your account kit"]
+  internal lazy var visitHelpSiteButton: XCUIElement = self.application.buttons["Visit help site"]
+  internal lazy var closeButton: XCUIElement = self.application.buttons["Close"]
 }

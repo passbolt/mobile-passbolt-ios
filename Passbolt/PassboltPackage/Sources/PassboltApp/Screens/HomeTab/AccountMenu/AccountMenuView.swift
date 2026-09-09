@@ -54,6 +54,7 @@ internal struct AccountMenuView: ControlledView {
                 profileView(account, isCurrent: false)
               }
             )
+            .accessibilityIdentifier("account.menu.other.account.button")
             .padding(.horizontal, 8)
           }
           whenFalse(\.otherAccounts.isEmpty) {
@@ -74,6 +75,7 @@ internal struct AccountMenuView: ControlledView {
             },
             isSelected: false
           )
+          .accessibilityIdentifier("account.menu.manage.accounts.button")
         }
       }
     )
@@ -144,6 +146,11 @@ internal struct AccountMenuView: ControlledView {
   private func profileView(_ account: Controller.AccountData, isCurrent: Bool) -> some View {
     HStack(spacing: 12) {
       AutoloadingAvatarView(resolveImage: account.loadAvatarData)
+        .accessibilityIdentifier(
+          isCurrent
+            ? "account.menu.current.account.avatar"
+            : "account.menu.other.account.avatar"
+        )
         .overlay(alignment: .topTrailing) {
           isCurrent
             ? Circle()

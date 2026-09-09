@@ -38,6 +38,21 @@ internal class LoginScreen: Screen {
   lazy var passphraseLabel: XCUIElement = self.application.staticTexts["Passphrase *"]
   lazy var passphraseField: XCUIElement = self.application.secureTextFields["input.text.passphrase"]
   lazy var signInButton: XCUIElement = self.application.buttons["button.signIn"]
+  /// Avatars are containers rather than plain images, so they are matched regardless of element type.
+  internal lazy var avatar: XCUIElement =
+    self.application
+      .descendants(matching: .any)
+      .matching(identifier: "authorization.passphrase.avatar")
+      .firstMatch
+  internal lazy var forgotPassphraseButton: XCUIElement = self.application.buttons["button.forgot.passphrase"]
+  internal lazy var helpButton: XCUIElement = self.application.buttons["Help"]
+  internal lazy var forgotPassphraseAlert: XCUIElement = self.application.alerts.firstMatch
+  internal lazy var snackBarMessage: XCUIElement = self.application.staticTexts["snackbar.message.label"].firstMatch
+
+  /// Label of the account being authorized - the profile name shown above its username.
+  internal func accountLabel(of account: MockAccount) -> XCUIElement {
+    self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
+  }
 
   @discardableResult
   internal func verifyScreenData(matches account: MockAccount) -> Self {

@@ -60,3 +60,36 @@ extension MockAccount {
     )
   }
 }
+
+extension MockAccount {
+
+  /// Second account used by scenarios covering multiple configured accounts. Its data is provided
+  /// entirely through the test runner environment - the value is `nil` when any of the variables is
+  /// missing, which makes those scenarios skip instead of fail.
+  /// Set them for `PassboltE2ETests.xctestplan` in "Configurations" >> Shared settings >> Environment Variables.
+  internal static var secondary: Self? {
+    let environment: Dictionary<String, String> = ProcessInfo.processInfo.environment
+    guard
+      let userID: String = environment["SECONDARY_USER_ID"],
+      let domain: String = environment["SECONDARY_DOMAIN"],
+      let username: String = environment["SECONDARY_USERNAME"],
+      let password: String = environment["SECONDARY_PASSPHRASE"],
+      let firstName: String = environment["SECONDARY_FIRST_NAME"],
+      let lastName: String = environment["SECONDARY_LAST_NAME"],
+      let fingerprint: String = environment["SECONDARY_FINGERPRINT"],
+      let armoredKey: String = environment["SECONDARY_ARMORED_KEY"]
+    else { return .none }
+
+    return .init(
+      userID: userID,
+      domain: domain,
+      username: username,
+      password: password,
+      firstName: firstName,
+      lastName: lastName,
+      avatarImageURL: "https://picsum.photos/300/300.jpg",
+      fingerprint: fingerprint,
+      armoredKey: armoredKey
+    )
+  }
+}

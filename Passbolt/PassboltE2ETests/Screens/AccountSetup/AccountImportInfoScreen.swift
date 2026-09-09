@@ -21,20 +21,25 @@
 // @since         v1.0
 //
 
-final internal class AccountSelectionScreen: Screen {
+final internal class AccountImportInfoScreen: Screen {
 
-  override var requiredElements: Array<XCUIElement> {
+  override internal var requiredElements: Array<XCUIElement> {
     [
       title,
-      message,
+      scanQRCodesButton,
     ]
   }
 
-  internal lazy var title: XCUIElement = self.application.staticTexts["account.selection.title"]
-  internal lazy var message: XCUIElement = self.application.staticTexts["Choose an account to sign in!"]
-
-  /// Row of an account in the list, matched by its label.
-  internal func accountRow(of account: MockAccount) -> XCUIElement {
-    self.application.staticTexts["\(account.firstName) \(account.lastName)"].firstMatch
-  }
+  internal lazy var title: XCUIElement = self.application.staticTexts["Transfer account details"]
+  internal lazy var backButton: XCUIElement = self.application.buttons["ArrowLeft"]
+  internal lazy var transferDescription: XCUIElement =
+    self.application.staticTexts["Scan QR codes to transfer your account details"]
+  internal lazy var firstStep: XCUIElement =
+    self.application.staticTexts["Sign in using the browser extension"]
+  internal lazy var secondStep: XCUIElement = self.application.staticTexts["Go to the Profile page"]
+  internal lazy var thirdStep: XCUIElement = self.application.staticTexts["Go to the Mobile section"]
+  internal lazy var fourthStep: XCUIElement = self.application.staticTexts["Scan the qr codes sequence"]
+  internal lazy var illustration: XCUIElement = self.application.images["transfer.account.import.image"]
+  internal lazy var scanQRCodesButton: XCUIElement =
+    self.application.buttons["transfer.account.import.scan.qr.button"]
 }

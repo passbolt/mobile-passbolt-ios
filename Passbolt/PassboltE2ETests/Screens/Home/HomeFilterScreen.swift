@@ -33,4 +33,10 @@ final internal class HomeFilterScreen: Screen {
   internal lazy var allItemsButton: XCUIElement = self.application.buttons["plainResourcesList"]
   internal lazy var foldersButton: XCUIElement = self.application.buttons["foldersExplorer"]
   internal lazy var closeButton: XCUIElement = self.application.buttons["Close"]
+
+  /// Drawer item of a filter, matched by the accessibility identifier the app derives from the
+  /// presentation mode - see `HomeFilter`.
+  internal func filterItem(_ filter: HomeFilter) -> XCUIElement {
+    self.application.buttons[filter.rawValue]
+  }
 }
