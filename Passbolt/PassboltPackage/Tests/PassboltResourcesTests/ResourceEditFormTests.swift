@@ -497,6 +497,144 @@ final class ResourceEditFormTests: FeaturesTestCase {
     await fulfillment(of: [refreshFallback], timeout: 1.0)
   }
 
+  func test_sendForm_carriesOverPermissions_whenEditResponseOmitsThem() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.permissions = [
+      .user(
+        id: .mock_1,
+        permission: .owner,
+        permissionID: .mock_1
+      ),
+      .userGroup(
+        id: .mock_1,
+        permission: .read,
+        permissionID: .mock_2
+      ),
+    ]
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(  // edit response omits `permissions`
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resource: .mock_1))
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: always(.init([.mock_1]))
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    let updateResourceCalled: XCTestExpectation = .init(description: "Targeted update should be called.")
+    patch(
+      \SessionData.updateResource,
+      with: { (dto: ResourceDTO) in
+        self.verify(dto.permissions.count == 2)
+        self.verify(
+          dto.permissions.contains(
+            .userToResource(
+              id: .mock_1,
+              userID: .mock_1,
+              resourceID: .mock_1,
+              permission: .owner
+            )
+          )
+        )
+        self.verify(
+          dto.permissions.contains(
+            .userGroupToResource(
+              id: .mock_2,
+              userGroupID: .mock_1,
+              resourceID: .mock_1,
+              permission: .read
+            )
+          )
+        )
+        updateResourceCalled.fulfill()
+      }
+    )
+    let refreshShouldNotBeCalled: XCTestExpectation = .init(description: "Full refresh should not be called.")
+    refreshShouldNotBeCalled.isInverted = true
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: {
+        refreshShouldNotBeCalled.fulfill()
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    _ = try await tested.sendForm()
+
+    await fulfillment(of: [updateResourceCalled, refreshShouldNotBeCalled], timeout: 1.0)
+  }
+
+  func test_sendForm_fallsBackToRefreshIfNeeded_whenEditResponseAndFormCarryNoPermissions() async throws {
+    var editedResource: Resource = self.editedResource
+    editedResource.permissions = .init()
+    set(
+      ResourceEditScope.self,
+      context: .init(
+        editedResource: editedResource,
+        availableTypes: [editedResourceType]
+      )
+    )
+    patch(
+      \UsersPGPMessages.encryptMessageForResourceUsers,
+      with: always([.mock_1])
+    )
+    patch(
+      \ResourceUsersIDFetchDatabaseOperation.execute,
+      with: always([.mock_1])
+    )
+    patch(  // edit response omits `permissions`
+      \ResourceNetworkOperationDispatch.editResource,
+      with: always(.init(resource: .mock_1))
+    )
+    patch(
+      \ResourceUpdatePreparation.prepareSecret,
+      with: always(.init([.mock_1]))
+    )
+    patch(
+      \MetadataKeysService.validatePinnedKey,
+      with: always(.valid)
+    )
+    let updateResourceShouldNotBeCalled: XCTestExpectation = .init(
+      description: "Targeted update should not be called with no permissions."
+    )
+    updateResourceShouldNotBeCalled.isInverted = true
+    patch(
+      \SessionData.updateResource,
+      with: { _ in
+        updateResourceShouldNotBeCalled.fulfill()
+      }
+    )
+    let refreshFallback: XCTestExpectation = .init(description: "Full refresh should be called.")
+    patch(
+      \SessionData.refreshIfNeeded,
+      with: {
+        refreshFallback.fulfill()
+      }
+    )
+
+    let tested: ResourceEditForm = try self.testedInstance()
+    _ = try await tested.sendForm()
+
+    await fulfillment(of: [refreshFallback, updateResourceShouldNotBeCalled], timeout: 1.0)
+  }
+
   func test_sendForm_throws_whenCreateNetworkRequestFails() async throws {
     var editedResource: Resource = self.editedResource
     editedResource.id = .none

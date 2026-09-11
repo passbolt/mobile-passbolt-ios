@@ -494,7 +494,20 @@ extension ResourceEditForm {
             resourceID,
             encryptedSecrets
           )
-        updatedResourceDTO = editResult.resource
+        // Edit response omits `permissions`; storing the resource replaces all of its grants, so an empty
+        // set would wipe them locally. Carry over the ones the form was opened with instead.
+        var editedResourceDTO: ResourceDTO = editResult.resource
+        if editedResourceDTO.permissions.isEmpty {
+          editedResourceDTO.permissions = .init(
+            resource.permissions
+              .compactMap { (permission: ResourcePermission) -> GenericPermissionDTO? in
+                permission.asExistingDTO(resourceID: resourceID)
+              }
+          )
+        }
+        // A stored resource always carries at least the owner grant - still empty means the permissions
+        // are unknown here, so a full refresh is used rather than storing a resource without them.
+        updatedResourceDTO = editedResourceDTO.permissions.isEmpty ? .none : editedResourceDTO
       }
       else {
         guard let resourceSecret: String = resourceSecret
