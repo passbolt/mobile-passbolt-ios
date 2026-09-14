@@ -137,7 +137,7 @@ let package = Package(
     ),
     .package(
       url: "https://github.com/sqlcipher/SQLCipher.swift.git",
-      .upToNextMajor(from: "4.18.0")
+      .upToNextMajor(from: "4.19.0")
     ),
     .package(
       url: "https://github.com/pointfreeco/swift-snapshot-testing.git",
