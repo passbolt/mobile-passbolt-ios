@@ -87,6 +87,7 @@ extension MetadataKeysService {
       guard
         let signerPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([signerUserID]).first
       else {
+        Diagnostics.logger.warning("No public key stored for the signer of a metadata private key copy.")
         return .none
       }
 
@@ -122,8 +123,12 @@ extension MetadataKeysService {
           return verifiedKey
         }
       }
-      catch is PGPIssue {
-        // verification error, ignore - key can still be used for decrypting
+      catch let error as PGPIssue {
+        // Unsigned copies are legitimate, so the fallback stays - but the failure has to be visible.
+        error
+          .recording(signerUserID, for: "signerUserID")
+          .recording(privateKeyId, for: "privateKeyId")
+          .logged()
       }
 
       let decryptedMessage: String = try await sessionCryptography.decryptMessage(armoredMessage, .none)
@@ -149,8 +154,37 @@ extension MetadataKeysService {
       privateKeys: Array<VerifiedMetadataPrivateKey>
     ) async throws -> CachedKeys {
       try publicKey.validate(withPrivateKeys: privateKeys.map(\.data))
-      let keysPair: CachedKeys = .init(metadataKey: publicKey, privateKeys: privateKeys)
+      // The identity of the key has to come from the key material, not from the field next to it.
+      let computedFingerprint: Fingerprint = try pgp.extractFingerprint(publicKey.armoredKey).get()
+      try verifyPrivateKeysPairing(privateKeys, with: computedFingerprint)
+      let keysPair: CachedKeys = .init(
+        metadataKey: publicKey,
+        privateKeys: privateKeys,
+        fingerprint: computedFingerprint
+      )
       return keysPair
+    }
+
+    /// Verifies that every metadata private key copy belongs to the metadata public key pair.
+    @Sendable func verifyPrivateKeysPairing(
+      _ privateKeys: Array<VerifiedMetadataPrivateKey>,
+      with publicKeyFingerprint: Fingerprint
+    ) throws {
+      for privateKey in privateKeys {
+        // Empty passphrase - the same assumption `configuredDecryptor` makes.
+        let derivedPublicKey: ArmoredPGPPublicKey =
+          try pgp.extractPublicKey(privateKey.data.armoredKey, .empty).get()
+        let derivedFingerprint: Fingerprint = try pgp.extractFingerprint(derivedPublicKey).get()
+
+        guard derivedFingerprint.rawValue.uppercased() == publicKeyFingerprint.rawValue.uppercased()
+        else {
+          throw
+            PGPFingerprintMismatch
+            .error("Metadata private key does not belong to the metadata public key")
+            .recording(publicKeyFingerprint, for: "publicKeyFingerprint")
+            .recording(derivedFingerprint, for: "privateKeyFingerprint")
+        }
+      }
     }
 
     @Sendable nonisolated func initialize() async throws {
@@ -343,6 +377,26 @@ extension MetadataKeysService {
         return .invalid(.deleted)
       }
 
+      let invalidResultBuilder: () async throws -> KeyValidationResult = {
+        guard let userId: User.ID = metadataKey.modifiedBy else {
+          return .invalid(.unknown)
+        }
+
+        let userData: UserDetailsDSV = try await fetchUser.execute(userId)
+        let userDisplayName: String = [userData.firstName, userData.lastName].joined(separator: " ")
+
+        return .invalid(.changed(.init(rawValue: userDisplayName), metadataKey.fingerprint))
+      }
+
+      // Before the pinning branches: without a pin there is nothing else to compare against.
+      guard metadataKey.fingerprintMatchesDeclaration
+      else {
+        Diagnostics.logger.warning(
+          "Metadata key fingerprint does not match the fingerprint declared by the server."
+        )
+        return try await invalidResultBuilder()
+      }
+
       guard let pinnedKey else {
         Diagnostics.logger.debug("No pinned key in local storage.")
         try await trustCurrentKey()
@@ -355,17 +409,6 @@ extension MetadataKeysService {
       {
         Diagnostics.logger.debug("Server and pinned key match.")
         return .valid
-      }
-
-      let invalidResultBuilder: () async throws -> KeyValidationResult = {
-        guard let userId: User.ID = metadataKey.modifiedBy else {
-          return .invalid(.unknown)
-        }
-
-        let userData: UserDetailsDSV = try await fetchUser.execute(userId)
-        let userDisplayName: String = [userData.firstName, userData.lastName].joined(separator: " ")
-
-        return .invalid(.changed(.init(rawValue: userDisplayName), metadataKey.fingerprint))
       }
 
       Diagnostics.logger.debug("Server and pinned key mismatch - fingerprint and/or modification date.")
@@ -394,21 +437,41 @@ extension MetadataKeysService {
       return try await invalidResultBuilder()
     }
 
+    /// Public key of the current user, verified against the locally stored account fingerprint.
+    @Sendable func currentUserPublicKey() async throws -> ArmoredPGPPublicKey {
+      guard
+        let userPublicKeyDSV: UserPublicKeyDSV =
+          try await fetchUserPublicKey.execute([context.account.userID]).first
+      else {
+        throw UserPublicKeyMissing.error()
+      }
+
+      guard
+        try pgp.verifyPublicKeyFingerprint(
+          userPublicKeyDSV.publicKey,
+          context.account.fingerprint
+        )
+        .get()
+      else {
+        Diagnostics.logger.warning(
+          "Public key stored for the current user does not match the account fingerprint."
+        )
+        throw
+          InvalidUserPublicKey
+          .error()
+          .recording(context.account.fingerprint, for: "accountFingerprint")
+      }
+
+      return userPublicKeyDSV.publicKey
+    }
+
     @Sendable func hasSignedPrivateKey(
       in privateKeys: Array<VerifiedMetadataPrivateKey>
     ) async -> Bool {
       do {
-        guard
-          let userPublicKeyDSV: UserPublicKeyDSV =
-            try await fetchUserPublicKey.execute([context.account.userID]).first
-        else {
-          return false
-        }
-
+        let userPublicKey: ArmoredPGPPublicKey = try await currentUserPublicKey()
         let currentUserFingerprint: String =
-          try pgp.extractFingerprint(
-            userPublicKeyDSV.publicKey
-          )
+          try pgp.extractFingerprint(userPublicKey)
           .get()
           .rawValue
           .uppercased()
@@ -439,17 +502,27 @@ extension MetadataKeysService {
     }
 
     @Sendable func signMetadataKey(message: String) async throws -> ArmoredPGPMessage? {
-      guard
-        let userPublicKeyDSV: UserPublicKeyDSV = try await fetchUserPublicKey.execute([context.account.userID]).first
-      else {
-        return .none
-      }
+      // Throwing, not `.none` - otherwise the shared private key is re-encrypted to an unverified key.
+      let userPublicKey: ArmoredPGPPublicKey = try await currentUserPublicKey()
 
-      return try await sessionCryptography.encryptAndSignMessage(message, userPublicKeyDSV.publicKey)
+      return try await sessionCryptography.encryptAndSignMessage(message, userPublicKey)
     }
 
     @Sendable func trustCurrentKey() async throws {
       guard let metadataKey: CachedKeys = activeMetadataKey() else { return }
+
+      // Repeated here - accepting the trust dialog must not pin a misdeclared key.
+      guard metadataKey.fingerprintMatchesDeclaration
+      else {
+        Diagnostics.logger.warning(
+          "Refusing to trust the metadata key - the server declared a fingerprint the key does not carry."
+        )
+        throw
+          PGPFingerprintMismatch
+          .error("Metadata key fingerprint does not match the one declared by the server")
+          .recording(metadataKey.declaredFingerprint, for: "declaredFingerprint")
+          .recording(metadataKey.fingerprint, for: "computedFingerprint")
+      }
 
       let storeInLocalStorage: () throws -> Void = {
         let pinnedKey: MetadataPinnedKey = .init(
@@ -676,9 +749,21 @@ private struct CachedKeys: Identifiable, Sendable {
   fileprivate var deleted: Date?
   fileprivate var modifiedAt: Date
   fileprivate var modifiedBy: User.ID?
+  /// Computed from `publicKey`, never the value declared by the server.
   fileprivate var fingerprint: Fingerprint
+  /// Declared by the API, kept only to detect a tampered response.
+  fileprivate var declaredFingerprint: Fingerprint
 
-  fileprivate init(metadataKey: MetadataKeyDTO, privateKeys: Array<VerifiedMetadataPrivateKey>) {
+  /// `false` when the server declares a fingerprint the key material does not carry.
+  fileprivate var fingerprintMatchesDeclaration: Bool {
+    fingerprint.rawValue.uppercased() == declaredFingerprint.rawValue.uppercased()
+  }
+
+  fileprivate init(
+    metadataKey: MetadataKeyDTO,
+    privateKeys: Array<VerifiedMetadataPrivateKey>,
+    fingerprint: Fingerprint
+  ) {
     self.id = metadataKey.id
     self.publicKey = metadataKey.armoredKey
     self.privateKeys = privateKeys
@@ -686,7 +771,8 @@ private struct CachedKeys: Identifiable, Sendable {
     self.deleted = metadataKey.deleted
     self.modifiedAt = metadataKey.modified
     self.modifiedBy = metadataKey.modifiedBy
-    self.fingerprint = metadataKey.fingerprint
+    self.fingerprint = fingerprint
+    self.declaredFingerprint = metadataKey.fingerprint
   }
 }
 
@@ -726,6 +812,8 @@ extension MetadataKeyDTO {
           displayable: "Private key too long."
         )
       }
+      // Two server provided fields - anchored only because the caller ties both to the fingerprint
+      // computed from the key material.
       guard privateKey.fingerprint == fingerprint
       else {
         throw InvalidValue.invalid(

@@ -627,6 +627,7 @@ let package = Package(
         // Base
         "Commons",
         "CommonModels",
+        "Crypto",
         "Features",
         "FeatureScopes",
         // Modules

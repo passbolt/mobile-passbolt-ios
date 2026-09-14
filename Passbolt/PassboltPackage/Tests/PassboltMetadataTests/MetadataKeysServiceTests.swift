@@ -99,6 +99,19 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
       \UsersPublicKeysFetchDatabaseOperation.execute,
       with: always([])
     )
+    // Mocked keys all carry the fingerprint the DTO mock declares.
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("fingerprint"))
+    )
+    patch(
+      \PGP.extractPublicKey,
+      with: { _, _ in .success(.mock_ada) }
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: { _, _ in .success(true) }
+    )
   }
 
   func testGivenValidKey_MessageShouldBeDecrypted() async throws {
@@ -472,6 +485,102 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
   }
 
+  func testMetadataPinnedKeyValidation_whenServerKeyIsReplacedAndFingerprintIsEchoed_shouldFail() async throws {
+    let pinnedFingerprint: Fingerprint = "PINNED_FINGERPRINT"
+    let replacedKeyFingerprint: Fingerprint = "REPLACED_KEY_FINGERPRINT"
+    let modificationDate: Date = .now
+    // Server serves a different armored key while echoing the pinned fingerprint and modification date.
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: pinnedFingerprint,
+      armoredKey: "replaced armored public key",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+    let localKey: MetadataPinnedKeyMock = .init(
+      fingerPrint: pinnedFingerprint,
+      modified: modificationDate
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(localKey.data)
+    )
+    // The armored key does not carry the fingerprint the server declares for it.
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success(replacedKeyFingerprint))
+    )
+    patch(
+      \UserDetailsFetchDatabaseOperation.execute,
+      with: always(.mock_1)
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    let result: MetadataKeysService.KeyValidationResult = try await testedInstance.validatePinnedKey()
+    // Asserting only that the key is rejected - the reported failure reason depends on how the fix
+    // surfaces it, and pinning that here would over constrain the implementation.
+    XCTAssertNotEqual(
+      result,
+      .valid,
+      """
+      Validation should fail when the server replaces the metadata key while echoing the pinned
+      fingerprint and modification date. The fingerprint has to be computed from the armored key
+      instead of being taken from the server provided field.
+      """
+    )
+  }
+
+  func testMetadataPinnedKeyValidation_whenThereIsNoPinnedKey_andDeclaredFingerprintDiffers_shouldFail()
+    async throws
+  {
+    let declaredFingerprint: Fingerprint = "DECLARED_FINGERPRINT"
+    let actualFingerprint: Fingerprint = "ACTUAL_KEY_FINGERPRINT"
+    // Fresh install - no pinned key to compare against.
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: declaredFingerprint,
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(nil)
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success(actualFingerprint))
+    )
+    patch(
+      \UserDetailsFetchDatabaseOperation.execute,
+      with: always(.mock_1)
+    )
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        XCTFail("A key the server misdeclared must never be pinned.")
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    await assertInvalid(
+      try await testedInstance.validatePinnedKey(),
+      expectedFailure: .changed("mock 1", actualFingerprint),
+      """
+      Validation should fail when the server declares a fingerprint that the served key does not
+      carry, also without a pinned key - it is the only signal available on a fresh install.
+      """
+    )
+  }
+
   func testPinnedKeyValidation_whenServerKeyIsSignedByCurrentUserAndNoKeyInLocalStorage_shouldPass() async throws {
     let currentUserFingerprint: Fingerprint = "CURRENT_USER_FINGERPRINT"
     let modificationDate: Date = .now
@@ -502,7 +611,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \SessionCryptography.encryptAndSignMessage,
@@ -670,7 +783,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \PGP.decryptAndVerify,
@@ -748,7 +865,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \PGP.decryptAndVerify,
@@ -827,7 +948,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \SessionCryptography.decryptAndVerifyMessage,
@@ -872,6 +997,60 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     await fulfillment(of: [savedPinnedKeyExpectation], timeout: 1.0)
   }
 
+  func testMetadataPinnedKeyValidation_whenSignatureVerificationFails_shouldNotCountAsSigned() async throws {
+    let currentUserFingerprint: Fingerprint = "CURRENT_USER_FINGERPRINT"
+    let modificationDate: Date = .now
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: modificationDate,
+      modifiedBy: .mock_admin
+    )
+    let localKey: MetadataPinnedKeyMock = .init(
+      fingerPrint: Fingerprint("fingerprint"),
+      modified: modificationDate.addingTimeInterval(-120)  // Server key is newer
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataKeyDataStore.loadPinnedMetadataKey,
+      with: always(localKey.data)
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_ada, publicKey: "public key")])
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
+    )
+    // Verification fails - the copy falls back to plain decryption and carries no signature.
+    patch(
+      \SessionCryptography.decryptAndVerifyMessage,
+      with: alwaysThrow(PGPIssue.error(underlyingError: MockError().asTheError()))
+    )
+    patch(
+      \UserDetailsFetchDatabaseOperation.execute,
+      with: always(.mock_1)
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+    await assertInvalid(
+      try await testedInstance.validatePinnedKey(),
+      expectedFailure: .changed("mock 1", "fingerprint"),
+      """
+      A metadata private key copy whose signature does not verify must not count as signed by the
+      current user, even when the server side key is newer than the pinned one.
+      """
+    )
+  }
+
   func testTrustingKey_withoutActiveKey_shouldDoNothig() async throws {
     let testedInstance: MetadataKeysService = try self.testedInstance()
     try await testedInstance.trustCurrentKey()
@@ -914,7 +1093,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
 
     patch(
@@ -994,7 +1177,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \SessionCryptography.decryptAndVerifyMessage,
@@ -1082,7 +1269,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \SessionCryptography.decryptAndVerifyMessage,
@@ -1162,7 +1353,11 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
     )
     patch(
       \PGP.extractFingerprint,
-      with: always(.success(currentUserFingerprint))
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "public key"
+          ? .success(currentUserFingerprint)
+          : .success("fingerprint")
+      }
     )
     patch(
       \SessionCryptography.encryptAndSignMessage,
@@ -1213,6 +1408,125 @@ final class MetadataKeysServiceTests: LoadableFeatureTestCase<MetadataKeysServic
 
     try await testedInstance.trustCurrentKey()
     await fulfillment(of: [storeKeyExpectation], timeout: 1.0)
+  }
+
+  func testTrustingKey_whenDeclaredFingerprintDiffers_shouldThrowAndNotStore() async throws {
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "DECLARED_FINGERPRINT",
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: always(.success("ACTUAL_KEY_FINGERPRINT"))
+    )
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        XCTFail("Nothing should be pinned.")
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    do {
+      try await testedInstance.trustCurrentKey()
+      XCTFail("Trusting a key the server misdeclared should fail.")
+    }
+    catch {
+      // expected
+    }
+  }
+
+  func testTrustingKey_whenCurrentUserPublicKeyDoesNotMatchAccount_shouldNotSignNorStore() async throws {
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: .mock_ada, publicKey: "server provided key")])
+    )
+    // Stored key for the current user is not the one the account was created with.
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: { _, _ in .success(false) }
+    )
+    patch(
+      \MetadataKeyDataStore.storePinnedMetadataKey,
+      with: { _, _ throws -> Void in
+        XCTFail("Nothing should be pinned.")
+      }
+    )
+    // Signing and the update operation are left unpatched - reaching either trips the placeholder.
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    do {
+      try await testedInstance.trustCurrentKey()
+      XCTFail(
+        """
+        Trusting the metadata key should fail when the public key stored for the current user does
+        not match the account fingerprint.
+        """
+      )
+    }
+    catch {
+      // expected
+    }
+  }
+
+  func testMetadataKeys_whenPrivateKeyBelongsToDifferentPair_shouldNotBeCached() async throws {
+    let serverKey: MetadataKeyDTO = .mock(
+      fingerPrint: "fingerprint",
+      modified: .now,
+      modifiedBy: .mock_admin
+    )
+    patch(
+      \MetadataKeysFetchNetworkOperation.execute,
+      with: always([serverKey])
+    )
+    patch(
+      \MetadataSettingsService.keysSettings,
+      with: always(
+        .init(
+          allowUsageOfPersonalKeys: true,
+          zeroKnowledgeKeyShare: false
+        )
+      )
+    )
+    // The private key copy derives to a public key of a different pair.
+    patch(
+      \PGP.extractPublicKey,
+      with: { _, _ in .success("other pair public key") }
+    )
+    patch(
+      \PGP.extractFingerprint,
+      with: { (key: ArmoredPGPPublicKey) -> Result<Fingerprint, Error> in
+        key == "other pair public key"
+          ? .success("OTHER_PAIR_FINGERPRINT")
+          : .success("fingerprint")
+      }
+    )
+
+    let testedInstance: MetadataKeysService = try self.testedInstance()
+    try await testedInstance.initialize()
+
+    XCTAssertNil(
+      testedInstance.determineKeyType(true),
+      "A metadata key whose private key belongs to a different pair must not be cached."
+    )
   }
 
   func testDeterminingKeyToUse_whenResourceIsShared_shouldUseSharedKey()

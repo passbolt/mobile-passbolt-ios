@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import Crypto
 import DatabaseOperations
 import FeatureScopes
 import Session
@@ -31,9 +32,10 @@ extension UsersPGPMessages {
   @MainActor public static func load(
     features: Features
   ) throws -> Self {
-    try features.ensureScope(SessionScope.self)
+    let sessionContext: SessionScope.Context = try features.context(of: SessionScope.self)
 
     let sessionCryptography: SessionCryptography = try features.instance()
+    let pgp: PGP = features.instance()
     let usersPublicKeysFetchDatabaseOperation: UsersPublicKeysFetchDatabaseOperation = try features.instance()
     let resourceUsersIDFetchDatabaseOperation: ResourceUsersIDFetchDatabaseOperation = try features.instance()
     let resourceFolderUsersIDFetchDatabaseOperation: ResourceFolderUsersIDFetchDatabaseOperation =
@@ -55,6 +57,24 @@ extension UsersPGPMessages {
           .error()
           .recording(users, for: "expected")
           .recording(usersKeys.map(\.userID), for: "received")
+      }
+
+      // The users table is filled verbatim with server data - for the current user the account
+      // holds a trusted fingerprint to check it against.
+      for userKey: UserPublicKeyDSV in usersKeys
+      where userKey.userID == sessionContext.account.userID {
+        guard
+          try pgp.verifyPublicKeyFingerprint(
+            userKey.publicKey,
+            sessionContext.account.fingerprint
+          )
+          .get()
+        else {
+          throw
+            InvalidUserPublicKey
+            .error()
+            .recording(sessionContext.account.fingerprint, for: "accountFingerprint")
+        }
       }
 
       return try await withThrowingTaskGroup(

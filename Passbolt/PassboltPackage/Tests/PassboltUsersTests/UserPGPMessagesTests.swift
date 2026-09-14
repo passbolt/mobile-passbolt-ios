@@ -170,6 +170,66 @@ final class UsersPGPMessagesTests: LoadableFeatureTestCase<UsersPGPMessages>, @u
     }
   }
 
+  func test_encryptMessageForUser_fails_whenCurrentUserPublicKeyDoesNotMatchAccount() async throws {
+    let currentUserID: User.ID = .mock_ada
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: currentUserID, publicKey: "SERVER PROVIDED KEY")])
+    )
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: { _, _ in .success(false) }
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(
+        "encrypted-message"
+      )
+    )
+
+    let feature: UsersPGPMessages = try self.testedInstance()
+
+    await XCTAssertError(
+      matches: InvalidUserPublicKey.self
+    ) {
+      try await feature
+        .encryptMessageForUsers([currentUserID], "message")
+    }
+  }
+
+  func test_encryptMessageForUser_verifiesCurrentUserKeyAgainstAccountFingerprint() async throws {
+    let currentUserID: User.ID = .mock_ada
+    patch(
+      \UsersPublicKeysFetchDatabaseOperation.execute,
+      with: always([.init(userID: currentUserID, publicKey: "KEY")])
+    )
+    // Succeeds only for the fingerprint the account carries.
+    patch(
+      \PGP.verifyPublicKeyFingerprint,
+      with: { _, fingerprint in .success(fingerprint == Account.mock_ada.fingerprint) }
+    )
+    patch(
+      \SessionCryptography.encryptAndSignMessage,
+      with: always(
+        "encrypted-message"
+      )
+    )
+
+    let feature: UsersPGPMessages = try self.testedInstance()
+
+    await XCTAssertValue(
+      equal: [
+        .init(
+          recipient: currentUserID,
+          message: "encrypted-message"
+        )
+      ]
+    ) {
+      try await feature
+        .encryptMessageForUsers([currentUserID], "message")
+    }
+  }
+
   func test_encryptMessageForResourceUsers_fails_whenResourceUsersFetchFails() async throws {
     patch(
       \ResourceUsersIDFetchDatabaseOperation.execute,
