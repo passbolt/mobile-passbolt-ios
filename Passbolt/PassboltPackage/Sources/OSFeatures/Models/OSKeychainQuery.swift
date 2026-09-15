@@ -42,3 +42,20 @@ public struct OSKeychainQuery: Sendable {
     self.requiresBiometrics = requiresBiometrics
   }
 }
+
+extension OSKeychainQuery {
+
+  public static func accountDatabaseKeyQuery(
+    forAccountWithID identifier: String
+  ) -> Self {
+    assert(
+      !identifier.isEmpty,
+      "Cannot use empty account identifiers for database key keychain operations"
+    )
+    return Self(
+      key: "accountDatabaseKey",
+      tag: .init(rawValue: identifier),
+      requiresBiometrics: false
+    )
+  }
+}

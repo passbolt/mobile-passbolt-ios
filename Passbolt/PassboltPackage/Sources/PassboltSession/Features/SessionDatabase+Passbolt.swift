@@ -39,7 +39,10 @@ extension SessionDatabase {
     let sessionStateEnsurance: SessionStateEnsurance = try features.instance()
     let databaseAccess: DatabaseAccess = try features.instance()
 
-    @Sendable nonisolated func databaseKey(
+    /// Key the database used to be encrypted with before per account random keys were
+    /// introduced. It is still computed on every open so that a database created by an older
+    /// build can be decrypted once and rekeyed in place - see `DatabaseAccess.openConnection`.
+    @Sendable nonisolated func legacyDatabaseKey(
       from passphrase: Passphrase
     ) throws -> DatabaseKey {
       let key: String? = passphrase
@@ -66,8 +69,10 @@ extension SessionDatabase {
       else { return .none }
 
       do {
+        // The passphrase is no longer the database key, but it is still awaited here on
+        // purpose: opening the local database stays gated on an authorized session.
         let passphrase: Passphrase = try await sessionStateEnsurance.passphrase(account)
-        let key: DatabaseKey = try databaseKey(from: passphrase)
+        let key: DatabaseKey = try legacyDatabaseKey(from: passphrase)
 
         return
           try databaseAccess

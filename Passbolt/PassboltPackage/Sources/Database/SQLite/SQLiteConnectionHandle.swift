@@ -29,7 +29,7 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
 
   internal static func open(
     at path: String,
-    key: String?,
+    key: SQLiteConnectionKey?,
     options: Int32
   ) throws -> SQLiteConnectionHandle {
 
@@ -41,22 +41,9 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
       nil
     )
 
-    if let key: String = key {
-      guard sqlite3_key(handle, key, Int32(key.utf8CString.count)) == SQLITE_OK
-      else {
-        throw
-          DatabaseIssue
-          .error(
-            underlyingError:
-              DatabaseConnectionIssue
-              .error("Failed to decrypt database")
-          )
-      }
-    }
-    else {
-      /* */
-    }
-
+    // Checked before the key is applied: `sqlite3_key` on a handle left behind by a failed
+    // open reports a decryption failure, which would mask the real cause - a missing directory
+    // or a full disk - and send `DatabaseAccess.openConnection` into recreating the database.
     guard openingStatus == SQLITE_OK
     else {
       let errorMessage: String
@@ -82,6 +69,32 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
         )
     }
 
+    if let key: SQLiteConnectionKey = key {
+      guard sqlite3_key(handle, key.sqlCipherRepresentation, key.sqlCipherByteCount) == SQLITE_OK
+      else {
+        // Read the message before closing - `sqlite3_errmsg` needs a live handle.
+        let errorMessage: String =
+          sqlite3_errmsg(handle)
+          .map(String.init(cString:))
+          ?? "Unknown failure reason"
+        // The handle is open here and not wrapped in `SQLiteConnectionHandle` yet, so there is
+        // no `deinit` to close it on the way out.
+        sqlite3_close(handle)
+        throw
+          DatabaseIssue
+          .error(
+            underlyingError:
+              DatabaseKeyIssue
+              .error("Failed to apply database key")
+              .recording(path, for: "path")
+              .recording(errorMessage, for: "errorMessage")
+          )
+      }
+    }
+    else {
+      /* */
+    }
+
     let connectionHandle: SQLiteConnectionHandle = .init(handle)
 
     // The vendored SQLCipher build pinned these via compile-time defines
@@ -104,18 +117,90 @@ internal final class SQLiteConnectionHandle: @unchecked Sendable {
     )
     #endif
 
-    try connectionHandle.execute("PRAGMA key;")
-    try connectionHandle.execute("PRAGMA foreign_keys = ON;")
-    try connectionHandle.execute("PRAGMA journal_mode = WAL;")
-    // NORMAL fsyncs at checkpoint instead of every commit — safe under WAL for a re-fetchable cache.
-    try connectionHandle.execute("PRAGMA synchronous = NORMAL;")
-    // Keep temp tables / transient indexes (bulk-store temp tables, FTS rebuild) in memory.
-    try connectionHandle.execute("PRAGMA temp_store = MEMORY;")
-    try connectionHandle.execute("PRAGMA recursive_triggers = ON;")
-    try connectionHandle.execute("PRAGMA quick_check;")
-    try connectionHandle.execute("PRAGMA SQLITE_DBCONFIG_DEFENSIVE = ON;")
+    do {
+      try connectionHandle.execute("PRAGMA foreign_keys = ON;")
+      try connectionHandle.execute("PRAGMA journal_mode = WAL;")
+      // NORMAL fsyncs at checkpoint instead of every commit — safe under WAL for a re-fetchable cache.
+      try connectionHandle.execute("PRAGMA synchronous = NORMAL;")
+      // Keep temp tables / transient indexes (bulk-store temp tables, FTS rebuild) in memory.
+      try connectionHandle.execute("PRAGMA temp_store = MEMORY;")
+      try connectionHandle.execute("PRAGMA recursive_triggers = ON;")
+      try connectionHandle.execute("PRAGMA quick_check;")
+    }
+    catch {
+      throw
+        connectionHandle
+        .classifiedOpeningFailure(
+          error,
+          at: path
+        )
+    }
 
     return connectionHandle
+  }
+
+  /// Turns a failure of the statements run while opening into either a key failure or a
+  /// connection failure.
+  ///
+  /// SQLCipher accepts any key in `sqlite3_key` without touching the file - it only fails once
+  /// the first page is read and its decrypted header does not check out. That read is one of the
+  /// opening statements, so without this a wrong key is indistinguishable from a full disk or a
+  /// corrupted file, and `DatabaseAccess` decides between re-keying the database and deleting it
+  /// on exactly that distinction.
+  ///
+  /// Deliberately classifies an error that already happened instead of probing for one: any
+  /// read issued before the opening statements would reach page one of a database being created
+  /// ahead of the first write, which leaves `sqlite3_rekey` with no pages to re-encrypt and
+  /// silently keeps the database on the key it was opened with.
+  private func classifiedOpeningFailure(
+    _ error: Error,
+    at path: String
+  ) -> Error {
+    let status: Int32 = sqlite3_errcode(self.handle)
+    let errorMessage: String = lastErrorMessage()
+
+    let isKeyFailure: Bool =
+      status == SQLITE_NOTADB
+      || errorMessage.contains("not a database")
+
+    guard isKeyFailure
+    else { return error }
+
+    return
+      DatabaseIssue
+      .error(
+        underlyingError:
+          DatabaseKeyIssue
+          .error("Failed to decrypt database")
+          .recording(path, for: "path")
+          .recording(status, for: "status")
+          .recording(errorMessage, for: "errorMessage")
+      )
+  }
+
+  /// Re-encrypts the whole database with `key`, replacing the key it was opened with.
+  /// Has to be called on a connection that already decrypts (the opening statements fail first
+  /// if it does not) and outside of any transaction.
+  ///
+  /// Only for a database that already holds data. `sqlite3_rekey` re-encrypts the pages that are
+  /// there, so on an empty database it succeeds while changing nothing, and the database quietly
+  /// stays on the key it was opened with. Create such a database under the key it should have
+  /// instead - see `DatabaseAccess.openConnection`.
+  @usableFromInline
+  internal func rekey(
+    to key: SQLiteConnectionKey
+  ) throws {
+    guard sqlite3_rekey(self.handle, key.sqlCipherRepresentation, key.sqlCipherByteCount) == SQLITE_OK
+    else {
+      throw
+        DatabaseIssue
+        .error(
+          underlyingError:
+            DatabaseConnectionIssue
+            .error("Failed to rekey database")
+            .recording(lastErrorMessage(), for: "errorMessage")
+        )
+    }
   }
 
   private let handle: OpaquePointer?

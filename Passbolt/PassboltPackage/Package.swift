@@ -449,6 +449,7 @@ let package = Package(
         "Accounts",
         "Session",
         "NetworkOperations",
+        "DatabaseOperations",
       ]
     ),
     .target(
@@ -766,6 +767,7 @@ let package = Package(
       name: "PassboltAccountsTests",
       dependencies: [
         "PassboltAccounts",
+        "DatabaseOperations",
         "CoreTest",
         "TestExtensions",
       ]

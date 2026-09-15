@@ -29,11 +29,13 @@ import Features
 
 /// Database connection opening, creation and deletion.
 public struct DatabaseAccess: Sendable {
-  /// Open database connection (create if needed)
-  /// for given account using provided key.
+  /// Open database connection (create if needed) for given account.
+  /// The database is encrypted with a random per account key kept in the keychain; the
+  /// passed key is the legacy passphrase derived one, used only to decrypt and rekey a
+  /// database created before that change.
   /// Performs all required migrations if needed.
   public var openConnection: @Sendable (Account.LocalID, DatabaseKey) throws -> SQLiteConnection
-  /// Delete database for given account.
+  /// Delete database and its keychain stored key for given account.
   public var delete: @Sendable (Account.LocalID) throws -> Void
 
   public init(

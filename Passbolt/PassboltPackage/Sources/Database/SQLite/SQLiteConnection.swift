@@ -47,9 +47,13 @@ public struct PreparedStatements {
 
 extension SQLiteConnection {
 
+  /// Opens a database at `path` using `key`, optionally re-encrypting it with `rekeyTo`
+  /// before any migration runs. `rekeyTo` is how a database created with a legacy
+  /// passphrase derived key is moved onto a raw key without losing its contents.
   public static func open(
     at path: String = ":memory:",
-    key: String? = nil,
+    key: SQLiteConnectionKey? = nil,
+    rekeyTo newKey: SQLiteConnectionKey? = nil,
     options: Int32 = SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE,
     migrations: Array<SQLiteMigration> = .init(),
     openingOperations: Array<SQLiteStatement> = .init()
@@ -60,6 +64,13 @@ extension SQLiteConnection {
         key: key,
         options: options
       )
+
+    if let newKey: SQLiteConnectionKey = newKey {
+      try connectionHandle.rekey(to: newKey)
+    }
+    else {
+      /* nothing to do */
+    }
 
     @Sendable func execute(
       statement: SQLiteStatement

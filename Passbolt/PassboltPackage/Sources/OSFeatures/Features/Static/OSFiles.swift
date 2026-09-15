@@ -23,16 +23,22 @@
 
 import Features
 
+import struct Foundation.FileAttributeKey
 import class Foundation.FileManager
+import struct Foundation.FileProtectionType
 import class Foundation.NSError
 import let Foundation.NSFileNoSuchFileError
 import struct Foundation.URL
+import struct Foundation.URLResourceValues
 
 // MARK: - Interface
 
 public struct OSFiles: Sendable {
 
   public var deleteFile: @Sendable (URL) throws -> Void
+  /// Marks a file as excluded from device backups and sets its data protection class.
+  /// Does nothing when the file does not exist.
+  public var protectFile: @Sendable (URL) throws -> Void
   public var contentsOfDirectory: @Sendable (URL) throws -> Array<String>
   public var applicationDataDirectory: @Sendable () throws -> URL
 }
@@ -43,6 +49,7 @@ extension OSFiles: StaticFeature {
   nonisolated public static var placeholder: Self {
     Self(
       deleteFile: unimplemented1(),
+      protectFile: unimplemented1(),
       contentsOfDirectory: unimplemented1(),
       applicationDataDirectory: unimplemented0()
     )
@@ -70,6 +77,34 @@ extension OSFiles {
         throw
           FileAccessIssue
           .error("Cannot delete local file")
+          .recording(fileURL, for: "fileURL")
+          .recording(error, for: "underlyingError")
+      }
+    }
+
+    /// Keeps the file out of iCloud/Finder backups and raises its data protection class so it
+    /// stays unreadable while the device is locked. `completeUnlessOpen` is used rather than
+    /// `complete` because SQLite keeps the database and its WAL sidecars open across locking.
+    @Sendable func protectFile(
+      at fileURL: URL
+    ) throws {
+      guard currentFileManager().fileExists(atPath: fileURL.path)
+      else { return }
+      do {
+        try currentFileManager()
+          .setAttributes(
+            [FileAttributeKey.protectionKey: FileProtectionType.completeUnlessOpen],
+            ofItemAtPath: fileURL.path
+          )
+        var fileURL: URL = fileURL
+        var resourceValues: URLResourceValues = .init()
+        resourceValues.isExcludedFromBackup = true
+        try fileURL.setResourceValues(resourceValues)
+      }
+      catch {
+        throw
+          FileAccessIssue
+          .error("Cannot protect local file")
           .recording(fileURL, for: "fileURL")
           .recording(error, for: "underlyingError")
       }
@@ -123,6 +158,7 @@ extension OSFiles {
 
     return Self(
       deleteFile: deleteFile(at:),
+      protectFile: protectFile(at:),
       contentsOfDirectory: contentsOfDirectory(_:),
       applicationDataDirectory: applicationDataDirectory
     )

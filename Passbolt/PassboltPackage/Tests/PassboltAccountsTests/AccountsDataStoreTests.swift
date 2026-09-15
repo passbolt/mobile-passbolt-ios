@@ -21,6 +21,7 @@
 // @since         v1.0
 //
 
+import DatabaseOperations
 import TestExtensions
 
 @testable import PassboltAccounts
@@ -36,9 +37,20 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
 
   private nonisolated let mockPreferencesStore: WrappedDictionary<OSPreferences.Key, Sendable> = .init()
   private nonisolated let mockKeychainStore: WrappedArray<(data: Data, query: OSKeychainQuery)> = .init([])
+  /// Accounts whose database data was handed over to `DatabaseAccess` for removal.
+  private nonisolated let deletedDatabases: CriticalState<Array<Account.LocalID>> = .init(.init())
 
   override func prepare() throws {
     try mockKeychainStore.removeAll()
+    deletedDatabases.set(.init())
+    patch(
+      \DatabaseAccess.delete,
+      with: { [unowned self] accountID in
+        self.deletedDatabases.access { deleted in
+          deleted.append(accountID)
+        }
+      }
+    )
     patch(
       \OSKeychain.load,
       with: { [unowned self] query in
@@ -315,10 +327,6 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
   }
 
   func test_deleteAccount_removesAccountData() async throws {
-    patch(
-      \OSFiles.deleteFile,
-      with: always(Void())
-    )
     mockPreferencesStore["accountsList"] = [Account.mock_ada.localID.rawValue]
     mockKeychainStore.set([
       (
@@ -354,13 +362,6 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
   }
 
   func test_deleteAccount_removesAccountDatabase() async throws {
-    let result: CriticalState<URL?> = .init()
-    patch(
-      \OSFiles.deleteFile,
-      with: { url in
-        result.set(url)
-      }
-    )
     mockPreferencesStore["accountsList"] = [Account.mock_ada.localID.rawValue]
     mockKeychainStore.set([
       (
@@ -385,9 +386,11 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
 
     storage.deleteAccount(Account.mock_ada.localID)
 
+    // Which files and which keychain entry that covers is `DatabaseAccess`'s to define - it is
+    // the code that creates them. Asserted there, in `DatabaseAccessTests`.
     XCTAssertEqual(
-      result.get()!.lastPathComponent,
-      "\(Account.mock_ada.localID).sqlite"
+      deletedDatabases.get(),
+      [Account.mock_ada.localID]
     )
   }
 
@@ -570,16 +573,9 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
   }
 
   func test_verifyDataIntegrity_removesAccountsDatabase_whenAccountIDIsNotInListAndDatabaseFileExists() async throws {
-    let result: CriticalState<URL?> = .init()
     patch(
       \OSFiles.contentsOfDirectory,
       with: always(["\(Account.mock_ada.localID).sqlite"])
-    )
-    patch(
-      \OSFiles.deleteFile,
-      with: { url in
-        result.set(url)
-      }
     )
     mockPreferencesStore["accountsList"] = Array<String>()
     mockKeychainStore.set([
@@ -605,8 +601,118 @@ final class AccountsListStorageTests: LoadableFeatureTestCase<AccountsListStorag
     _ = try? storage.verifyDataIntegrity()
 
     XCTAssertEqual(
-      result.get(\.?.lastPathComponent),
-      "\(Account.mock_ada.localID).sqlite"
+      deletedDatabases.get(),
+      [Account.mock_ada.localID]
+    )
+  }
+
+  func test_verifyDataIntegrity_removesAccountsDatabase_whenOnlyWriteAheadLogSidecarIsLeftBehind()
+    async throws
+  {
+    // A crash between deleting the database and deleting its sidecars leaves this behind. The
+    // account has to be recognized from the sidecar alone, or the orphan is never cleaned up.
+    patch(
+      \OSFiles.contentsOfDirectory,
+      with: always(["\(Account.mock_ada.localID).sqlite-wal"])
+    )
+    mockPreferencesStore["accountsList"] = Array<String>()
+    mockKeychainStore.set([
+      (
+        data: validAccountKeychainData,
+        query: .init(
+          key: "account",
+          tag: .init(rawValue: Account.mock_ada.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: validPrivateKeyKeychainData,
+        query: .init(
+          key: "accountArmoredKey",
+          tag: .init(rawValue: Account.mock_ada.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+    ])
+    let storage: AccountsListStorage = try testedInstance()
+
+    _ = try? storage.verifyDataIntegrity()
+
+    XCTAssertEqual(
+      deletedDatabases.get(),
+      [Account.mock_ada.localID]
+    )
+  }
+
+  func test_verifyDataIntegrity_removesAccountsDatabaseOnce_whenAllDatabaseFilesExist() async throws {
+    patch(
+      \OSFiles.contentsOfDirectory,
+      with: always([
+        "\(Account.mock_ada.localID).sqlite",
+        "\(Account.mock_ada.localID).sqlite-wal",
+        "\(Account.mock_ada.localID).sqlite-shm",
+      ])
+    )
+    mockPreferencesStore["accountsList"] = Array<String>()
+    mockKeychainStore.set([
+      (
+        data: validAccountKeychainData,
+        query: .init(
+          key: "account",
+          tag: .init(rawValue: Account.mock_ada.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: validPrivateKeyKeychainData,
+        query: .init(
+          key: "accountArmoredKey",
+          tag: .init(rawValue: Account.mock_ada.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+    ])
+    let storage: AccountsListStorage = try testedInstance()
+
+    _ = try? storage.verifyDataIntegrity()
+
+    XCTAssertEqual(
+      deletedDatabases.get(),
+      [Account.mock_ada.localID]
+    )
+  }
+
+  func test_verifyDataIntegrity_ignoresUnrelatedFiles() async throws {
+    patch(
+      \OSFiles.contentsOfDirectory,
+      with: always([".sqlite", "notes.txt", "\(Account.mock_ada.localID).sqlite.backup"])
+    )
+    mockPreferencesStore["accountsList"] = Array<String>()
+    mockKeychainStore.set([
+      (
+        data: validAccountKeychainData,
+        query: .init(
+          key: "account",
+          tag: .init(rawValue: Account.mock_ada.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+      (
+        data: validPrivateKeyKeychainData,
+        query: .init(
+          key: "accountArmoredKey",
+          tag: .init(rawValue: Account.mock_ada.localID.rawValue),
+          requiresBiometrics: false
+        )
+      ),
+    ])
+    let storage: AccountsListStorage = try testedInstance()
+
+    _ = try? storage.verifyDataIntegrity()
+
+    XCTAssertEqual(
+      deletedDatabases.get(),
+      []
     )
   }
 

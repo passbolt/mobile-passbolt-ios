@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import DatabaseOperations
 import OSFeatures
 
 import struct Foundation.Data
@@ -38,6 +39,7 @@ extension AccountsListStorage {
     let files: OSFiles = features.instance()
     let preferences: OSPreferences = features.instance()
     let metadataKeyDataStore: MetadataKeyDataStore = try features.instance()
+    let databaseAccess: DatabaseAccess = try features.instance()
 
     @Sendable func forceDelete(matching query: OSKeychainQuery) {
       Diagnostics.debug("Purging data for \(query.key)")
@@ -51,6 +53,16 @@ extension AccountsListStorage {
           .recording(query, for: "query")
           .asFatalError()
       }
+    }
+
+    /// Removes everything the account's database consists of - the file, the `-wal` / `-shm`
+    /// sidecars SQLite keeps next to it and the keychain entry holding its encryption key.
+    /// `DatabaseAccess` is the single owner of that list: it is the code that creates those
+    /// files and that key, so a second copy of the rule here would be free to drift from it.
+    @Sendable func deleteDatabaseData(
+      forAccountWithID accountID: Account.LocalID
+    ) throws {
+      try databaseAccess.delete(accountID)
     }
 
     @Sendable func ensureDataIntegrity() throws {
@@ -277,17 +289,29 @@ extension AccountsListStorage {
 
       let applicationDataDirectory: URL = try files.applicationDataDirectory()
 
-      let storedDatabases: Array<Account.LocalID> =
-        try files
-        .contentsOfDirectory(applicationDataDirectory)
-        .filter { fileName in
-          fileName.hasSuffix(".sqlite")
-        }
-        .map { fileName -> Account.LocalID in
-          var fileName: String = fileName
-          fileName.removeLast(".sqlite".count)
-          return .init(rawValue: fileName)
-        }
+      // The `-wal` / `-shm` sidecars are listed alongside the database itself so that a crash
+      // which left one behind without its `.sqlite` file still yields the account it belongs
+      // to. Otherwise such an orphan would never be seen here and never be removed.
+      let databaseFileSuffixes: Array<String> = [
+        ".sqlite",
+        ".sqlite-wal",
+        ".sqlite-shm",
+      ]
+
+      var storedDatabases: Array<Account.LocalID> = .init()
+      for fileName: String in try files.contentsOfDirectory(applicationDataDirectory) {
+        guard
+          let suffix: String = databaseFileSuffixes.first(where: { fileName.hasSuffix($0) })
+        else { continue }
+        var identifier: String = fileName
+        identifier.removeLast(suffix.count)
+        guard !identifier.isEmpty
+        else { continue }
+        let accountID: Account.LocalID = .init(rawValue: identifier)
+        guard !storedDatabases.contains(accountID)
+        else { continue }
+        storedDatabases.append(accountID)
+      }
 
       Diagnostics.debug("Stored databases: \(storedDatabases)")
 
@@ -296,12 +320,7 @@ extension AccountsListStorage {
         .filter { !updatedAccountsList.contains($0) }
 
       for accountID in databasesToRemove {
-        try files.deleteFile(
-          files
-            .applicationDataDirectory()
-            .appendingPathComponent(accountID.rawValue)
-            .appendingPathExtension("sqlite")
-        )
+        try deleteDatabaseData(forAccountWithID: accountID)
       }
 
       Diagnostics.debug("Deleted account databases: \(databasesToRemove)")
@@ -401,15 +420,6 @@ extension AccountsListStorage {
       preferences.save(AccountInitialSetup.SetupElement.allCases, for: "unfinishedSetup-\(account.localID)")
     }
 
-    // swift-format-ignore: NoLeadingUnderscores
-    @Sendable func _databaseURL(
-      forAccountWithID accountID: Account.LocalID
-    ) throws -> URL {
-      try files
-        .applicationDataDirectory().appendingPathComponent(accountID.rawValue)
-        .appendingPathExtension("sqlite")
-    }
-
     @Sendable func deleteAccount(withID accountID: Account.LocalID) {
       // There is a risk of calling this method with valid session for deleted account,
       // we should assert on that or make it impossible")
@@ -471,11 +481,7 @@ extension AccountsListStorage {
           .delete(matching: .accountProfileQuery(for: accountID))
           .get()
 
-        _ = try files.deleteFile(
-          _databaseURL(
-            forAccountWithID: accountID
-          )
-        )
+        try deleteDatabaseData(forAccountWithID: accountID)
       }
       catch {
         error.logged(
