@@ -41,6 +41,11 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState>, @unchecked
       with: always(self.timestamp)
     )
     self.timestamp = 0 as Timestamp
+    patch(
+      \OSTime.monotonicTimestamp,
+      with: always(self.monotonicTimestamp)
+    )
+    self.monotonicTimestamp = 0 as MonotonicTimestamp
   }
 
   func test_account_isNone_initially() {
@@ -73,7 +78,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState>, @unchecked
         "mfaToken",
         .init()
       )
-      self.timestamp = (5 * 60 * 60) as Timestamp
+      self.monotonicTimestamp = (5 * 60 * 60) as MonotonicTimestamp
       return await testedInstance.passphrase()
     }
   }
@@ -743,7 +748,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState>, @unchecked
       await testedInstance.sessionTaskStarted(taskID)
 
       // Expire the passphrase
-      self.timestamp = (5 * 60 * 60) as Timestamp
+      self.monotonicTimestamp = (5 * 60 * 60) as MonotonicTimestamp
 
       // Should return expired passphrase since task is running
       await XCTAssertValue(equal: "passphrase") {
@@ -767,7 +772,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState>, @unchecked
       await testedInstance.sessionTaskStarted(taskID)
 
       // Expire the passphrase
-      self.timestamp = (5 * 60 * 60) as Timestamp
+      self.monotonicTimestamp = (5 * 60 * 60) as MonotonicTimestamp
 
       // Access passphrase while task is running
       await XCTAssertValue(equal: "passphrase") {
@@ -998,7 +1003,7 @@ final class SessionStateTests: LoadableFeatureTestCase<SessionState>, @unchecked
         .init()
       )
       // Advance time past expiration
-      self.timestamp = (5 * 60 * 60) as Timestamp
+      self.monotonicTimestamp = (5 * 60 * 60) as MonotonicTimestamp
 
       // Should request authorization since passphrase is expired
       try await testedInstance.requestAuthorizationIfNeeded(.passphrase(.mock_ada))

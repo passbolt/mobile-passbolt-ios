@@ -41,6 +41,11 @@ final class SessionPassphraseWipeTests: LoadableFeatureTestCase<SessionState>, @
       with: always(self.timestamp)
     )
     self.timestamp = 0 as Timestamp
+    patch(
+      \OSTime.monotonicTimestamp,
+      with: always(self.monotonicTimestamp)
+    )
+    self.monotonicTimestamp = 0 as MonotonicTimestamp
   }
 
   func test_passphraseWipe_clearsPassphrase_immediately_whenNoTasksRunning() {
@@ -181,7 +186,7 @@ final class SessionPassphraseWipeTests: LoadableFeatureTestCase<SessionState>, @
       await testedInstance.sessionTaskStarted(taskID)
 
       // Expire the passphrase
-      self.timestamp = (5 * 60 * 60) as Timestamp
+      self.monotonicTimestamp = (5 * 60 * 60) as MonotonicTimestamp
 
       // Passphrase should still be returned (expired but task running)
       await XCTAssertValue(equal: "passphrase") {

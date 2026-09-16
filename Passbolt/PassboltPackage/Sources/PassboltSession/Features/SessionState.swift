@@ -161,14 +161,14 @@ extension SessionState {
 
     // access only using SessionActor
     var currentPassphrase: Passphrase? = .none
-    var currentPassphraseExpiration: Timestamp = 0
-    let passphraseExpirationTime: Timestamp = 5 * 60  // 5 Minutes
+    var currentPassphraseExpiration: MonotonicTimestamp = 0
+    let passphraseExpirationTime: Seconds = 5 * 60  // 5 Minutes
     var wipePassphraseUponTaskCompletion: Bool = false
     var runningTaskIDs: Set<PassboltID> = .init()
     var taskCancellables: Dictionary<PassboltID, Task<Void, Error>> = .init()
 
     @SessionActor func passphrase() -> Passphrase? {
-      if currentPassphraseExpiration >= osTime.timestamp() {
+      if currentPassphraseExpiration >= osTime.monotonicTimestamp() {
         return currentPassphrase
       }
       else {
@@ -289,7 +289,7 @@ extension SessionState {
 
       currentAccount = account
       currentPassphrase = passphrase
-      currentPassphraseExpiration = osTime.timestamp() + passphraseExpirationTime
+      currentPassphraseExpiration = osTime.monotonicTimestamp() + passphraseExpirationTime
       currentAccessToken = accessToken
       currentRefreshToken = refreshToken
       currentMFAToken = mfaToken
@@ -325,7 +325,7 @@ extension SessionState {
       if let passphrase: Passphrase = passphrase {
         // extend passphrase cache expire time if provided
         currentPassphrase = passphrase
-        currentPassphraseExpiration = osTime.timestamp() + passphraseExpirationTime
+        currentPassphraseExpiration = osTime.monotonicTimestamp() + passphraseExpirationTime
       }  // else NOP - ignore
       currentAccessToken = accessToken
       currentRefreshToken = refreshToken
@@ -359,7 +359,7 @@ extension SessionState {
       }
       Diagnostics.logger.info("Passphrase provided...")
       currentPassphrase = passphrase
-      currentPassphraseExpiration = osTime.timestamp() + passphraseExpirationTime
+      currentPassphraseExpiration = osTime.monotonicTimestamp() + passphraseExpirationTime
       switch currentPendingAuthorization {
       case .none, .mfa:
         return  // NOP - ignore
@@ -528,7 +528,7 @@ extension SessionState {
     @SessionActor func requestAuthorizationIfNeeded(_ request: SessionAuthorizationRequest) throws {
       if request.account == currentAccount,
         currentPassphrase != .none,
-        currentPassphraseExpiration >= osTime.timestamp()
+        currentPassphraseExpiration >= osTime.monotonicTimestamp()
       {
         return  // NOP - already authorized with current account and passphrase cache is valid.
       }

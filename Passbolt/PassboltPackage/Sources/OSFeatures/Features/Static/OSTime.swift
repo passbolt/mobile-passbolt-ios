@@ -36,6 +36,7 @@ import func os.clock_gettime_nsec_np
 public struct OSTime: Sendable {
 
   public var timestamp: @Sendable () -> Timestamp
+  public var monotonicTimestamp: @Sendable () -> MonotonicTimestamp
   public var waitFor: @Sendable (Seconds) async throws -> Void
   public var waitForMilliseconds: @Sendable (Milliseconds) async throws -> Void
   public var timerSequence: @Sendable (Seconds) -> AnyAsyncSequence<Void>
@@ -48,6 +49,7 @@ extension OSTime: StaticFeature {
   nonisolated public static var placeholder: Self {
     Self(
       timestamp: unimplemented0(),
+      monotonicTimestamp: unimplemented0(),
       waitFor: unimplemented1(),
       waitForMilliseconds: unimplemented1(),
       timerSequence: unimplemented1(),
@@ -73,6 +75,16 @@ extension OSTime {
 
     @Sendable func timestamp() -> Timestamp {
       .init(rawValue: Int64(time(nil)))
+    }
+
+    @Sendable func monotonicTimestamp() -> MonotonicTimestamp {
+      // CLOCK_MONOTONIC on Darwin keeps counting while the device is asleep
+      // and can't be influenced by changes of the system wall clock.
+      .init(
+        rawValue: Int64(
+          clock_gettime_nsec_np(CLOCK_MONOTONIC) / NSEC_PER_SEC
+        )
+      )
     }
 
     @Sendable func waitFor(
@@ -115,57 +127,7 @@ extension OSTime {
 
     return Self(
       timestamp: timestamp,
-      waitFor: waitFor(_:),
-      waitForMilliseconds: waitForMilliseconds(_:),
-      timerSequence: timerSequence(_:),
-      timeVariable: { (period: Seconds) in
-        TimeVariable(period: NSEC_PER_SEC * UInt64(period.rawValue))
-          .asAnyUpdatable()
-      }
-    )
-  }
-
-  @available(iOS, deprecated: 16, message: "Please switch to `live`")
-  fileprivate static var liveOld: Self {
-
-    @Sendable func timestamp() -> Timestamp {
-      .init(rawValue: Int64(time(nil)))
-    }
-
-    @Sendable func waitFor(
-      _ time: Seconds
-    ) async throws {
-      try await Task.sleep(
-        nanoseconds: NSEC_PER_SEC * UInt64(time.rawValue)
-      )
-    }
-
-    @Sendable func waitForMilliseconds(
-      _ delay: Milliseconds
-    ) async throws {
-      try await Task.sleep(
-        nanoseconds: (NSEC_PER_SEC / 1_000) * UInt64(delay.rawValue)
-      )
-    }
-
-    @Sendable func timerSequence(
-      _ period: Seconds
-    ) -> AnyAsyncSequence<Void> {
-      .init { () -> Void? in
-        // iterator `next`
-        // this is not fully correct since
-        // timer using Task.sleep drifts
-        // substantially and quickly
-        // becomes out of sync, however
-        // this is deprecated anyway
-        try? await Task.sleep(
-          nanoseconds: NSEC_PER_SEC * UInt64(period.rawValue)
-        )
-      }
-    }
-
-    return Self(
-      timestamp: timestamp,
+      monotonicTimestamp: monotonicTimestamp,
       waitFor: waitFor(_:),
       waitForMilliseconds: waitForMilliseconds(_:),
       timerSequence: timerSequence(_:),

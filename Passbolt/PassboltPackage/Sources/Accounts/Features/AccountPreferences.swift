@@ -45,7 +45,15 @@ public struct AccountPreferences: Sendable {
   /// for the context account.
   public var defaultHomePresentation: StoredVariable<HomePresentationMode>
 
+  /// Control if the context account passphrase cache should be wiped
+  /// when the application enters background.
   public var passphraseWipeOnBackground: StoredVariable<Bool>
+  /// Reads ``passphraseWipeOnBackground`` straight from its backing storage.
+  ///
+  /// Throws when the storage is unreachable, so callers can tell "can not be read right now"
+  /// apart from "the user turned it off". The setting is kept in the keychain, which is not
+  /// readable while the device is locked - exactly when the wipe decision is being made.
+  public var readPassphraseWipeOnBackground: @Sendable () throws -> Bool
 
   public init(
     updates: AnyUpdatable<Void>,
@@ -54,7 +62,8 @@ public struct AccountPreferences: Sendable {
     storePassphrase: @escaping @Sendable (_ store: Bool) async throws -> Void,
     useLastHomePresentationAsDefault: StoredVariable<Bool>,
     defaultHomePresentation: StoredVariable<HomePresentationMode>,
-    passphraseWipeOnBackground: StoredVariable<Bool>
+    passphraseWipeOnBackground: StoredVariable<Bool>,
+    readPassphraseWipeOnBackground: @escaping @Sendable () throws -> Bool
   ) {
     self.updates = updates
     self.setLocalAccountLabel = setLocalAccountLabel
@@ -63,6 +72,7 @@ public struct AccountPreferences: Sendable {
     self.useLastHomePresentationAsDefault = useLastHomePresentationAsDefault
     self.defaultHomePresentation = defaultHomePresentation
     self.passphraseWipeOnBackground = passphraseWipeOnBackground
+    self.readPassphraseWipeOnBackground = readPassphraseWipeOnBackground
   }
 }
 
@@ -79,7 +89,8 @@ extension AccountPreferences: LoadableFeature {
       storePassphrase: unimplemented1(),
       useLastHomePresentationAsDefault: .placeholder,
       defaultHomePresentation: .placeholder,
-      passphraseWipeOnBackground: .placeholder
+      passphraseWipeOnBackground: .placeholder,
+      readPassphraseWipeOnBackground: unimplemented0()
     )
   }
   #endif

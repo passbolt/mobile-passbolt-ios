@@ -86,7 +86,34 @@ extension AccountPreferences {
         write: { $0.rawValue }
       )
 
-    let passphraseWipeOnBackgroundProperty: PassphraseWipeOnBackgroundStoredProperty = try features.instance()
+    let passphraseWipeOnBackgroundProperty: PassphraseWipeOnBackgroundKeychainProperty = try features.instance()
+    let legacyPassphraseWipeOnBackgroundProperty: PassphraseWipeOnBackgroundStoredProperty = try features.instance()
+    // The migration has to run before `passphraseWipeOnBackgroundProperty.variable` is accessed
+    // for the first time below - that first access is what reads the keychain, and the result is
+    // cached for the whole lifetime of the variable, so a value written afterwards would stay
+    // invisible until the feature is reloaded.
+    //
+    // Both keychain calls are synchronous and this function runs on the main actor. It is a
+    // one time, two item migration performed only for accounts which still hold the legacy value,
+    // so the cost is bounded and paid at most once per account.
+    if let legacyValue: Bool = legacyPassphraseWipeOnBackgroundProperty.variable.value {
+      do {
+        // `read` and `write` are used instead of the cached `variable` on purpose - the cache
+        // reports an unreachable keychain as a missing value, and clearing the legacy value
+        // after a migration that did not land would silently reset the setting to its default.
+        if case .none = try passphraseWipeOnBackgroundProperty.read() {
+          try passphraseWipeOnBackgroundProperty.write(legacyValue)
+        }  // else - value was already migrated, keychain wins
+        legacyPassphraseWipeOnBackgroundProperty.variable.assign(.none)
+      }
+      catch {
+        // keep the legacy value, migration is retried on the next load
+        error.logged(
+          info: .message("Failed to migrate passphrase wipe setting to the keychain")
+        )
+      }
+    }  // else - nothing to migrate
+
     let passphraseWipeOnBackground: StoredVariable<Bool> = passphraseWipeOnBackgroundProperty
       .variable
       .convert(
@@ -95,6 +122,10 @@ extension AccountPreferences {
       )
       .notifying(accountData.updates)
 
+    @Sendable nonisolated func readPassphraseWipeOnBackground() throws -> Bool {
+      try passphraseWipeOnBackgroundProperty.read() ?? false
+    }
+
     return Self(
       updates: accountData.updates.asAnyUpdatable(),
       setLocalAccountLabel: setLocalAccountLabel(_:),
@@ -102,7 +133,8 @@ extension AccountPreferences {
       storePassphrase: storePassphrase(_:),
       useLastHomePresentationAsDefault: useLastHomePresentationAsDefault,
       defaultHomePresentation: defaultHomePresentation,
-      passphraseWipeOnBackground: passphraseWipeOnBackground
+      passphraseWipeOnBackground: passphraseWipeOnBackground,
+      readPassphraseWipeOnBackground: readPassphraseWipeOnBackground
     )
   }
 }
@@ -125,8 +157,13 @@ extension FeaturesRegistry {
       DefaultHomeModeStoredPropertyDescription.self,
       in: SessionScope.self
     )
+    // kept registered only to migrate already stored values away from user defaults
     self.usePassboltStoredProperty(
       PassphraseWipeOnBackgroundStoredPropertyDescription.self,
+      in: SessionScope.self
+    )
+    self.usePassboltKeychainStoredProperty(
+      PassphraseWipeOnBackgroundKeychainPropertyDescription.self,
       in: SessionScope.self
     )
   }
@@ -156,9 +193,22 @@ internal typealias PassphraseWipeOnBackgroundStoredProperty = StoredProperty<
   PassphraseWipeOnBackgroundStoredPropertyDescription
 >
 
+/// Legacy, user defaults backed storage of the setting.
+/// Kept only to migrate already stored values to `PassphraseWipeOnBackgroundKeychainProperty`.
 internal enum PassphraseWipeOnBackgroundStoredPropertyDescription: StoredPropertyDescription {
 
   public typealias Value = Bool
 
   public static var key: OSStoredPropertyKey { "PassphraseWipeOnBackground" }
+}
+
+internal typealias PassphraseWipeOnBackgroundKeychainProperty = KeychainStoredProperty<
+  PassphraseWipeOnBackgroundKeychainPropertyDescription
+>
+
+internal enum PassphraseWipeOnBackgroundKeychainPropertyDescription: KeychainStoredPropertyDescription {
+
+  public typealias Value = Bool
+
+  public static var key: OSKeychainQuery.Key { "passphraseWipeOnBackground" }
 }
