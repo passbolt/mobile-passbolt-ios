@@ -33,6 +33,8 @@ extension AccountTransferUpdateNetworkOperation {
     .combined(
       .url(string: input.domain.rawValue),
       .pathSuffix("/mobile/transfers/\(input.transferID)/\(input.authenticationToken).json"),
+      // strip tokens from logs
+      .loggablePath("/mobile/transfers/{transferID}/{authenticationToken}.json"),
       .method(.post),
       .when(
         input.requestUserProfile,

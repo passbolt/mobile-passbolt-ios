@@ -179,6 +179,14 @@ extension Mutation where Subject == HTTPRequest {
       request.headers["Content-Type"] = "application/json"
     }
   }
+
+  public static func loggablePath(
+    _ path: String
+  ) -> Self {
+    Self { request in
+      request.loggablePath = path
+    }
+  }
 }
 
 extension HTTPRequest: EmptyInstantiable {

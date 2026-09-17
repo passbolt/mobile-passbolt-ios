@@ -158,9 +158,10 @@ extension NetworkRequestExecutor {
     ) -> @Sendable (HTTPRequest) async throws -> HTTPResponse {
       { (httpRequest: HTTPRequest) async throws -> HTTPResponse in
         let tracingID: String = UUID().uuidString
+        let loggablePath: String = httpRequest.loggablePath ?? httpRequest.path
         Diagnostics.logger
           .info(
-            "[\(tracingID, privacy: .public)] HTTP \(httpRequest.method.rawValue, privacy: .public) \(httpRequest.path, privacy: .public)"
+            "[\(tracingID, privacy: .public)] HTTP \(httpRequest.method.rawValue, privacy: .public) \(loggablePath, privacy: .public)"
           )
         Diagnostics.debug("[\(tracingID)] Request: \(httpRequest.debugDescription)")
 
@@ -168,7 +169,7 @@ extension NetworkRequestExecutor {
           let httpResponse: HTTPResponse = try await execute(httpRequest)
           Diagnostics.logger
             .info(
-              "[\(tracingID, privacy: .public)] HTTP \(httpResponse.statusCode, privacy: .public) \(httpRequest.path, privacy: .public)"
+              "[\(tracingID, privacy: .public)] HTTP \(httpResponse.statusCode, privacy: .public) \(loggablePath, privacy: .public)"
             )
           Diagnostics.debug("[\(tracingID)] Response: \(httpResponse.debugDescription)")
           return httpResponse

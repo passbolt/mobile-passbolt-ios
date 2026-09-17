@@ -33,12 +33,18 @@ public struct HTTPRequest: Hashable, Sendable {
   public var headers: HTTPHeaders
   public var body: HTTPBody
   public var urlComponents: URLComponents
+  /// Path put in logs in place of the real one.
+  ///
+  /// Provided by requests carrying a secret within the path,
+  /// `.none` means that the real path is safe to log.
+  public var loggablePath: String?
 
   public init(
     url: URL? = .none,
     method: HTTPMethod = .get,
     headers: HTTPHeaders = .empty,
-    body: HTTPBody = .empty
+    body: HTTPBody = .empty,
+    loggablePath: String? = .none
   ) {
     self.method = method
     self.urlComponents =
@@ -49,6 +55,7 @@ public struct HTTPRequest: Hashable, Sendable {
       ?? URLComponents()
     self.headers = headers
     self.body = body
+    self.loggablePath = loggablePath
   }
 }
 
