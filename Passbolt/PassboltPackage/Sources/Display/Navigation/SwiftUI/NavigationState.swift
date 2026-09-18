@@ -152,7 +152,7 @@ public final class NavigationState: ObservableObject {
   ///
   /// This lets callers safely present something else (e.g. an alert) only once the sheet is
   /// actually gone - presenting while a sheet is still mid-dismiss is silently dropped by UIKit
-  /// on iOS 16/17. Falls back to a plain `dismiss(with:)` (returning immediately) for non-sheet
+  /// on iOS 17. Falls back to a plain `dismiss(with:)` (returning immediately) for non-sheet
   /// destinations or when no matching sheet is presented.
   internal func dismissAndWaitForCompletion(id: NavigationDestinationIdentifier) async {
     let dismissesFullSheet: Bool = presentedSheet?.id == id

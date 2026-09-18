@@ -53,7 +53,7 @@ public struct NavigationContainer<Content: View>: View {
         item.makeView()
           .interactiveDismissDisabled()
           .presentationDragIndicator(.hidden)
-          .solidPresentationBackground()
+          .presentationBackground(Color.passboltSheetBackground)
       }
     )
     .sheet(
@@ -64,7 +64,7 @@ public struct NavigationContainer<Content: View>: View {
           .dynamicDetent()
           .interactiveDismissDisabled()
           .presentationDragIndicator(.hidden)
-          .solidPresentationBackground()
+          .presentationBackground(Color.passboltSheetBackground)
       }
     )
     .alert(
@@ -85,7 +85,7 @@ public struct NavigationContainer<Content: View>: View {
       }
     )
     .environment(\.navigationState, navigationState)
-    .onChange(of: navigationState.path.count) { newValue in
+    .onChange(of: navigationState.path.count) { _, newValue in
       navigationState.synchronizeWithPath(newCount: newValue)
     }
   }
@@ -189,16 +189,6 @@ private struct DynamicDetent: ViewModifier {
 }
 
 extension View {
-
-  @ViewBuilder
-  internal func solidPresentationBackground() -> some View {
-    if #available(iOS 16.4, *) {
-      self.presentationBackground(Color.passboltSheetBackground)
-    }
-    else {
-      self
-    }
-  }
 
   /// Sizes a sheet to its content, clamped to the available screen height.
   public func dynamicDetent() -> some View {

@@ -152,7 +152,7 @@ where Value: FormPickerFieldValue {
           .padding(12)
         }
       )
-      .onChange(of: focused) { (focused: Bool) in
+      .onChange(of: focused) { (_: Bool, focused: Bool) in
         withAnimation {
           self.editing = focused
         }

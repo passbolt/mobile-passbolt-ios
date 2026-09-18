@@ -48,9 +48,7 @@ import UIKit
   )
   hostingController.view.backgroundColor = .clear
   hostingController.view.isOpaque = false
-  if #available(iOS 16.4, *) {
-    hostingController.safeAreaRegions = .init()
-  }
+  hostingController.safeAreaRegions = .init()
   snackBarHostingController = hostingController
 
   let passthroughView: TouchPassthroughView = .init()

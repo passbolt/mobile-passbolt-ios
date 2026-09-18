@@ -137,12 +137,12 @@ private struct Tab<TabView: ControlledView>: View {
         navigationStateRegistry.setActive(navigationState)
       }
     }
-    .onChange(of: selectedTab) { newTab in
+    .onChange(of: selectedTab) { _, newTab in
       if newTab == tabID {
         navigationStateRegistry.setActive(navigationState)
       }
     }
-    .onChange(of: rootState.reactivationSignal) { _ in
+    .onChange(of: rootState.reactivationSignal) { _, _ in
       // Re-activate navigation state after root restoration
       if selectedTab == tabID {
         navigationStateRegistry.setActive(navigationState)

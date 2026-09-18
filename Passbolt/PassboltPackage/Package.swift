@@ -5,7 +5,7 @@ import PackageDescription
 let package = Package(
   name: "PassboltPackage",
   defaultLocalization: "en",
-  platforms: [.iOS(.v16)],
+  platforms: [.iOS(.v17)],
   products: [
     // MARK: - Legacy
     .library(

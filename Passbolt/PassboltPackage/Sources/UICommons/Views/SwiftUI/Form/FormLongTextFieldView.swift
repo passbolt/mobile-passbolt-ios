@@ -133,7 +133,7 @@ public struct FormLongTextFieldView: View {
             )
         }  // else NOP
       }
-      .onChange(of: focused) { (focused: Bool) in
+      .onChange(of: focused) { (_: Bool, focused: Bool) in
         withAnimation {
           self.editing = focused
         }
@@ -228,14 +228,7 @@ private struct AutosizingTextView: UIViewRepresentable {
   }
 
   fileprivate func makeUIView(context: Context) -> UITextView {
-    let textView: UITextView
-    if #unavailable(iOS 17) {
-      textView = .init(usingTextLayoutManager: false)
-    }
-    else {
-      textView = .init()
-    }
-
+    let textView: UITextView = .init()
     textView.delegate = context.coordinator
     textView.font = .inter(ofSize: 14, weight: .regular)
     textView.isScrollEnabled = false

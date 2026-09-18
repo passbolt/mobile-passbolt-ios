@@ -52,7 +52,7 @@ where LeftAccessoryView: View, RightAccessoryView: View {
         .transition(.opacity)
 
       self.searchTextView
-        .onChange(of: focused) { (focused: Bool) in
+        .onChange(of: focused) { (_: Bool, focused: Bool) in
           withAnimation {
             editing = focused
           }

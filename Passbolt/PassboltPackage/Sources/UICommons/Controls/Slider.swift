@@ -84,7 +84,7 @@ public struct Slider: View {
           }
         )
         .focused(self.$fieldFocused)
-        .onChange(of: self.inputText) { (newText: String) in
+        .onChange(of: self.inputText) { (_: String, newText: String) in
           let filtered: String = newText.filter { ("0" ... "9").contains($0) }
           if filtered != newText {
             self.inputText = filtered
@@ -97,7 +97,7 @@ public struct Slider: View {
             value = parsed
           }
         }
-        .onChange(of: self.fieldFocused) { (isFocused: Bool) in
+        .onChange(of: self.fieldFocused) { (_: Bool, isFocused: Bool) in
           guard !isFocused else { return }
           // On commit (focus loss / Return), require an in-range parse;
           // otherwise revert to the last valid value.
@@ -118,7 +118,7 @@ public struct Slider: View {
           }
           self.onCommit?()
         }
-        .onChange(of: value) { (newValue: Int) in
+        .onChange(of: value) { (_: Int, newValue: Int) in
           if !self.fieldFocused, Int(self.inputText) != newValue {
             self.inputText = String(newValue)
           }
