@@ -402,7 +402,7 @@ let package = Package(
     // MARK: - Vendor
     .binaryTarget(
       name: "Gopenpgp",
-      path: "./Vendor/Gopenpgp.xcframework"
+      path: "./Vendor/Frameworks/Gopenpgp.xcframework"
     ),
     .target(
       // SQLCipher is added as preconfigured source file
