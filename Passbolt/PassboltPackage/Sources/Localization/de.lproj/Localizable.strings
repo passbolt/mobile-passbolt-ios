@@ -433,6 +433,9 @@ NFC unterstützen muss, damit dies funktioniert.";
 Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "mfa.duo.authorization.title" = "Duo Multi-Faktor-Authentifizierung";
 "mfa.duo.authorization.button.title" = "Mit Duo authentifizieren";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Konto wechseln";
 "account.menu.account.details.button.title" = "Details anzeigen";

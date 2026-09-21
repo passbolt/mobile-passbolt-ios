@@ -432,6 +432,9 @@
 詳細については管理者にお問い合わせください。";
 "mfa.duo.authorization.title" = "Duo多要素認証";
 "mfa.duo.authorization.button.title" = "Duoで認証";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "アカウントを切り替え";
 "account.menu.account.details.button.title" = "詳細を見る";

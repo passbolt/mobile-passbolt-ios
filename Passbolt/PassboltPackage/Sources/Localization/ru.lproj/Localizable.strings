@@ -434,6 +434,9 @@ NFC.";
 Обратитесь к вашему администратору за дополнительной информацией.";
 "mfa.duo.authorization.title" = "Многофакторная аутентификация Duo";
 "mfa.duo.authorization.button.title" = "Войти с Duo";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Сменить учетную запись";
 "account.menu.account.details.button.title" = "Подробнее";

@@ -46,28 +46,9 @@ extension YubiKeyAuthorizationNetworkOperation {
     _ input: Input,
     _ response: HTTPResponse
   ) throws -> Output {
-    if let cookieHeaderValue: String = response.headers["Set-Cookie"],
-      let mfaCookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-    {
-      return .init(
-        mfaToken: .init(
-          rawValue: String(
-            cookieHeaderValue[mfaCookieBounds.upperBound...]
-              .prefix(
-                while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-              )
-          )
-        )
-      )
-    }
-    else {
-      throw
-        NetworkResponseDecodingFailure
-        .error(
-          "Failed to decode cookies from MFA response",
-          response: response
-        )
-    }
+    try .init(
+      mfaToken: decodedSessionMFAToken(from: response)
+    )
   }
 }
 

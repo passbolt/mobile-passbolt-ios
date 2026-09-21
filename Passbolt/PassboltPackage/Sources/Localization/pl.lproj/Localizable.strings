@@ -433,6 +433,9 @@ NFC, aby ta operacja się powiodła.";
 Skontaktuj się z administratorem, aby uzyskać więcej informacji.";
 "mfa.duo.authorization.title" = "Uwierzytelnianie wieloskładnikowe Duo";
 "mfa.duo.authorization.button.title" = "Uwierzytelnienie z Duo";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Przełącz konto";
 "account.menu.account.details.button.title" = "Zobacz szczegóły";

@@ -42,7 +42,7 @@ final class SessionMFAProviderTests: TestCase {
     let decoded: SessionMFAProvider = try JSONDecoder()
       .decode(
         SessionMFAProvider.self,
-        from: Data(#""webauthn""#.utf8)
+        from: Data(#""xauth""#.utf8)
       )
 
     XCTAssertEqual(decoded, .unknown)
@@ -52,7 +52,7 @@ final class SessionMFAProviderTests: TestCase {
     let decoded: Array<SessionMFAProvider> = try JSONDecoder()
       .decode(
         Array<SessionMFAProvider>.self,
-        from: Data(#"["totp","webauthn"]"#.utf8)
+        from: Data(#"["totp","xauth"]"#.utf8)
       )
 
     XCTAssertEqual(decoded, [.totp, .unknown])

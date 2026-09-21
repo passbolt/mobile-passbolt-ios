@@ -433,6 +433,9 @@ NFC moet ondersteunen om dit te laten werken.";
 Neem contact op met je beheerder voor meer informatie.";
 "mfa.duo.authorization.title" = "Duo Multi-factor Authenticatie";
 "mfa.duo.authorization.button.title" = "Authenticeren met Duo";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Wissel van account";
 "account.menu.account.details.button.title" = "Bekijk details";

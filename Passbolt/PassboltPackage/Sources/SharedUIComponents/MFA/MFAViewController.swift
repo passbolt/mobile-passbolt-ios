@@ -41,6 +41,7 @@ public final class MFAViewController: ViewController {
   internal let totpController: TOTPViewController?
   internal let duoController: DUOAuthorizationViewController?
   internal let yubiKeyController: YubiKeyViewController?
+  internal let webauthnController: WebauthnAuthorizationViewController?
 
   public init(context: Context, features: Features) throws {
     // unsupported providers can't be presented, drop them upfront
@@ -58,19 +59,30 @@ public final class MFAViewController: ViewController {
 
     let totpController: TOTPViewController? =
       supportedProviders.contains(.totp)
-      ? Self.makeTOTPController(features: features, viewState: viewState)
+      ? features.makeMFAController(
+        context: .init(
+          loadingCallback: { [weak viewState] (isLoading: Bool) in
+            viewState?.update(\.isLoading, to: isLoading)
+          }
+        )
+      )
       : nil
     let duoController: DUOAuthorizationViewController? =
       supportedProviders.contains(.duo)
-      ? Self.makeDUOController(features: features)
+      ? features.makeMFAController()
       : nil
     let yubiKeyController: YubiKeyViewController? =
       supportedProviders.contains(.yubiKey)
-      ? Self.makeYubiKeyController(features: features)
+      ? features.makeMFAController()
+      : nil
+    let webauthnController: WebauthnAuthorizationViewController? =
+      supportedProviders.contains(.webauthn)
+      ? features.makeMFAController()
       : nil
     self.totpController = totpController
     self.duoController = duoController
     self.yubiKeyController = yubiKeyController
+    self.webauthnController = webauthnController
 
     // a supported provider whose controller failed to load has nothing
     // to display, drop it as well to avoid switching to an empty screen
@@ -84,6 +96,9 @@ public final class MFAViewController: ViewController {
 
       case .yubiKey:
         return yubiKeyController != nil
+
+      case .webauthn:
+        return webauthnController != nil
 
       case .unknown:
         return false
@@ -101,45 +116,6 @@ public final class MFAViewController: ViewController {
     // the initial provider differs from the first supported one
     // when the controller of that one has failed to load
     viewState.update(\.currentProvider, to: initialProvider)
-  }
-
-  private static func makeTOTPController(
-    features: Features,
-    viewState: ViewStateSource<ViewState>
-  ) -> TOTPViewController? {
-    do {
-      return try features.instance(
-        context: .init(
-          loadingCallback: { [weak viewState] (isLoading: Bool) in
-            viewState?.update(\.isLoading, to: isLoading)
-          }
-        )
-      )
-    }
-    catch {
-      SnackBarMessageEvent.send(.error(error))
-      return nil
-    }
-  }
-
-  private static func makeDUOController(features: Features) -> DUOAuthorizationViewController? {
-    do {
-      return try features.instance()
-    }
-    catch {
-      SnackBarMessageEvent.send(.error(error))
-      return nil
-    }
-  }
-
-  private static func makeYubiKeyController(features: Features) -> YubiKeyViewController? {
-    do {
-      return try features.instance()
-    }
-    catch {
-      SnackBarMessageEvent.send(.error(error))
-      return nil
-    }
   }
 
   /// Whether switching to another provider can lead to a different screen.
@@ -181,3 +157,24 @@ internal struct MFAView_Previews: PreviewProvider {
   }
 }
 #endif
+
+extension Features {
+
+  @MainActor
+  fileprivate func makeMFAController<Controller>() -> Controller?
+  where Controller: ViewController, Controller.Context == Void {
+    makeMFAController(context: ())
+  }
+
+  @MainActor
+  fileprivate func makeMFAController<Controller>(context: Controller.Context) -> Controller?
+  where Controller: ViewController {
+    do {
+      return try self.instance(context: context)
+    }
+    catch {
+      SnackBarMessageEvent.send(.error(error))
+      return nil
+    }
+  }
+}

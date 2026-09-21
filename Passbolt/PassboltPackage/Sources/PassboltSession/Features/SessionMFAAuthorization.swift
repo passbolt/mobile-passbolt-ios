@@ -60,6 +60,7 @@ extension SessionMFAAuthorization {
     let totpAuthorizationNetworkOperation: TOTPAuthorizationNetworkOperation = try features.instance()
     let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try features.instance()
     let duoAuthorizationCallbackNetworkOperation: DUOAuthorizationCallbackNetworkOperation = try features.instance()
+    let webauthnDelegatedCallbackNetworkOperation: WebauthnDelegatedCallbackNetworkOperation = try features.instance()
 
     @SessionActor func authorizeMFAWithYubiKey(
       saveLocally: Bool
@@ -101,6 +102,19 @@ extension SessionMFAAuthorization {
           duoCode: duoCode,
           duoToken: duoToken,
           passboltToken: passboltToken,
+          remember: saveLocally
+        )
+      )
+      .mfaToken
+    }
+
+    @SessionActor func authorizeMFAWithWebauthn(
+      exchangeCode: String,
+      saveLocally: Bool
+    ) async throws -> SessionMFAToken {
+      try await webauthnDelegatedCallbackNetworkOperation(
+        .init(
+          exchangeCode: exchangeCode,
           remember: saveLocally
         )
       )
@@ -162,6 +176,17 @@ extension SessionMFAAuthorization {
             duoCode: duoCode,
             duoToken: duoToken,
             passboltToken: passboltToken,
+            saveLocally: remember
+          )
+          account = requestedAccount
+          rememberDevice = remember
+
+        case .webauthn(let requestedAccount, let exchangeCode, let remember):
+          guard requestedAccount == sessionState.account()
+          else { throw SessionClosed.error(account: requestedAccount) }
+
+          mfaToken = try await authorizeMFAWithWebauthn(
+            exchangeCode: exchangeCode,
             saveLocally: remember
           )
           account = requestedAccount

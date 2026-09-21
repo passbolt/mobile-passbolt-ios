@@ -48,6 +48,10 @@ public struct MFAView: ControlledView {
           if let duoController: DUOAuthorizationViewController = self.controller.duoController {
             DUOAuthorizationView(controller: duoController)
           }
+        case .webauthn:
+          if let webauthnController: WebauthnAuthorizationViewController = self.controller.webauthnController {
+            WebauthnAuthorizationView(controller: webauthnController)
+          }
         case .unknown:
           // unsupported providers are filtered out by the controller,
           // unsupported MFA is presented using a dedicated screen

@@ -432,6 +432,9 @@
     Kontaktujte svého správce pro více informací.";
 "mfa.duo.authorization.title" = "Duo multi-faktorové ověření";
 "mfa.duo.authorization.button.title" = "Ověření s Duo";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Přepnout účet";
 "account.menu.account.details.button.title" = "Zobrazit podrobnosti";

@@ -28,6 +28,7 @@ public enum SessionMFAProvider: String {
   case totp = "totp"
   case yubiKey = "yubikey"
   case duo = "duo"
+  case webauthn = "webauthn"
   case unknown
 
   public init(from decoder: Decoder) throws {

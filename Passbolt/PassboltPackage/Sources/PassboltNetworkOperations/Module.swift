@@ -63,6 +63,8 @@ extension FeaturesRegistry {
     self.usePassboltAccountChunkedExportStatusNetworkOperation()
     self.usePassboltDUOAuthorizationPromptNetworkOperation()
     self.usePassboltDUOAuthorizationCallbackNetworkOperation()
+    self.usePassboltWebauthnDelegatedPromptNetworkOperation()
+    self.usePassboltWebauthnDelegatedCallbackNetworkOperation()
     self.usePassboltFeatureAccessControlConfigurationFetchNetworkOperation()
     self.usePassboltMetadataKeysFetchNetworkOperation()
     self.usePassboltMetadataKeysSettingsFetchNetworkOperation()

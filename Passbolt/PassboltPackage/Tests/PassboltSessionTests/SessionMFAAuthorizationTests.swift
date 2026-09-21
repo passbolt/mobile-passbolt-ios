@@ -39,6 +39,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     use(AccountMFATokenStorage.placeholder)
     use(TOTPAuthorizationNetworkOperation.placeholder)
     use(YubiKeyAuthorizationNetworkOperation.placeholder)
+    use(WebauthnDelegatedCallbackNetworkOperation.placeholder)
     use(YubiKey.placeholder)
   }
 
@@ -352,6 +353,110 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     )
     withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
       try await testedInstance.authorizeMFA(.yubiKey(.mock_ada, rememberDevice: true))
+    }
+  }
+
+  func test_authorizeMFA_webauthn_throws_withoutSession() {
+    patch(
+      \SessionState.account,
+      with: always(.none)
+    )
+    withTestedInstanceThrows(
+      SessionClosed.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            exchangeCode: "exchange-code",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  func test_authorizeMFA_webauthn_throws_whenExchangingCodeThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \WebauthnDelegatedCallbackNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            exchangeCode: "exchange-code",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  func test_authorizeMFA_webauthn_providesToken_whenExchangingCodeSucceeds() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \WebauthnDelegatedCallbackNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
+    patch(
+      \SessionState.mfaProvided,
+      with: always(self.executed())
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            exchangeCode: "exchange-code",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  func test_authorizeMFA_webauthn_savesToken_whenRememberingDevice() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \WebauthnDelegatedCallbackNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionState.mfaProvided,
+      with: always(Void())
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
+    patch(
+      \AccountMFATokenStorage.storeAccountMFAToken,
+      with: always(self.executed())
+    )
+    withTestedInstanceExecuted { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            exchangeCode: "exchange-code",
+            rememberDevice: true
+          )
+        )
     }
   }
 }

@@ -431,6 +431,9 @@
 "mfa.unsupported.provider.description" = "Si prega di configurare un altro provider tramite l'applicazione web. Per ulteriori informazioni, contattare l'amministratore.";
 "mfa.duo.authorization.title" = "Autenticazione multi-fattore";
 "mfa.duo.authorization.button.title" = "Esegui l'autenticazione con Duo";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Cambia account";
 "account.menu.account.details.button.title" = "Vedi dettagli";

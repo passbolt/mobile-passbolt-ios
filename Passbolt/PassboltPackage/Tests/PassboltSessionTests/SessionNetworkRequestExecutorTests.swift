@@ -174,7 +174,7 @@ final class SessionNetworkRequestExecutorTests: LoadableFeatureTestCase<SessionN
               url: .test,
               statusCode: 403,
               headers: [:],
-              body: .init(#"{"body":{"mfa_providers":["totp","webauthn"]}}"#.utf8)
+              body: .init(#"{"body":{"mfa_providers":["totp","xauth"]}}"#.utf8)
             )
           )
         }

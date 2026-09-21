@@ -46,27 +46,8 @@ extension DUOAuthorizationCallbackNetworkOperation {
     _ input: Input,
     _ response: HTTPResponse
   ) throws -> Output {
-    guard
-      let cookieHeaderValue: String = response.headers["Set-Cookie"],
-      let cookieBounds: Range<String.Index> = cookieHeaderValue.range(of: "passbolt_mfa=")
-    else {
-      throw
-        NetworkResponseDecodingFailure
-        .error(
-          "Failed to find DUO mfa cookie",
-          response: response
-        )
-    }
-
-    return .init(
-      mfaToken: .init(
-        rawValue: String(
-          cookieHeaderValue[cookieBounds.upperBound...]
-            .prefix(
-              while: { !$0.isWhitespace && $0 != "," && $0 != ";" }
-            )
-        )
-      )
+    try .init(
+      mfaToken: decodedSessionMFAToken(from: response)
     )
   }
 }

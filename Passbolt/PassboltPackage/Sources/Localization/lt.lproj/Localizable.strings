@@ -476,6 +476,9 @@
 "mfa.unsupported.provider.description" = "Prašome sukonfigūruoti kitą teikėją internetinėje programoje.\nDaugiau informacijos galite gauti iš administratoriaus.";
 "mfa.duo.authorization.title" = "„Duo“ kelių veiksnių autentifikavimas";
 "mfa.duo.authorization.button.title" = "Autentifikuotis su Duo";
+"mfa.webauthn.authorization.title" = "Passkey multi-factor authentication";
+"mfa.webauthn.authorization.description" = "You will be asked to confirm with the passkey saved for this server.";
+"mfa.webauthn.authorization.button.title" = "Verify with passkey";
 
 "account.menu.title" = "Pakeisti paskyrą";
 "account.menu.account.details.button.title" = "Žiūrėti detales";
