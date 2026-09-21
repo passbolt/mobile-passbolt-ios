@@ -330,6 +330,11 @@ SECURITY HAZARD: Use with care.
  */
 - (CryptoDecryptionHandleBuilder* _Nullable)insecureDisableUnauthenticatedMessagesCheck;
 /**
+ * MaxDecompressedMessageSize defines the maximum number of bytes allowed for a message
+after decompression. An error is thrown if the decompressed data exceeds this limit.
+ */
+- (CryptoDecryptionHandleBuilder* _Nullable)maxDecompressedMessageSize:(int64_t)size;
+/**
  * New creates a DecryptionHandle and checks that the given
 combination of parameters is valid. If one of the parameters are invalid
 the latest error is returned.
@@ -1329,6 +1334,12 @@ against the verification time.
  * Error returns any errors that occurred within the builder.
  */
 - (BOOL)error:(NSError* _Nullable* _Nullable)error;
+/**
+ * MaxDecompressedMessageSize specifies the maximum allowed size, in bytes,
+for a message after decompression within an inline-signed message.
+If the decompressed message exceeds this limit, an error is returned.
+ */
+- (CryptoVerifyHandleBuilder* _Nullable)maxDecompressedMessageSize:(int64_t)size;
 /**
  * New creates a VerifyHandle and checks that the given
 combination of parameters is valid. If the parameters are invalid,

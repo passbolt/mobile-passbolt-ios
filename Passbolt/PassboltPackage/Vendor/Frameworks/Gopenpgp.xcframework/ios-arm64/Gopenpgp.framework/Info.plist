@@ -2,17 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleExecutable</key>
-  <string>Gopenpgp</string>
-  <key>CFBundleIdentifier</key>
-  <string>Gopenpgp</string>
-  <key>MinimumOSVersion</key>
-  <string>100.0</string>
-  <key>CFBundleShortVersionString</key>
-  <string>0.0.1744699868</string>
-  <key>CFBundleVersion</key>
-  <string>0.0.1744699868</string>
-  <key>CFBundlePackageType</key>
-  <string>FMWK</string>
+	<key>CFBundleExecutable</key>
+	<string>Gopenpgp</string>
+	<key>CFBundleIdentifier</key>
+	<string>Gopenpgp</string>
+	<key>CFBundlePackageType</key>
+	<string>FMWK</string>
+	<key>CFBundleShortVersionString</key>
+	<string>3.4.1</string>
+	<key>CFBundleVersion</key>
+	<string>3.4.1</string>
+	<key>MinimumOSVersion</key>
+	<string>100.0</string>
 </dict>
 </plist>

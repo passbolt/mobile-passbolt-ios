@@ -106,3 +106,8 @@ __pycache__/
 Tools/benchmark/baseline.json
 Tools/benchmark/history.jsonl
 
+
+### GopenPGP build output ###
+# Produced by Tools/gopenpgp/build-xcframework.sh; the vendored copy under
+# Passbolt/PassboltPackage/Vendor/Frameworks is the one that is committed.
+Tools/gopenpgp/dist/

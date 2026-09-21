@@ -69,6 +69,18 @@ i.e., profile.Default(), profile.RFC4880().
  * InsecureAllowDecryptionWithSigningKeys is a flag to enable to decrypt with signing keys for compatibility reasons.
  */
 @property (nonatomic) BOOL insecureAllowDecryptionWithSigningKeys;
+/**
+ * InsecureAllowAllKeyFlagsWhenMissing determines how a key without valid key flags is handled.
+When set to true, a key without flags is treated as if all flags are enabled.
+Enabling this flag has security implications, as a cryptographic key should be used for
+only one type of operation.
+ */
+@property (nonatomic) BOOL insecureAllowAllKeyFlagsWhenMissing;
+/**
+ * MaxDecompressedMessageSize sets the maximum decompressed messages size that can be read
+before throwing an error.
+ */
+@property (nonatomic) int64_t maxDecompressedMessageSize;
 // skipped method Custom.CompressionConfig with unsupported parameter or return types
 
 // skipped method Custom.EncryptionConfig with unsupported parameter or return types
