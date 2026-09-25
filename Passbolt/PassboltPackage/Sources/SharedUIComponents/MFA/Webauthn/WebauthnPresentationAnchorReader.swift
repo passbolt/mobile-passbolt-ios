@@ -37,22 +37,22 @@ internal struct WebauthnPresentationAnchorReader: UIViewRepresentable {
 
   internal func makeUIView(
     context: Context
-  ) -> UIView {
+  ) -> AnchorReadingView {
     AnchorReadingView(anchorUpdate: self.anchorUpdate)
   }
 
   internal func updateUIView(
-    _ uiView: UIView,
+    _ uiView: AnchorReadingView,
     context: Context
   ) {
-    // no-op
+    uiView.update(anchorUpdate: self.anchorUpdate)
   }
 }
 
 @MainActor
-private final class AnchorReadingView: UIView {
+internal final class AnchorReadingView: UIView {
 
-  private let anchorUpdate: @MainActor (ASPresentationAnchor?) -> Void
+  private var anchorUpdate: @MainActor (ASPresentationAnchor?) -> Void
 
   fileprivate init(
     anchorUpdate: @escaping @MainActor (ASPresentationAnchor?) -> Void
@@ -64,11 +64,19 @@ private final class AnchorReadingView: UIView {
   }
 
   @available(*, unavailable)
-  fileprivate required init?(coder: NSCoder) {
+  internal required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
 
-  fileprivate override func didMoveToWindow() {
+  fileprivate func update(
+    anchorUpdate: @escaping @MainActor (ASPresentationAnchor?) -> Void
+  ) {
+    self.anchorUpdate = anchorUpdate
+    // didMoveToWindow won't be called again for an already attached view
+    self.anchorUpdate(self.window)
+  }
+
+  internal override func didMoveToWindow() {
     super.didMoveToWindow()
     self.anchorUpdate(self.window)
   }

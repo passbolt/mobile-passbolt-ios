@@ -35,7 +35,10 @@ internal typealias NavigationToMFA = NavigationTo<NavigationToMFADestination>
 extension NavigationToMFA {
 
   fileprivate static var live: FeatureLoader {
-    replaceRoot(with: MFAView.self)
+    replaceRoot(
+      with: MFAView.self,
+      createNavigationStack: true
+    )
   }
 }
 

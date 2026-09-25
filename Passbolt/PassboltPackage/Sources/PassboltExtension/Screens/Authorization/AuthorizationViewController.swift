@@ -178,10 +178,9 @@ extension AuthorizationViewController {
       }
       try await session.authorize(authorizationMethod)
     }
-    catch let mfaRequired as SessionMFAAuthorizationRequired {
-      await consumingErrors {
-        try await features.navigateToMFAAuthorization(providers: mfaRequired.mfaProviders)
-      }
+    catch let error as SessionMFAAuthorizationRequired {
+      // navigation handled in root view controller
+      error.logged()
     }
     catch let error as ServerPGPFingeprintInvalid {
       await consumingErrors {
