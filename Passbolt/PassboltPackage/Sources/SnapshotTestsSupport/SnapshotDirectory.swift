@@ -81,12 +81,10 @@ public func assertSnapshots(
   else {
     displayScale = SnapshotMatrix.fittedDisplayScale
   }
-  let traits: UITraitCollection = UITraitCollection(
-    traitsFrom: [
-      UITraitCollection(userInterfaceStyle: colorScheme == .dark ? .dark : .light),
-      UITraitCollection(displayScale: displayScale),
-    ]
-  )
+  let traits: UITraitCollection = UITraitCollection { (traits: inout any UIMutableTraits) in
+    traits.userInterfaceStyle = colorScheme == .dark ? .dark : .light
+    traits.displayScale = displayScale
+  }
 
   let imageLayout: SwiftUISnapshotLayout
   if let device: ViewImageConfig = device {

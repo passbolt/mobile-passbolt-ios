@@ -49,12 +49,9 @@ extension ViewImageConfig {
       return self
     }
     var pinned: ViewImageConfig = self
-    pinned.traits = UITraitCollection(
-      traitsFrom: [
-        self.traits,
-        UITraitCollection(displayScale: scale),
-      ]
-    )
+    pinned.traits = self.traits.modifyingTraits { (traits: inout any UIMutableTraits) in
+      traits.displayScale = scale
+    }
     return pinned
   }
 }
@@ -136,28 +133,11 @@ extension UITraitCollection {
   )
     -> UITraitCollection
   {
-    let base: Array<UITraitCollection> = [
-      .init(displayScale: iPhone17FamilyDisplayScale),
-      .init(forceTouchCapability: .available),
-      .init(layoutDirection: .leftToRight),
-      .init(preferredContentSizeCategory: .medium),
-      .init(userInterfaceIdiom: .phone),
-    ]
     switch orientation {
     case .landscape:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .compact),
-          .init(verticalSizeClass: .compact),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .compact, verticalSizeClass: .compact)
     case .portrait:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .compact),
-          .init(verticalSizeClass: .regular),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .compact, verticalSizeClass: .regular)
     }
   }
 
@@ -166,28 +146,11 @@ extension UITraitCollection {
   )
     -> UITraitCollection
   {
-    let base: Array<UITraitCollection> = [
-      .init(displayScale: iPhone17FamilyDisplayScale),
-      .init(forceTouchCapability: .available),
-      .init(layoutDirection: .leftToRight),
-      .init(preferredContentSizeCategory: .medium),
-      .init(userInterfaceIdiom: .phone),
-    ]
     switch orientation {
     case .landscape:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .compact),
-          .init(verticalSizeClass: .compact),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .compact, verticalSizeClass: .compact)
     case .portrait:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .compact),
-          .init(verticalSizeClass: .regular),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .compact, verticalSizeClass: .regular)
     }
   }
 
@@ -196,28 +159,11 @@ extension UITraitCollection {
   )
     -> UITraitCollection
   {
-    let base: Array<UITraitCollection> = [
-      .init(displayScale: iPhone17FamilyDisplayScale),
-      .init(forceTouchCapability: .available),
-      .init(layoutDirection: .leftToRight),
-      .init(preferredContentSizeCategory: .medium),
-      .init(userInterfaceIdiom: .phone),
-    ]
     switch orientation {
     case .landscape:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .regular),
-          .init(verticalSizeClass: .compact),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .regular, verticalSizeClass: .compact)
     case .portrait:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .compact),
-          .init(verticalSizeClass: .regular),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .compact, verticalSizeClass: .regular)
     }
   }
 
@@ -226,28 +172,27 @@ extension UITraitCollection {
   )
     -> UITraitCollection
   {
-    let base: Array<UITraitCollection> = [
-      .init(displayScale: iPhone17FamilyDisplayScale),
-      .init(forceTouchCapability: .available),
-      .init(layoutDirection: .leftToRight),
-      .init(preferredContentSizeCategory: .medium),
-      .init(userInterfaceIdiom: .phone),
-    ]
     switch orientation {
     case .landscape:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .regular),
-          .init(verticalSizeClass: .compact),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .regular, verticalSizeClass: .compact)
     case .portrait:
-      return .init(
-        traitsFrom: base + [
-          .init(horizontalSizeClass: .compact),
-          .init(verticalSizeClass: .regular),
-        ]
-      )
+      return .iPhone17Family(horizontalSizeClass: .compact, verticalSizeClass: .regular)
+    }
+  }
+
+  /// Traits shared by the whole iPhone 17 family; only the size classes differ per model and orientation.
+  private static func iPhone17Family(
+    horizontalSizeClass: UIUserInterfaceSizeClass,
+    verticalSizeClass: UIUserInterfaceSizeClass
+  ) -> UITraitCollection {
+    UITraitCollection { (traits: inout any UIMutableTraits) in
+      traits.displayScale = iPhone17FamilyDisplayScale
+      traits.forceTouchCapability = .available
+      traits.layoutDirection = .leftToRight
+      traits.preferredContentSizeCategory = .medium
+      traits.userInterfaceIdiom = .phone
+      traits.horizontalSizeClass = horizontalSizeClass
+      traits.verticalSizeClass = verticalSizeClass
     }
   }
 }

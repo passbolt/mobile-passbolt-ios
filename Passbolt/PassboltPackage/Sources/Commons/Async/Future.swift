@@ -28,9 +28,10 @@
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(
     operation: {
-      try await withCheckedThrowingContinuation(
-        isolation: isolation
-      ) { (continuation: CheckedContinuation<Value, Error>) in
+      // referencing the isolated parameter isolates this closure to it,
+      // otherwise it runs on the global executor and so does `fulfill`
+      isolation?.assertIsolated()
+      return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
         let cancelled: Bool = state.access { (state: inout CheckedContinuation<Value, Error>?) -> Bool in
           if Task.isCancelled {
             continuation
@@ -69,9 +70,10 @@
   let state: CriticalState<CheckedContinuation<Value, Error>?> = .init(.none)
   return try await withTaskCancellationHandler(
     operation: {
-      try await withCheckedThrowingContinuation(
-        isolation: isolation
-      ) { (continuation: CheckedContinuation<Value, Error>) in
+      // referencing the isolated parameter isolates this closure to it,
+      // otherwise it runs on the global executor and so does `fulfill`
+      isolation?.assertIsolated()
+      return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Value, Error>) in
         let cancelled: Bool = state.access { (state: inout CheckedContinuation<Value, Error>?) -> Bool in
           if Task.isCancelled {
             continuation

@@ -164,17 +164,7 @@ extension SessionState {
     var currentPassphraseExpiration: Timestamp = 0
     let passphraseExpirationTime: Timestamp = 5 * 60  // 5 Minutes
     var wipePassphraseUponTaskCompletion: Bool = false
-    var runningTaskIDs: Set<PassboltID> = .init() {
-      didSet {
-        if runningTaskIDs.isEmpty, wipePassphraseUponTaskCompletion {
-          Diagnostics.logger.info("All session tasks completed, proceeding with deferred passphrase wipe...")
-          passphraseWipe()
-        }
-        else if !runningTaskIDs.isEmpty, wipePassphraseUponTaskCompletion {
-          Diagnostics.logger.info("Session tasks still running (\(runningTaskIDs.count)), deferred wipe pending.")
-        }
-      }
-    }
+    var runningTaskIDs: Set<PassboltID> = .init()
     var taskCancellables: Dictionary<PassboltID, Task<Void, Error>> = .init()
 
     @SessionActor func passphrase() -> Passphrase? {
@@ -196,6 +186,26 @@ extension SessionState {
         }
         return .none
       }
+    }
+
+    @SessionActor func passphraseWipe(force: Bool = false) {
+      if force == false, !runningTaskIDs.isEmpty {
+        Diagnostics.logger
+          .info(
+            "Requested removal of passphrase cache, postponing due to \(runningTaskIDs.count) running task(s)."
+          )
+        wipePassphraseUponTaskCompletion = true
+        return
+      }
+      else if force == true {
+        Diagnostics.logger.info("Forcing wiping passphrase cache (running tasks: \(runningTaskIDs.count))...")
+      }
+      else {
+        Diagnostics.logger.info("Wiping passphrase cache...")
+      }
+      currentPassphrase = .none
+      currentPassphraseExpiration = 0
+      wipePassphraseUponTaskCompletion = false
     }
 
     // access only using SessionActor
@@ -242,6 +252,9 @@ extension SessionState {
     @SessionActor func taskStarted(_ taskID: SessionTaskID) {
       runningTaskIDs.insert(taskID)
       Diagnostics.logger.info("Session task \(taskID.description) started (active: \(runningTaskIDs.count))...")
+      if wipePassphraseUponTaskCompletion {
+        Diagnostics.logger.info("Session tasks still running (\(runningTaskIDs.count)), deferred wipe pending.")
+      }  // else NOP - no deferred wipe requested
     }
 
     @SessionActor func taskRegistered(_ taskID: SessionTaskID, _ task: Task<Void, Error>) {
@@ -253,6 +266,15 @@ extension SessionState {
       runningTaskIDs.remove(taskID)
       taskCancellables.removeValue(forKey: taskID)
       Diagnostics.logger.info("Session task \(taskID.description) finished (active: \(runningTaskIDs.count))...")
+      guard wipePassphraseUponTaskCompletion
+      else { return }  // NOP - no deferred wipe requested
+      if runningTaskIDs.isEmpty {
+        Diagnostics.logger.info("All session tasks completed, proceeding with deferred passphrase wipe...")
+        passphraseWipe()
+      }
+      else {
+        Diagnostics.logger.info("Session tasks still running (\(runningTaskIDs.count)), deferred wipe pending.")
+      }
     }
 
     @SessionActor func createdSession(
@@ -462,26 +484,6 @@ extension SessionState {
           SessionClosed
           .error(account: request.account)
       }
-    }
-
-    @SessionActor func passphraseWipe(force: Bool = false) {
-      if force == false, !runningTaskIDs.isEmpty {
-        Diagnostics.logger
-          .info(
-            "Requested removal of passphrase cache, postponing due to \(runningTaskIDs.count) running task(s)."
-          )
-        wipePassphraseUponTaskCompletion = true
-        return
-      }
-      else if force == true {
-        Diagnostics.logger.info("Forcing wiping passphrase cache (running tasks: \(runningTaskIDs.count))...")
-      }
-      else {
-        Diagnostics.logger.info("Wiping passphrase cache...")
-      }
-      currentPassphrase = .none
-      currentPassphraseExpiration = 0
-      wipePassphraseUponTaskCompletion = false
     }
 
     @SessionActor func accessTokenInvalidate() {

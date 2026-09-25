@@ -49,7 +49,7 @@ extension AccountImportResultHandler {
     }
 
     @Sendable func handleImportError(error: Error) {
-      Task {
+      _ = Task {
         let title: DisplayableString?
         var icon: ImageNameConstant = .failureMark
 

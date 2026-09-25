@@ -69,7 +69,7 @@ public struct LoadingOverlay: View {
     }
     .backgroundColor(.passboltBackgroundOverlay)
     .task {
-      Task {
+      _ = Task {
         try await Task.sleep(nanoseconds: UInt64(longLoadingDelay * 1_000_000_000))
         showLongLoadingMessage = true
       }

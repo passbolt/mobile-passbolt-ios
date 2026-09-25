@@ -79,7 +79,7 @@ internal final class WebauthnDelegatedCeremony {
       let session: ASWebAuthenticationSession = .init(
         url: url,
         callbackURLScheme: WebauthnCeremony.callbackURLScheme,
-        completionHandler: { (callbackURL: URL?, error: Error?) in
+        completionHandler: { @Sendable(callbackURL: URL?, error: Error?) in
           if let callbackURL: URL {
             fulfill(.success(callbackURL))
           }
@@ -112,22 +112,22 @@ internal final class WebauthnDelegatedCeremony {
 
 /// The anchor is captured upfront, for the time of a single ceremony,
 /// so the presentation can't fall back to a window which is not on screen.
-@MainActor
 private final class WebauthnCeremonyContextProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
 
-  private let anchor: ASPresentationAnchor
+  // Only the reference is handed back to the session, the window itself is never accessed here.
+  private let anchor: UncheckedSendableBox<ASPresentationAnchor>
 
   fileprivate init(
     anchor: ASPresentationAnchor
   ) {
-    self.anchor = anchor
+    self.anchor = .init(anchor)
     super.init()
   }
 
-  fileprivate func presentationAnchor(
+  fileprivate nonisolated func presentationAnchor(
     for session: ASWebAuthenticationSession
   ) -> ASPresentationAnchor {
-    self.anchor
+    self.anchor.value
   }
 }
 

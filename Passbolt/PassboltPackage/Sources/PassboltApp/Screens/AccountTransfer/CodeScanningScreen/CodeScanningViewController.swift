@@ -91,50 +91,53 @@ internal final class CodeScanningViewController: ViewController {
   private func handle(result: Result<Void, Error>) {
     switch result {
     case .success:
-      Task {
-        try await navigationToResult.perform(
-          context: .init(
-            icon: .successMark,
-            title: "transfer.account.result.success.title",
-            message: "",
-            buttonTitle: .localized(key: .continue),
-            buttonAction: { [weak self] in
-              try await self?.navigationToSignIn.perform()
-            }
+      _ = Task { [weak self] in
+        try await self?.navigationToResult
+          .perform(
+            context: .init(
+              icon: .successMark,
+              title: "transfer.account.result.success.title",
+              message: "",
+              buttonTitle: .localized(key: .continue),
+              buttonAction: { [weak self] in
+                try await self?.navigationToSignIn.perform()
+              }
+            )
           )
-        )
       }
     case .failure(let error) where error is Cancelled:
-      Task {
-        try await self.navigationToSelf.revert()
+      _ = Task { [weak self] in
+        try await self?.navigationToSelf.revert()
       }
     case .failure(let error) where error is AccountDuplicate || error is AccountKitAccountAlreadyExist:
-      Task {
-        try await navigationToResult.perform(
-          context: .init(
-            icon: .duplicateMark,
-            title: "transfer.account.result.already.linked.title",
-            message: "",
-            buttonTitle: .localized(key: .continue),
-            buttonAction: { [weak self] in
-              try await self?.navigationToSelf.revert()
-            }
+      _ = Task { [weak self] in
+        try await self?.navigationToResult
+          .perform(
+            context: .init(
+              icon: .duplicateMark,
+              title: "transfer.account.result.already.linked.title",
+              message: "",
+              buttonTitle: .localized(key: .continue),
+              buttonAction: { [weak self] in
+                try await self?.navigationToSelf.revert()
+              }
+            )
           )
-        )
       }
     case .failure(let error):
-      Task {
-        try await navigationToResult.perform(
-          context: .init(
-            icon: .failureMark,
-            title: "geenric.error",
-            message: error.asTheError().displayableMessage,
-            buttonTitle: "generic.try.again",
-            buttonAction: { [weak self] in
-              try await self?.navigationToAccountImportInfo.revert()
-            }
+      _ = Task { [weak self] in
+        try await self?.navigationToResult
+          .perform(
+            context: .init(
+              icon: .failureMark,
+              title: "geenric.error",
+              message: error.asTheError().displayableMessage,
+              buttonTitle: "generic.try.again",
+              buttonAction: { [weak self] in
+                try await self?.navigationToAccountImportInfo.revert()
+              }
+            )
           )
-        )
       }
     }
   }

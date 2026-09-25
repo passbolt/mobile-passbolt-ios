@@ -86,9 +86,9 @@ where ViewState: Equatable, ViewState: Sendable {
       .removeDuplicates()
       .share()
     self.viewUpdatesPublisher.connection = { @MainActor [weak self, weak source] in
-      guard var iterator = source?.makeAsyncIterator()
+      guard var iterator: UpdatableIterator<Source.Value> = source?.makeAsyncIterator()
       else { return }  // can't update without source
-      while let _ = try? await iterator.next() {
+      while case .some = await iterator.next() {
         await self?.updateIfNeeded()
       }
     }

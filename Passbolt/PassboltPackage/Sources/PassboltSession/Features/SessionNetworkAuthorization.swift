@@ -206,14 +206,9 @@ extension SessionNetworkAuthorization {
     @Sendable nonisolated func fetchServerKeys(
       for account: Account
     ) async throws -> ServerKeysPrewarmHandle.FetchResult {
-      async let pgpFetch: (ArmoredPGPPublicKey, Seconds) = fetchServerPublicPGPKeyAndTimeDiff(for: account)
-      async let rsaFetch: PEMRSAPublicKey = fetchServerPublicRSAKey(for: account)
-      let (pgpKey, timeDiff): (ArmoredPGPPublicKey, Seconds) = try await pgpFetch
-      let rsaKey: PEMRSAPublicKey = try await rsaFetch
-      return ServerKeysPrewarmHandle.FetchResult(
-        pgpKey: pgpKey,
-        timeDiff: timeDiff,
-        rsaKey: rsaKey
+      try await ServerKeysPrewarmHandle.FetchResult.fetchConcurrently(
+        pgpKeyAndTimeDiff: { try await fetchServerPublicPGPKeyAndTimeDiff(for: account) },
+        rsaKey: { try await fetchServerPublicRSAKey(for: account) }
       )
     }
 
@@ -440,19 +435,16 @@ extension SessionNetworkAuthorization {
       let verificationToken: String = uuidGenerator.uuid()
 
       let fetchResult: ServerKeysPrewarmHandle.FetchResult
-      if let prewarmTask: Task<ServerKeysPrewarmHandle.FetchResult, Error> = prewarmHandle.take(
-        for: authorizationData.account
-      ) {
-        do {
-          fetchResult = try await prewarmTask.value
-        }
-        catch {
-          // prewarm errors are intentionally deferred to the submit path:
-          // discard the failed result and try again from scratch
-          fetchResult = try await fetchServerKeys(for: authorizationData.account)
-        }
-      }
-      else {
+      switch await prewarmHandle.takeResult(for: authorizationData.account) {
+      case .success(let result):
+        fetchResult = result
+
+      case .failure:
+        // prewarm errors are intentionally deferred to the submit path:
+        // discard the failed result and try again from scratch
+        fetchResult = try await fetchServerKeys(for: authorizationData.account)
+
+      case .none:
         fetchResult = try await fetchServerKeys(for: authorizationData.account)
       }
       let serverPublicPGPKey: ArmoredPGPPublicKey = fetchResult.pgpKey
@@ -562,6 +554,23 @@ private final class ServerKeysPrewarmHandle: Sendable {
     fileprivate let pgpKey: ArmoredPGPPublicKey
     fileprivate let timeDiff: Seconds
     fileprivate let rsaKey: PEMRSAPublicKey
+
+    // Reading `async let` values here rather than inside a nonisolated local function works around
+    // a compiler false positive ("No 'async' operations occur within 'await' expression").
+    fileprivate static func fetchConcurrently(
+      pgpKeyAndTimeDiff fetchPGPKeyAndTimeDiff: @escaping @Sendable () async throws -> (ArmoredPGPPublicKey, Seconds),
+      rsaKey fetchRSAKey: @escaping @Sendable () async throws -> PEMRSAPublicKey
+    ) async throws -> Self {
+      async let pgpFetch: (ArmoredPGPPublicKey, Seconds) = fetchPGPKeyAndTimeDiff()
+      async let rsaFetch: PEMRSAPublicKey = fetchRSAKey()
+      let (pgpKey, timeDiff): (ArmoredPGPPublicKey, Seconds) = try await pgpFetch
+      let rsaKey: PEMRSAPublicKey = try await rsaFetch
+      return Self(
+        pgpKey: pgpKey,
+        timeDiff: timeDiff,
+        rsaKey: rsaKey
+      )
+    }
   }
 
   fileprivate struct Entry: Sendable {
@@ -586,13 +595,19 @@ private final class ServerKeysPrewarmHandle: Sendable {
     previous?.task.cancel()
   }
 
-  fileprivate func take(for account: Account) -> Task<FetchResult, Error>? {
-    self.state.access { entry in
+  // Awaiting the task here rather than at the call site works around a compiler
+  // false positive ("No 'async' operations occur within 'await' expression")
+  // for effectful property reads inside nonisolated local functions.
+  fileprivate func takeResult(for account: Account) async -> Result<FetchResult, Error>? {
+    let task: Task<FetchResult, Error>? = self.state.access { entry in
       guard let current: Entry = entry, current.accountID == account.localID
       else { return nil }
       entry = nil
       return current.task
     }
+    guard let task: Task<FetchResult, Error> = task
+    else { return nil }
+    return await task.result
   }
 }
 

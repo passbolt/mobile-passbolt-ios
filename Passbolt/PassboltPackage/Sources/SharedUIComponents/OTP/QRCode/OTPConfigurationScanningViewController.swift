@@ -160,7 +160,7 @@ extension OTPConfigurationScanningViewController {
           with: .finished,
           when: .processing
         )
-      Task {
+      _ = Task {
         try await self.updateResource(with: configuration)
       }
     }
