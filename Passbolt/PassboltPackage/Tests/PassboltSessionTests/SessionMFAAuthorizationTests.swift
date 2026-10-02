@@ -40,6 +40,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
     use(TOTPAuthorizationNetworkOperation.placeholder)
     use(YubiKeyAuthorizationNetworkOperation.placeholder)
     use(WebauthnDelegatedCallbackNetworkOperation.placeholder)
+    use(ServerRSAPublicKeyFetchNetworkOperation.placeholder)
     use(YubiKey.placeholder)
   }
 
@@ -368,18 +369,21 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
         .authorizeMFA(
           .webauthn(
             .mock_ada,
-            exchangeCode: "exchange-code",
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
             rememberDevice: false
           )
         )
     }
   }
 
-  func test_authorizeMFA_webauthn_throws_whenExchangingCodeThrows() {
+  func test_authorizeMFA_webauthn_throws_whenConsumingDelegatedTokenThrows() {
     patch(
       \SessionState.account,
       with: always(.mock_ada)
     )
+    patchDelegatedTokenVerification()
     patch(
       \WebauthnDelegatedCallbackNetworkOperation.execute,
       with: alwaysThrow(MockIssue.error())
@@ -391,18 +395,21 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
         .authorizeMFA(
           .webauthn(
             .mock_ada,
-            exchangeCode: "exchange-code",
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
             rememberDevice: false
           )
         )
     }
   }
 
-  func test_authorizeMFA_webauthn_providesToken_whenExchangingCodeSucceeds() {
+  func test_authorizeMFA_webauthn_providesToken_whenConsumingDelegatedTokenSucceeds() {
     patch(
       \SessionState.account,
       with: always(.mock_ada)
     )
+    patchDelegatedTokenVerification()
     patch(
       \WebauthnDelegatedCallbackNetworkOperation.execute,
       with: always(.init(mfaToken: "token"))
@@ -420,7 +427,47 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
         .authorizeMFA(
           .webauthn(
             .mock_ada,
-            exchangeCode: "exchange-code",
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  func test_authorizeMFA_webauthn_passesDelegatedTokenAndSecret_toCallbackOperation() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patchDelegatedTokenVerification()
+    patch(
+      \WebauthnDelegatedCallbackNetworkOperation.execute,
+      with: { (input: WebauthnDelegatedCallbackNetworkOperationVariable) in
+        // token and secret are both strings, the order pins each value to its own field
+        self.executed(using: [input.delegatedToken, input.delegatedSecret] as Array<String>)
+        return .init(mfaToken: "token")
+      }
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
+    patch(
+      \SessionState.mfaProvided,
+      with: always(Void())
+    )
+    withTestedInstanceExecuted(
+      using: [self.delegatedToken, "delegated-secret"] as Array<String>
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
             rememberDevice: false
           )
         )
@@ -432,6 +479,7 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
       \SessionState.account,
       with: always(.mock_ada)
     )
+    patchDelegatedTokenVerification()
     patch(
       \WebauthnDelegatedCallbackNetworkOperation.execute,
       with: always(.init(mfaToken: "token"))
@@ -453,10 +501,128 @@ final class SessionMFAAuthorizationTests: LoadableFeatureTestCase<SessionMFAAuth
         .authorizeMFA(
           .webauthn(
             .mock_ada,
-            exchangeCode: "exchange-code",
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
             rememberDevice: true
           )
         )
     }
+  }
+
+  func test_authorizeMFA_webauthn_throws_whenFetchingServerRSAKeyThrows() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    withTestedInstanceThrows(
+      MockIssue.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  func test_authorizeMFA_webauthn_throws_withoutConsumingDelegatedToken_whenTokenIsNotValid() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patchDelegatedTokenVerification()
+    patch(
+      \WebauthnDelegatedCallbackNetworkOperation.execute,
+      with: alwaysThrow(MockIssue.error())
+    )
+    // reaching the callback operation would throw MockIssue instead
+    withTestedInstanceThrows(
+      WebauthnAuthorizationFailure.self
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            delegatedState: "other-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  func test_authorizeMFA_webauthn_fetchesServerRSAKey_fromAccountDomain() {
+    patch(
+      \SessionState.account,
+      with: always(.mock_ada)
+    )
+    patchDelegatedTokenVerification()
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: { (input: ServerRSAPublicKeyFetchNetworkOperationVariable) in
+        self.executed(using: input.domain)
+        return .init(keyData: "server-rsa-key")
+      }
+    )
+    patch(
+      \WebauthnDelegatedCallbackNetworkOperation.execute,
+      with: always(.init(mfaToken: "token"))
+    )
+    patch(
+      \SessionLocking.ensureLocking,
+      with: always(Void())
+    )
+    patch(
+      \SessionState.mfaProvided,
+      with: always(Void())
+    )
+    withTestedInstanceExecuted(
+      using: Account.mock_ada.domain
+    ) { (testedInstance: SessionMFAAuthorization) in
+      try await testedInstance
+        .authorizeMFA(
+          .webauthn(
+            .mock_ada,
+            delegatedState: "delegated-state",
+            delegatedToken: self.delegatedToken,
+            delegatedSecret: "delegated-secret",
+            rememberDevice: false
+          )
+        )
+    }
+  }
+
+  // issued by `https://passbolt.com/` for the `delegated-state` ceremony, expiring at 1000,
+  // its signature is not valid so the signature verification is mocked
+  private let delegatedToken: String =
+    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9."
+    + "eyJpc3MiOiJodHRwczovL3Bhc3Nib2x0LmNvbS8iLCJhdWQiOiJwYXNzYm9sdC1tb2JpbGUtbWZhLWV4Y2hhbmdlIiwic3Vi"
+    + "IjoidXNlci1pZCIsImNpZCI6ImRlbGVnYXRlZC1zdGF0ZSIsImp0aSI6InRva2VuLWlkIiwiaWF0IjowLCJleHAiOjEwMDB9."
+    + "c2lnbmF0dXJl"
+
+  private func patchDelegatedTokenVerification() {
+    patch(
+      \ServerRSAPublicKeyFetchNetworkOperation.execute,
+      with: always(.init(keyData: "server-rsa-key"))
+    )
+    patch(
+      \SignatureVerification.verify,
+      with: always(.success(Void()))
+    )
+    patch(
+      \OSTime.timestamp,
+      with: always(0)
+    )
   }
 }

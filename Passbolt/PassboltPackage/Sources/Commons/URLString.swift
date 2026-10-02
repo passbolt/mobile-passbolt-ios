@@ -111,7 +111,7 @@ extension URLString {
     }
 
     // Compare ports if needed
-    if !targetURLPort.isEmpty, !checkedURLPort.isEmpty, targetURLScheme != checkedScheme {
+    if !targetURLPort.isEmpty, !checkedURLPort.isEmpty, targetURLPort != checkedURLPort {
       return false
     }
     else if !targetURLPort.isEmpty, checkedURLPort.isEmpty {

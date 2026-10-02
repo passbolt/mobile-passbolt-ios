@@ -601,6 +601,7 @@ Contactez votre administrateur pour plus d'informations.";
 "error.account.duplicate" = "Compte dupliqué.";
 "error.server.pgp.fingerprint.invalid" = "L'empreinte PGP du serveur est invalide.";
 "error.session.authorization.failed" = "L'autorisation de session a échoué.";
+"error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
 "error.qrcode.invalid" = "Ce n’est pas le QR code de Passbolt, essayez à nouveau !";
 
 "error.validation.folder.name.empty" = "Le nom du dossier ne peut pas être vide.";

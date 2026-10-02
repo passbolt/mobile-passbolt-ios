@@ -22,6 +22,7 @@
 //
 
 import Accounts
+import Crypto
 import Features
 import NFC
 import NetworkOperations
@@ -61,6 +62,9 @@ extension SessionMFAAuthorization {
     let yubiKeyAuthorizationNetworkOperation: YubiKeyAuthorizationNetworkOperation = try features.instance()
     let duoAuthorizationCallbackNetworkOperation: DUOAuthorizationCallbackNetworkOperation = try features.instance()
     let webauthnDelegatedCallbackNetworkOperation: WebauthnDelegatedCallbackNetworkOperation = try features.instance()
+    let serverRSAPublicKeyFetchNetworkOperation: ServerRSAPublicKeyFetchNetworkOperation = try features.instance()
+    let signatureVerification: SignatureVerification = features.instance()
+    let time: OSTime = features.instance()
 
     @SessionActor func authorizeMFAWithYubiKey(
       saveLocally: Bool
@@ -109,12 +113,30 @@ extension SessionMFAAuthorization {
     }
 
     @SessionActor func authorizeMFAWithWebauthn(
-      exchangeCode: String,
+      account: Account,
+      delegatedState: String,
+      delegatedToken: String,
+      delegatedSecret: String,
       saveLocally: Bool
     ) async throws -> SessionMFAToken {
-      try await webauthnDelegatedCallbackNetworkOperation(
+      let serverPublicRSAKey: PEMRSAPublicKey = .init(
+        rawValue: try await serverRSAPublicKeyFetchNetworkOperation(.init(domain: account.domain))
+          .keyData
+      )
+      try WebauthnDelegatedTokenVerification
+        .verify(
+          delegatedToken,
+          expectedIssuer: account.domain,
+          expectedState: delegatedState,
+          serverPublicRSAKey: serverPublicRSAKey,
+          timestamp: time.timestamp(),
+          signatureVerification: signatureVerification
+        )
+
+      return try await webauthnDelegatedCallbackNetworkOperation(
         .init(
-          exchangeCode: exchangeCode,
+          delegatedToken: delegatedToken,
+          delegatedSecret: delegatedSecret,
           remember: saveLocally
         )
       )
@@ -181,12 +203,15 @@ extension SessionMFAAuthorization {
           account = requestedAccount
           rememberDevice = remember
 
-        case .webauthn(let requestedAccount, let exchangeCode, let remember):
+        case .webauthn(let requestedAccount, let delegatedState, let delegatedToken, let delegatedSecret, let remember):
           guard requestedAccount == sessionState.account()
           else { throw SessionClosed.error(account: requestedAccount) }
 
           mfaToken = try await authorizeMFAWithWebauthn(
-            exchangeCode: exchangeCode,
+            account: requestedAccount,
+            delegatedState: delegatedState,
+            delegatedToken: delegatedToken,
+            delegatedSecret: delegatedSecret,
             saveLocally: remember
           )
           account = requestedAccount

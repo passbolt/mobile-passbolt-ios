@@ -35,15 +35,19 @@ public enum WebauthnDelegatedCallbackNetworkOperationDescription: NetworkOperati
 
 public struct WebauthnDelegatedCallbackNetworkOperationVariable: Sendable {
 
-  /// Single use code handed back by the ceremony page after a successful assertion.
-  public var exchangeCode: String
+  /// Single use token handed back by the ceremony page after a successful assertion.
+  public var delegatedToken: String
+  /// Secret received when the ceremony was prompted.
+  public var delegatedSecret: String
   public var remember: Bool
 
   public init(
-    exchangeCode: String,
+    delegatedToken: String,
+    delegatedSecret: String,
     remember: Bool
   ) {
-    self.exchangeCode = exchangeCode
+    self.delegatedToken = delegatedToken
+    self.delegatedSecret = delegatedSecret
     self.remember = remember
   }
 }

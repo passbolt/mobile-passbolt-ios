@@ -70,18 +70,20 @@ extension WebauthnAuthorizationViewController {
       let prompt: WebauthnDelegatedPromptNetworkOperationResult =
         try await self.webauthnDelegatedPromptNetworkOperation()
 
-      let exchangeCode: String =
+      let delegatedToken: String =
         try await self.ceremony
         .authorize(
           domain: account.domain,
-          ceremonyToken: prompt.ceremonyToken
+          state: prompt.state
         )
 
       try await self.session
         .authorizeMFA(
           .webauthn(
             account,
-            exchangeCode: exchangeCode,
+            delegatedState: prompt.state,
+            delegatedToken: delegatedToken,
+            delegatedSecret: prompt.secret,
             rememberDevice: rememberDevice
           )
         )

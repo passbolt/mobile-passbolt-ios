@@ -23,7 +23,7 @@
 
 import Commons
 
-/// The delegated passkey ceremony did not produce an exchange code.
+/// The delegated passkey ceremony did not produce a delegated token.
 public struct WebauthnAuthorizationFailure: TheError {
 
   public static func error(
@@ -40,6 +40,23 @@ public struct WebauthnAuthorizationFailure: TheError {
         )
       ),
       displayableMessage: .localized(key: "error.session.authorization.failed")
+    )
+  }
+
+  /// The ceremony page reported that the browser can't perform the passkey ceremony.
+  public static func browserUnsupported(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          "The browser does not support the passkey ceremony",
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.webauthn.browser.unsupported")
     )
   }
 

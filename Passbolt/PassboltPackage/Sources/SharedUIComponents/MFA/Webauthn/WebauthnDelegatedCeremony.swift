@@ -24,7 +24,9 @@
 import AuthenticationServices
 import CommonModels
 import Commons
+import Localization
 
+import class Foundation.Bundle
 import struct Foundation.URL
 import struct Foundation.URLComponents
 import struct Foundation.URLQueryItem
@@ -47,10 +49,16 @@ internal final class WebauthnDelegatedCeremony {
   }
 
   /// Present the ceremony page for the given instance and wait for its callback.
-  /// - Returns: Single use exchange code issued after a successful assertion.
+  /// - Parameters:
+  ///   - domain: Address of the instance the account belongs to.
+  ///   - state: Delegated state issued by the prompt of the instance.
+  /// - Returns: Single use delegated token issued after a successful assertion.
+  /// - Throws: `Cancelled` if the user closed the ceremony page or cancelled the ceremony on it,
+  ///   `WebauthnAuthorizationFailure` if the ceremony could not be presented or its callback
+  ///   carries no delegated token, or the error of the authentication session.
   internal func authorize(
     domain: URLString,
-    ceremonyToken: String
+    state: String
   ) async throws -> String {
     guard let anchor: ASPresentationAnchor = self.anchor
     else {
@@ -61,7 +69,8 @@ internal final class WebauthnDelegatedCeremony {
 
     let url: URL = try WebauthnCeremony.url(
       domain: domain,
-      ceremonyToken: ceremonyToken
+      state: state,
+      language: WebauthnCeremony.applicationLanguage
     )
 
     let contextProvider: WebauthnCeremonyContextProvider = .init(anchor: anchor)
@@ -106,7 +115,7 @@ internal final class WebauthnDelegatedCeremony {
       }
     }
 
-    return try WebauthnCeremony.exchangeCode(from: callbackURL)
+    return try WebauthnCeremony.delegatedToken(from: callbackURL)
   }
 }
 
@@ -135,21 +144,60 @@ private final class WebauthnCeremonyContextProvider: NSObject, ASWebAuthenticati
 
 internal enum WebauthnCeremony {
 
-  /// Matches `WebauthnDelegatedGetController::REDIRECT_SCHEME_URI` on the server side.
-  /// The scheme carries no host, so no instance address is compiled into the app.
+  /// Matches `WebauthnDelegatedGetController::REDIRECT_URI` (`passbolt://mfa/webauthn/callback`) on the server side.
+  /// The callback carries no instance address, so none is compiled into the app.
   internal static let callbackURLScheme: String = "passbolt"
+  private static let callbackURLHost: String = "mfa"
+  private static let callbackURLPath: String = "/webauthn/callback"
 
   private static let ceremonyPath: String = "/mfa/verify/webauthn/delegated"
-  private static let ceremonyTokenQueryItemName: String = "ceremony_token"
-  private static let exchangeCodeQueryItemName: String = "exchange_code"
+  private static let stateQueryItemName: String = "mfa_delegated_state"
+  private static let localeQueryItemName: String = "locale"
+  private static let delegatedTokenQueryItemName: String = "mfa_delegated_token"
   private static let errorQueryItemName: String = "error"
-  private static let userCancelledErrorValue: String = "user_cancelled"
+  private static let cancelledErrorValue: String = "cancelled"
+  private static let browserUnsupportedErrorValue: String = "browser_unsupported"
+
+  /// Locales of `passbolt.plugins.locale.options` on the server side,
+  /// keyed by the language of the application localization.
+  private static let serverLocales: Dictionary<String, String> = [
+    "cs": "cs-CZ",
+    "de": "de-DE",
+    "en": "en-UK",
+    "es": "es-ES",
+    "fr": "fr-FR",
+    "it": "it-IT",
+    "ja": "ja-JP",
+    "ko": "ko-KR",
+    "lt": "lt-LT",
+    "nl": "nl-NL",
+    "pl": "pl-PL",
+    "pt": "pt-BR",
+    "ro": "ro-RO",
+    "ru": "ru-RU",
+    "sl": "sl-SI",
+    "sv": "sv-SE",
+    "uk": "uk-UA",
+  ]
+
+  /// Language the application strings are displayed in,
+  /// so the ceremony page matches the rest of the application.
+  internal static var applicationLanguage: String? {
+    Bundle.localization.preferredLocalizations.first
+  }
 
   /// The instance address always comes from the account, it is never
   /// part of the application configuration.
+  /// Parameters:
+  ///  - language: Language of the application localization. The ceremony page
+  ///   is requested in the matching server locale, without one the server falls back
+  ///   to the locale of the user or the organization.
+  /// - Returns: Address of the ceremony page for the given instance and state.
+  /// - Throws: `WebauthnAuthorizationFailure` if the domain or the resulting address is invalid.
   internal static func url(
     domain: URLString,
-    ceremonyToken: String
+    state: String,
+    language: String?
   ) throws -> URL {
     guard var components: URLComponents = .init(string: domain.rawValue)
     else {
@@ -164,12 +212,21 @@ internal enum WebauthnCeremony {
       ? String(components.path.dropLast())
       : components.path
     components.path = basePath.appending(ceremonyPath)
-    components.queryItems = [
+    var queryItems: Array<URLQueryItem> = [
       .init(
-        name: ceremonyTokenQueryItemName,
-        value: ceremonyToken
+        name: stateQueryItemName,
+        value: state
       )
     ]
+    if let locale: String = serverLocale(for: language) {
+      queryItems.append(
+        .init(
+          name: localeQueryItemName,
+          value: locale
+        )
+      )
+    }  // else NOP
+    components.queryItems = queryItems
 
     guard let url: URL = components.url
     else {
@@ -181,6 +238,21 @@ internal enum WebauthnCeremony {
     return url
   }
 
+  // localizations can be named with a region (`pt-BR`, `en_GB`),
+  // only the language selects the server locale
+  private static func serverLocale(
+    for language: String?
+  ) -> String? {
+    guard
+      let languageCode: Substring = language?
+        .split(whereSeparator: { $0 == "-" || $0 == "_" })
+        .first
+    else { return .none }
+
+    return serverLocales[languageCode.lowercased()]
+  }
+
+  /// - Returns: `Cancelled` if the user closed the ceremony page, the given error otherwise.
   internal static func mappedError(
     _ error: Error
   ) -> Error {
@@ -194,7 +266,13 @@ internal enum WebauthnCeremony {
     }
   }
 
-  internal static func exchangeCode(
+  /// Reads the result of the ceremony from its callback.
+  /// - Returns: Delegated token if the callback carries a token and no error.
+  /// - Throws: `Cancelled` if the user cancelled the ceremony (`cancelled`),
+  ///   `WebauthnAuthorizationFailure.browserUnsupported()` if the system can't perform the ceremony
+  ///   (`browser_unsupported`), `WebauthnAuthorizationFailure` for an unexpected callback address,
+  ///   a missing or empty token, a token reported together with an error, or any other error.
+  internal static func delegatedToken(
     from callbackURL: URL
   ) throws -> String {
     guard
@@ -202,7 +280,9 @@ internal enum WebauthnCeremony {
         url: callbackURL,
         resolvingAgainstBaseURL: false
       ),
-      components.scheme == callbackURLScheme
+      components.scheme == callbackURLScheme,
+      components.host == callbackURLHost,
+      components.path == callbackURLPath
     else {
       throw
         WebauthnAuthorizationFailure
@@ -210,26 +290,30 @@ internal enum WebauthnCeremony {
     }
 
     let queryItems: Array<URLQueryItem> = components.queryItems ?? .init()
-    let exchangeCode: String? =
+    let delegatedToken: String? =
       queryItems
-      .first(where: { $0.name == exchangeCodeQueryItemName })?
+      .first(where: { $0.name == delegatedTokenQueryItemName })?
       .value
     let error: String? =
       queryItems
       .first(where: { $0.name == errorQueryItemName })?
       .value
 
-    // a callback carrying both an exchange code and an error is ambiguous - reject.
-    if let exchangeCode: String, !exchangeCode.isEmpty, error == .none {
-      return exchangeCode
+    if let delegatedToken: String, !delegatedToken.isEmpty, error == .none {
+      return delegatedToken
     }
-    else if exchangeCode == .none, error == userCancelledErrorValue {
+    else if delegatedToken == .none, error == cancelledErrorValue {
       throw Cancelled.error()
+    }
+    else if delegatedToken == .none, error == browserUnsupportedErrorValue {
+      throw
+        WebauthnAuthorizationFailure
+        .browserUnsupported()
     }
     else {
       throw
         WebauthnAuthorizationFailure
-        .error("The passkey ceremony did not provide an exchange code")
+        .error("The passkey ceremony did not provide a delegated token")
     }
   }
 }

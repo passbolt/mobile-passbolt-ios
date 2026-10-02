@@ -33,7 +33,8 @@ extension WebauthnDelegatedCallbackNetworkOperation {
       .method(.post),
       .jsonBody(
         from: RequestBody(
-          exchangeCode: input.exchangeCode,
+          delegatedToken: input.delegatedToken,
+          delegatedSecret: input.delegatedSecret,
           remember: input.remember
         )
       )
@@ -65,11 +66,13 @@ extension FeaturesRegistry {
 
 private struct RequestBody: Encodable {
 
-  fileprivate var exchangeCode: String
+  fileprivate var delegatedToken: String
+  fileprivate var delegatedSecret: String
   fileprivate var remember: Bool
 
   private enum CodingKeys: String, CodingKey {
-    case exchangeCode = "exchange_code"
+    case delegatedToken = "mfa_delegated_token"
+    case delegatedSecret = "mfa_delegated_secret"
     case remember = "remember"
   }
 }

@@ -35,17 +35,23 @@ public enum WebauthnDelegatedPromptNetworkOperationDescription: NetworkOperation
 
 public struct WebauthnDelegatedPromptNetworkOperationResult: Sendable, Decodable {
 
-  /// Single use, user bound token identifying the ceremony.
+  /// Single use, user bound state identifying the ceremony.
   /// It authorizes the unauthenticated, server rendered ceremony page.
-  public var ceremonyToken: String
+  public var state: String
+  /// Secret binding the ceremony to this application.
+  /// It is never published in the ceremony page url.
+  public var secret: String
 
   public init(
-    ceremonyToken: String
+    state: String,
+    secret: String
   ) {
-    self.ceremonyToken = ceremonyToken
+    self.state = state
+    self.secret = secret
   }
 
   private enum CodingKeys: String, CodingKey {
-    case ceremonyToken = "ceremony_token"
+    case state = "mfa_delegated_state"
+    case secret = "mfa_delegated_secret"
   }
 }

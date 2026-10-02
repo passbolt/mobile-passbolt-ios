@@ -601,6 +601,7 @@ Neem contact op met je beheerder voor meer informatie.";
 "error.account.duplicate" = "Dubbel account.";
 "error.server.pgp.fingerprint.invalid" = "Ongeldige PGP-vingerafdruk van server.";
 "error.session.authorization.failed" = "Sessiemachtiging mislukt.";
+"error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
 "error.qrcode.invalid" = "Dit is niet de Passbolt-QR. Probeer het opnieuw!";
 
 "error.validation.folder.name.empty" = "Mapnaam mag niet leeg zijn.";

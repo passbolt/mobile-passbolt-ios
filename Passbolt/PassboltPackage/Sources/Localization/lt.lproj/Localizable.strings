@@ -646,6 +646,7 @@
 "error.account.duplicate" = "Dublikatinė paskyra.";
 "error.server.pgp.fingerprint.invalid" = "Neteisingas serverio PGP \"fingerprint\".";
 "error.session.authorization.failed" = "Nepavyko autorizuoti seanso.";
+"error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
 "error.qrcode.invalid" = "Tai ne Passbolt QR. Pabandykite dar kartą!";
 
 "error.validation.folder.name.empty" = "Aplanko pavadinimas negali būti tuščias.";

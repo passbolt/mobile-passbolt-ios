@@ -21,7 +21,6 @@
 // @since         v1.0
 //
 
-
 import TestExtensions
 
 @testable import PassboltAccounts

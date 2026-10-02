@@ -140,4 +140,10 @@ final class AutofillExtensionContextServiceIdentifierTests: XCTestCase {
     XCTAssertFalse(("http://127.0.0.1" as Identifier).matches(url: "127.0.0.1:80"))
     XCTAssertFalse(("https://www.passbolt.com" as Identifier).matches(url: "www.passbolt.com:443"))
   }
+
+  func test_matches_returnsFalse_withNonMatchingPortAndMatchingScheme() async throws {
+    XCTAssertFalse(("https://127.0.0.1:444" as Identifier).matches(url: "https://127.0.0.1:443"))
+    XCTAssertFalse(("https://www.passbolt.com:444" as Identifier).matches(url: "https://www.passbolt.com:443"))
+    XCTAssertFalse(("http://[::1]:8080" as Identifier).matches(url: "http://[::1]:8081"))
+  }
 }

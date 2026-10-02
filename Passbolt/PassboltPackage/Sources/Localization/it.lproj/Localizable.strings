@@ -599,6 +599,7 @@
 "error.account.duplicate" = "Duplica account.";
 "error.server.pgp.fingerprint.invalid" = "Impronta digitale PGP del server non valida.";
 "error.session.authorization.failed" = "Autorizzazione sessione non riuscita.";
+"error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
 "error.qrcode.invalid" = "Non è il QR di Passbolt. Riprova!";
 
 "error.validation.folder.name.empty" = "Il nome della cartella non può essere vuoto.";

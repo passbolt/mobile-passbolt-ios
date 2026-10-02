@@ -43,11 +43,14 @@ public enum SessionMFAAuthorizationMethod {
     rememberDevice: Bool
   )
   /// MFA authorization using a passkey (WebAuthn) verified through
-  /// the server rendered ceremony page. The exchange code is issued
-  /// by that page after a successful assertion.
+  /// the server rendered ceremony page. The delegated state and secret
+  /// are received by the application when prompting the ceremony,
+  /// the delegated token is issued by that page after a successful assertion.
   case webauthn(
     Account,
-    exchangeCode: String,
+    delegatedState: String,
+    delegatedToken: String,
+    delegatedSecret: String,
     rememberDevice: Bool
   )
 }
@@ -65,7 +68,7 @@ extension SessionMFAAuthorizationMethod {
     case .duo(let account, _, _, _, _):
       return account
 
-    case .webauthn(let account, _, _):
+    case .webauthn(let account, _, _, _, _):
       return account
     }
   }

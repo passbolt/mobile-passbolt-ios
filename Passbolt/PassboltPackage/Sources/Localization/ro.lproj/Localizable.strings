@@ -601,6 +601,7 @@ Contactați administratorul pentru mai multe informații.";
 "error.account.duplicate" = "Cont duplicat.";
 "error.server.pgp.fingerprint.invalid" = "Amprenta PGP a serverului este invalidă.";
 "error.session.authorization.failed" = "Autorizarea sesiunii a eșuat.";
+"error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
 "error.qrcode.invalid" = "Nu este codul QR al Passbolt. Încercați din nou!";
 
 "error.validation.folder.name.empty" = "Numele folderului nu poate fi gol.";
