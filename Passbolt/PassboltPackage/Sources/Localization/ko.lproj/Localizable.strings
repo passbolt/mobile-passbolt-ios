@@ -602,6 +602,7 @@ NFC가 있어야 작동합니다.";
 "error.server.pgp.fingerprint.invalid" = "서버 PGP 지문이 잘못됨.";
 "error.session.authorization.failed" = "세션 인증 실패됨.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "Passbolt QR코드가 아닙니다. 재 시도하세요!";
 
 "error.validation.folder.name.empty" = "폴더 이름은 비워질수 없습니다.";

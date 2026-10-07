@@ -157,6 +157,7 @@ internal enum WebauthnCeremony {
   private static let errorQueryItemName: String = "error"
   private static let cancelledErrorValue: String = "cancelled"
   private static let browserUnsupportedErrorValue: String = "browser_unsupported"
+  private static let unknownErrorValue: String = "unknown"
 
   /// Locales of `passbolt.plugins.locale.options` on the server side,
   /// keyed by the language of the application localization.
@@ -270,7 +271,8 @@ internal enum WebauthnCeremony {
   /// - Returns: Delegated token if the callback carries a token and no error.
   /// - Throws: `Cancelled` if the user cancelled the ceremony (`cancelled`),
   ///   `WebauthnAuthorizationFailure.browserUnsupported()` if the system can't perform the ceremony
-  ///   (`browser_unsupported`), `WebauthnAuthorizationFailure` for an unexpected callback address,
+  ///   (`browser_unsupported`), `WebauthnAuthorizationFailure.verificationFailed()` if the passkey
+  ///   verification failed (`unknown`), `WebauthnAuthorizationFailure` for an unexpected callback address,
   ///   a missing or empty token, a token reported together with an error, or any other error.
   internal static func delegatedToken(
     from callbackURL: URL
@@ -309,6 +311,11 @@ internal enum WebauthnCeremony {
       throw
         WebauthnAuthorizationFailure
         .browserUnsupported()
+    }
+    else if delegatedToken == .none, error == unknownErrorValue {
+      throw
+        WebauthnAuthorizationFailure
+        .verificationFailed()
     }
     else {
       throw

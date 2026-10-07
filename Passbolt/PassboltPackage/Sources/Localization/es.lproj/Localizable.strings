@@ -602,6 +602,7 @@ Póngase en contacto con su administrador para obtener más información.";
 "error.server.pgp.fingerprint.invalid" = "Huella digital PGP del servidor no válida.";
 "error.session.authorization.failed" = "La autorización de sesión ha fallado.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "No es un QR de Passbolt. ¡Inténtelo de nuevo!";
 
 "error.validation.folder.name.empty" = "El nombre de la carpeta no puede estar vacío.";

@@ -60,6 +60,23 @@ public struct WebauthnAuthorizationFailure: TheError {
     )
   }
 
+  /// The ceremony page reported that the passkey verification failed for an unknown reason.
+  public static func verificationFailed(
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> Self {
+    Self(
+      context: .context(
+        .message(
+          "The passkey verification failed",
+          file: file,
+          line: line
+        )
+      ),
+      displayableMessage: .localized(key: "error.webauthn.verification.failed")
+    )
+  }
+
   public var context: DiagnosticsContext
   public var displayableMessage: DisplayableString
 }

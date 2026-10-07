@@ -600,6 +600,7 @@
 "error.server.pgp.fingerprint.invalid" = "Prstni odtis PGP strežnika ni veljaven.";
 "error.session.authorization.failed" = "Avtorizacija seje ni uspela.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "To ni Passbolt QR. Poskusite ponovno!";
 
 "error.validation.folder.name.empty" = "Ime mape ne more biti prazno.";

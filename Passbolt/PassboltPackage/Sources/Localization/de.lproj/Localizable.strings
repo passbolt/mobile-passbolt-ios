@@ -602,6 +602,7 @@ Wenden Sie sich für weitere Informationen an Ihren Administrator.";
 "error.server.pgp.fingerprint.invalid" = "PGP-Fingerabdruck des Servers ungültig.";
 "error.session.authorization.failed" = "Sitzungsautorisierung fehlgeschlagen.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "Es ist nicht der Passbolt QR. Versuchen Sie es noch einmal!";
 
 "error.validation.folder.name.empty" = "Ordnername darf nicht leer sein.";

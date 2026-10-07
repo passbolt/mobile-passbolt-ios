@@ -600,6 +600,7 @@
 "error.server.pgp.fingerprint.invalid" = "Ogiltigt PGP-fingeravtryck för servern.";
 "error.session.authorization.failed" = "Sessionsauktorisering misslyckades.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "Det är inte Passbolt QR. Försök igen!";
 
 "error.validation.folder.name.empty" = "Mappnamnet kan inte vara tomt.";

@@ -601,6 +601,7 @@
 "error.server.pgp.fingerprint.invalid" = "サーバーPGPフィンガープリントが無効です。";
 "error.session.authorization.failed" = "セッションの認可に失敗しました。";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "これはPassboltのQRではありません。もう一度お試しください！";
 
 "error.validation.folder.name.empty" = "フォルダ名を空にすることはできません。";

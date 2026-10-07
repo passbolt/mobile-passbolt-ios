@@ -601,6 +601,7 @@
 "error.server.pgp.fingerprint.invalid" = "PGP otisk serveru je neplatný.";
 "error.session.authorization.failed" = "Autorizace relace se nezdařila.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "To není Passbolt QR kód. Zkuste to znovu!";
 
 "error.validation.folder.name.empty" = "Název složky nemůže být prázdný.";

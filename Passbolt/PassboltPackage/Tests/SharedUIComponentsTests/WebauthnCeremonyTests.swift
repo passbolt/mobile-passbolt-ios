@@ -195,6 +195,21 @@ final class WebauthnCeremonyTests: TestCase {
     }
   }
 
+  func test_delegatedToken_throwsVerificationFailed_withUnknownInCallback() throws {
+    let callbackURL: URL = try XCTUnwrap(
+      URL(string: "passbolt://mfa/webauthn/callback?error=unknown")
+    )
+
+    XCTAssertThrowsError(
+      try WebauthnCeremony.delegatedToken(from: callbackURL)
+    ) { (error: Error) in
+      XCTAssertEqual(
+        (error as? WebauthnAuthorizationFailure)?.displayableMessage,
+        WebauthnAuthorizationFailure.verificationFailed().displayableMessage
+      )
+    }
+  }
+
   func test_delegatedToken_throwsFailure_withTokenAndBrowserUnsupportedInCallback() throws {
     let callbackURL: URL = try XCTUnwrap(
       URL(string: "passbolt://mfa/webauthn/callback?mfa_delegated_token=delegated-token&error=browser_unsupported")

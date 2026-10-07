@@ -603,6 +603,7 @@ NFC.";
 "error.server.pgp.fingerprint.invalid" = "Отпечаток PGP сервера недействителен.";
 "error.session.authorization.failed" = "Не удалось авторизовать сессию.";
 "error.webauthn.browser.unsupported" = "Passkey verification is not supported by this iOS version. Update the system or use another multi-factor authentication method.";
+"error.webauthn.verification.failed" = "Passkey verification failed.";
 "error.qrcode.invalid" = "Это не QR-код Passbolt. Попробуйте еще раз!";
 
 "error.validation.folder.name.empty" = "Имя раздела не может быть пустым.";
