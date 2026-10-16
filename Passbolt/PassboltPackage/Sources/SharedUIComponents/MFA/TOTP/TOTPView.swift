@@ -63,7 +63,9 @@ internal struct TOTPView: ControlledView {
       HStack {
         Spacer()
         AsyncButton(
-          action: {},
+          action: {
+            self.controller.pasteOTP()
+          },
           label: {
             HStack(spacing: 8) {
               Text(displayable: "totp.paste.otp.button.label")
