@@ -10,6 +10,9 @@
 - MOB-5128 Use monotonic time for cache TTL calculation
 - MOB-5129 Strip tokens from networking logs
 
+## Fixed
+- MOB-5357 Pasting TOTP code on MFA screen
+
 ## Maintenance
 - MOB-5135 Bump app version and GopenPGP framework version
 - MOB-5160 Drop iOS 16 support
