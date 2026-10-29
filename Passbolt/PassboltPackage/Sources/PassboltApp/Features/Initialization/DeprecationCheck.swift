@@ -56,7 +56,7 @@ extension DeprecationCheck {
 
   /// Major system version required by the upcoming releases.
   /// Bumping it makes the notice appear again, silenced or not.
-  internal static var upcomingMinimumSystemVersion: Int { 17 }
+  internal static var upcomingMinimumSystemVersion: Int { 18 }
 
   @MainActor fileprivate static func load(
     features: Features
